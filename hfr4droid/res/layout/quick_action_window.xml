@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout
+	xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content">
+	<FrameLayout
+		android:id="@+id/MainActionWindow"
+		android:layout_width="fill_parent"
+		android:layout_height="wrap_content"
+		android:background="@drawable/quick_action_background">
+		<HorizontalScrollView
+			android:id="@+id/Scroll"
+	        android:layout_width="fill_parent"
+	        android:layout_height="wrap_content"
+	        android:fadingEdgeLength="15dip">
+	   		<LinearLayout
+	   			android:layout_width="wrap_content"
+	      		android:layout_height="wrap_content"
+	      		android:id="@+id/QuickActions"
+	      		android:orientation="horizontal"
+	      		android:gravity="center_horizontal" />
+		</HorizontalScrollView>
+	</FrameLayout>
+	<ImageView
+        android:id="@+id/arrow_down"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+    	android:layout_marginTop="-13dip"
+    	android:paddingLeft="15dip"
+        android:layout_below="@id/MainActionWindow"
+        android:src="@drawable/bottom_arrow" />
+</RelativeLayout>

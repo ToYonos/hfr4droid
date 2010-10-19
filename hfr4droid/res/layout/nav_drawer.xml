@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>   
+<SlidingDrawer xmlns:android="http://schemas.android.com/apk/res/android"
+   	android:id="@+id/Nav"
+	android:layout_width="fill_parent" 
+    android:layout_height="55dip"
+    android:handle="@+id/NavToggle"
+    android:content="@+id/NavButtons"
+    android:orientation="horizontal">	      
+	<Button
+		android:id="@+id/NavToggle"
+	 	android:layout_width="wrap_content"
+		android:layout_height="wrap_content"
+		android:background="@android:color/transparent"
+		android:padding="5dip"
+		android:paddingRight="0dip"
+		android:drawableLeft="@drawable/left_arrow" />		
+	<LinearLayout
+		android:id="@+id/NavButtons"
+	    android:orientation="horizontal"
+	    android:layout_width="fill_parent"
+	    android:layout_height="wrap_content"
+	    android:gravity="center"
+	    android:paddingTop="5dip"
+	    android:background="#DEDFDF">
+		<Button
+			android:id="@+id/ButtonNavFirstPage"
+		 	android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
+			android:padding="10dip"
+			android:drawableLeft="@android:drawable/ic_media_previous" />
+		<Button
+			android:id="@+id/ButtonNavPreviousPage"
+		 	android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
+			android:padding="10dip"
+			android:drawableLeft="@android:drawable/ic_media_rew" />
+		<Button
+			android:id="@+id/ButtonNavUserPage"
+		 	android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
+			android:padding="10dip"
+			android:drawableLeft="@android:drawable/ic_search_category_default" />
+		<Button
+			android:id="@+id/ButtonNavNextPage"
+		 	android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
+			android:padding="10dip"
+			android:drawableLeft="@android:drawable/ic_media_ff" />
+		<Button
+			android:id="@+id/ButtonNavLastPage"
+		 	android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
+			android:padding="10dip"
+			android:drawableLeft="@android:drawable/ic_media_next" />																
+	</LinearLayout>
+</SlidingDrawer>

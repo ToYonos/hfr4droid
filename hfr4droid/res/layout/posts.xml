@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    android:background="#F7F7F7">
+    <LinearLayout
+    	android:id="@+id/PostsLayout"
+    	android:orientation="vertical"
+    	android:layout_width="fill_parent"
+    	android:layout_height="fill_parent">
+    	<TextView
+	    	android:id="@+id/TopicTitle"
+	    	android:gravity="center"
+	    	android:textSize="14dip"
+		   	android:singleLine="true"
+			android:ellipsize="end"
+	    	android:paddingLeft="42dip"
+	    	android:paddingRight="35dip"
+	    	android:textStyle="bold"
+	    	android:textColor="#000080"
+	    	android:background="#DEDFDF"
+	    	android:layout_width="fill_parent" 
+	    	android:layout_height="55dip" />
+		<WebView
+			android:id="@+id/loading"
+	        android:layout_width="fill_parent"
+    		android:layout_height="fill_parent" />
+	</LinearLayout>
+	<include layout="@layout/nav_drawer" />
+</FrameLayout>

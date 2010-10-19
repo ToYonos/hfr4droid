@@ -1,0 +1,200 @@
+package info.toyonos.hfr4droid.core.auth;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.util.ArrayList;
+import java.util.List;
+
+import org.apache.http.NameValuePair;
+import org.apache.http.client.CookieStore;
+import org.apache.http.client.entity.UrlEncodedFormEntity;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.cookie.Cookie;
+import org.apache.http.impl.client.BasicCookieStore;
+import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.message.BasicNameValuePair;
+import org.apache.http.params.HttpProtocolParams;
+import org.apache.http.protocol.HTTP;
+
+/**
+ * <b>HfrAuthentication est la classe permettant de gérer la connexion au site http://forum.hardware.fr</b>
+ * <p>Les informations obligatoires à fournir sont les suivantes :
+ * <ul>
+ * <li>Un nom d'utilisateur</li>
+ * <li>Un mot de passe</li>
+ * </ul>
+ * </p>
+ * <p>
+ * Une fois la connexion effectuée, la methode getCookies() renverra un objet CookieStore contenant les cookies d'identification
+ * </p>
+ * 
+ * @author Harkonnen
+ * @version 1.0
+ *
+ */
+public class HFRAuthentication
+{
+	private String userName = null;
+	private String userPassword = null;
+    private String passHash = null;
+    private String userId = null;
+
+	
+	public static final String AUTH_FORM_URL = "http://forum.hardware.fr/login_validation.php?config=hfr.inc";
+	public static final String COOKIES_FILE_NAME = "/sdcard/hfr_cookies.dat";
+	
+	CookieStore cookieStore = null;
+
+	/**
+	 * Constructeur HfrAuthentication
+	 * 
+	 * @param user
+	 * 			Le nom d'utilisateur
+	 * @param password
+	 * 			Le mot de passe
+	 * 
+	 */
+	public HFRAuthentication(String user, String password) throws IOException, ClassNotFoundException
+	{
+		userName = user;
+		userPassword = password;
+		cookieStore = login();
+		retrieveCookiesInfos(cookieStore);
+	}
+	
+    public HFRAuthentication() throws IOException, ClassNotFoundException
+    {        
+        cookieStore = deserializeCookies();
+        retrieveCookiesInfos(cookieStore);
+    }
+
+	/**
+	 * Retourne les cookies renvoyés par le serveur après login.
+	 * 
+	 * @return Un objet CookieStore contenant les cookies d'identification
+	 */
+	public CookieStore getCookies()
+	{
+		return cookieStore;
+	}
+	
+    public String getUser()
+    {
+            return userName;
+    }
+
+    public String getPassword()
+    {
+            return userPassword;
+    }
+
+    public String getPassHash()
+    {
+            return passHash;
+    }
+
+    public String getUserId()
+    {
+            return userId;
+    }
+
+    private void retrieveCookiesInfos(CookieStore cs)
+    {
+    	if (cs != null)
+    	{
+    		List<Cookie> lstCookies = cs.getCookies();
+    		for (Cookie cookie : lstCookies)
+    		{
+    			if (cookie.getName().equals("md_passs"))
+    				passHash = cookie.getValue();
+    			if (cookie.getName().equals("md_id"))
+    				userId = cookie.getValue();
+    			if (cookie.getName().equals("md_user") && userName == null)
+    				userName = cookie.getValue();    			
+    		}
+    	}
+    }
+    
+	private CookieStore login() throws IOException, ClassNotFoundException
+	{
+		CookieStore cs = null;
+		HttpPost post = new HttpPost(AUTH_FORM_URL);
+		DefaultHttpClient client = new DefaultHttpClient();
+		HttpProtocolParams.setUseExpectContinue(client.getParams(), false);
+		List<NameValuePair> params = new ArrayList<NameValuePair>();
+		params.add(new BasicNameValuePair("pseudo", userName));
+		params.add(new BasicNameValuePair("password", userPassword));
+		
+		post.setEntity(new UrlEncodedFormEntity(params, HTTP.UTF_8));
+		client.execute(post);
+		
+		if (client.getCookieStore() != null && client.getCookieStore().getCookies().size() != 0)
+		{
+			cs = client.getCookieStore();
+			serializeCookies(cs);			
+		}
+		
+		client.getConnectionManager().shutdown();
+		
+		return cs;
+	}
+
+	private void serializeCookies(CookieStore cs) throws IOException, ClassNotFoundException
+	{
+		List<SerializableCookie> hfrCookies = new ArrayList<SerializableCookie>();
+		FileOutputStream fos = null;
+		ObjectOutputStream oos = null;
+		
+		for (int i=0; i<cs.getCookies().size(); i++)
+			hfrCookies.add(new SerializableCookie(cs.getCookies().get(i)));
+		
+		fos = new FileOutputStream(COOKIES_FILE_NAME);
+		oos = new ObjectOutputStream(fos);
+		oos.writeObject(hfrCookies);
+		oos.close();
+	}
+
+	@SuppressWarnings("unchecked")
+	private CookieStore deserializeCookies() throws IOException, ClassNotFoundException
+	{
+		List<SerializableCookie> hfrCookies = null;
+		CookieStore cs = null;
+		FileInputStream fis = null;
+		ObjectInputStream ois = null;
+		try
+		{
+			fis = new FileInputStream(COOKIES_FILE_NAME);
+			ois = new ObjectInputStream(fis);
+			hfrCookies = (ArrayList<SerializableCookie>) ois.readObject();
+		}
+		catch (FileNotFoundException e)
+		{
+			return null;
+		}
+		
+		if (ois != null)
+			ois.close();
+		
+		if (hfrCookies != null)
+		{
+			cs = new BasicCookieStore();
+			for (SerializableCookie cookie : hfrCookies)
+			{
+				cs.addCookie(cookie.getCookie());
+			}
+		}
+		
+		return cs;
+	}
+	
+	// Ajout temporaire @toyo pour effacer le cache
+	public boolean clearCache()
+	{
+		return new File(COOKIES_FILE_NAME).delete();
+	}
+}

@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+	<string name="pref_general_title">Préférences générales</string>
+	
+	<string name="pref_welcome_screen_title">Page d\'accueil</string>
+	<string name="pref_welcome_screen_summary">La page qui s\'affiche lorsque vous lancez l\'application</string>
+	<string name="pref_welcome_screen_default">-1</string>
+	
+	<string name="pref_type_drapeau_title">Type de drapeau</string>
+	<string name="pref_type_drapeau_summary">Le type de drapeau qui s\'affiche par défaut dans l\'application</string>
+	<string name="pref_type_drapeau_default">1</string>
+	
+	<string name="pref_avatars_enable_title">Activer les avatars</string>
+	<string name="pref_avatars_enable_summary">Afficher les avatars dans les posts</string>
+	<string name="pref_avatars_enable_default">true</string>
+
+	<string name="pref_smileys_enable_title">Activer les smileys</string>
+	<string name="pref_smileys_enable_summary">Afficher les smileys dans les posts</string>
+	<string name="pref_smileys_enable_default">true</string>
+	
+	<string name="pref_imgs_enable_title">Activer les images</string>
+	<string name="pref_imgs_enable_summary">Afficher les images dans les posts</string>
+	<string name="pref_imgs_enable_default">true</string>
+
+	<string name="pref_srv_mps_title">Service de notification des MPs</string>
+	
+	<string name="pref_srv_mps_enable_title">Activer le service</string>
+	<string name="pref_srv_mps_enable_summary">Activer le service de vérification des messages privés</string>
+	<string name="pref_srv_mps_enable_default">false</string>
+	
+	<string name="pref_srv_mps_freq_title">Fréquence de vérification (en min)</string>
+	<string name="pref_srv_mps_freq_summary">Fréquence de vérification des messages privés</string>
+	<string name="pref_srv_mps_freq_default">60</string>
+</resources>

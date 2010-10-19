@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+	<PreferenceCategory
+		android:title="@string/pref_general_title">
+		<ListPreference
+			android:key="PrefWelcomeScreen"
+			android:summary="@string/pref_welcome_screen_summary"
+			android:title="@string/pref_welcome_screen_title"
+			android:defaultValue="@string/pref_welcome_screen_default" 
+			android:entries="@array/welcome_screen_values"
+            android:entryValues="@array/welcome_screen_keys" />
+		<ListPreference
+			android:key="PrefTypeDrapeau"
+			android:summary="@string/pref_type_drapeau_summary"
+			android:title="@string/pref_type_drapeau_title"
+			android:defaultValue="@string/pref_type_drapeau_default" 
+			android:entries="@array/type_drapeau_values"
+            android:entryValues="@array/type_drapeau_keys" />            
+		<CheckBoxPreference
+			android:key="PrefAvatarsEnable"
+			android:summary="@string/pref_avatars_enable_summary"
+			android:title="@string/pref_avatars_enable_title"
+			android:defaultValue="@string/pref_avatars_enable_default" />
+		<CheckBoxPreference
+			android:key="PrefSmileysEnable"
+			android:summary="@string/pref_smileys_enable_summary"
+			android:title="@string/pref_smileys_enable_title"
+			android:defaultValue="@string/pref_smileys_enable_default" />
+		<CheckBoxPreference
+			android:key="PrefImgsEnable"
+			android:summary="@string/pref_imgs_enable_summary"
+			android:title="@string/pref_imgs_enable_title"
+			android:defaultValue="@string/pref_imgs_enable_default" />
+	</PreferenceCategory>
+	<PreferenceCategory
+		android:title="@string/pref_srv_mps_title">
+		<CheckBoxPreference
+			android:key="PrefSrvMpsEnable"
+			android:summary="@string/pref_srv_mps_enable_summary"
+			android:title="@string/pref_srv_mps_enable_title"
+			android:defaultValue="@string/pref_srv_mps_enable_default" />
+		<EditTextPreference
+			android:key="PrefSrvMpsFreq"
+			android:summary="@string/pref_srv_mps_freq_summary"
+			android:title="@string/pref_srv_mps_freq_title"
+			android:defaultValue="@string/pref_srv_mps_freq_default" />
+	</PreferenceCategory>
+</PreferenceScreen>
