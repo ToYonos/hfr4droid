@@ -45,73 +45,73 @@ public class CategoriesActivity extends HFR4droidListActivity<Category>
 {
 	private AlertDialog infoDialog;
 	protected boolean isCatsLoaded;
-	
-    @SuppressWarnings("unchecked")
+
+	@SuppressWarnings("unchecked")
 	@Override
-    public void onCreate(Bundle savedInstanceState)
-    {
-       	super.onCreate(savedInstanceState);
-        setContentView(R.layout.categories);
-        infoDialog = getInfoDialog();
-        isCatsLoaded = true;
-  
-        List<Category> cats  = new ArrayList<Category>();
-        Bundle bundle = this.getIntent().getExtras();
-        if (bundle != null && bundle.getSerializable("cats") != null)
-        {
-        	cats = (List<Category>) bundle.getSerializable("cats");
-        }
-        else
-        {
-        	int welcomeScreen = getWelcomeScreen();
-        	if (welcomeScreen > 0 && isLoggedIn())
-        	{
-        		isCatsLoaded = false;
-        		loadTopics(Category.ALL_CATS, TopicType.fromInt(welcomeScreen), false);
-        	}
-        	else
-        	{
-        		loadCats();
-        	}
-        }
-        
-        final ListView lv = getListView();
-        adapter = new CategoryAdapter(this, R.layout.category, R.id.ItemContent, cats);
-        lv.setAdapter(adapter);
+	public void onCreate(Bundle savedInstanceState)
+	{
+		super.onCreate(savedInstanceState);
+		setContentView(R.layout.categories);
+		infoDialog = getInfoDialog();
+		isCatsLoaded = true;
 
-        lv.setOnItemClickListener(new OnItemClickListener()
-        {
-        	public void onItemClick(AdapterView<?> a, View v, int position, long id)
-        	{	
-        		Category cat = (Category) lv.getItemAtPosition(position);
-        		if (isLoggedIn() && !isMpsCat(cat))
-        		{
-        			loadTopics(cat, TopicType.fromInt(getTypeDrapeau()), false);
-        		}
-        		else
-        		{
-        			loadTopics(cat, TopicType.ALL, 1, false);
-        		}
-        	}
-		});
-        
-        lv.setOnCreateContextMenuListener(new OnCreateContextMenuListener()
-        {
-        	public void onCreateContextMenu(ContextMenu menu, View v, ContextMenuInfo menuInfo)
-        	{
-        		if (!isLoggedIn()) return;
-        		
-                MenuInflater inflater = getMenuInflater();
-                inflater.inflate(R.menu.drapeaux_simple, menu);
-                menu.setHeaderTitle(R.string.menu_drapeaux);
+		List<Category> cats  = new ArrayList<Category>();
+		Bundle bundle = this.getIntent().getExtras();
+		if (bundle != null && bundle.getSerializable("cats") != null)
+		{
+			cats = (List<Category>) bundle.getSerializable("cats");
+		}
+		else
+		{
+			int welcomeScreen = getWelcomeScreen();
+			if (welcomeScreen > 0 && isLoggedIn())
+			{
+				isCatsLoaded = false;
+				loadTopics(Category.ALL_CATS, TopicType.fromInt(welcomeScreen), false);
+			}
+			else
+			{
+				loadCats();
+			}
+		}
 
-            	Category currentCat = (Category) getListView().getAdapter().getItem(((AdapterContextMenuInfo)menuInfo).position);
-                if (isAllCatsCat(currentCat)) menu.removeItem(R.id.MenuDrapeauxAll);
-        	}
+		final ListView lv = getListView();
+		adapter = new CategoryAdapter(this, R.layout.category, R.id.ItemContent, cats);
+		lv.setAdapter(adapter);
+
+		lv.setOnItemClickListener(new OnItemClickListener()
+		{
+			public void onItemClick(AdapterView<?> a, View v, int position, long id)
+			{	
+				Category cat = (Category) lv.getItemAtPosition(position);
+				if (isLoggedIn() && !isMpsCat(cat))
+				{
+					loadTopics(cat, TopicType.fromInt(getTypeDrapeau()), false);
+				}
+				else
+				{
+					loadTopics(cat, TopicType.ALL, 1, false);
+				}
+			}
 		});
 
-        startMpCheckService();
-    }  
+		lv.setOnCreateContextMenuListener(new OnCreateContextMenuListener()
+		{
+			public void onCreateContextMenu(ContextMenu menu, View v, ContextMenuInfo menuInfo)
+			{
+				if (!isLoggedIn()) return;
+
+				MenuInflater inflater = getMenuInflater();
+				inflater.inflate(R.menu.drapeaux_simple, menu);
+				menu.setHeaderTitle(R.string.menu_drapeaux);
+
+				Category currentCat = (Category) getListView().getAdapter().getItem(((AdapterContextMenuInfo)menuInfo).position);
+				if (isAllCatsCat(currentCat)) menu.removeItem(R.id.MenuDrapeauxAll);
+			}
+		});
+
+		startMpCheckService();
+	}  
 
 	@Override
 	protected void onRestart()
@@ -125,78 +125,78 @@ public class CategoriesActivity extends HFR4droidListActivity<Category>
 	}
 
 	@Override
-    public boolean onContextItemSelected(MenuItem aItem)
-    {
-    	AdapterContextMenuInfo menuInfo = (AdapterContextMenuInfo) aItem.getMenuInfo();
-    	final Category currentCat = (Category) getListView().getAdapter().getItem(menuInfo.position);
+	public boolean onContextItemSelected(MenuItem aItem)
+	{
+		AdapterContextMenuInfo menuInfo = (AdapterContextMenuInfo) aItem.getMenuInfo();
+		final Category currentCat = (Category) getListView().getAdapter().getItem(menuInfo.position);
 
-    	switch (aItem.getItemId())
-    	{
+		switch (aItem.getItemId())
+		{
 			case R.id.MenuDrapeauxAll:
 				loadTopics(currentCat, TopicType.ALL, 1, false);
 				return true;
-			
-    		case R.id.MenuDrapeauxCyan:
-    			loadTopics(currentCat, TopicType.CYAN, false);
-    			return true;
-    			
-    		case R.id.MenuDrapeauxRouges:
-    			loadTopics(currentCat, TopicType.ROUGE, false);
-    			return true;
-    			
-    		case R.id.MenuDrapeauxFavoris:
-    			loadTopics(currentCat, TopicType.FAVORI, false);
-    			return true;    			
-    			
-    		default:
-    			return false;
-    	}
-    }
+	
+			case R.id.MenuDrapeauxCyan:
+				loadTopics(currentCat, TopicType.CYAN, false);
+				return true;
+	
+			case R.id.MenuDrapeauxRouges:
+				loadTopics(currentCat, TopicType.ROUGE, false);
+				return true;
+	
+			case R.id.MenuDrapeauxFavoris:
+				loadTopics(currentCat, TopicType.FAVORI, false);
+				return true;    			
+	
+			default:
+				return false;
+		}
+	}
 
 	@Override
-    public boolean onCreateOptionsMenu(Menu menu)
-    {
-        MenuInflater inflater = getMenuInflater();
-        inflater.inflate(R.menu.common, menu);
-        inflater.inflate(R.menu.categories, menu);
-        return true;
-    }
-    
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item)
-    {
-    	boolean result = super.onOptionsItemSelected(item);
-    	if (!result)
-    	{
-	        switch (item.getItemId())
-		        {
-		        case R.id.MenuInfo :
-		        	infoDialog.show();
-		            return true;
-		            
-		        case R.id.MenuQuit :
-		        	finish();
-		            return true;
+	public boolean onCreateOptionsMenu(Menu menu)
+	{
+		MenuInflater inflater = getMenuInflater();
+		inflater.inflate(R.menu.common, menu);
+		inflater.inflate(R.menu.categories, menu);
+		return true;
+	}
 
-		        default:
-		            return false;
-	        }
-    	}
-    	else
-    	{
-    		return true;
-    	}
-    }
-    
-    public boolean isCatsLoaded()
-    {
-    	return isCatsLoaded;
-    }
-    
+	@Override
+	public boolean onOptionsItemSelected(MenuItem item)
+	{
+		boolean result = super.onOptionsItemSelected(item);
+		if (!result)
+		{
+			switch (item.getItemId())
+			{
+				case R.id.MenuInfo :
+					infoDialog.show();
+					return true;
+	
+				case R.id.MenuQuit :
+					finish();
+					return true;
+	
+				default:
+					return false;
+			}
+		}
+		else
+		{
+			return true;
+		}
+	}
+
+	public boolean isCatsLoaded()
+	{
+		return isCatsLoaded;
+	}
+
 	private AlertDialog getInfoDialog()
 	{
 		String title = getString(R.string.app_name);
-		
+
 		PackageInfo packageInfo;
 		try
 		{
@@ -204,7 +204,7 @@ public class CategoriesActivity extends HFR4droidListActivity<Category>
 			title += " - V." + packageInfo.versionName;
 		}
 		catch (NameNotFoundException e) {}
-		
+
 		String infoContent = null;
 		InputStream is = null;
 		try
@@ -230,12 +230,12 @@ public class CategoriesActivity extends HFR4droidListActivity<Category>
 		{
 			public void onClick(DialogInterface dialog, int which){}
 		}); 
-	
+
 		AlertDialog infoDialog = info.create();
 		// Sorte de pre-rendering pour éviter l'affichage en 2 temps
 		infoDialog.show();
-        infoDialog.hide();
-        return infoDialog;
+		infoDialog.hide();
+		return infoDialog;
 	}
 
 	@Override
@@ -257,9 +257,9 @@ public class CategoriesActivity extends HFR4droidListActivity<Category>
 		}
 		adapter.notifyDataSetChanged();
 	}
-    
-    /* Classes internes */
-    
+
+	/* Classes internes */
+
 	private class CategoryAdapter extends ArrayAdapter<Category>
 	{
 		private List<Category> cats;
@@ -274,7 +274,7 @@ public class CategoriesActivity extends HFR4droidListActivity<Category>
 			}
 			this.cats = cats;
 		}
-	
+
 		@Override
 		public View getView(int position, View convertView, ViewGroup parent)
 		{

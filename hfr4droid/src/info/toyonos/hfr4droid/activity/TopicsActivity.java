@@ -53,79 +53,79 @@ public class TopicsActivity extends HFR4droidListActivity<Topic>
 	private TopicType type;
 	private GestureDetector gestureDetector;
 
-    @SuppressWarnings("unchecked")
+	@SuppressWarnings("unchecked")
 	@Override
 	protected void onCreate(Bundle savedInstanceState)
-    {
-       	super.onCreate(savedInstanceState);
-        setContentView(R.layout.topics);
-        attachEvents();
+	{
+		super.onCreate(savedInstanceState);
+		setContentView(R.layout.topics);
+		attachEvents();
 
-        Bundle bundle = this.getIntent().getExtras();
-        boolean allCats = bundle.getBoolean("allCats", false);
-        type = bundle.getSerializable("topicType") != null ? (TopicType) bundle.getSerializable("topicType") : TopicType.ALL;
+		Bundle bundle = this.getIntent().getExtras();
+		boolean allCats = bundle.getBoolean("allCats", false);
+		type = bundle.getSerializable("topicType") != null ? (TopicType) bundle.getSerializable("topicType") : TopicType.ALL;
 
-        List<Topic> topics = new ArrayList<Topic>();
-        if (bundle != null && bundle.getSerializable("topics") != null)
-        {
-        	topics = (List<Topic>) bundle.getSerializable("topics");
-        	if (allCats)
-        	{
-        		cat = Category.ALL_CATS;
-        		topics = addCats(topics);
-        	}
-        	else if (topics.size() > 0)
-        	{
-        		cat = topics.get(0).getCategory();
-        	}
-        }
-        else if (bundle != null && bundle.getSerializable("cat") != null)
-        {
-        	cat = (Category) bundle.getSerializable("cat");
-        	loadTopics(cat, type);
-        }
- 
-        if (cat != null)
-        {
-    		setTitle();
-    		updateButtonsStates();
-    		if (cat.equals(Category.MPS_CAT)) clearNotifications();
-        }
-        
-        final ListView lv = getListView();
-        adapter = new TopicAdapter(this, R.layout.topic, R.id.ItemContent, topics);
-        lv.setAdapter(adapter);
+		List<Topic> topics = new ArrayList<Topic>();
+		if (bundle != null && bundle.getSerializable("topics") != null)
+		{
+			topics = (List<Topic>) bundle.getSerializable("topics");
+			if (allCats)
+			{
+				cat = Category.ALL_CATS;
+				topics = addCats(topics);
+			}
+			else if (topics.size() > 0)
+			{
+				cat = topics.get(0).getCategory();
+			}
+		}
+		else if (bundle != null && bundle.getSerializable("cat") != null)
+		{
+			cat = (Category) bundle.getSerializable("cat");
+			loadTopics(cat, type);
+		}
 
-        lv.setOnItemClickListener(new OnItemClickListener()
-        {
-        	public void onItemClick(AdapterView<?> a, View v, int position, long id)
-        	{	
-        		Topic topic = (Topic) lv.getItemAtPosition(position);
-        		if (topic.getId() != -1)
-        		{
-        			int page = topic.getLastReadPage() != -1 ? topic.getLastReadPage() : 1;
-        			loadPosts(topic, page, false);
-        		}
-        		else
-        		{
-        			cat = topic.getCategory();
-        			loadTopics(topic.getCategory(), type);
-        		}
-        	}
+		if (cat != null)
+		{
+			setTitle();
+			updateButtonsStates();
+			if (cat.equals(Category.MPS_CAT)) clearNotifications();
+		}
+
+		final ListView lv = getListView();
+		adapter = new TopicAdapter(this, R.layout.topic, R.id.ItemContent, topics);
+		lv.setAdapter(adapter);
+
+		lv.setOnItemClickListener(new OnItemClickListener()
+		{
+			public void onItemClick(AdapterView<?> a, View v, int position, long id)
+			{	
+				Topic topic = (Topic) lv.getItemAtPosition(position);
+				if (topic.getId() != -1)
+				{
+					int page = topic.getLastReadPage() != -1 ? topic.getLastReadPage() : 1;
+					loadPosts(topic, page, false);
+				}
+				else
+				{
+					cat = topic.getCategory();
+					loadTopics(topic.getCategory(), type);
+				}
+			}
 		});
 
-        lv.setOnCreateContextMenuListener(new OnCreateContextMenuListener()
-        {
-        	public void onCreateContextMenu(ContextMenu menu, View v, ContextMenuInfo menuInfo)
-        	{                
-                MenuInflater inflater = getMenuInflater();
-                inflater.inflate(R.menu.nav_simple, menu);
-                menu.setHeaderTitle(R.string.nav_go_to);
-            	Topic currentTopic = (Topic) getListView().getAdapter().getItem(((AdapterContextMenuInfo)menuInfo).position);
-                if (!isLoggedIn() || currentTopic.getLastReadPage() == -1) menu.removeItem(R.id.MenuNavLastReadPage);
-        	}
+		lv.setOnCreateContextMenuListener(new OnCreateContextMenuListener()
+		{
+			public void onCreateContextMenu(ContextMenu menu, View v, ContextMenuInfo menuInfo)
+			{                
+				MenuInflater inflater = getMenuInflater();
+				inflater.inflate(R.menu.nav_simple, menu);
+				menu.setHeaderTitle(R.string.nav_go_to);
+				Topic currentTopic = (Topic) getListView().getAdapter().getItem(((AdapterContextMenuInfo)menuInfo).position);
+				if (!isLoggedIn() || currentTopic.getLastReadPage() == -1) menu.removeItem(R.id.MenuNavLastReadPage);
+			}
 		});
-        
+
 		gestureDetector = new GestureDetector(new SimpleNavOnGestureListener()
 		{
 			@Override
@@ -140,7 +140,7 @@ public class TopicsActivity extends HFR4droidListActivity<Topic>
 				if (type == TopicType.ALL) loadNextPage();
 			}
 		});
-		
+
 		lv.setOnTouchListener(new OnTouchListener()
 		{
 			public boolean onTouch(View v, MotionEvent event)
@@ -148,60 +148,60 @@ public class TopicsActivity extends HFR4droidListActivity<Topic>
 				return gestureDetector.onTouchEvent(event);
 			}
 		});	
-    }
-    
-    @Override
-    public boolean onContextItemSelected(MenuItem aItem)
-    {
-    	AdapterContextMenuInfo menuInfo = (AdapterContextMenuInfo) aItem.getMenuInfo();
-    	final Topic currentTopic = (Topic) getListView().getAdapter().getItem(menuInfo.position);
+	}
 
-    	switch (aItem.getItemId())
-    	{    	
-    		case R.id.MenuNavLastReadPage:
-    			loadPosts(currentTopic, currentTopic.getLastReadPage(), false);
-    			return true;
-    	
-    		case R.id.MenuNavFirstPage:
-    			loadPosts(currentTopic, 1, false);
-    			return true;
+	@Override
+	public boolean onContextItemSelected(MenuItem aItem)
+	{
+		AdapterContextMenuInfo menuInfo = (AdapterContextMenuInfo) aItem.getMenuInfo();
+		final Topic currentTopic = (Topic) getListView().getAdapter().getItem(menuInfo.position);
 
-    		case R.id.MenuNavUserPage:
-	        	new PageNumberDialog(currentTopic.getNbPages())
-	        	{
-	        		protected void onValidate(int pageNumber)
-	        		{
-	        			loadPosts(currentTopic, pageNumber, false);
-	        		}
-	        	}.show();
-    			return true;
-
-    		case R.id.MenuNavLastPage:
-    			loadPosts(currentTopic, currentTopic.getNbPages(), false);
-    			return true;
-    			
-    		default:
-    			return false;
-    	}
-    }
+		switch (aItem.getItemId())
+		{    	
+			case R.id.MenuNavLastReadPage:
+				loadPosts(currentTopic, currentTopic.getLastReadPage(), false);
+				return true;
+	
+			case R.id.MenuNavFirstPage:
+				loadPosts(currentTopic, 1, false);
+				return true;
+	
+			case R.id.MenuNavUserPage:
+				new PageNumberDialog(currentTopic.getNbPages())
+				{
+					protected void onValidate(int pageNumber)
+					{
+						loadPosts(currentTopic, pageNumber, false);
+					}
+				}.show();
+				return true;
+	
+			case R.id.MenuNavLastPage:
+				loadPosts(currentTopic, currentTopic.getNbPages(), false);
+				return true;
+	
+			default:
+				return false;
+		}
+	}
 
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu)
-    {
-        MenuInflater inflater = getMenuInflater();
-        inflater.inflate(R.menu.common, menu);
-        inflater.inflate(R.menu.drapeaux, menu);
-        inflater.inflate(R.menu.misc, menu);
-        inflater.inflate(R.menu.nav, menu);
-        SubMenu menuNav = menu.findItem(R.id.MenuNav).getSubMenu();
-        menuNav.removeItem(R.id.MenuNavLastPage);
-        return true;
+	{
+		MenuInflater inflater = getMenuInflater();
+		inflater.inflate(R.menu.common, menu);
+		inflater.inflate(R.menu.drapeaux, menu);
+		inflater.inflate(R.menu.misc, menu);
+		inflater.inflate(R.menu.nav, menu);
+		SubMenu menuNav = menu.findItem(R.id.MenuNav).getSubMenu();
+		menuNav.removeItem(R.id.MenuNavLastPage);
+		return true;
 	}
-    
-    @Override
+
+	@Override
 	public boolean onPrepareOptionsMenu(Menu menu)
-    {
-    	super.onPrepareOptionsMenu(menu);
+	{
+		super.onPrepareOptionsMenu(menu);
 
 		MenuItem drapeaux = menu.findItem(R.id.MenuDrapeaux);
 		MenuItem mps = menu.findItem(R.id.MenuMps);
@@ -209,79 +209,79 @@ public class TopicsActivity extends HFR4droidListActivity<Topic>
 		drapeaux.setEnabled(isLoggedIn() && !isMpsCat());
 		mps.setVisible(isLoggedIn() && !isMpsCat());
 		mps.setEnabled(isLoggedIn() && !isMpsCat());
-    	
-        MenuItem drapeauxAll = drapeaux.getSubMenu().findItem(R.id.MenuDrapeauxAll);
-        drapeauxAll.setVisible(!isAllCatsCat());
-        drapeauxAll.setEnabled(!isAllCatsCat());
-		
-    	boolean myTopics = type == TopicType.CYAN || type == TopicType.ROUGE || type == TopicType.FAVORI;
-    	MenuItem menuNav = menu.findItem(R.id.MenuNav);
-    	
-    	menuNav.setVisible(!myTopics);
-    	menuNav.setEnabled(!myTopics);
-    	
-    	MenuItem menuNavRefresh =  menuNav.getSubMenu().findItem(R.id.MenuNavRefresh);
-    	menuNavRefresh.setVisible(!myTopics && !isMpsCat() && isLoggedIn());
-    	menuNavRefresh.setEnabled(!myTopics && !isMpsCat() && isLoggedIn());
-    	MenuItem refresh = menu.findItem(R.id.MenuRefresh);
-    	refresh.setVisible(myTopics || isMpsCat() || !isLoggedIn());
-    	refresh.setEnabled(myTopics || isMpsCat() || !isLoggedIn());	
-    	
-    	MenuItem menuNavFP =  menuNav.getSubMenu().findItem(R.id.MenuNavFirstPage);
-    	menuNavFP.setVisible(currentPageNumber != 1);
-    	menuNavFP.setEnabled(currentPageNumber != 1);
-   
-    	MenuItem menuNavPP =  menuNav.getSubMenu().findItem(R.id.MenuNavPreviousPage);
-    	menuNavPP.setVisible(currentPageNumber != 1);
-    	menuNavPP.setEnabled(currentPageNumber != 1);
-    
-        return true;
+
+		MenuItem drapeauxAll = drapeaux.getSubMenu().findItem(R.id.MenuDrapeauxAll);
+		drapeauxAll.setVisible(!isAllCatsCat());
+		drapeauxAll.setEnabled(!isAllCatsCat());
+
+		boolean myTopics = type == TopicType.CYAN || type == TopicType.ROUGE || type == TopicType.FAVORI;
+		MenuItem menuNav = menu.findItem(R.id.MenuNav);
+
+		menuNav.setVisible(!myTopics);
+		menuNav.setEnabled(!myTopics);
+
+		MenuItem menuNavRefresh =  menuNav.getSubMenu().findItem(R.id.MenuNavRefresh);
+		menuNavRefresh.setVisible(!myTopics && !isMpsCat() && isLoggedIn());
+		menuNavRefresh.setEnabled(!myTopics && !isMpsCat() && isLoggedIn());
+		MenuItem refresh = menu.findItem(R.id.MenuRefresh);
+		refresh.setVisible(myTopics || isMpsCat() || !isLoggedIn());
+		refresh.setEnabled(myTopics || isMpsCat() || !isLoggedIn());	
+
+		MenuItem menuNavFP =  menuNav.getSubMenu().findItem(R.id.MenuNavFirstPage);
+		menuNavFP.setVisible(currentPageNumber != 1);
+		menuNavFP.setEnabled(currentPageNumber != 1);
+
+		MenuItem menuNavPP =  menuNav.getSubMenu().findItem(R.id.MenuNavPreviousPage);
+		menuNavPP.setVisible(currentPageNumber != 1);
+		menuNavPP.setEnabled(currentPageNumber != 1);
+
+		return true;
 	}
-    
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item)
-    {
-    	boolean result = super.onOptionsItemSelected(item);
-    	if (!result)
-    	{
-	        switch (item.getItemId())
-		    {				
-		        case R.id.MenuDrapeauxAll :
-		        	type = TopicType.ALL;
-		        	if (currentPageNumber < 1) currentPageNumber = 1;
-		        	reloadPage();
-		        	return true;
 
-		        case R.id.MenuDrapeauxCyan :
-		        	type = TopicType.CYAN;
-		        	reloadPage();
-		        	return true;
-		        	
-		        case R.id.MenuDrapeauxRouges :
-		        	type = TopicType.ROUGE;
-		        	reloadPage();
-		        	return true; 
-		        	
-		        case R.id.MenuDrapeauxFavoris :
-		        	type = TopicType.FAVORI;
-		        	reloadPage();
-		        	return true;
-
-		        default:
-		            return false;
-	        }
-    	}
-    	else
-    	{
-    		return true;
-    	}
-    }
+	@Override
+	public boolean onOptionsItemSelected(MenuItem item)
+	{
+		boolean result = super.onOptionsItemSelected(item);
+		if (!result)
+		{
+			switch (item.getItemId())
+			{				
+				case R.id.MenuDrapeauxAll :
+					type = TopicType.ALL;
+					if (currentPageNumber < 1) currentPageNumber = 1;
+					reloadPage();
+					return true;
+	
+				case R.id.MenuDrapeauxCyan :
+					type = TopicType.CYAN;
+					reloadPage();
+					return true;
+	
+				case R.id.MenuDrapeauxRouges :
+					type = TopicType.ROUGE;
+					reloadPage();
+					return true; 
+	
+				case R.id.MenuDrapeauxFavoris :
+					type = TopicType.FAVORI;
+					reloadPage();
+					return true;
+	
+				default:
+					return false;
+			}
+		}
+		else
+		{
+			return true;
+		}
+	}
 
 	protected TopicType getType() 
 	{
 		return type;
 	}
-	
+
 	protected void setType(TopicType type) 
 	{
 		this.type = type;
@@ -289,22 +289,22 @@ public class TopicsActivity extends HFR4droidListActivity<Topic>
 
 	@Override
 	protected void setWindowTitle()
-    {
+	{
 		String title = getString(R.string.app_name) + " (";
 		switch (type)
 		{			
 			case CYAN:
 				title += getString(R.string.menu_drapeaux_cyan).toLowerCase();
 				break;
-
+	
 			case ROUGE:
 				title += getString(R.string.menu_drapeaux_rouges).toLowerCase();
 				break;
-				
+	
 			case FAVORI:
 				title += getString(R.string.menu_drapeaux_favoris).toLowerCase();
 				break;
-
+	
 			default:
 				title += getString(R.string.menu_drapeaux_all).toLowerCase();
 				break;
@@ -312,57 +312,57 @@ public class TopicsActivity extends HFR4droidListActivity<Topic>
 		title += ")";
 		if (type.equals(TopicType.ALL)) title += " - P." + currentPageNumber;
 		setTitle(title);
-    }
-	
+	}
+
 	@Override
 	protected void setTitle()
 	{
-    	TextView topicTitle = (TextView) findViewById(R.id.CatTitle);
-    	topicTitle.setText(cat.toString());
+		TextView topicTitle = (TextView) findViewById(R.id.CatTitle);
+		topicTitle.setText(cat.toString());
 	}
-	
-    @Override
-    protected void loadFirstPage()
+
+	@Override
+	protected void loadFirstPage()
 	{
 		loadTopics(cat, TopicType.ALL, 1);	
 	}
 
-    @Override
+	@Override
 	protected void loadPreviousPage()
 	{
 		loadTopics(cat, TopicType.ALL, currentPageNumber - 1);	
 	}
-	
+
 	@Override
 	protected void loadUserPage()
 	{
-    	new PageNumberDialog()
-    	{
-    		protected void onValidate(int pageNumber)
-    		{
-    			loadTopics(cat, TopicType.ALL, pageNumber);
-    		}
-    	}.show();
+		new PageNumberDialog()
+		{
+			protected void onValidate(int pageNumber)
+			{
+				loadTopics(cat, TopicType.ALL, pageNumber);
+			}
+		}.show();
 	}
-	
+
 	@Override
 	protected void loadNextPage()
 	{
 		loadTopics(cat, TopicType.ALL, currentPageNumber + 1);
 	}
-	
+
 	@Override
 	protected void reloadPage()
 	{
 		loadTopics(cat, type, currentPageNumber);	
 	}
-	
+
 	@Override
 	protected void goBack()
 	{
 		loadCats(false);
 	}
-	
+
 	private List<Topic> addCats(List<Topic> topics)
 	{
 		Category currentCat = null;
@@ -391,13 +391,13 @@ public class TopicsActivity extends HFR4droidListActivity<Topic>
 		else
 		{
 			nav.setVisibility(View.VISIBLE);
-			
+
 			Button buttonFP = (Button) findViewById(R.id.ButtonNavFirstPage);
 			buttonFP.setEnabled(currentPageNumber != 1);
-			
+
 			Button buttonPP = (Button) findViewById(R.id.ButtonNavPreviousPage);
 			buttonPP.setEnabled(currentPageNumber != 1);
-	
+
 			Button buttonLP = (Button) findViewById(R.id.ButtonNavLastPage);
 			buttonLP.setEnabled(false);
 		}
@@ -431,7 +431,7 @@ public class TopicsActivity extends HFR4droidListActivity<Topic>
 				loadFirstPage();	
 			}
 		});
-		
+
 		Button buttonPP = (Button) findViewById(R.id.ButtonNavPreviousPage);
 		buttonPP.setOnClickListener(new OnClickListener()
 		{
@@ -440,7 +440,7 @@ public class TopicsActivity extends HFR4droidListActivity<Topic>
 				loadPreviousPage();	
 			}
 		});
-		
+
 		Button buttonUP = (Button) findViewById(R.id.ButtonNavUserPage);
 		buttonUP.setOnClickListener(new OnClickListener()
 		{
@@ -449,7 +449,7 @@ public class TopicsActivity extends HFR4droidListActivity<Topic>
 				loadUserPage();	
 			}
 		});			
-		
+
 		Button buttonNP = (Button) findViewById(R.id.ButtonNavNextPage);
 		buttonNP.setOnClickListener(new OnClickListener()
 		{
@@ -471,19 +471,19 @@ public class TopicsActivity extends HFR4droidListActivity<Topic>
 		adapter.notifyDataSetChanged();
 		updateButtonsStates();
 	}
-	
+
 	protected boolean isMpsCat()
 	{
 		return isMpsCat(cat);
 	}
-	
+
 	protected boolean isAllCatsCat()
 	{
 		return isAllCatsCat(cat);
 	}
-	
+
 	/* Classes internes */
-	
+
 	private class TopicAdapter extends ArrayAdapter<Topic>
 	{
 		private List<Topic> topics;
@@ -493,23 +493,23 @@ public class TopicsActivity extends HFR4droidListActivity<Topic>
 			super(context, resource, textViewResourceId, topics);
 			this.topics = topics;
 		}
-	
+
 		@Override
 		public View getView(int position, View convertView, ViewGroup parent)
 		{
 			View v = super.getView(position, convertView, parent);
 			Topic t = topics.get(position);
-			
+
 			TextView text1 = (TextView) v.findViewById(R.id.ItemContent);
 			ImageView flag = (ImageView) v.findViewById(R.id.TopicFlag);
 			boolean isDummyTopic = t.getId() == -1;
-			
+
 			try
 			{
 				text1.setTextColor(isDummyTopic ? ColorStateList.createFromXml(getResources(), getResources().getXml(R.color.item_cat_header))
-												: ColorStateList.createFromXml(getResources(), getResources().getXml(R.color.item)));
+						: ColorStateList.createFromXml(getResources(), getResources().getXml(R.color.item)));
 			} catch (Exception e) {}
-			
+
 			LinearLayout ll = (LinearLayout) text1.getParent();
 			if (isMpsCat())
 			{
@@ -519,13 +519,13 @@ public class TopicsActivity extends HFR4droidListActivity<Topic>
 				{
 					author.setTextColor(ColorStateList.createFromXml(getResources(), getResources().getXml(R.color.item)));
 				} catch (Exception e) {}
-				
+
 			}
 			else
 			{
 				ll.removeView(ll.findViewById(R.id.ItemAuthor));
 			}
-			
+
 			text1.setText(isDummyTopic ? t.getCategory().toString() : t.toString());
 			text1.setTypeface(null, isDummyTopic || t.isSticky() ? Typeface.BOLD : Typeface.NORMAL);
 			text1.setGravity(isDummyTopic ? Gravity.CENTER : Gravity.LEFT);
@@ -547,7 +547,7 @@ public class TopicsActivity extends HFR4droidListActivity<Topic>
 					case NEW_ROUGE:
 						flag.setBackgroundResource(R.drawable.flag_rouge);
 						break;
-						
+
 					case NEW_FAVORI:
 						flag.setBackgroundResource(R.drawable.flag_favori);
 						break;
@@ -559,15 +559,15 @@ public class TopicsActivity extends HFR4droidListActivity<Topic>
 					case NEW_MP:
 						flag.setBackgroundResource(R.drawable.flag_mp);
 						break;
-						
+
 					case NO_NEW_MP:
 						flag.setBackgroundResource(R.drawable.flag_mp_none);
 						break;
-						
+	
 					case LOCKED:
 						flag.setBackgroundResource(R.drawable.flag_lock);
 						break;						
-						
+	
 					default:
 						flag.setBackgroundResource(R.drawable.flag_blank);
 						break;

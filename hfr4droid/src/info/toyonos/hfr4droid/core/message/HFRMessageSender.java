@@ -31,11 +31,11 @@ public class HFRMessageSender
 {	 
 	private static final String FORM_URI = "http://forum.hardware.fr/bddpost.php?config=hfr.inc";
 	private static final String FORM_EDIT_URI = "http://forum.hardware.fr/bdd.php?config=hfr.inc";
-	
+
 	public static final int POST_EDIT_OK = 0;
 	public static final int POST_FLOOD = -1;
 	public static final int POST_KO = -99;
-	
+
 	private HFRAuthentication auth;
 
 	public HFRMessageSender(HFRAuthentication authentication)
@@ -55,11 +55,11 @@ public class HFRMessageSender
 		params.add(new BasicNameValuePair("content_form", message));
 		params.add(new BasicNameValuePair("sujet", t.getName()));
 		params.add(new BasicNameValuePair("signature", "1"));
-		
+
 		String response = innerGetResponse(FORM_URI, params);
 		return getResponseCode(response);
 	}
-	
+
 	public int editMessage(Post p, String hashCheck, String message) throws UnsupportedEncodingException, IOException
 	{
 		List<NameValuePair> params = new ArrayList<NameValuePair>();
@@ -72,11 +72,11 @@ public class HFRMessageSender
 		params.add(new BasicNameValuePair("content_form", message));
 		params.add(new BasicNameValuePair("sujet", p.getTopic().getName()));
 		params.add(new BasicNameValuePair("subcat", String.valueOf(p.getTopic().getSubcat())));
-		
+
 		String response = innerGetResponse(FORM_EDIT_URI, params);
 		return getResponseCode(response);
 	}
-	
+
 	public boolean deleteMessage(Post p, String hashCheck) throws UnsupportedEncodingException, IOException
 	{
 		List<NameValuePair> params = new ArrayList<NameValuePair>();
@@ -86,11 +86,11 @@ public class HFRMessageSender
 		params.add(new BasicNameValuePair("cat", p.getTopic().getCategory().getRealId()));
 		params.add(new BasicNameValuePair("pseudo", auth.getUser()));
 		params.add(new BasicNameValuePair("delete", "1"));
-		
+
 		String response = innerGetResponse(FORM_EDIT_URI, params);
 		return response.matches(".*Message effacé avec succès.*");
 	}
-	
+
 	private String innerGetResponse(String url, List<NameValuePair> params) throws UnsupportedEncodingException, IOException
 	{
 		HttpContext ctx = new BasicHttpContext();
@@ -119,7 +119,7 @@ public class HFRMessageSender
 		if (response.matches(".*Votre réponse a été postée avec succès.*"))
 		{
 			Matcher m = Pattern.compile("<meta\\s*http\\-equiv=\"Refresh\"\\s*content=\"0;\\s*url=(?:(?:/forum2\\.php.*?page=([0-9]+))|(?:/hfr.*?([0-9]+)\\.htm))", Pattern.CASE_INSENSITIVE | Pattern.DOTALL)
-						.matcher(response);
+			.matcher(response);
 			if  (m.find())
 			{
 				return Integer.parseInt(m.group(1) != null ? m.group(1) : m.group(2));  

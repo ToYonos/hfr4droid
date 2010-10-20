@@ -23,23 +23,23 @@ public class Topic extends BasicElement
 
 		private final int value;
 		private final String key;
-		
+
 		private TopicType(int value, String key)
 		{
 			this.value = value;
 			this.key = key;
 		}
-		
+
 		public int getValue()
 		{
 			return this.value;
 		}
-		
+
 		public String getKey()
 		{
 			return this.key;
 		}
-		
+
 		public static TopicType fromInt(int anInt) 
 		{
 			for (TopicType type : TopicType.values())
@@ -64,7 +64,7 @@ public class Topic extends BasicElement
 		LOCKED,
 		NONE;
 	};
-	
+
 	private TopicStatus status;
 	private String author;
 	private int lastReadPage;
@@ -74,7 +74,7 @@ public class Topic extends BasicElement
 	private boolean sticky;
 	private Category category;
 	private int subcat;
-	
+
 	public Topic(long id)
 	{
 		super(id);
@@ -88,7 +88,7 @@ public class Topic extends BasicElement
 		this.category = null;
 		this.subcat = -1;
 	}
-	
+
 	public Topic(long id, String name)
 	{
 		super(id, name);
@@ -115,17 +115,17 @@ public class Topic extends BasicElement
 		this.sticky = sticky;
 		this.category = category;
 	}
-	
+
 	public TopicStatus getStatus()
 	{
 		return status;
 	}
-	
+
 	public void setStatus(TopicStatus status)
 	{
 		this.status = status;
 	}
-	
+
 	public String getAuthor()
 	{
 		return author;

@@ -41,7 +41,7 @@ public interface MDDataRetriever
 	 * @see #getTopics(Category, TopicType, int)
 	 */
 	public List<Topic> getTopics(Category cat, TopicType type) throws Exception;
-	
+
 	/**
 	 * Récupère les topics d'un type donné et de la page donnée d'une catégorie
 	 * @param cat La <code>Category</code> désirée
@@ -51,7 +51,7 @@ public interface MDDataRetriever
 	 * @throws Exception Si un problème survient
 	 */
 	public List<Topic> getTopics(Category cat, TopicType type, int pageNumber) throws Exception;
-	
+
 	/**
 	 * Récupère les posts de la page donnée d'un topic
 	 * @param topic Le <code>Topic</code> désiré
@@ -60,7 +60,7 @@ public interface MDDataRetriever
 	 * @throws Exception Si un problème survient
 	 */
 	public List<Post> getPosts(Topic topic, int pageNumber) throws Exception;
-	
+
 	/**
 	 * Donne le nombre de nouveaux mps
 	 * @param topic Référence d'un topic. Si un seul nouveau mp existe, il sera renvoyé par ce biais
@@ -68,21 +68,21 @@ public interface MDDataRetriever
 	 * @throws Exception Si un problème survient
 	 */
 	public int countNewMps(Topic topic) throws Exception;
-	
+
 	/**
 	 * Récupère les smileys à insérer dans un post 
 	 * @param tag Le tag des smileys recherchés
 	 * @return Le code HTML des smileys trouvés
 	 */
 	public String getSmiliesByTag(String tag) throws Exception;
-	
+
 	/**
 	 * Récupère le BBCode d'un post à quoter 
 	 * @param post Le post concerné
 	 * @return Le BBCode obtenu
 	 */
 	public String getQuote(Post post) throws Exception;
-	
+
 	/**
 	 * Récupère le BBCode d'un post à éditer 
 	 * @param post Le post concerné

@@ -21,13 +21,13 @@ public class HFR4droidPrefs extends PreferenceActivity
 	@Override
 	public void onCreate(Bundle savedInstanceState)
 	{
-	    super.onCreate(savedInstanceState);
-	    addPreferencesFromResource(R.xml.prefs);
-	    final PreferenceScreen preferenceScreen = getPreferenceScreen();
+		super.onCreate(savedInstanceState);
+		addPreferencesFromResource(R.xml.prefs);
+		final PreferenceScreen preferenceScreen = getPreferenceScreen();
 
-	    Preference freqEnable = findPreference(HFR4droidActivity.PREF_SRV_MPS_ENABLE);
-	    freqEnable.setOnPreferenceChangeListener(new OnPreferenceChangeListener()
-	    {
+		Preference freqEnable = findPreference(HFR4droidActivity.PREF_SRV_MPS_ENABLE);
+		freqEnable.setOnPreferenceChangeListener(new OnPreferenceChangeListener()
+		{
 			public boolean onPreferenceChange(Preference preference, Object newValue)
 			{
 				Intent intent = new Intent(HFR4droidPrefs.this, MpCheckService.class); 
@@ -37,18 +37,18 @@ public class HFR4droidPrefs extends PreferenceActivity
 			}
 		});
 
-	    Preference freqPref = findPreference(HFR4droidActivity.PREF_SRV_MPS_FREQ);
-	    freqPref.setEnabled(
-	    		preferenceScreen.getSharedPreferences().getBoolean(
-	    							HFR4droidActivity.PREF_SRV_MPS_ENABLE,
-	    							Boolean.parseBoolean(getString(R.string.pref_srv_mps_freq_default))));
-	    freqPref.setOnPreferenceChangeListener(new OnPreferenceChangeListener()
-	    {
+		Preference freqPref = findPreference(HFR4droidActivity.PREF_SRV_MPS_FREQ);
+		freqPref.setEnabled(
+				preferenceScreen.getSharedPreferences().getBoolean(
+						HFR4droidActivity.PREF_SRV_MPS_ENABLE,
+						Boolean.parseBoolean(getString(R.string.pref_srv_mps_freq_default))));
+		freqPref.setOnPreferenceChangeListener(new OnPreferenceChangeListener()
+		{
 			public boolean onPreferenceChange(Preference preference, Object newValue)
 			{
 				int oldFreq = Integer.parseInt(preferenceScreen.getSharedPreferences().getString(
-												HFR4droidActivity.PREF_SRV_MPS_FREQ,
-												getString(R.string.pref_srv_mps_freq_default)));
+						HFR4droidActivity.PREF_SRV_MPS_FREQ,
+						getString(R.string.pref_srv_mps_freq_default)));
 				int freq = -1;
 				try
 				{

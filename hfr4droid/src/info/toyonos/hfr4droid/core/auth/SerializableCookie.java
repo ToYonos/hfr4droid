@@ -13,17 +13,17 @@ public class SerializableCookie implements Serializable
 {
 	private static final long serialVersionUID = 246395343356359942L;
 	private transient Cookie cookie;
-	
+
 	public SerializableCookie(Cookie cookie)
 	{
 		this.cookie = cookie;
 	}
-	
+
 	public Cookie getCookie()
 	{
 		return cookie;
 	}
-	
+
 	private void writeObject(ObjectOutputStream oos) throws IOException
 	{
 		oos.defaultWriteObject();
@@ -35,7 +35,7 @@ public class SerializableCookie implements Serializable
 		oos.writeObject(cookie.getValue());
 		oos.writeInt(cookie.getVersion());
 	}		
-	
+
 	private void readObject(ObjectInputStream ois) throws ClassNotFoundException, IOException
 	{
 		ois.defaultReadObject();

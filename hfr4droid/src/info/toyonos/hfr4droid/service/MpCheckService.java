@@ -38,7 +38,7 @@ public class MpCheckService extends Service
 
 	private Timer timer;
 	public static int nbNotification = 0;	
-	
+
 	@Override
 	public IBinder onBind(Intent intent)
 	{
@@ -48,81 +48,81 @@ public class MpCheckService extends Service
 	@Override
 	public void onCreate()
 	{ 
-	    super.onCreate(); 
-	    long period = getSrvMpsFreq() * 60 * 1000;
-	    timer = new Timer();
-	    timer.scheduleAtFixedRate(new TimerTask()
-	    {
-	        public void run()
-	        {
-	        	Topic mp = new Topic(-1, null);
-	        	int nbMps = 0;
-	        	try
-	        	{
-	        		nbMps = getDataRetriever().countNewMps(mp);
+		super.onCreate(); 
+		long period = getSrvMpsFreq() * 60 * 1000;
+		timer = new Timer();
+		timer.scheduleAtFixedRate(new TimerTask()
+		{
+			public void run()
+			{
+				Topic mp = new Topic(-1, null);
+				int nbMps = 0;
+				try
+				{
+					nbMps = getDataRetriever().countNewMps(mp);
 				}
-	        	catch (Exception e)
-	        	{
-	        		Log.e(this.getClass().getSimpleName(), String.format(getString(R.string.error), e.getClass().getName(), e.getMessage()));
+				catch (Exception e)
+				{
+					Log.e(this.getClass().getSimpleName(), String.format(getString(R.string.error), e.getClass().getName(), e.getMessage()));
 				}
 
-	        	if (nbMps > 0)
-	        	{
-	        		notifyNewMps(nbMps, mp);
-	        	}
-	        } 
-	    }, 0, period);
+				if (nbMps > 0)
+				{
+					notifyNewMps(nbMps, mp);
+				}
+			} 
+		}, 0, period);
 	}
-	 
+
 	@Override
 	public void onDestroy()
 	{
-	    this.timer.cancel(); 
+		this.timer.cancel(); 
 	}
-	
+
 	private MDDataRetriever getDataRetriever()
 	{
 		return ((HFR4droidApplication)getApplication()).getDataRetriever();
 	}
-	
+
 	private int getSrvMpsFreq()
 	{
 		SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(this);
 		String value = settings.getString(HFR4droidActivity.PREF_SRV_MPS_FREQ, getString(R.string.pref_srv_mps_freq_default));
 		return Integer.parseInt(value);
 	}
-	
+
 	private void notifyNewMps(int nbMps, Topic mp)
 	{
 		if (nbMps < 1) return;
 
 		nbNotification++;
 		String notificationMessage = getResources().getQuantityString(R.plurals.mp_notification_content, nbMps, nbMps);
-        NotificationManager notificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
-    	PendingIntent pendingIntent = null;
-    	if (nbMps == 1)
+		NotificationManager notificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
+		PendingIntent pendingIntent = null;
+		if (nbMps == 1)
 		{
-	    	Intent intent = new Intent(MpCheckService.this, PostsActivity.class);
-	    	Bundle bundle = new Bundle();
+			Intent intent = new Intent(MpCheckService.this, PostsActivity.class);
+			Bundle bundle = new Bundle();
 			bundle.putSerializable("topic", mp);
 			intent.setAction("" + Math.random()); // Samed issue as this guy : http://stackoverflow.com/questions/2882459/getextra-from-intent-launched-from-a-pendingintent 
 			intent.putExtras(bundle);
-	    	pendingIntent = PendingIntent.getActivity(MpCheckService.this, 0, intent, 0);				
+			pendingIntent = PendingIntent.getActivity(MpCheckService.this, 0, intent, 0);				
 		}
 		else
 		{
-	    	Intent intent = new Intent(MpCheckService.this, TopicsActivity.class);
-	    	Bundle bundle = new Bundle();
+			Intent intent = new Intent(MpCheckService.this, TopicsActivity.class);
+			Bundle bundle = new Bundle();
 			bundle.putSerializable("cat", Category.MPS_CAT);
 			intent.putExtras(bundle);
-	    	pendingIntent = PendingIntent.getActivity(MpCheckService.this, 0, intent, 0);			
+			pendingIntent = PendingIntent.getActivity(MpCheckService.this, 0, intent, 0);			
 		}
 
-    	Notification notification = new Notification(R.drawable.icon, notificationMessage, System.currentTimeMillis());
-        notification.setLatestEventInfo(MpCheckService.this, getString(R.string.app_name), notificationMessage, pendingIntent);
-        //if (nbNotification == 1) notification.defaults |= Notification.DEFAULT_VIBRATE;
-        if (nbNotification == 1) notification.vibrate = new long[] { 0, 250, 100, 250};
-        notification.flags = Notification.FLAG_AUTO_CANCEL;
-        notificationManager.notify(NOTIFICATION_ID, notification);
+		Notification notification = new Notification(R.drawable.icon, notificationMessage, System.currentTimeMillis());
+		notification.setLatestEventInfo(MpCheckService.this, getString(R.string.app_name), notificationMessage, pendingIntent);
+		//if (nbNotification == 1) notification.defaults |= Notification.DEFAULT_VIBRATE;
+		if (nbNotification == 1) notification.vibrate = new long[] { 0, 250, 100, 250};
+		notification.flags = Notification.FLAG_AUTO_CANCEL;
+		notificationManager.notify(NOTIFICATION_ID, notification);
 	}
 }

@@ -19,7 +19,7 @@ public class Post extends BasicElement
 	private int nbCitations;
 	private Topic topic;
 	private boolean isMine;
-	
+
 	public Post(long id)
 	{
 		super(id);
@@ -31,7 +31,7 @@ public class Post extends BasicElement
 		this.isMine = false;
 		this.topic = null;
 	}
-	
+
 	public Post(long id, String content)
 	{
 		super(id, content);
@@ -55,12 +55,12 @@ public class Post extends BasicElement
 		this.isMine = isMine;
 		this.topic = topic;
 	}
-	
+
 	public String getContent()
 	{
 		return name;
 	}
-	
+
 	public void setContent(String content)
 	{
 		this.name = content;
@@ -105,7 +105,7 @@ public class Post extends BasicElement
 	{
 		this.lastEdition = lastEdition;
 	}
-	
+
 	public int getNbCitations()
 	{
 		return nbCitations;

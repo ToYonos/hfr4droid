@@ -22,13 +22,13 @@ public abstract class BasicElement implements Serializable
 		this.id = -1;
 		this.name = "undefined";
 	}
-	
+
 	public BasicElement(long id)
 	{
 		this();
 		this.id = id;
 	}
-	
+
 	public BasicElement(long id, String name)
 	{
 		this.id = id;
@@ -40,7 +40,7 @@ public abstract class BasicElement implements Serializable
 		this.id = element.id;
 		this.name = element.name;
 	}
-	
+
 	public long getId()
 	{
 		return id;
@@ -60,7 +60,7 @@ public abstract class BasicElement implements Serializable
 	{
 		this.name = name;
 	}
-	
+
 	@Override
 	public String toString()
 	{

@@ -34,12 +34,12 @@ public class HFR4droidApplication extends Application
 	{
 		return dataRetriever;
 	}
-	
+
 	public HFRMessageSender getMessageSender()
 	{
 		return msgSender;
 	}
-	
+
 	/**
 	 * Connexion au forum
 	 * @param user Le login
@@ -53,7 +53,7 @@ public class HFR4droidApplication extends Application
 		auth = user != null && password != null ?
 				new HFRAuthentication(user, password) :
 				new HFRAuthentication();
-		
+
 		boolean isLoggedIn = auth.getCookies() != null;
 		if (isLoggedIn)
 		{
@@ -73,7 +73,7 @@ public class HFR4droidApplication extends Application
 	{
 		return login(null, null);
 	}
-	
+
 	/**
 	 * Déconnexion du forum
 	 */

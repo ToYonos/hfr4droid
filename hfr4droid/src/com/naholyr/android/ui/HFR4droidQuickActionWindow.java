@@ -17,18 +17,18 @@ public class HFR4droidQuickActionWindow extends QuickActionWindow
 	{
 		super(inflater, config, items);
 	}
-	
+
 	public static HFR4droidQuickActionWindow getWindow(Activity activity, SparseIntArray config)
 	{
 		return getWindow(activity, config, null);
 	}
-	
+
 	public static HFR4droidQuickActionWindow getWindow(Activity activity, SparseIntArray config, List<Item> items)
 	{
 		LayoutInflater inflater = activity.getLayoutInflater();
 		return new HFR4droidQuickActionWindow(inflater, config, items);
 	}
-	
+
 	public void show(View anchor, int yOffset)
 	{
 		for (Item item : getItems())

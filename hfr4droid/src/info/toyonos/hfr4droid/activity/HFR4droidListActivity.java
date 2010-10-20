@@ -17,14 +17,14 @@ public abstract class HFR4droidListActivity<E> extends HFR4droidActivity
 {	
 	protected ArrayAdapter<E> adapter = null;
 
-    @Override
-    protected void onCreate(Bundle savedInstanceState)
-    {
-    	super.onCreate(savedInstanceState);
-    }
-    
-    protected ListView getListView()
-    {
-    	return (ListView) findViewById(R.id.MainList);
-    }
+	@Override
+	protected void onCreate(Bundle savedInstanceState)
+	{
+		super.onCreate(savedInstanceState);
+	}
+
+	protected ListView getListView()
+	{
+		return (ListView) findViewById(R.id.MainList);
+	}
 }

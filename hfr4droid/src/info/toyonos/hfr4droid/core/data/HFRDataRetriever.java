@@ -49,18 +49,18 @@ public class HFRDataRetriever implements MDDataRetriever
 
 	private HFRAuthentication auth;
 	private String hashCheck;
-	
+
 	public HFRDataRetriever()
 	{
 		hashCheck = null;
 	}
-	
+
 	public HFRDataRetriever(HFRAuthentication auth)
 	{
 		hashCheck = null;
 		this.auth = auth;
 	}
-	
+
 	/**
 	 * {@inheritDoc}
 	 */
@@ -68,7 +68,7 @@ public class HFRDataRetriever implements MDDataRetriever
 	{
 		return hashCheck;
 	}
-	
+
 	/**
 	 * {@inheritDoc}
 	 */
@@ -85,9 +85,9 @@ public class HFRDataRetriever implements MDDataRetriever
 		while (m.find())
 		{
 			cats.add(new Category(Integer.parseInt(m.group(1)),
-								  m.group(2)
-								  )
-					);
+					m.group(2)
+			)
+			);
 		}
 
 		Category mpCat = new Category(Category.MPS_CAT);
@@ -98,13 +98,13 @@ public class HFRDataRetriever implements MDDataRetriever
 		{
 			mpCat.setName(m.group(1));
 		}
-		
+
 		// Cat des messages privés
 		cats.add(0, mpCat);
 
 		// Cat représentant "toutes les cats"
 		cats.add(1, Category.ALL_CATS);
-		
+
 		// Cat des modals
 		p = Pattern.compile("<a\\s*class=\"cCatTopic\"\\s*href=\"/forum1\\.php\\?config=hfr\\.inc&amp;cat=0&amp;"
 							, Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
@@ -125,7 +125,7 @@ public class HFRDataRetriever implements MDDataRetriever
 	{
 		return getTopics(cat, type, 1);
 	}
-	
+
 	/**
 	 * {@inheritDoc}
 	 */
@@ -139,8 +139,8 @@ public class HFRDataRetriever implements MDDataRetriever
 		else
 		{
 			url = TOPICS_URL.replaceFirst("\\{\\$cat\\}", cat.getRealId())
-							.replaceFirst("\\{\\$page\\}", String.valueOf(pageNumber))
-			 				.replaceFirst("\\{\\$type\\}", String.valueOf(type.getValue()));
+			.replaceFirst("\\{\\$page\\}", String.valueOf(pageNumber))
+			.replaceFirst("\\{\\$type\\}", String.valueOf(type.getValue()));
 		}
 		return innerGetTopics(cat, url);
 	}
@@ -168,7 +168,7 @@ public class HFRDataRetriever implements MDDataRetriever
 			for(int i= 1; i<= m.groupCount(); ++i)
 				System.out.println("groupe "+i+" :"+m.group(i));
 			System.out.println("\n");*/
-			
+
 			if (m.group(1) != null)
 			{
 				// C'est une cat
@@ -180,22 +180,22 @@ public class HFRDataRetriever implements MDDataRetriever
 				int nbPages = m.group(8) != null ? Integer.parseInt(m.group(8)) : 1;
 				int lastReadPage = status == TopicStatus.NEW_MP ? nbPages : (m.group(11) != null ? Integer.parseInt(m.group(11)) : -1);
 				topics.add(new Topic(Integer.parseInt(m.group(6)),
-									 m.group(7),
-									 m.group(12),
-									 status,
-									 lastReadPage,
-									 m.group(9) != null ? Long.parseLong(m.group(9)) : -1,
-									 Integer.parseInt(m.group(13)),
-									 nbPages,
-									 m.group(3) != null,
-									 currentCat
-									 )
-				          );
+									m.group(7),
+									m.group(12),
+									status,
+									lastReadPage,
+									m.group(9) != null ? Long.parseLong(m.group(9)) : -1,
+									Integer.parseInt(m.group(13)),
+									nbPages,
+									m.group(3) != null,
+									currentCat
+									)
+				);
 			}
 		}
 		return topics;
 	}
-	
+
 	private TopicStatus getStatusFromImgName(String imgName)
 	{
 		if (imgName == null)
@@ -243,8 +243,8 @@ public class HFRDataRetriever implements MDDataRetriever
 	{
 		ArrayList<Post> posts = new ArrayList<Post>();
 		String url = POSTS_URL.replaceFirst("\\{\\$cat\\}", topic.getCategory().getRealId())
-		  					  .replaceFirst("\\{\\$topic\\}", String.valueOf(topic.getId()))
-		  					  .replaceFirst("\\{\\$page\\}", String.valueOf(pageNumber));
+		.replaceFirst("\\{\\$topic\\}", String.valueOf(topic.getId()))
+		.replaceFirst("\\{\\$page\\}", String.valueOf(pageNumber));
 		String content = getAsString(url);
 
 		Pattern p = Pattern.compile("(<tr.*?class=\"message\".*?" +
@@ -263,29 +263,28 @@ public class HFRDataRetriever implements MDDataRetriever
 			boolean isMine = m2.find();
 			String postContent = m.group(11);
 			posts.add(new Post(Integer.parseInt(m.group(2)),
-						       postContent,
-						       m.group(3),
-						       m.group(4),
-							   new GregorianCalendar(Integer.parseInt(m.group(7)), // Year
-									   				 Integer.parseInt(m.group(6)) - 1, // Month
-									   				 Integer.parseInt(m.group(5)), // Day
-									   				 Integer.parseInt(m.group(8)), // Hour
-									   				 Integer.parseInt(m.group(9)), // Minute
-									   				 Integer.parseInt(m.group(10))  // Second
-									    			).getTime(),
-							   m.group(13) != null ? new GregorianCalendar(Integer.parseInt(m.group(15)), // Year
-														   				   Integer.parseInt(m.group(14)) - 1, // Month
-														   				   Integer.parseInt(m.group(13)), // Day
-														   				   Integer.parseInt(m.group(16)), // Hour
-														   				   Integer.parseInt(m.group(17)), // Minute
-														   				   Integer.parseInt(m.group(18))  // Second
-									    								  ).getTime()
-				    								: null,
-				    		   m.group(12) != null ? Integer.parseInt(m.group(12)) : 0,
-				    		   isMine,
-							   topic
-							   )
-					 );
+								postContent,
+								m.group(3),
+								m.group(4),
+								new GregorianCalendar(Integer.parseInt(m.group(7)), // Year
+										Integer.parseInt(m.group(6)) - 1, // Month
+										Integer.parseInt(m.group(5)), // Day
+										Integer.parseInt(m.group(8)), // Hour
+										Integer.parseInt(m.group(9)), // Minute
+										Integer.parseInt(m.group(10))  // Second
+								).getTime(),
+								m.group(13) != null ? new GregorianCalendar(Integer.parseInt(m.group(15)), // Year
+										Integer.parseInt(m.group(14)) - 1, // Month
+										Integer.parseInt(m.group(13)), // Day
+										Integer.parseInt(m.group(16)), // Hour
+										Integer.parseInt(m.group(17)), // Minute
+										Integer.parseInt(m.group(18))  // Second
+								).getTime() : null,
+								m.group(12) != null ? Integer.parseInt(m.group(12)) : 0,
+								isMine,
+								topic
+								)
+			);
 		}
 
 		p = Pattern.compile("<table\\s*class=\"main\".*?([0-9]+)</a></div>"
@@ -303,7 +302,7 @@ public class HFRDataRetriever implements MDDataRetriever
 		{
 			hashCheck = m.group(1);
 		}
-		
+
 		p = Pattern.compile("<input\\s*type=\"hidden\"\\s*name=\"subcat\"\\s*value=\"([0-9]+)\"\\s*/>"
 							, Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
 		m = p.matcher(content);
@@ -321,8 +320,8 @@ public class HFRDataRetriever implements MDDataRetriever
 	public int countNewMps(Topic topic) throws Exception
 	{
 		String url = TOPICS_URL.replaceFirst("\\{\\$cat\\}", "prive")
-		   					   .replaceFirst("\\{\\$page\\}", "1")
-		   					   .replaceFirst("\\{\\$type\\}", String.valueOf(TopicType.ALL.getValue()));
+		.replaceFirst("\\{\\$page\\}", "1")
+		.replaceFirst("\\{\\$type\\}", String.valueOf(TopicType.ALL.getValue()));
 		String content = getAsString(url);
 
 		Pattern p = Pattern.compile("closedbp\\.gif\".*?" +
@@ -355,29 +354,29 @@ public class HFRDataRetriever implements MDDataRetriever
 		String url = SMILIES_URL.replaceFirst("\\{\\$tag\\}",  URLEncoder.encode(tag, "UTF-8"));
 		return getAsString(url);
 	}
-	
+
 	/**
 	 * {@inheritDoc}
 	 */
 	public String getQuote(Post post) throws Exception
 	{
 		String url = QUOTE_URL.replaceFirst("\\{\\$cat\\}", post.getTopic().getCategory().getRealId())
-		 					  .replaceFirst("\\{\\$topic\\}", String.valueOf(post.getTopic().getId()))
-		  					  .replaceFirst("\\{\\$post\\}", String.valueOf(post.getId()));
+		.replaceFirst("\\{\\$topic\\}", String.valueOf(post.getTopic().getId()))
+		.replaceFirst("\\{\\$post\\}", String.valueOf(post.getId()));
 		return innerGetBBCode(url);
 	}
-	
+
 	/**
 	 * {@inheritDoc}
 	 */
 	public String getPostContent(Post post) throws Exception
 	{
 		String url = EDIT_URL.replaceFirst("\\{\\$cat\\}", post.getTopic().getCategory().getRealId())
-		 					 .replaceFirst("\\{\\$topic\\}", String.valueOf(post.getTopic().getId()))
-		  					 .replaceFirst("\\{\\$post\\}", String.valueOf(post.getId()));
+		.replaceFirst("\\{\\$topic\\}", String.valueOf(post.getTopic().getId()))
+		.replaceFirst("\\{\\$post\\}", String.valueOf(post.getId()));
 		return innerGetBBCode(url);
 	}
-	
+
 	private String innerGetBBCode(String url) throws Exception
 	{
 		String BBCode = "";
@@ -397,7 +396,7 @@ public class HFRDataRetriever implements MDDataRetriever
 		}
 		return result.toString();
 	}
-	
+
 	/**
 	 * Effectue une requête HTTP GET et récupère un flux en retour
 	 * @param url L'url concernée
@@ -440,25 +439,25 @@ public class HFRDataRetriever implements MDDataRetriever
 		String content = "";
 		if (entity != null)
 		{
-		     try
-		     {
-		    	 data = entity.getContent();
-		    	 content = streamToString(data, cr);
-		     }
-		     catch (IOException e)
-		     {
-		         throw e;
-		     }
-		     catch (RuntimeException e)
-		     {
-		    	 method.abort();
-		         throw e;
-		     }
-		     finally
-		     {
-		    	 if (entity != null) entity.consumeContent();
-		    	 client.getConnectionManager().shutdown();	
-		     }
+			try
+			{
+				data = entity.getContent();
+				content = streamToString(data, cr);
+			}
+			catch (IOException e)
+			{
+				throw e;
+			}
+			catch (RuntimeException e)
+			{
+				method.abort();
+				throw e;
+			}
+			finally
+			{
+				if (entity != null) entity.consumeContent();
+				client.getConnectionManager().shutdown();	
+			}
 		}
 		return content; 
 	}
@@ -471,29 +470,29 @@ public class HFRDataRetriever implements MDDataRetriever
 	 * @throws IOException Si un problème d'entrée/sortie intervient
 	 */
 	public static String streamToString(InputStream is, boolean cr) throws IOException
-    {
-        if (is != null)
-        {
-            StringBuilder sb = new StringBuilder();
-            String line;
-            try
-            {
-                BufferedReader reader = new BufferedReader(new InputStreamReader(is, "UTF-8"));
-                while ((line = reader.readLine()) != null)
-                {
-                    sb.append(line);
-                    if (cr) sb.append("\n");
-                }
-            }
-            finally
-            {
-                is.close();
-            }
-            return sb.toString();
-        }
-        else
-        {        
-            return "";
-        }
-    }
+	{
+		if (is != null)
+		{
+			StringBuilder sb = new StringBuilder();
+			String line;
+			try
+			{
+				BufferedReader reader = new BufferedReader(new InputStreamReader(is, "UTF-8"));
+				while ((line = reader.readLine()) != null)
+				{
+					sb.append(line);
+					if (cr) sb.append("\n");
+				}
+			}
+			finally
+			{
+				is.close();
+			}
+			return sb.toString();
+		}
+		else
+		{        
+			return "";
+		}
+	}
 }

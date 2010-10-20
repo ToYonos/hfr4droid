@@ -41,13 +41,13 @@ public class HFRAuthentication
 {
 	private String userName = null;
 	private String userPassword = null;
-    private String passHash = null;
-    private String userId = null;
+	private String passHash = null;
+	private String userId = null;
 
-	
+
 	public static final String AUTH_FORM_URL = "http://forum.hardware.fr/login_validation.php?config=hfr.inc";
 	public static final String COOKIES_FILE_NAME = "/sdcard/hfr_cookies.dat";
-	
+
 	CookieStore cookieStore = null;
 
 	/**
@@ -66,12 +66,12 @@ public class HFRAuthentication
 		cookieStore = login();
 		retrieveCookiesInfos(cookieStore);
 	}
-	
-    public HFRAuthentication() throws IOException, ClassNotFoundException
-    {        
-        cookieStore = deserializeCookies();
-        retrieveCookiesInfos(cookieStore);
-    }
+
+	public HFRAuthentication() throws IOException, ClassNotFoundException
+	{        
+		cookieStore = deserializeCookies();
+		retrieveCookiesInfos(cookieStore);
+	}
 
 	/**
 	 * Retourne les cookies renvoyés par le serveur après login.
@@ -82,44 +82,44 @@ public class HFRAuthentication
 	{
 		return cookieStore;
 	}
-	
-    public String getUser()
-    {
-            return userName;
-    }
 
-    public String getPassword()
-    {
-            return userPassword;
-    }
+	public String getUser()
+	{
+		return userName;
+	}
 
-    public String getPassHash()
-    {
-            return passHash;
-    }
+	public String getPassword()
+	{
+		return userPassword;
+	}
 
-    public String getUserId()
-    {
-            return userId;
-    }
+	public String getPassHash()
+	{
+		return passHash;
+	}
 
-    private void retrieveCookiesInfos(CookieStore cs)
-    {
-    	if (cs != null)
-    	{
-    		List<Cookie> lstCookies = cs.getCookies();
-    		for (Cookie cookie : lstCookies)
-    		{
-    			if (cookie.getName().equals("md_passs"))
-    				passHash = cookie.getValue();
-    			if (cookie.getName().equals("md_id"))
-    				userId = cookie.getValue();
-    			if (cookie.getName().equals("md_user") && userName == null)
-    				userName = cookie.getValue();    			
-    		}
-    	}
-    }
-    
+	public String getUserId()
+	{
+		return userId;
+	}
+
+	private void retrieveCookiesInfos(CookieStore cs)
+	{
+		if (cs != null)
+		{
+			List<Cookie> lstCookies = cs.getCookies();
+			for (Cookie cookie : lstCookies)
+			{
+				if (cookie.getName().equals("md_passs"))
+					passHash = cookie.getValue();
+				if (cookie.getName().equals("md_id"))
+					userId = cookie.getValue();
+				if (cookie.getName().equals("md_user") && userName == null)
+					userName = cookie.getValue();    			
+			}
+		}
+	}
+
 	private CookieStore login() throws IOException, ClassNotFoundException
 	{
 		CookieStore cs = null;
@@ -129,18 +129,18 @@ public class HFRAuthentication
 		List<NameValuePair> params = new ArrayList<NameValuePair>();
 		params.add(new BasicNameValuePair("pseudo", userName));
 		params.add(new BasicNameValuePair("password", userPassword));
-		
+
 		post.setEntity(new UrlEncodedFormEntity(params, HTTP.UTF_8));
 		client.execute(post);
-		
+
 		if (client.getCookieStore() != null && client.getCookieStore().getCookies().size() != 0)
 		{
 			cs = client.getCookieStore();
 			serializeCookies(cs);			
 		}
-		
+
 		client.getConnectionManager().shutdown();
-		
+
 		return cs;
 	}
 
@@ -149,10 +149,10 @@ public class HFRAuthentication
 		List<SerializableCookie> hfrCookies = new ArrayList<SerializableCookie>();
 		FileOutputStream fos = null;
 		ObjectOutputStream oos = null;
-		
+
 		for (int i=0; i<cs.getCookies().size(); i++)
 			hfrCookies.add(new SerializableCookie(cs.getCookies().get(i)));
-		
+
 		fos = new FileOutputStream(COOKIES_FILE_NAME);
 		oos = new ObjectOutputStream(fos);
 		oos.writeObject(hfrCookies);
@@ -176,10 +176,10 @@ public class HFRAuthentication
 		{
 			return null;
 		}
-		
+
 		if (ois != null)
 			ois.close();
-		
+
 		if (hfrCookies != null)
 		{
 			cs = new BasicCookieStore();
@@ -188,10 +188,10 @@ public class HFRAuthentication
 				cs.addCookie(cookie.getCookie());
 			}
 		}
-		
+
 		return cs;
 	}
-	
+
 	// Ajout temporaire @toyo pour effacer le cache
 	public boolean clearCache()
 	{
