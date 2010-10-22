@@ -21,9 +21,11 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.apache.http.HttpEntity;
+import org.apache.http.HttpHost;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.protocol.ClientContext;
+import org.apache.http.conn.params.ConnRoutePNames;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.protocol.BasicHttpContext;
 import org.apache.http.protocol.HttpContext;
@@ -49,15 +51,18 @@ public class HFRDataRetriever implements MDDataRetriever
 
 	private HFRAuthentication auth;
 	private String hashCheck;
+	private List<Category> cats;
 
 	public HFRDataRetriever()
 	{
 		hashCheck = null;
+		cats = null;
 	}
 
 	public HFRDataRetriever(HFRAuthentication auth)
 	{
 		hashCheck = null;
+		cats = null;
 		this.auth = auth;
 	}
 
@@ -76,28 +81,28 @@ public class HFRDataRetriever implements MDDataRetriever
 	{
 		ArrayList<Category> cats = new ArrayList<Category>();
 		String content = getAsString(CATS_URL);
-
-		Pattern p = Pattern.compile("<tr.*?id=\"cat([0-9]+)\".*?" +
-									"<td.*?class=\"catCase1\".*?<a.*?class=\"cCatTopic\">(.+?)</a>.*?" +
-									"</tr>"
-									, Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
-		Matcher m = p.matcher(content);
-		while (m.find())
+		Pattern p;
+		Matcher m;
+		
+		if (this.cats == null)
 		{
-			cats.add(new Category(Integer.parseInt(m.group(1)),
-					m.group(2)
-			)
-			);
+			this.cats = new ArrayList<Category>();
+			p = Pattern.compile("<tr.*?id=\"cat([0-9]+)\".*?" +
+								"<td.*?class=\"catCase1\".*?<b><a\\s*href=\"/hfr/([a-zA-Z0-9-]+)/.*?\"\\s*class=\"cCatTopic\">(.+?)</a></b>.*?" +
+								"</tr>"
+								, Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
+			m = p.matcher(content);
+			while (m.find())
+			{
+				Category newCat = new Category(Integer.parseInt(m.group(1)), m.group(2), m.group(3));
+				this.cats.add(newCat);
+			}
 		}
+		cats.addAll(this.cats);
 
-		Category mpCat = new Category(Category.MPS_CAT);
-		p = Pattern.compile("<b><a\\s*class=\"cCatTopic red\"\\s*href=\".*?\">(Vous avez [0-9]+ nouveaux? messages? privés?)</a></b>"
-							, Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
-		m = p.matcher(content);
-		if  (m.find())
-		{
-			mpCat.setName(m.group(1));
-		}
+		Category mpCat = new Category(Category.MPS_CAT);		
+		String mpCatTitle = getSingleElement("<b><a\\s*class=\"cCatTopic red\"\\s*href=\".*?\">(Vous avez [0-9]+ nouveaux? messages? privés?)</a></b>", content);
+		if (mpCatTitle != null) mpCat.setName(mpCatTitle);
 
 		// Cat des messages privés
 		cats.add(0, mpCat);
@@ -114,8 +119,35 @@ public class HFRDataRetriever implements MDDataRetriever
 			cats.add(1, Category.MODO_CAT);
 		}
 
-
 		return cats;
+	}
+	
+	/**
+	 * {@inheritDoc}
+	 */
+	public Category getCatByCode(String code) throws Exception
+	{
+		if (code == null) return null;
+		
+		if (cats == null) getCats();
+		for (Category cat : cats)
+		{
+			if (code.equals(cat.getCode())) return cat;
+		}
+		return null;
+	}
+	
+	/**
+	 * {@inheritDoc}
+	 */
+	public Category getCatById(long id) throws Exception
+	{		
+		if (cats == null) getCats();
+		for (Category cat : cats)
+		{
+			if (id == cat.getId()) return cat;
+		}
+		return null;
 	}
 
 	/**
@@ -287,28 +319,20 @@ public class HFRDataRetriever implements MDDataRetriever
 			);
 		}
 
-		p = Pattern.compile("<table\\s*class=\"main\".*?([0-9]+)</a></div>"
-							, Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
-		m = p.matcher(content);
-		if  (m.find())
-		{
-			topic.setNbPages(Integer.parseInt(m.group(1)));
-		}
+		String nbPages = getSingleElement("([0-9]+)</(?:a|b)></div><div", content);
+		if (nbPages != null) topic.setNbPages(Integer.parseInt(nbPages));
 
-		p = Pattern.compile("<input\\s*type=\"hidden\"\\s*name=\"hash_check\"\\s*value=\"(.+?)\" />"
-							, Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
-		m = p.matcher(content);
-		if  (m.find())
-		{
-			hashCheck = m.group(1);
-		}
+		hashCheck = getSingleElement("<input\\s*type=\"hidden\"\\s*name=\"hash_check\"\\s*value=\"(.+?)\" />", content);
 
-		p = Pattern.compile("<input\\s*type=\"hidden\"\\s*name=\"subcat\"\\s*value=\"([0-9]+)\"\\s*/>"
-							, Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
-		m = p.matcher(content);
-		if  (m.find())
+		String subCat = getSingleElement("<input\\s*type=\"hidden\"\\s*name=\"subcat\"\\s*value=\"([0-9]+)\"\\s*/>", content);
+		if (subCat != null) topic.setSubcat(Integer.parseInt(subCat));
+		
+		// Pour HFRUrlParser, récuparation d'informations complémentaires
+		if (topic.getName() == null)
 		{
-			topic.setSubcat(Integer.parseInt(m.group(1)));
+			String topicTitle = getSingleElement("<input\\s*type=\"hidden\"\\s*name=\"sujet\"\\s*value=\"(.+?)\"\\s*/>", content);
+			if (topicTitle != null) topic.setName(topicTitle);
+			topic.setStatus(getSingleElement("(repondre\\.gif)", content) != null ? TopicStatus.NONE : TopicStatus.LOCKED);
 		}
 
 		return posts;
@@ -379,15 +403,10 @@ public class HFRDataRetriever implements MDDataRetriever
 
 	private String innerGetBBCode(String url) throws Exception
 	{
-		String BBCode = "";
 		StringBuilder result = new StringBuilder("");
-		String content = getAsString(url, true);
-		Pattern p = Pattern.compile("<textarea.*?name=\"content_form\".*?>(.*?)</textarea>"
-									, Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
-		Matcher m = p.matcher(content);
-		if (m.find())
+		String BBCode = getSingleElement("<textarea.*?name=\"content_form\".*?>(.*?)</textarea>", getAsString(url, true));
+		if (BBCode != null)
 		{
-			BBCode = m.group(1).toString();
 			for (String line : BBCode.split("\n"))
 			{
 				result.append(Html.fromHtml(line));
@@ -430,8 +449,8 @@ public class HFRDataRetriever implements MDDataRetriever
 		}
 
 		/* Proxy de merde à décentraliser */		
-		//HttpHost proxy = new HttpHost("192.168.3.108", 8080);
-		//client.getParams().setParameter(ConnRoutePNames.DEFAULT_PROXY, proxy);
+		HttpHost proxy = new HttpHost("192.168.3.108", 8080);
+		client.getParams().setParameter(ConnRoutePNames.DEFAULT_PROXY, proxy);
 		/* -------------- */
 
 		HttpResponse response = client.execute(method, httpContext);
@@ -494,5 +513,17 @@ public class HFRDataRetriever implements MDDataRetriever
 		{        
 			return "";
 		}
+	}
+	
+	/**
+	 * Renvoie le premier match ou le second si le premier est null, du premier groupe trouvé dans une chaine donnée.
+	 * @param pattern La regexp à appliquer
+	 * @param content Le contenu à analyser
+	 * @return La chaine trouvée, null sinon
+	 */
+	public static String getSingleElement(String pattern, String content)
+	{
+		Matcher m = Pattern.compile(pattern, Pattern.CASE_INSENSITIVE | Pattern.DOTALL).matcher(content);
+		return m.find() ? (m.group(1) != null ? m.group(1) : m.group(2)) : null;
 	}
 }

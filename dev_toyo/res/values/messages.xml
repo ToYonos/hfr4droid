@@ -7,6 +7,7 @@
 	<string name="error_login">Votre mot de passe ou nom d\'utilisateur n\'est pas valide !</string>
 	<string name="error_about">Impossible d\'afficher le contenu de cette page !</string>
 	<string name="error_settings">Cette valeur est incorrect !</string>
+	<string name="error_dispatching_url">Une erreur s\'est produite lors de l\'analyse de l\'url, %s : %s</string>
 	
 	<string name="hfr">FORUM HardWare.fr</string>
 	
@@ -16,6 +17,7 @@
 	<string name="getting_topics_rouges">Drapeaux rouges...</string>
 	<string name="getting_topics_favoris">Favoris...</string>
 	<string name="getting_mps">Messages de la page %d...</string>
+	<string name="getting_topic">Chargement du topic</string>
 	<string name="getting_posts">Posts de la page %d...</string>
 	<string name="no_cat">Aucune catégorie n\'a été trouvée !</string>
 	<string name="no_topic">Aucun topic n\'a été trouvé !</string>

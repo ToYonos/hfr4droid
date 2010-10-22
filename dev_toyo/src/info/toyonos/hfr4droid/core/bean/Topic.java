@@ -78,6 +78,7 @@ public class Topic extends BasicElement
 	public Topic(long id)
 	{
 		super(id);
+		this.name = null;
 		this.author = "undefined";
 		this.status = TopicStatus.NONE;
 		this.lastReadPage = -1;

@@ -83,7 +83,7 @@ public class PostsActivity extends HFR4droidActivity
 	private static final String SPOILER_KEY		= "spoiler";
 
 	private static final String POST_LOADING 	= ">¤>¤>¤>¤>¤...post_loading...<¤<¤<¤<¤<¤";
-	private static final long BOTTOM_PAGE_ID	= 999999999999999L;
+	public static final long BOTTOM_PAGE_ID		= 999999999999999L;
 
 	public static enum PostCallBackType
 	{
@@ -134,8 +134,8 @@ public class PostsActivity extends HFR4droidActivity
 		lockQuickAction = true;
 
 		Bundle bundle = this.getIntent().getExtras();
-		fromType = bundle.getSerializable("fromTopicType") != null ? (TopicType) bundle.getSerializable("fromTopicType") : TopicType.ALL;
-		fromAllCats = bundle.getBoolean("fromAllCats", false); 
+		if (fromType == null) fromType =  bundle != null && bundle.getSerializable("fromTopicType") != null ? (TopicType) bundle.getSerializable("fromTopicType") : TopicType.ALL;
+		fromAllCats = bundle == null ? false : bundle.getBoolean("fromAllCats", false); 
 		if (bundle != null && bundle.getSerializable("posts") != null)
 		{
 			List<Post> posts = (List<Post>) bundle.getSerializable("posts");
@@ -145,10 +145,13 @@ public class PostsActivity extends HFR4droidActivity
 				displayPosts(posts);
 			}
 		}
-		else if (bundle != null && bundle.getSerializable("topic") != null)
+		else
 		{
-			topic = (Topic) bundle.getSerializable("topic");
-			loadPosts(topic, topic.getNbPages());
+			if (bundle != null && bundle.getSerializable("topic") != null)
+			{
+				topic = (Topic) bundle.getSerializable("topic");
+			}
+			if (topic != null) loadPosts(topic, currentPageNumber);
 		}
 
 		if (topic != null)
@@ -192,7 +195,8 @@ public class PostsActivity extends HFR4droidActivity
 	protected void onDestroy()
 	{
 		super.onDestroy();
-		getWebView().destroy();
+		WebView posts = getWebView();
+		if (posts != null) posts.destroy();
 		((WebView) findViewById(R.id.loading)).destroy();
 	}
 
@@ -208,8 +212,8 @@ public class PostsActivity extends HFR4droidActivity
 	{
 		super.onConfigurationChanged(conf);
 		WebView webView = getWebView();
-		Display display = getWindowManager().getDefaultDisplay(); 
-		int width = display.getWidth();
+		Display display = getWindowManager().getDefaultDisplay();
+		int width = Math.round(display.getWidth() / webView.getScale());
 		webView.loadUrl("javascript:loadDynamicCss(" + width + ")");
 	}
 
@@ -326,7 +330,7 @@ public class PostsActivity extends HFR4droidActivity
 	@Override
 	protected void setWindowTitle()
 	{
-		setTitle(getString(R.string.app_name) + " - P." + currentPageNumber + "/" + topic.getNbPages());
+		setTitle(getString(R.string.app_name) + (topic.getNbPages() != -1 ? " - P." + currentPageNumber + "/" + topic.getNbPages() : ""));
 	}
 
 	@Override
@@ -699,9 +703,9 @@ public class PostsActivity extends HFR4droidActivity
 		css.append("</style>");
 
 		Display display = getWindowManager().getDefaultDisplay(); 
-		int width = display.getWidth();
+		int width = Math.round(display.getWidth() / webView.getScale());
 		StringBuffer js2 = new StringBuffer("<script type=\"text/javascript\">");
-		js2.append("loadDynamicCss(" + width + ");");
+		js2.append("loadDynamicCss(" + width + ");//alert(screen.width);");
 		js2.append("</script>");
 
 		StringBuffer postsContent = new StringBuffer("");
@@ -755,6 +759,7 @@ public class PostsActivity extends HFR4droidActivity
 		//getApplicationContext().deleteDatabase("webviewCache.db");
 		//webView.clearCache(true);
 		//settings.setCacheMode(WebSettings.LOAD_NO_CACHE);
+
 		webView.setWebChromeClient(new WebChromeClient()
 		{
 			public void onProgressChanged(WebView view, int progress)

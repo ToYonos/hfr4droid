@@ -498,6 +498,7 @@ public abstract class HFR4droidActivity extends Activity
 			{
 				PostsActivity activity = (PostsActivity) HFR4droidActivity.this;
 				activity.setPageNumber(pageNumber);
+				setTitle();
 				activity.refreshPosts(posts);
 			}
 
@@ -513,6 +514,10 @@ public abstract class HFR4droidActivity extends Activity
 				{
 					bundle.putSerializable("fromTopicType", ((TopicsActivity) HFR4droidActivity.this).getType());
 					bundle.putBoolean("fromAllCats", ((TopicsActivity) HFR4droidActivity.this).isAllCatsCat());
+				}
+				else if (HFR4droidActivity.this instanceof HFR4droidDispatcher)
+				{
+					bundle.putSerializable("fromTopicType", ((HFR4droidDispatcher) HFR4droidActivity.this).getUrlParser().getType());	
 				}
 				intent.putExtras(bundle);
 				startActivity(intent);
@@ -605,7 +610,7 @@ public abstract class HFR4droidActivity extends Activity
 		public void execute(final String progressTitle, final String progressContent, final String noElementMsg, final boolean sameActivity, P... params)
 		{
 			progressDialog = new ProgressDialog(HFR4droidActivity.this);
-			progressDialog.setTitle(progressTitle);
+			progressDialog.setTitle(progressTitle != null ? progressTitle : getString(R.string.getting_topic));
 			progressDialog.setMessage(progressContent);
 			progressDialog.setIndeterminate(true);
 			this.noElementMsg = noElementMsg;
@@ -771,5 +776,12 @@ public abstract class HFR4droidActivity extends Activity
 			}
 			return false;
 		}
+
+		@Override
+		public boolean onDoubleTap(MotionEvent e)
+		{
+			reloadPage();
+			return true;
+		}	
 	}
 }

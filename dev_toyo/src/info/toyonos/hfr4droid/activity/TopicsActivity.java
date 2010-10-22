@@ -49,8 +49,8 @@ import android.widget.SlidingDrawer.OnDrawerOpenListener;
  */
 public class TopicsActivity extends HFR4droidListActivity<Topic>
 {
-	private Category cat;
-	private TopicType type;
+	private Category cat = null;
+	private TopicType type = null;
 	private GestureDetector gestureDetector;
 
 	@SuppressWarnings("unchecked")
@@ -62,8 +62,8 @@ public class TopicsActivity extends HFR4droidListActivity<Topic>
 		attachEvents();
 
 		Bundle bundle = this.getIntent().getExtras();
-		boolean allCats = bundle.getBoolean("allCats", false);
-		type = bundle.getSerializable("topicType") != null ? (TopicType) bundle.getSerializable("topicType") : TopicType.ALL;
+		boolean allCats = bundle == null ? false : bundle.getBoolean("allCats", false);
+		if (type == null) type = bundle != null && bundle.getSerializable("topicType") != null ? (TopicType) bundle.getSerializable("topicType") : TopicType.ALL;
 
 		List<Topic> topics = new ArrayList<Topic>();
 		if (bundle != null && bundle.getSerializable("topics") != null)
@@ -79,10 +79,13 @@ public class TopicsActivity extends HFR4droidListActivity<Topic>
 				cat = topics.get(0).getCategory();
 			}
 		}
-		else if (bundle != null && bundle.getSerializable("cat") != null)
+		else
 		{
-			cat = (Category) bundle.getSerializable("cat");
-			loadTopics(cat, type);
+			if (bundle != null && bundle.getSerializable("cat") != null)
+			{
+				cat = (Category) bundle.getSerializable("cat");
+			}
+			if (cat != null) loadTopics(cat, type, currentPageNumber);
 		}
 
 		if (cat != null)
