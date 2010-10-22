@@ -1,11 +1,14 @@
 package info.toyonos.hfr4droid.activity;
 
 import info.toyonos.hfr4droid.R;
+import info.toyonos.hfr4droid.core.bean.BasicElement;
 import info.toyonos.hfr4droid.core.bean.Category;
 import info.toyonos.hfr4droid.core.bean.Post;
 import info.toyonos.hfr4droid.core.bean.Topic;
 import info.toyonos.hfr4droid.core.bean.Topic.TopicStatus;
 import info.toyonos.hfr4droid.core.bean.Topic.TopicType;
+import info.toyonos.hfr4droid.core.data.HFRUrlParser;
+import info.toyonos.hfr4droid.core.data.MDUrlParser;
 import info.toyonos.hfr4droid.core.message.HFRMessageSender;
 
 import java.text.SimpleDateFormat;
@@ -643,6 +646,56 @@ public class PostsActivity extends HFR4droidActivity
 					});
 				}
 			}
+			
+			@SuppressWarnings("unused")
+			public void handleQuote(String url)
+			{
+				try
+				{
+					MDUrlParser urlParser = new HFRUrlParser(getDataRetriever());
+					if (urlParser.parseUrl("http://forum.hardware.fr" + url))
+					{
+						BasicElement element = urlParser.getElement();
+						if (element == null)
+						{
+							loadCats(false);
+						}
+						else if (element instanceof Category)
+						{
+							loadTopics((Category) element, urlParser.getType(), urlParser.getPage(), false);
+						}
+						else if (element instanceof Topic)
+						{
+							Topic t = (Topic) element;
+							if (t.getId() == topic.getId())
+							{
+								if (urlParser.getPage() == currentPageNumber)
+								{
+									// C'est le même topic et la même page, on scroll
+									webView.loadUrl("javascript:scrollToElement(" + t.getLastReadPost() + ")");
+								}
+								else
+								{
+									// Page différente, on change de page
+									topic.setLastReadPost(t.getLastReadPost());
+									loadPosts(topic, urlParser.getPage());
+								}
+							}
+							else
+							{
+								// Topic différent, on change de topic
+								loadPosts(t, urlParser.getPage());
+							}
+						}
+					}
+				}
+				catch (Exception e)
+				{
+					Log.e(this.getClass().getSimpleName(), String.format(getString(R.string.error), e.getClass().getName(), e.getMessage()));
+					Toast t = Toast.makeText(PostsActivity.this, getString(R.string.error_dispatching_url, e.getClass().getSimpleName(), e.getMessage()), Toast.LENGTH_LONG);
+					t.show();
+				}
+			}
 		}, "HFR4Droid");
 
 		final WebView loading = (WebView) findViewById(R.id.loading);
@@ -664,9 +717,6 @@ public class PostsActivity extends HFR4droidActivity
 		js.append(".HFR4droid_content img { max-width: ' + (width - 30) + 'px; }");
 		js.append(".citation img, .oldcitation img, .quote img, .oldquote img, .fixed img, .code img, .spoiler img, .oldspoiler img { max-width: ' + (Math.round(width * 0.80) - 15) + 'px; }");
 		js.append("')); headID.appendChild(cssNode); };");
-		//js.append("loadDynamicCss(" + width + ");");
-		//js.append("window.addEventListener('resize', loadDynamicCss, false);");
-		//js.append("window.onload = function () { loadDynamicCss(" + width + ");");
 		if (topic.getLastReadPost() != -1 || topic.getStatus() == TopicStatus.NEW_MP)
 		{
 			js.append("window.onload = function () { scrollToElement(\'" + (topic.getStatus() == TopicStatus.NEW_MP ? BOTTOM_PAGE_ID : topic.getLastReadPost()) + "\'); }");
@@ -679,22 +729,22 @@ public class PostsActivity extends HFR4droidActivity
 		css.append(".u { text-decoration:underline; }");
 		css.append("a.cLink { color:#000080; text-decoration:none; }");
 		css.append("a.cLink:hover, a.cLing:active  { color:#000080; text-decoration:underline; }");
-		css.append(".citation, .oldcitation, .quote, .oldquote, .fixed, .code, .spoiler, .oldspoiler { padding:3px; text-align:left; width:90%25; }");
+		css.append(".citation, .oldcitation, .quote, .oldquote, .fixed, .code, .spoiler, .oldspoiler { padding:3px; text-align:left; width:90%; }");
 		css.append(".citation, .oldcitation, .quote, .oldquote, .spoiler, .oldspoiler { margin: 8px auto; }");
 		css.append(".code, .fixed { background-color:#FFF; border:1px solid #000; color:#000; font-family:'Courier New',Courier,monospace; margin:8px 5px; }");
 		css.append(".oldcitation, .oldquote { border:0; }");
 		css.append(".quote, .oldquote { font-style:italic; }");
 		css.append(".spoiler, .oldspoiler, .citation, .quote { border:1px solid #C0C0C0; background-color:#FFF }");
 		css.append("div.masque { visibility:hidden; }");
-		css.append(".container { text-align:center; width:100%25; }");
+		css.append(".container { text-align:center; width:100%; }");
 		css.append(".s1, .s1Topic { font-size: 10px; }");
 		css.append("p{ margin:0; padding:0; }");
 		css.append("p, ul { font-size: 0.8em; margin-bottom: 0; margin-top: 0; }");
 		css.append("pre { font-size: 0.9em; white-space: pre-wrap }");
 		css.append("ol.olcode { font-size: 0.7em; }");
 		css.append("body { margin:0; padding:0; background-color:#F7F7F7; }");
-		css.append(".HFR4droid_header { width:100%25; background: url(\"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAAyCAIAAAASmSbdAAAACXBIWXMAAAsSAAALEgHS3X78AAAAr0lEQVR42i3D61IBYQCA4fc%2B%2FMNiR2qVU7sxzbgFHZaEQU27qG6hf7ElRDmMQ5juilvp%2B%2BKZeQibL5w%2F%2F5J6WpN6XO02liTFs%2FrPf6O%2BwKgt0O05ujXj1JqSkB%2BmxO8nxOS7MVExUh0RqQw5KX9zXP5Ck0sDtGKfo8Inh4UeodseB%2Fmu2CF4I%2BY%2BUHNt1KxovhMw3%2FBfO%2FjkKwflsoVy0cQrZ17x7LszTVxpm8128wedbTsQqibZlwAAAABJRU5ErkJggg%3D%3D\"); height: 50px; text-align: right; }");
-		css.append(".HFR4droid_header div { position: absolute; margin: 5px 0 0 5px; width:90%25; text-align: left; }");
+		css.append(".HFR4droid_header { width:100%; background: url(\"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAAyCAIAAAASmSbdAAAACXBIWXMAAAsSAAALEgHS3X78AAAAr0lEQVR42i3D61IBYQCA4fc%2B%2FMNiR2qVU7sxzbgFHZaEQU27qG6hf7ElRDmMQ5juilvp%2B%2BKZeQibL5w%2F%2F5J6WpN6XO02liTFs%2FrPf6O%2BwKgt0O05ujXj1JqSkB%2BmxO8nxOS7MVExUh0RqQw5KX9zXP5Ck0sDtGKfo8Inh4UeodseB%2Fmu2CF4I%2BY%2BUHNt1KxovhMw3%2FBfO%2FjkKwflsoVy0cQrZ17x7LszTVxpm8128wedbTsQqibZlwAAAABJRU5ErkJggg%3D%3D\"); height: 50px; text-align: right; }");
+		css.append(".HFR4droid_header div { position: absolute; margin: 5px 0 0 5px; width:90%; text-align: left; }");
 		css.append(".HFR4droid_header div img { float: left; max-width:60px; max-height:40px; margin-right:5px; }");
 		css.append(".HFR4droid_header span.pseudo { color:#FFF; font-size: 16px; font-weight:bold; }");
 		css.append(".HFR4droid_header span.date { display: block; font-style:italic; color:#CDCDCD; font-size: 12px; margin:5px; margin-left:0; }");
@@ -705,7 +755,7 @@ public class PostsActivity extends HFR4droidActivity
 		Display display = getWindowManager().getDefaultDisplay(); 
 		int width = Math.round(display.getWidth() / webView.getScale());
 		StringBuffer js2 = new StringBuffer("<script type=\"text/javascript\">");
-		js2.append("loadDynamicCss(" + width + ");//alert(screen.width);");
+		js2.append("loadDynamicCss(" + width + ");");
 		js2.append("</script>");
 
 		StringBuffer postsContent = new StringBuffer("");
@@ -738,9 +788,8 @@ public class PostsActivity extends HFR4droidActivity
 
 			String content = "";
 			content = "<div class=\"HFR4droid_post\"><div class=\"HFR4droid_content\"";
-			//if (p.getLastEdition() == null && p.getNbCitations() == 0) content += " style=\"padding-top: 25px;\"";
 			content += ">" + p.getContent() + "</div></div>";
-			content = content.replaceAll("<b\\s*class=\"s1\"><a href=(.*?)>(.*?)</a></b>", "<b class=\"s1\">$2</b>");
+			content = content.replaceAll("<b\\s*class=\"s1\"><a href=\"(.*?)\".*?>(.*?)</a></b>", "<b onclick=\"window.HFR4Droid.handleQuote('$1');\" class=\"s1\">$2</b>");
 			if (!isSmileysEnable()) content = content.replaceAll("<img\\s*src=\"http://forum\\-images\\.hardware\\.fr.*?\"\\s*alt=\"(.*?)\".*?/>", "$1");
 			if (!isImgsEnable()) content = content.replaceAll("<img\\s*src=\"http://[^\"]*?\"\\s*alt=\"http://[^\"]*?\"\\s*title=\"(http://.*?)\".*?/>", "<a href=\"$1\" target=\"_blank\" class=\"cLink\">$1</a>");
 			content = content.replaceAll("ondblclick=\".*?\"", "");
@@ -777,7 +826,8 @@ public class PostsActivity extends HFR4droidActivity
 				}
 			}
 		}); 
-		webView.loadData("<html><head>" + fixHTML(js.toString()) + css + fixHTML(js2.toString()) + "</head><body>" + fixHTML(postsContent.toString()) + "</body></html>", "text/html", "UTF-8");
+		//webView.loadData("<html><head>" + fixHTML(js.toString()) + css + fixHTML(js2.toString()) + "</head><body>" + fixHTML(postsContent.toString()) + "</body></html>", "text/html", "UTF-8");
+		webView.loadDataWithBaseURL("http://forum.hardware.fr", "<html><head>" + js.toString() + css.toString() + js2.toString() + "</head><body>" + postsContent.toString() + "</body></html>", "text/html", "UTF-8", null);
 		if (oldWebView != null)
 		{
 			oldWebView.destroy();
@@ -992,7 +1042,7 @@ public class PostsActivity extends HFR4droidActivity
 							}
 						});
 
-						webView.loadData("<html><head>" + fixHTML(js.toString()) + css + "</head><body>" + data + "</body></html>", "text/html", "UTF-8");
+						webView.loadData("<html><head>" + fixHTML(js.toString()) + fixHTML(css.toString()) + "</head><body>" + fixHTML(css.toString()) + "</body></html>", "text/html", "UTF-8");
 
 						if (oldWebView != null)
 						{
