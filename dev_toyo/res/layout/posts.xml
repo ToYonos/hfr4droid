@@ -13,18 +13,27 @@
 	    	android:gravity="center"
 	    	android:textSize="14dip"
 		   	android:singleLine="true"
-			android:ellipsize="end"
-	    	android:paddingLeft="42dip"
+			android:ellipsize="marquee"
+			android:marqueeRepeatLimit="marquee_forever"
+			android:scrollHorizontally="true"
+	    	android:paddingLeft="5dip"
 	    	android:paddingRight="35dip"
 	    	android:textStyle="bold"
 	    	android:textColor="#000080"
 	    	android:background="#DEDFDF"
 	    	android:layout_width="fill_parent" 
-	    	android:layout_height="55dip" />
+	    	android:layout_height="40dip" />
 		<WebView
 			android:id="@+id/loading"
 	        android:layout_width="fill_parent"
     		android:layout_height="fill_parent" />
 	</LinearLayout>
 	<include layout="@layout/nav_drawer" />
+   	<ProgressBar
+  		android:id="@+id/PostsProgressBar"
+  		android:max="100"
+  		android:indeterminateOnly="false"
+  		style="@android:style/Widget.ProgressBar.Horizontal"
+  		android:layout_width="fill_parent" 
+   		android:layout_height="40dip" />
 </FrameLayout>

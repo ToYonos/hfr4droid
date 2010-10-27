@@ -3,7 +3,10 @@
 	android:orientation="horizontal"
 	android:layout_width="fill_parent"
 	android:layout_height="wrap_content"
-	android:padding="7dip">
+	android:paddingLeft="7dip"
+	android:paddingRight="7dip"
+	android:paddingTop="12dip"
+	android:paddingBottom="12dip">
 	<ImageView
 		android:id="@+id/TopicFlag"
 		android:padding="3dip"

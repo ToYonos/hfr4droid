@@ -4,10 +4,14 @@
 	android:orientation="horizontal"
 	android:layout_width="fill_parent"
 	android:layout_height="wrap_content"
-	android:padding="7dip">
+	android:paddingLeft="7dip"
+	android:paddingRight="7dip"
+	android:paddingTop="12dip"
+	android:paddingBottom="12dip">
 	<TextView
 		android:id="@+id/ItemContent"
 		android:textSize="15dip"
+		android:ellipsize="end"
 		android:textColor="@color/item"
 		android:layout_width="wrap_content"
 		android:layout_height="wrap_content" />

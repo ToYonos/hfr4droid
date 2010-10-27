@@ -43,7 +43,7 @@ public class HFRMessageSender
 		auth = authentication;
 	}
 
-	public int postMessage(Topic t, String hashCheck, String message) throws UnsupportedEncodingException, IOException
+	public int postMessage(Topic t, String hashCheck, String message, boolean signature) throws UnsupportedEncodingException, IOException
 	{
 		List<NameValuePair> params = new ArrayList<NameValuePair>();
 		params.add(new BasicNameValuePair("hash_check", hashCheck));
@@ -54,7 +54,7 @@ public class HFRMessageSender
 		params.add(new BasicNameValuePair("pseudo", auth.getUser()));
 		params.add(new BasicNameValuePair("content_form", message));
 		params.add(new BasicNameValuePair("sujet", t.getName()));
-		params.add(new BasicNameValuePair("signature", "1"));
+		params.add(new BasicNameValuePair("signature", signature ? "1" : "0"));
 
 		String response = innerGetResponse(FORM_URI, params);
 		return getResponseCode(response);

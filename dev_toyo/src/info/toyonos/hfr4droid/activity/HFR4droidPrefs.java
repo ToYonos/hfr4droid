@@ -6,8 +6,11 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.preference.Preference;
 import android.preference.PreferenceActivity;
+import android.preference.PreferenceManager;
 import android.preference.PreferenceScreen;
 import android.preference.Preference.OnPreferenceChangeListener;
+import android.view.Window;
+import android.view.WindowManager;
 import android.widget.Toast;
 
 /**
@@ -17,16 +20,41 @@ import android.widget.Toast;
  *
  */
 public class HFR4droidPrefs extends PreferenceActivity
-{
+{	
 	@Override
 	public void onCreate(Bundle savedInstanceState)
 	{
+		requestWindowFeature(Window.FEATURE_NO_TITLE);
 		super.onCreate(savedInstanceState);
+		switchFullscreen(PreferenceManager.getDefaultSharedPreferences(this)
+											.getBoolean(HFR4droidActivity.PREF_FULLSCREEN_ENABLE,
+														Boolean.parseBoolean(getString(R.string.pref_fullscreen_enable_default))));
+		
 		addPreferencesFromResource(R.xml.prefs);
 		final PreferenceScreen preferenceScreen = getPreferenceScreen();
 
-		Preference freqEnable = findPreference(HFR4droidActivity.PREF_SRV_MPS_ENABLE);
-		freqEnable.setOnPreferenceChangeListener(new OnPreferenceChangeListener()
+		Preference fullscreenEnable = findPreference(HFR4droidActivity.PREF_FULLSCREEN_ENABLE);
+		fullscreenEnable.setOnPreferenceChangeListener(new OnPreferenceChangeListener()
+		{
+			public boolean onPreferenceChange(Preference preference, Object newValue)
+			{
+				switchFullscreen((Boolean) newValue);
+				return true;
+			}
+		});
+		
+		Preference policeSize = findPreference(HFR4droidActivity.PREF_POLICE_SIZE);
+		policeSize.setOnPreferenceChangeListener(new OnPreferenceChangeListener()
+		{
+			public boolean onPreferenceChange(Preference preference, Object newValue)
+			{
+				HFR4droidActivity.forceRedraw = true;
+				return true;
+			}
+		});
+		
+		Preference srvMpsEnable = findPreference(HFR4droidActivity.PREF_SRV_MPS_ENABLE);
+		srvMpsEnable.setOnPreferenceChangeListener(new OnPreferenceChangeListener()
 		{
 			public boolean onPreferenceChange(Preference preference, Object newValue)
 			{
@@ -77,5 +105,19 @@ public class HFR4droidPrefs extends PreferenceActivity
 				return true;
 			}
 		});	
+	}
+	
+	public void switchFullscreen(boolean fullscreen)
+	{
+		if (fullscreen)
+		{
+			getWindow().setFlags(
+							WindowManager.LayoutParams.FLAG_FULLSCREEN,   
+							WindowManager.LayoutParams.FLAG_FULLSCREEN);
+		}
+		else
+		{
+			getWindow().clearFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
+		}
 	}
 }

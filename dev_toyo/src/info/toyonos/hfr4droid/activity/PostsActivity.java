@@ -46,13 +46,18 @@ import android.view.WindowManager;
 import android.view.View.OnClickListener;
 import android.view.View.OnTouchListener;
 import android.view.ViewGroup.LayoutParams;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
+import android.view.animation.Animation.AnimationListener;
 import android.view.inputmethod.InputMethodManager;
 import android.webkit.WebChromeClient;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.ProgressBar;
 import android.widget.SlidingDrawer;
 import android.widget.TableLayout;
 import android.widget.TableRow;
@@ -121,14 +126,12 @@ public class PostsActivity extends HFR4droidActivity
 
 	protected Map<Long, String> quotes;
 	protected boolean lockQuickAction;
-
-
+	
 	@SuppressWarnings("unchecked")
 	@Override
 	protected void onCreate(Bundle savedInstanceState)
 	{
 		super.onCreate(savedInstanceState);
-		requestWindowFeature(Window.FEATURE_PROGRESS);
 		setContentView(R.layout.posts);
 		attachEvents();
 		currentScrollY = -1;
@@ -227,20 +230,6 @@ public class PostsActivity extends HFR4droidActivity
 		return ((WebView) parent.getChildAt(2));
 	}
 
-	public boolean onKeyDown(int keyCode, KeyEvent event) 
-	{
-		if (keyCode == KeyEvent.KEYCODE_BACK)
-		{
-			SlidingDrawer navDrawer = (SlidingDrawer) findViewById(R.id.Nav);
-			if (navDrawer.isOpened())
-			{
-				navDrawer.close();
-				return true;
-			}
-		}	
-		return super.onKeyDown(keyCode, event);
-	}
-
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu)
 	{
@@ -331,16 +320,11 @@ public class PostsActivity extends HFR4droidActivity
 	}
 
 	@Override
-	protected void setWindowTitle()
-	{
-		setTitle(getString(R.string.app_name) + (topic.getNbPages() != -1 ? " - P." + currentPageNumber + "/" + topic.getNbPages() : ""));
-	}
-
-	@Override
 	protected void setTitle()
 	{
-		TextView topicTitle = (TextView) findViewById(R.id.TopicTitle);
-		topicTitle.setText(topic.toString());		
+		final TextView topicTitle = (TextView) findViewById(R.id.TopicTitle);
+		topicTitle.setText((topic.getNbPages() != -1 ? "P." + currentPageNumber + "/" + topic.getNbPages() + " - " : "") + topic.toString());
+		topicTitle.setSelected(true);
 	}
 
 	@Override
@@ -385,7 +369,7 @@ public class PostsActivity extends HFR4droidActivity
 		currentScrollY = getWebView().getScrollY();
 		loadPosts(topic, currentPageNumber);
 	}
-
+	
 	@Override
 	protected void goBack()
 	{
@@ -396,37 +380,44 @@ public class PostsActivity extends HFR4droidActivity
 	private void updateButtonsStates()
 	{
 		SlidingDrawer nav = (SlidingDrawer) findViewById(R.id.Nav);
+		TextView topicTitle = (TextView) findViewById(R.id.TopicTitle);
 		if (topic.getNbPages() == 1)
 		{
 			nav.setVisibility(View.GONE);
+			topicTitle.setPadding(5, 0, 5, 0);
 		}
 		else
 		{
 			nav.setVisibility(View.VISIBLE);
+			topicTitle.setPadding(5, 0, 35, 0);
 
-			Button buttonFP = (Button) findViewById(R.id.ButtonNavFirstPage);
+			ImageView buttonFP = (ImageView) findViewById(R.id.ButtonNavFirstPage);
 			buttonFP.setEnabled(currentPageNumber != 1);
+			buttonFP.setAlpha(currentPageNumber != 1 ? 255 : 105);
 
-			Button buttonPP = (Button) findViewById(R.id.ButtonNavPreviousPage);
+			ImageView buttonPP = (ImageView) findViewById(R.id.ButtonNavPreviousPage);
 			buttonPP.setEnabled(currentPageNumber != 1);
+			buttonPP.setAlpha(currentPageNumber != 1 ? 255 : 105);
 
-			Button buttonNP = (Button) findViewById(R.id.ButtonNavNextPage);
+			ImageView buttonNP = (ImageView) findViewById(R.id.ButtonNavNextPage);
 			buttonNP.setEnabled(currentPageNumber != topic.getNbPages());
+			buttonNP.setAlpha(currentPageNumber != topic.getNbPages() ? 255 : 105);
 
-			Button buttonLP = (Button) findViewById(R.id.ButtonNavLastPage);
+			ImageView buttonLP = (ImageView) findViewById(R.id.ButtonNavLastPage);
 			buttonLP.setEnabled(currentPageNumber != topic.getNbPages());
+			buttonLP.setAlpha(currentPageNumber != topic.getNbPages() ? 255 : 105);
 		}
 	}
 
 	private void attachEvents()
 	{
 		SlidingDrawer slidingDrawer = (SlidingDrawer) findViewById(R.id.Nav);
-		final Button toggleNav = (Button) findViewById(R.id.NavToggle);
+		final ImageView toggleNav = (ImageView) ((LinearLayout) findViewById(R.id.NavToggle)).getChildAt(0);
 		slidingDrawer.setOnDrawerOpenListener(new OnDrawerOpenListener()
 		{
 			public void onDrawerOpened()
 			{
-				toggleNav.setCompoundDrawablesWithIntrinsicBounds(R.drawable.right_arrow, 0, 0, 0);
+				toggleNav.setImageResource(R.drawable.right_arrow);
 			}
 		});
 
@@ -434,11 +425,11 @@ public class PostsActivity extends HFR4droidActivity
 		{
 			public void onDrawerClosed()
 			{
-				toggleNav.setCompoundDrawablesWithIntrinsicBounds(R.drawable.left_arrow, 0, 0, 0);
+				toggleNav.setImageResource(R.drawable.left_arrow);
 			}
 		});
 
-		Button buttonFP = (Button) findViewById(R.id.ButtonNavFirstPage);
+		ImageView buttonFP = (ImageView) findViewById(R.id.ButtonNavFirstPage);
 		buttonFP.setOnClickListener(new OnClickListener()
 		{
 			public void onClick(View v)
@@ -447,7 +438,7 @@ public class PostsActivity extends HFR4droidActivity
 			}
 		});
 
-		Button buttonPP = (Button) findViewById(R.id.ButtonNavPreviousPage);
+		ImageView buttonPP = (ImageView) findViewById(R.id.ButtonNavPreviousPage);
 		buttonPP.setOnClickListener(new OnClickListener()
 		{
 			public void onClick(View v)
@@ -456,7 +447,7 @@ public class PostsActivity extends HFR4droidActivity
 			}
 		});
 
-		Button buttonUP = (Button) findViewById(R.id.ButtonNavUserPage);
+		ImageView buttonUP = (ImageView) findViewById(R.id.ButtonNavUserPage);
 		buttonUP.setOnClickListener(new OnClickListener()
 		{
 			public void onClick(View v)
@@ -465,7 +456,7 @@ public class PostsActivity extends HFR4droidActivity
 			}
 		});			
 
-		Button buttonNP = (Button) findViewById(R.id.ButtonNavNextPage);
+		ImageView buttonNP = (ImageView) findViewById(R.id.ButtonNavNextPage);
 		buttonNP.setOnClickListener(new OnClickListener()
 		{
 			public void onClick(View v)
@@ -474,7 +465,7 @@ public class PostsActivity extends HFR4droidActivity
 			}
 		});
 
-		Button buttonLP = (Button) findViewById(R.id.ButtonNavLastPage);
+		ImageView buttonLP = (ImageView) findViewById(R.id.ButtonNavLastPage);
 		buttonLP.setOnClickListener(new OnClickListener()
 		{
 			public void onClick(View v)
@@ -808,12 +799,13 @@ public class PostsActivity extends HFR4droidActivity
 		//getApplicationContext().deleteDatabase("webviewCache.db");
 		//webView.clearCache(true);
 		//settings.setCacheMode(WebSettings.LOAD_NO_CACHE);
-
+		final ProgressBar progressBar = (ProgressBar) findViewById(R.id.PostsProgressBar);
+		progressBar.setVisibility(View.VISIBLE);
 		webView.setWebChromeClient(new WebChromeClient()
 		{
 			public void onProgressChanged(WebView view, int progress)
 			{
-				PostsActivity.this.getWindow().setFeatureInt(Window.FEATURE_PROGRESS, progress * 100);
+				progressBar.setProgress(progress);
 				if (progress > 15 && loading.getVisibility() == View.VISIBLE) loading.setVisibility(View.GONE);
 				if (progress == 100)
 				{
@@ -823,6 +815,19 @@ public class PostsActivity extends HFR4droidActivity
 						currentScrollY = -1;
 					}
 					lockQuickAction = false;
+					Animation anim = AnimationUtils.loadAnimation(PostsActivity.this, R.anim.hide_progress_bar);
+					anim.setAnimationListener(new AnimationListener()
+					{
+						public void onAnimationStart(Animation animation) {}
+						
+						public void onAnimationRepeat(Animation animation) {}
+						
+						public void onAnimationEnd(Animation animation)
+						{
+							progressBar.setVisibility(View.GONE);
+						}
+					});
+					progressBar.startAnimation(anim);
 				}
 			}
 		}); 
@@ -1088,7 +1093,7 @@ public class PostsActivity extends HFR4droidActivity
 							}
 							else
 							{
-								codeResponse = getMessageSender().postMessage(topic, getDataRetriever().getHashCheck(), postContent.getText().toString());
+								codeResponse = getMessageSender().postMessage(topic, getDataRetriever().getHashCheck(), postContent.getText().toString(), isSignatureEnable());
 							}
 						}
 						catch (final Exception e)
