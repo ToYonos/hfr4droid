@@ -14,7 +14,10 @@ import info.toyonos.hfr4droid.service.MpCheckService;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ExecutionException;
 
 import android.app.Activity;
 import android.app.AlertDialog;
@@ -61,6 +64,7 @@ public abstract class HFR4droidActivity extends Activity
 	public static final String PREF_WELCOME_SCREEN		= "PrefWelcomeScreen";
 	public static final String PREF_TYPE_DRAPEAU		= "PrefTypeDrapeau";
 	public static final String PREF_SIGNATURE_ENABLE	= "PrefSignatureEnable";
+	public static final String PREF_PRELOADING_ENABLE	= "PrefPreloadingEnable";
 	public static final String PREF_SWIPE				= "PrefSwipe";
 	public static final String PREF_FULLSCREEN_ENABLE	= "PrefFullscreenEnable";
 	public static final String PREF_POLICE_SIZE			= "PrefPoliceSize";
@@ -75,7 +79,9 @@ public abstract class HFR4droidActivity extends Activity
 	protected AlertDialog loginDialog;
 	protected int currentPageNumber;
 
-	//private List<BasicElement> preLoadedElements;
+	private PreLoadingPostsAsyncTask preLoadingPostsAsyncTask;
+	private Map<Integer, List<Post>> preLoadedPosts;
+	private boolean navForward;
 	
 	protected abstract void setTitle();
 
@@ -87,6 +93,9 @@ public abstract class HFR4droidActivity extends Activity
 		Bundle bundle = this.getIntent().getExtras();
 		loginDialog = null;
 		currentPageNumber = bundle != null ? bundle.getInt("pageNumber") : -1;
+		preLoadingPostsAsyncTask = null;
+		preLoadedPosts = new HashMap<Integer, List<Post>>();
+		navForward = true;
 		loginFromCache();
 	}
 
@@ -116,6 +125,14 @@ public abstract class HFR4droidActivity extends Activity
 			forceRedraw = false;
 			redrawPage();
 		}
+	}
+
+
+	@Override
+	protected void onDestroy()
+	{
+		super.onDestroy();
+		if (preLoadingPostsAsyncTask != null) preLoadingPostsAsyncTask.cancel(true);
 	}
 
 	@Override
@@ -526,22 +543,58 @@ public abstract class HFR4droidActivity extends Activity
 		String progressTitle = topic.toString();
 		String progressContent = getString(R.string.getting_posts, pageNumber);
 		String noElement = getString(R.string.no_post);
-
+		
 		new DataRetrieverAsyncTask<Post, Topic>()
-		{	
+		{			
 			@Override
 			protected List<Post> retrieveDataInBackground(Topic... topics) throws Exception
 			{
-				return getDataRetriever().getPosts(topics[0], pageNumber);
+				List<Post> posts = new ArrayList<Post>();
+				if (preLoadingPostsAsyncTask != null && preLoadingPostsAsyncTask.getPageNumber() == pageNumber)
+				{
+					switch (preLoadingPostsAsyncTask.getStatus()) 
+					{
+						case RUNNING:
+							Log.d("HFR4droid", "Page " + pageNumber + " deja en cours de recuperation...");
+							posts = preLoadingPostsAsyncTask.waitAndGet();
+							Log.d("HFR4droid", "...page " + pageNumber + " recuperee !");
+							break;
+
+						case FINISHED:
+							List<Post> tmpPosts = HFR4droidActivity.this.preLoadedPosts.get(pageNumber);
+							if ( preLoadedPosts != null)
+							{
+								Log.d("HFR4droid", "Page " + pageNumber + " recuperee dans le cache.");
+								posts = tmpPosts;
+								preLoadedPosts.clear(); // On ne conserve pas le cache des posts
+							}
+							else
+							{
+								posts = getDataRetriever().getPosts(topics[0], pageNumber);
+							}
+							break;
+						
+						default:
+							break;
+					}
+				}
+				else
+				{	
+					if (preLoadingPostsAsyncTask != null) preLoadingPostsAsyncTask.cancel(true);
+					posts = getDataRetriever().getPosts(topics[0], pageNumber);
+				}
+				return posts;
 			}
 
 			@Override
 			protected void onPostExecuteSameActivity(List<Post> posts) throws ClassCastException
 			{
 				PostsActivity activity = (PostsActivity) HFR4droidActivity.this;
+				navForward = currentPageNumber <= pageNumber;
 				activity.setPageNumber(pageNumber);
 				setTitle();
 				activity.refreshPosts(posts);
+				if (isPreloadingEnable()) preLoadPosts(topic, pageNumber);
 			}
 
 			@Override
@@ -567,6 +620,27 @@ public abstract class HFR4droidActivity extends Activity
 		}.execute(progressTitle, progressContent, noElement, sameActivity, topic);
 	}
 
+	protected void preLoadPosts(final Topic topic, final int currentPageNumber)
+	{
+		final int tmpPageNumber;
+		if (currentPageNumber == 1)
+		{
+			tmpPageNumber = 2;
+		}
+		else if (currentPageNumber == topic.getNbPages())
+		{
+			tmpPageNumber = topic.getNbPages() - 1;
+		}
+		else
+		{
+			tmpPageNumber = navForward ? currentPageNumber + 1 : currentPageNumber - 1;
+		}
+		final int targetPageNumber = tmpPageNumber;
+
+		preLoadingPostsAsyncTask = new PreLoadingPostsAsyncTask(targetPageNumber);
+		preLoadingPostsAsyncTask.execute(topic);
+	}
+	
 	protected void loadFirstPage(){}
 
 	protected void loadPreviousPage(){}
@@ -601,6 +675,12 @@ public abstract class HFR4droidActivity extends Activity
 	{
 		SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(this);
 		return settings.getBoolean(PREF_SIGNATURE_ENABLE, Boolean.parseBoolean(getString(R.string.pref_signature_enable_default)));
+	}
+	
+	protected boolean isPreloadingEnable()
+	{
+		SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(this);
+		return settings.getBoolean(PREF_PRELOADING_ENABLE, Boolean.parseBoolean(getString(R.string.pref_preloading_enable_default)));
 	}	
 
 	protected int getSwipe()
@@ -777,6 +857,53 @@ public abstract class HFR4droidActivity extends Activity
 		}
 	}
 
+	private class PreLoadingPostsAsyncTask extends DataRetrieverAsyncTask<Post, Topic>
+	{
+		private int targetPageNumber;
+		private boolean isFinished;
+		
+		public PreLoadingPostsAsyncTask(int targetPageNumber)
+		{
+			this.targetPageNumber = targetPageNumber;
+			isFinished = false;
+		}
+		
+		public int getPageNumber()
+		{
+			return targetPageNumber;
+		}
+		
+		public List<Post> waitAndGet() throws InterruptedException, ExecutionException
+		{
+			isFinished = true;
+			return get();
+		}
+
+		@Override
+		protected List<Post> retrieveDataInBackground(Topic... topics) throws Exception
+		{
+			return getDataRetriever().getPosts(topics[0], targetPageNumber);
+		}
+
+		@Override
+		protected void onPreExecute() {}
+		
+		@Override
+		protected void onPostExecute(List<Post> elements)
+		{
+			if (!isFinished)
+			{
+				preLoadedPosts.put(targetPageNumber, elements);
+				Log.d("HFR4droid", "Page " + targetPageNumber + " chargee avec succes !");
+			}
+		}
+
+		@Override
+		protected void onPostExecuteSameActivity(List<Post> posts) throws ClassCastException {}
+
+		@Override
+		protected void onPostExecuteOtherActivity(List<Post> posts) {}
+	}
 
 	protected abstract class PageNumberDialog
 	{

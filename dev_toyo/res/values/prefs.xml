@@ -18,6 +18,10 @@
 	<string name="pref_swipe_summary">Régler la sensibilité du swipe (glissement du doigt sur l\'écran)</string>
 	<string name="pref_swipe_default">1</string>
 	
+	<string name="pref_preloading_enable_title">Activer le préchargement des pages</string>
+	<string name="pref_preloading_enable_summary">Préchargement des pages afin de fluidifier la navigation (peut perturber les drapeaux)</string>
+	<string name="pref_preloading_enable_default">false</string>
+	
 	<string name="pref_affichage_title">Affichage</string>
 	
 	<string name="pref_fullscreen_enable_title">Afficher en plein écran</string>

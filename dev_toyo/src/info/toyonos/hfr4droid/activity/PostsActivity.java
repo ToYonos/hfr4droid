@@ -148,6 +148,7 @@ public class PostsActivity extends HFR4droidActivity
 			if (posts != null && posts.size() > 0)
 			{
 				topic = posts.get(0).getTopic();
+				if (isPreloadingEnable()) preLoadPosts(topic, currentPageNumber);
 				displayPosts(posts);
 			}
 		}
@@ -323,6 +324,7 @@ public class PostsActivity extends HFR4droidActivity
 	protected void setTitle()
 	{
 		final TextView topicTitle = (TextView) findViewById(R.id.TopicTitle);
+		topicTitle.setTextSize(getTextSize(15));
 		topicTitle.setText((topic.getNbPages() != -1 ? "P." + currentPageNumber + "/" + topic.getNbPages() + " - " : "") + topic.toString());
 		topicTitle.setSelected(true);
 	}
@@ -371,6 +373,12 @@ public class PostsActivity extends HFR4droidActivity
 	}
 	
 	@Override
+	protected void redrawPage()
+	{
+		reloadPage();
+	}
+	
+	@Override
 	protected void goBack()
 	{
 		Category cat = fromAllCats ? Category.ALL_CATS : topic.getCategory();
@@ -389,7 +397,7 @@ public class PostsActivity extends HFR4droidActivity
 		else
 		{
 			nav.setVisibility(View.VISIBLE);
-			topicTitle.setPadding(5, 0, 35, 0);
+			topicTitle.setPadding(5, 0, 55, 0);
 
 			ImageView buttonFP = (ImageView) findViewById(R.id.ButtonNavFirstPage);
 			buttonFP.setEnabled(currentPageNumber != 1);
@@ -728,7 +736,7 @@ public class PostsActivity extends HFR4droidActivity
 		css.append(".spoiler, .oldspoiler, .citation, .quote { border:1px solid #C0C0C0; background-color:#FFF }");
 		css.append("div.masque { visibility:hidden; }");
 		css.append(".container { text-align:center; width:100%; }");
-		css.append(".s1, .s1Topic { font-size: 10px; }");
+		css.append(".s1, .s1Topic { font-size: " + getTextSize(10) + "px; }");
 		css.append("p{ margin:0; padding:0; }");
 		css.append("p, ul { font-size: 0.8em; margin-bottom: 0; margin-top: 0; }");
 		css.append("pre { font-size: 0.9em; white-space: pre-wrap }");
@@ -737,10 +745,26 @@ public class PostsActivity extends HFR4droidActivity
 		css.append(".HFR4droid_header { width:100%; background: url(\"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAAyCAIAAAASmSbdAAAACXBIWXMAAAsSAAALEgHS3X78AAAAr0lEQVR42i3D61IBYQCA4fc%2B%2FMNiR2qVU7sxzbgFHZaEQU27qG6hf7ElRDmMQ5juilvp%2B%2BKZeQibL5w%2F%2F5J6WpN6XO02liTFs%2FrPf6O%2BwKgt0O05ujXj1JqSkB%2BmxO8nxOS7MVExUh0RqQw5KX9zXP5Ck0sDtGKfo8Inh4UeodseB%2Fmu2CF4I%2BY%2BUHNt1KxovhMw3%2FBfO%2FjkKwflsoVy0cQrZ17x7LszTVxpm8128wedbTsQqibZlwAAAABJRU5ErkJggg%3D%3D\"); height: 50px; text-align: right; }");
 		css.append(".HFR4droid_header div { position: absolute; margin: 5px 0 0 5px; width:90%; text-align: left; }");
 		css.append(".HFR4droid_header div img { float: left; max-width:60px; max-height:40px; margin-right:5px; }");
-		css.append(".HFR4droid_header span.pseudo { color:#FFF; font-size: 16px; font-weight:bold; }");
-		css.append(".HFR4droid_header span.date { display: block; font-style:italic; color:#CDCDCD; font-size: 12px; margin:5px; margin-left:0; }");
-		css.append(".HFR4droid_edit_quote { margin-top: 5px; padding: 4px; padding-bottom: 3px; background-color: #DEDFDE;  font-style:italic; color:#555; font-size: 9px; }");
-		css.append(".HFR4droid_content { padding: 10px; padding-top: 10px; }");
+		css.append(".HFR4droid_header span.pseudo { color:#FFF; font-size: " + getTextSize(16) + "px; font-weight:bold; }");
+		css.append(".HFR4droid_header span.date { display: block; font-style:italic; color:#CDCDCD; font-size: " + getTextSize(12) + "px; margin: ");
+		switch (getPoliceSize())
+		{
+			case 2:
+				css.append("2");
+				break;
+
+			case 3:
+				css.append("0");
+				break;
+				
+			default:
+				css.append("5");
+				break;
+		}
+		css.append("px; margin-left:0; }");
+		css.append(".HFR4droid_edit_quote { margin-top: 5px; padding: 4px; padding-bottom: 3px; background-color: #DEDFDE;  font-style:italic; color:#555; font-size: " + getTextSize(9) + "px; }");
+		css.append(".HFR4droid_content { padding: 10px; padding-top: 10px; font-size: " + getTextSize(16) + "px}");
+		css.append(".HFR4droid_footer { height: 5px; width:100%; background: url(\"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAAyCAIAAAASmSbdAAAACXBIWXMAAAsSAAALEgHS3X78AAAAr0lEQVR42i3D61IBYQCA4fc%2B%2FMNiR2qVU7sxzbgFHZaEQU27qG6hf7ElRDmMQ5juilvp%2B%2BKZeQibL5w%2F%2F5J6WpN6XO02liTFs%2FrPf6O%2BwKgt0O05ujXj1JqSkB%2BmxO8nxOS7MVExUh0RqQw5KX9zXP5Ck0sDtGKfo8Inh4UeodseB%2Fmu2CF4I%2BY%2BUHNt1KxovhMw3%2FBfO%2FjkKwflsoVy0cQrZ17x7LszTVxpm8128wedbTsQqibZlwAAAABJRU5ErkJggg%3D%3D\"); }");
 		css.append("</style>");
 
 		Display display = getWindowManager().getDefaultDisplay(); 
@@ -787,7 +811,7 @@ public class PostsActivity extends HFR4droidActivity
 			postsContent.append(header);
 			postsContent.append(content);
 		}
-		postsContent.append("<div id=\"" + BOTTOM_PAGE_ID + "\">&nbsp;</div>");
+		postsContent.append("<div id=\"" + BOTTOM_PAGE_ID + "\" class=\"HFR4droid_footer\" />");
 		WebSettings settings = webView.getSettings();
 		settings.setDefaultTextEncodingName("UTF-8");
 		settings.setJavaScriptEnabled(true);
@@ -883,6 +907,7 @@ public class PostsActivity extends HFR4droidActivity
 			final View layout = inflater.inflate(R.layout.add_post, null);
 			postDialog.setContentView(layout);
 			addPostDialogButtons(layout);
+			((EditText) postDialog.findViewById(R.id.inputPostContent)).setTextSize(getTextSize(14));
 
 			postDialog.setOnKeyListener(new DialogInterface.OnKeyListener()
 			{

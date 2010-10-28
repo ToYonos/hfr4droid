@@ -20,7 +20,12 @@
 			android:key="PrefSignatureEnable"
 			android:summary="@string/pref_signature_enable_summary"
 			android:title="@string/pref_signature_enable_title"
-			android:defaultValue="@string/pref_signature_enable_default" />    
+			android:defaultValue="@string/pref_signature_enable_default" />
+		<CheckBoxPreference
+			android:key="PrefPreloadingEnable"
+			android:summary="@string/pref_preloading_enable_summary"
+			android:title="@string/pref_preloading_enable_title"
+			android:defaultValue="@string/pref_preloading_enable_default" />
 		<ListPreference
 			android:key="PrefSwipe"
 			android:summary="@string/pref_swipe_summary"

@@ -8,7 +8,9 @@
     android:orientation="horizontal">
     <LinearLayout
     	android:id="@+id/NavToggle"
-    	android:background="#DEDFDF"
+		android:background="@drawable/degrad_simple"
+	    android:orientation="horizontal"
+	    android:gravity="center"
 		android:layout_width="wrap_content"
 	    android:layout_height="wrap_content">      
 		<ImageView
@@ -18,11 +20,11 @@
 	</LinearLayout>		
 	<LinearLayout
 		android:id="@+id/NavButtons"
+		android:background="@drawable/degrad_simple"
 	    android:orientation="horizontal"
 	    android:layout_width="fill_parent"
 	    android:layout_height="wrap_content"
-	    android:gravity="center"
-	    android:background="#DEDFDF">
+	    android:gravity="center">
 		<ImageView
 			android:id="@+id/ButtonNavFirstPage"
 		 	android:layout_width="wrap_content"

@@ -11,16 +11,16 @@
     	<TextView
 	    	android:id="@+id/TopicTitle"
 	    	android:gravity="center"
-	    	android:textSize="14dip"
+	    	android:textSize="15dip"
 		   	android:singleLine="true"
 			android:ellipsize="marquee"
 			android:marqueeRepeatLimit="marquee_forever"
 			android:scrollHorizontally="true"
 	    	android:paddingLeft="5dip"
-	    	android:paddingRight="35dip"
+	    	android:paddingRight="55dip"
 	    	android:textStyle="bold"
-	    	android:textColor="#000080"
-	    	android:background="#DEDFDF"
+	    	android:textColor="#1A3A60"
+	    	android:background="@drawable/degrad_plus"
 	    	android:layout_width="fill_parent" 
 	    	android:layout_height="40dip" />
 		<WebView

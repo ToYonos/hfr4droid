@@ -294,6 +294,7 @@ public class TopicsActivity extends HFR4droidListActivity<Topic>
 	protected void setTitle()
 	{
 		TextView catTitle = (TextView) findViewById(R.id.CatTitle);
+		catTitle.setTextSize(getTextSize(15));
 		String title;
 		if (isMpsCat() && adapter.getCount() > 0)
 		{
@@ -373,6 +374,12 @@ public class TopicsActivity extends HFR4droidListActivity<Topic>
 	}
 
 	@Override
+	protected void redrawPage()
+	{
+		adapter.notifyDataSetChanged();
+	}
+	
+	@Override
 	protected void goBack()
 	{
 		loadCats(false);
@@ -408,7 +415,7 @@ public class TopicsActivity extends HFR4droidListActivity<Topic>
 		else
 		{
 			nav.setVisibility(View.VISIBLE);
-			catTitle.setPadding(5, 0, 35, 0);
+			catTitle.setPadding(5, 0, 55, 0);
 
 			ImageView buttonFP = (ImageView) findViewById(R.id.ButtonNavFirstPage);
 			buttonFP.setEnabled(currentPageNumber != 1);
@@ -522,6 +529,7 @@ public class TopicsActivity extends HFR4droidListActivity<Topic>
 			Topic t = topics.get(position);
 
 			TextView text1 = (TextView) v.findViewById(R.id.ItemContent);
+			text1.setTextSize(getTextSize(14));
 			ImageView flag = (ImageView) v.findViewById(R.id.TopicFlag);
 			boolean isDummyTopic = t.getId() == -1;
 
@@ -535,6 +543,7 @@ public class TopicsActivity extends HFR4droidListActivity<Topic>
 			if (isMpsCat())
 			{
 				TextView author = (TextView) ll.findViewById(R.id.ItemAuthor);
+				author.setTextSize(getTextSize(14));
 				author.setText(Html.fromHtml("<b>@" + t.getAuthor() + "</b> : "));
 				try
 				{
