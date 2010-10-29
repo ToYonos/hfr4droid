@@ -230,7 +230,7 @@ public class PostsActivity extends HFR4droidActivity
 	private WebView getWebView()
 	{
 		LinearLayout parent = ((LinearLayout) findViewById(R.id.PostsLayout));
-		return ((WebView) parent.getChildAt(2));
+		return ((WebView) parent.getChildAt(3));
 	}
 
 	@Override
@@ -739,7 +739,6 @@ public class PostsActivity extends HFR4droidActivity
 			js.append("window.onload = function () { scrollToElement(\'" + (topic.getStatus() == TopicStatus.NEW_MP ? BOTTOM_PAGE_ID : topic.getLastReadPost()) + "\'); }");
 			topic.setLastReadPost(-1);
 		}
-		//js.append("};");
 		js.append("</script>");
 
 		StringBuffer css = new StringBuffer("<style type=\"text/css\">");
@@ -783,7 +782,7 @@ public class PostsActivity extends HFR4droidActivity
 		css.append("px; margin-left:0; }");
 		css.append(".HFR4droid_edit_quote { margin-top: 5px; padding: 4px; padding-bottom: 3px; background-color: #DEDFDE;  font-style:italic; color:#555; font-size: " + getTextSize(9) + "px; }");
 		css.append(".HFR4droid_content { padding: 10px; padding-top: 10px; font-size: " + getTextSize(16) + "px}");
-		css.append(".HFR4droid_footer { height: 5px; width:100%; background: url(\"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAAyCAIAAAASmSbdAAAACXBIWXMAAAsSAAALEgHS3X78AAAAr0lEQVR42i3D61IBYQCA4fc%2B%2FMNiR2qVU7sxzbgFHZaEQU27qG6hf7ElRDmMQ5juilvp%2B%2BKZeQibL5w%2F%2F5J6WpN6XO02liTFs%2FrPf6O%2BwKgt0O05ujXj1JqSkB%2BmxO8nxOS7MVExUh0RqQw5KX9zXP5Ck0sDtGKfo8Inh4UeodseB%2Fmu2CF4I%2BY%2BUHNt1KxovhMw3%2FBfO%2FjkKwflsoVy0cQrZ17x7LszTVxpm8128wedbTsQqibZlwAAAABJRU5ErkJggg%3D%3D\"); }");
+		css.append(".HFR4droid_footer { height: 10px; width:100%; background: url(\"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAA%2FCAMAAAAWu1JmAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAgY0hSTQAAeiYAAICEAAD6AAAAgOgAAHUwAADqYAAAOpgAABdwnLpRPAAAAwBQTFRFhYWFs7SzysrKy8vLyszKzMzMzc3Nzs7Oz8%2FP0NDQ0dHR0dLR0tLS09PT1NTU1dXV1tbW19fX2NjY2dnZ2tna2tra29rb3Nvc3Nzc3dzdAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAWKfi1AAAABh0RVh0U29mdHdhcmUAUGFpbnQuTkVUIHYzLjM2qefiJQAAAEFJREFUGFddwkcOgDAQBMHBhCWDCQb%2B%2F1Fai8TBqlKhSoOiDiVdejK3PgkndrchYsXiZkwY0bsO7c9kalCjdAF6ARIIA4Sqnjr8AAAAAElFTkSuQmCC\"); }");
 		css.append("</style>");
 
 		Display display = getWindowManager().getDefaultDisplay(); 
@@ -1133,7 +1132,7 @@ public class PostsActivity extends HFR4droidActivity
 							{
 								Post p = new Post(postDialog.getPostId());
 								p.setTopic(topic);
-								codeResponse = getMessageSender().editMessage(p, getDataRetriever().getHashCheck(), postContent.getText().toString());
+								codeResponse = getMessageSender().editMessage(p, getDataRetriever().getHashCheck(), postContent.getText().toString(), isSignatureEnable());
 							}
 							else
 							{

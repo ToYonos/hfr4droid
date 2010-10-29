@@ -556,8 +556,15 @@ public abstract class HFR4droidActivity extends Activity
 					{
 						case RUNNING:
 							Log.d("HFR4droid", "Page " + pageNumber + " deja en cours de recuperation...");
-							posts = preLoadingPostsAsyncTask.waitAndGet();
-							Log.d("HFR4droid", "...page " + pageNumber + " recuperee !");
+							try
+							{
+								posts = preLoadingPostsAsyncTask.waitAndGet();
+								Log.d("HFR4droid", "...page " + pageNumber + " recuperee !");
+							}
+							catch (Exception e)
+							{
+								preLoadingPostsAsyncTask = null;
+							}
 							break;
 
 						case FINISHED:

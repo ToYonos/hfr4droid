@@ -23,17 +23,17 @@
 	    	android:background="@drawable/degrad_plus"
 	    	android:layout_width="fill_parent" 
 	    	android:layout_height="40dip" />
+	   	<ProgressBar
+	  		android:id="@+id/PostsProgressBar"
+	  		android:max="100"
+	  		android:indeterminateOnly="false"
+	  		style="@android:style/Widget.ProgressBar.Horizontal"
+	  		android:layout_width="fill_parent"
+	  		android:layout_height="10dip" />	    	
 		<WebView
 			android:id="@+id/loading"
 	        android:layout_width="fill_parent"
     		android:layout_height="fill_parent" />
 	</LinearLayout>
 	<include layout="@layout/nav_drawer" />
-   	<ProgressBar
-  		android:id="@+id/PostsProgressBar"
-  		android:max="100"
-  		android:indeterminateOnly="false"
-  		style="@android:style/Widget.ProgressBar.Horizontal"
-  		android:layout_width="fill_parent" 
-   		android:layout_height="40dip" />
 </FrameLayout>

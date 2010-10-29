@@ -60,7 +60,7 @@ public class HFRMessageSender
 		return getResponseCode(response);
 	}
 
-	public int editMessage(Post p, String hashCheck, String message) throws UnsupportedEncodingException, IOException
+	public int editMessage(Post p, String hashCheck, String message, boolean signature) throws UnsupportedEncodingException, IOException
 	{
 		StringBuilder parents = new StringBuilder("");
 		Matcher m = Pattern.compile("\\[quotemsg=([0-9]+)", Pattern.CASE_INSENSITIVE | Pattern.DOTALL).matcher(message);
@@ -80,6 +80,7 @@ public class HFRMessageSender
 		params.add(new BasicNameValuePair("pseudo", auth.getUser()));
 		params.add(new BasicNameValuePair("content_form", message));
 		params.add(new BasicNameValuePair("sujet", p.getTopic().getName()));
+		params.add(new BasicNameValuePair("signature", signature ? "1" : "0"));
 		params.add(new BasicNameValuePair("subcat", String.valueOf(p.getTopic().getSubcat())));
 
 		String response = innerGetResponse(FORM_EDIT_URI, params);
