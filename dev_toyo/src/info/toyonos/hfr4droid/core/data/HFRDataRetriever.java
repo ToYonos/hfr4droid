@@ -317,7 +317,7 @@ public class HFRDataRetriever implements MDDataRetriever
 			);
 		}
 
-		String nbPages = getSingleElement("([0-9]+)</(?:a|b)></div><div", content);
+		String nbPages = getSingleElement("([0-9]+)</(?:a|b)></div><div\\*class=\"pagepresuiv\"", content);
 		if (nbPages != null) topic.setNbPages(Integer.parseInt(nbPages));
 
 		hashCheck = getSingleElement("<input\\s*type=\"hidden\"\\s*name=\"hash_check\"\\s*value=\"(.+?)\" />", content);
@@ -325,7 +325,7 @@ public class HFRDataRetriever implements MDDataRetriever
 		String subCat = getSingleElement("<input\\s*type=\"hidden\"\\s*name=\"subcat\"\\s*value=\"([0-9]+)\"\\s*/>", content);
 		if (subCat != null) topic.setSubcat(Integer.parseInt(subCat));
 		
-		// Pour HFRUrlParser, récuparation d'informations complémentaires
+		// Pour HFRUrlParser, récupération d'informations complémentaires
 		if (topic.getName() == null)
 		{
 			String topicTitle = getSingleElement("<input\\s*type=\"hidden\"\\s*name=\"sujet\"\\s*value=\"(.+?)\"\\s*/>", content);

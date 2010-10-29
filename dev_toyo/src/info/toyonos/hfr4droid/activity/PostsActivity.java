@@ -555,7 +555,8 @@ public class PostsActivity extends HFR4droidActivity
 									@Override
 									protected String doActionInBackground(Post p) throws Exception
 									{
-										return getDataRetriever().getPostContent(p);
+										String content = getDataRetriever().getPostContent(p);
+										return content.substring(0, content.length() - 1);
 									}
 
 									@Override
