@@ -62,12 +62,21 @@ public class HFRMessageSender
 
 	public int editMessage(Post p, String hashCheck, String message) throws UnsupportedEncodingException, IOException
 	{
+		StringBuilder parents = new StringBuilder("");
+		Matcher m = Pattern.compile("\\[quotemsg=([0-9]+)", Pattern.CASE_INSENSITIVE | Pattern.DOTALL).matcher(message);
+		while (m.find())
+		{
+			if (!parents.toString().equals("")) parents.append("-");
+			parents.append(m.group(1));
+		}
+		
 		List<NameValuePair> params = new ArrayList<NameValuePair>();
 		params.add(new BasicNameValuePair("hash_check", hashCheck));
 		params.add(new BasicNameValuePair("numreponse", String.valueOf(p.getId())));
 		params.add(new BasicNameValuePair("post", String.valueOf(p.getTopic().getId())));
 		params.add(new BasicNameValuePair("cat", p.getTopic().getCategory().getRealId()));
 		params.add(new BasicNameValuePair("verifrequet", "1100"));
+		params.add(new BasicNameValuePair("parents", parents.toString()));
 		params.add(new BasicNameValuePair("pseudo", auth.getUser()));
 		params.add(new BasicNameValuePair("content_form", message));
 		params.add(new BasicNameValuePair("sujet", p.getTopic().getName()));

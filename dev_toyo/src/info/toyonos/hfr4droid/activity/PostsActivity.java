@@ -116,6 +116,7 @@ public class PostsActivity extends HFR4droidActivity
 	};
 
 	private Topic topic;
+	private List<Post> posts;
 	private TopicType fromType;
 	private boolean fromAllCats;
 
@@ -144,7 +145,7 @@ public class PostsActivity extends HFR4droidActivity
 		fromAllCats = bundle == null ? false : bundle.getBoolean("fromAllCats", false); 
 		if (bundle != null && bundle.getSerializable("posts") != null)
 		{
-			List<Post> posts = (List<Post>) bundle.getSerializable("posts");
+			posts = (List<Post>) bundle.getSerializable("posts");
 			if (posts != null && posts.size() > 0)
 			{
 				topic = posts.get(0).getTopic();
@@ -202,9 +203,10 @@ public class PostsActivity extends HFR4droidActivity
 	protected void onDestroy()
 	{
 		super.onDestroy();
-		WebView posts = getWebView();
-		if (posts != null) posts.destroy();
+		WebView postsWV = getWebView();
+		if (posts != null) postsWV.destroy();
 		((WebView) findViewById(R.id.loading)).destroy();
+		posts.clear();
 	}
 
 	@Override
@@ -320,6 +322,11 @@ public class PostsActivity extends HFR4droidActivity
 		}
 	}
 
+	public void setPosts(List<Post> posts)
+	{
+		this.posts = posts;
+	}
+	
 	@Override
 	protected void setTitle()
 	{
@@ -368,14 +375,26 @@ public class PostsActivity extends HFR4droidActivity
 	@Override
 	protected void reloadPage()
 	{
+		reloadPage(false);
+	}
+	
+	protected void reloadPage(boolean fromCache)
+	{
 		currentScrollY = getWebView().getScrollY();
-		loadPosts(topic, currentPageNumber);
+		if (!fromCache)
+		{
+			loadPosts(topic, currentPageNumber);
+		}
+		else
+		{
+			refreshPosts(posts);
+		}
 	}
 	
 	@Override
 	protected void redrawPage()
 	{
-		reloadPage();
+		reloadPage(true);
 	}
 	
 	@Override
@@ -639,8 +658,7 @@ public class PostsActivity extends HFR4droidActivity
 								}								
 							});
 							window.addItem(multiQuote);
-
-							window.show(findViewById(R.id.TopicTitle), yOffset);
+							window.show(findViewById(R.id.TopicTitle), Math.round(50 * webView.getScale()), Math.round(yOffset * webView.getScale()));
 						}
 					});
 				}
@@ -733,13 +751,14 @@ public class PostsActivity extends HFR4droidActivity
 		css.append(".code, .fixed { background-color:#FFF; border:1px solid #000; color:#000; font-family:'Courier New',Courier,monospace; margin:8px 5px; }");
 		css.append(".oldcitation, .oldquote { border:0; }");
 		css.append(".quote, .oldquote { font-style:italic; }");
+		css.append("table { font-size: 1em; }");
 		css.append(".spoiler, .oldspoiler, .citation, .quote { border:1px solid #C0C0C0; background-color:#FFF }");
 		css.append("div.masque { visibility:hidden; }");
 		css.append(".container { text-align:center; width:100%; }");
 		css.append(".s1, .s1Topic { font-size: " + getTextSize(10) + "px; }");
-		css.append("p{ margin:0; padding:0; }");
+		css.append("p { margin:0; padding:0; }");
 		css.append("p, ul { font-size: 0.8em; margin-bottom: 0; margin-top: 0; }");
-		css.append("pre { font-size: 0.9em; white-space: pre-wrap }");
+		css.append("pre { font-size: 0.7em; white-space: pre-wrap }");
 		css.append("ol.olcode { font-size: 0.7em; }");
 		css.append("body { margin:0; padding:0; background-color:#F7F7F7; }");
 		css.append(".HFR4droid_header { width:100%; background: url(\"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAAyCAIAAAASmSbdAAAACXBIWXMAAAsSAAALEgHS3X78AAAAr0lEQVR42i3D61IBYQCA4fc%2B%2FMNiR2qVU7sxzbgFHZaEQU27qG6hf7ElRDmMQ5juilvp%2B%2BKZeQibL5w%2F%2F5J6WpN6XO02liTFs%2FrPf6O%2BwKgt0O05ujXj1JqSkB%2BmxO8nxOS7MVExUh0RqQw5KX9zXP5Ck0sDtGKfo8Inh4UeodseB%2Fmu2CF4I%2BY%2BUHNt1KxovhMw3%2FBfO%2FjkKwflsoVy0cQrZ17x7LszTVxpm8128wedbTsQqibZlwAAAABJRU5ErkJggg%3D%3D\"); height: 50px; text-align: right; }");

@@ -134,7 +134,15 @@ public class TopicsActivity extends HFR4droidListActivity<Topic>
 			@Override
 			protected void onLeftToRight()
 			{
-				if (currentPageNumber != 1 && type == TopicType.ALL) loadPreviousPage();
+				if (type != TopicType.ALL) return;
+				if (currentPageNumber != 1)
+				{
+					loadPreviousPage();
+				}
+				else
+				{
+					reloadPage();
+				}
 			}
 
 			@Override
@@ -498,6 +506,7 @@ public class TopicsActivity extends HFR4droidListActivity<Topic>
 		}
 		adapter.notifyDataSetChanged();
 		updateButtonsStates();
+		getListView().setSelection(0);
 	}
 
 	protected boolean isMpsCat()

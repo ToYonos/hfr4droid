@@ -590,6 +590,7 @@ public abstract class HFR4droidActivity extends Activity
 			protected void onPostExecuteSameActivity(List<Post> posts) throws ClassCastException
 			{
 				PostsActivity activity = (PostsActivity) HFR4droidActivity.this;
+				activity.setPosts(posts);
 				navForward = currentPageNumber <= pageNumber;
 				activity.setPageNumber(pageNumber);
 				setTitle();

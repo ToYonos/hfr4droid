@@ -29,7 +29,7 @@ public class HFR4droidQuickActionWindow extends QuickActionWindow
 		return new HFR4droidQuickActionWindow(inflater, config, items);
 	}
 
-	public void show(View anchor, int yOffset)
+	public void show(View anchor, int headerPostHeight, int yOffset)
 	{
 		for (Item item : getItems())
 		{
@@ -43,17 +43,22 @@ public class HFR4droidQuickActionWindow extends QuickActionWindow
 		if (isShowing())
 		{
 			int yoff;
+			anchor.measure(ViewGroup.LayoutParams.FILL_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+			final int headerHeight = anchor.getMeasuredHeight();
+			
 			final ViewGroup contentView = (ViewGroup) getContentView();
 			contentView.measure(ViewGroup.LayoutParams.FILL_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
 			final int blockHeight = contentView.getMeasuredHeight();
 			// Display above post
-			yoff = - blockHeight + mConfig.get(Config.ARROW_OFFSET, 0);
+			yoff = - blockHeight;
 			int windowBackground = mConfig.get(Config.WINDOW_BACKGROUND_IF_BELOW, -1);
 			if (windowBackground != -1)
 			{
 				contentView.setBackgroundResource(windowBackground);
 			}
-			update(anchor, 0, yoff + yOffset, -1, blockHeight);
+			yoff += yOffset;
+			if (yoff < -headerHeight) yoff = -headerHeight;
+			update(anchor, 0, yoff + mConfig.get(Config.ARROW_OFFSET, 0), -1, blockHeight);
 
 			// Animation for all views
 			int itemAnimation = mConfig.get(Config.ITEM_APPEAR_ANIMATION, -1);

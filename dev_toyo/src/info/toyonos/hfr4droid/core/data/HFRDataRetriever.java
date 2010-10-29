@@ -21,11 +21,9 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.apache.http.HttpEntity;
-import org.apache.http.HttpHost;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.protocol.ClientContext;
-import org.apache.http.conn.params.ConnRoutePNames;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.protocol.BasicHttpContext;
 import org.apache.http.protocol.HttpContext;
@@ -448,9 +446,9 @@ public class HFRDataRetriever implements MDDataRetriever
 			httpContext.setAttribute(ClientContext.COOKIE_STORE, auth.getCookies());
 		}
 
-		/* Proxy de merde à décentraliser */		
-		HttpHost proxy = new HttpHost("192.168.3.108", 8080);
-		client.getParams().setParameter(ConnRoutePNames.DEFAULT_PROXY, proxy);
+		/* Proxy de merde */		
+		//HttpHost proxy = new HttpHost("192.168.3.108", 8080);
+		//client.getParams().setParameter(ConnRoutePNames.DEFAULT_PROXY, proxy);
 		/* -------------- */
 
 		HttpResponse response = client.execute(method, httpContext);
