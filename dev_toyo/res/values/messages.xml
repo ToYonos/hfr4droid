@@ -18,7 +18,8 @@
 	<string name="getting_topics_favoris">Favoris...</string>
 	<string name="getting_mps">Messages de la page %d...</string>
 	<string name="getting_topic">Chargement du topic</string>
-	<string name="getting_posts">Posts de la page %d...</string>
+	<string name="getting_posts">Posts de la page %d sur %d...</string>
+	<string name="getting_posts_simple">Posts de la page %d...</string>
 	<string name="no_cat">Aucune catégorie n\'a été trouvée !</string>
 	<string name="no_topic">Aucun topic n\'a été trouvé !</string>
 	<string name="no_post">Aucun post n\'a été trouvé !</string>
@@ -33,6 +34,7 @@
 	<string name="post_add_failed">Impossible de poster ce message !</string>
 	<string name="post_edit_failed">Impossible de modifier ce message !</string>
 	<string name="post_flood">Tentative de flood spotted !</string>
+	<string name="copy_post_link">Le lien de ce post a été copié dans le presse-papier.</string>
 
 	<plurals name="mp_notification_content">
         <item quantity="one">Vous avez 1 nouveau message privé.</item>

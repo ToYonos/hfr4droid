@@ -12,7 +12,7 @@
 		android:id="@+id/ItemContent"
 		android:textSize="15dip"
 		android:ellipsize="end"
-		android:singleLine="true"
+		android:lines="1"
 		android:textColor="@color/item"
 		android:layout_width="wrap_content"
 		android:layout_height="wrap_content" />

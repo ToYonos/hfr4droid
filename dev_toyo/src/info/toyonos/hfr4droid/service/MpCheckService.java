@@ -105,6 +105,7 @@ public class MpCheckService extends Service
 			Intent intent = new Intent(MpCheckService.this, PostsActivity.class);
 			Bundle bundle = new Bundle();
 			bundle.putSerializable("topic", mp);
+			bundle.putInt("pageNumber", mp.getNbPages());
 			intent.setAction("" + Math.random()); // Samed issue as this guy : http://stackoverflow.com/questions/2882459/getextra-from-intent-launched-from-a-pendingintent 
 			intent.putExtras(bundle);
 			pendingIntent = PendingIntent.getActivity(MpCheckService.this, 0, intent, 0);				

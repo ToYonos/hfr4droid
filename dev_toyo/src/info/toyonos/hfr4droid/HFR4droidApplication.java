@@ -7,7 +7,7 @@ import info.toyonos.hfr4droid.core.message.HFRMessageSender;
 
 import java.io.IOException;
 
-import android.app.Application;
+import org.acra.CrashReportingApplication;
 
 /**
  * <p>Classe représentant l'application HFR4droid. Permet de centraliser les instances 
@@ -17,7 +17,7 @@ import android.app.Application;
  * @see android.app.Application
  *
  */
-public class HFR4droidApplication extends Application
+public class HFR4droidApplication extends CrashReportingApplication
 {	
 	private MDDataRetriever dataRetriever;
 	private HFRAuthentication auth;
@@ -94,5 +94,12 @@ public class HFR4droidApplication extends Application
 	public boolean isLoggedIn()
 	{
 		return auth != null && auth.getCookies() != null;
+	}
+
+	@Override
+	public String getFormId()
+	{
+		// TODO Auto-generated method stub
+		return null;
 	}	
 }

@@ -152,7 +152,8 @@ public class HFRUrlParser implements MDUrlParser
 			((Topic) element).setCategory(cat);
 			((Topic) element).setLastReadPost(handlePostId(HFRDataRetriever.getSingleElement(POST_REGEXP, url)));
 			page = Integer.parseInt(HFRDataRetriever.getSingleElement("(?:&|\\?)page=([0-9]+)", url));
-			type = TopicType.fromInt(Integer.parseInt(HFRDataRetriever.getSingleElement("(?:&|\\?)owntopic=([0-9])", url)));
+			String intType = HFRDataRetriever.getSingleElement("(?:&|\\?)owntopic=([0-9])", url);
+			type = intType != null ? TopicType.fromInt(Integer.parseInt(intType)) : TopicType.ALL;
 			return true;
 		}	
 		return false;

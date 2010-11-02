@@ -541,7 +541,8 @@ public abstract class HFR4droidActivity extends Activity
 	protected void loadPosts(final Topic topic, final int pageNumber, final boolean sameActivity)
 	{
 		String progressTitle = topic.toString();
-		String progressContent = getString(R.string.getting_posts, pageNumber);
+		String progressContent = topic.getNbPages() != -1 ? getString(R.string.getting_posts, pageNumber, topic.getNbPages())
+															: getString(R.string.getting_posts_simple, pageNumber, topic.getNbPages());
 		String noElement = getString(R.string.no_post);
 		
 		new DataRetrieverAsyncTask<Post, Topic>()

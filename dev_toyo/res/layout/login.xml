@@ -10,7 +10,7 @@
             android:padding="3dip" />
         <EditText
         	android:id="@+id/inputUser"
-        	android:singleLine="true"
+        	android:lines="1"
             android:padding="3dip" />
     </TableRow>
     <TableRow>
@@ -19,7 +19,7 @@
             android:padding="3dip" />
         <EditText
         	android:id="@+id/inputPass"
-        	android:singleLine="true"
+        	android:lines="1"
             android:inputType="textPassword"
             android:padding="3dip" />
     </TableRow>

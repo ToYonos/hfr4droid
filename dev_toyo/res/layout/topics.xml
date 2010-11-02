@@ -16,9 +16,9 @@
 	    	android:layout_height="40dip">    	
 	    	<TextView
 		    	android:id="@+id/CatTitle"
-		    	android:gravity="center"
+		    	android:gravity="center"		    	
 		    	android:textSize="15dip"
-			   	android:singleLine="true"
+			   	android:lines="1"
 				android:ellipsize="marquee"
 				android:marqueeRepeatLimit="marquee_forever"
 				android:scrollHorizontally="true"
@@ -28,7 +28,7 @@
 		    	android:textColor="#1A3A60"
 		    	android:layout_width="wrap_content" 
 		    	android:layout_height="wrap_content" />
-		    </LinearLayout>
+		</LinearLayout>
 		<ListView
 			android:id="@+id/MainList"
 			android:layout_width="fill_parent"

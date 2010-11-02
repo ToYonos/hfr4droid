@@ -28,7 +28,9 @@ import android.content.DialogInterface.OnDismissListener;
 import android.content.res.Configuration;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.text.ClipboardManager;
 import android.text.Selection;
+import android.text.TextUtils.TruncateAt;
 import android.util.Log;
 import android.util.SparseIntArray;
 import android.view.Display;
@@ -332,8 +334,11 @@ public class PostsActivity extends HFR4droidActivity
 	{
 		final TextView topicTitle = (TextView) findViewById(R.id.TopicTitle);
 		topicTitle.setTextSize(getTextSize(15));
-		topicTitle.setText((topic.getNbPages() != -1 ? "P." + currentPageNumber + "/" + topic.getNbPages() + " - " : "") + topic.toString());
+		topicTitle.setText(topic.toString());
 		topicTitle.setSelected(true);
+		final TextView topicPageNumber = (TextView) findViewById(R.id.TopicPageNumber);
+		topicPageNumber.setTextSize(getTextSize(15));
+		topicPageNumber.setText((topic.getNbPages() != -1 ? "P." + currentPageNumber + "/" + topic.getNbPages() + " " : ""));
 	}
 
 	@Override
@@ -438,6 +443,27 @@ public class PostsActivity extends HFR4droidActivity
 
 	private void attachEvents()
 	{
+		final TextView topicTitle = (TextView) findViewById(R.id.TopicTitle);
+		topicTitle.setOnClickListener(new OnClickListener()
+		{	
+			public void onClick(View v)
+			{
+				 TextView topicTitle = (TextView) v;
+				 switch (topicTitle.getEllipsize())
+				 {
+				 	case MARQUEE:
+				 		//topicTitle.setHorizontallyScrolling(false);
+				 		topicTitle.setEllipsize(TruncateAt.END);
+				 		break;
+
+				 	case END:
+				 		topicTitle.setEllipsize(TruncateAt.MARQUEE);
+				 		//topicTitle.setHorizontallyScrolling(true);
+				 		break;
+				 }
+			}
+		});
+		
 		SlidingDrawer slidingDrawer = (SlidingDrawer) findViewById(R.id.Nav);
 		final ImageView toggleNav = (ImageView) ((LinearLayout) findViewById(R.id.NavToggle)).getChildAt(0);
 		slidingDrawer.setOnDrawerOpenListener(new OnDrawerOpenListener()
@@ -592,6 +618,7 @@ public class PostsActivity extends HFR4droidActivity
 								});
 								window.addItem(delete);
 							}
+
 							QuickActionWindow.Item quote = new QuickActionWindow.Item(PostsActivity.this, "", R.drawable.ic_menu_quote, new PostCallBack(PostCallBackType.QUOTE, postId, true)
 							{									
 								@Override
@@ -659,6 +686,23 @@ public class PostsActivity extends HFR4droidActivity
 								}								
 							});
 							window.addItem(multiQuote);
+							
+							QuickActionWindow.Item copyLink = new QuickActionWindow.Item(PostsActivity.this, "", R.drawable.ic_menu_copy, new QuickActionWindow.Item.Callback()
+							{	
+								public void onClick(QuickActionWindow window, Item item, View anchor)
+								{
+									StringBuilder postLink = new StringBuilder("http://forum.hardware.fr/forum2.php?config=hfr.inc");
+									postLink.append("&cat=").append(topic.getCategory().getId());
+									postLink.append("&post=").append(topic.getId());
+									postLink.append("&page=").append(currentPageNumber);
+									postLink.append("#t").append(postId);
+									ClipboardManager clipboard = (ClipboardManager) getSystemService(CLIPBOARD_SERVICE); 
+									clipboard.setText(postLink);
+									Toast.makeText(PostsActivity.this, getText(R.string.copy_post_link), Toast.LENGTH_SHORT).show();
+								}
+							});					
+							window.addItem(copyLink);
+							
 							window.show(findViewById(R.id.TopicTitle), Math.round(50 * webView.getScale()), Math.round(yOffset * webView.getScale()));
 						}
 					});
@@ -1091,7 +1135,7 @@ public class PostsActivity extends HFR4droidActivity
 							}
 						});
 
-						webView.loadData("<html><head>" + fixHTML(js.toString()) + fixHTML(css.toString()) + "</head><body>" + fixHTML(css.toString()) + "</body></html>", "text/html", "UTF-8");
+						webView.loadData("<html><head>" + fixHTML(js.toString()) + fixHTML(css.toString()) + "</head><body>" + fixHTML(data.toString()) + "</body></html>", "text/html", "UTF-8");
 
 						if (oldWebView != null)
 						{
@@ -1170,14 +1214,11 @@ public class PostsActivity extends HFR4droidActivity
 								reloadPage();
 								break;										
 	
-							default: // New post ok, everything seems alright, the response code matches the redirect page number
-								if (codeResponse > 0)
-								{
-									postContent.setText("");
-									postDialog.dismiss();
-									topic.setLastReadPost(BOTTOM_PAGE_ID);
-									loadPosts(topic, codeResponse);
-								}
+							case HFRMessageSender.POST_OK: // New post ok
+								postContent.setText("");
+								postDialog.dismiss();
+								topic.setLastReadPost(BOTTOM_PAGE_ID);
+								reloadPage();
 								break;
 						}
 						progressDialog.dismiss();
@@ -1226,7 +1267,7 @@ public class PostsActivity extends HFR4droidActivity
 			final String left = getString("button_post_" + key.toLowerCase() + "_left");
 			final String right = getString("button_post_" + key.toLowerCase() + "_right");
 			setTextSize(20);
-			setSingleLine();
+			setLines(1);
 			setLayoutParams(new LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT));
 			setText(left);
 

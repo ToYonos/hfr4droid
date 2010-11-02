@@ -32,7 +32,8 @@ public class HFRMessageSender
 	private static final String FORM_URI = "http://forum.hardware.fr/bddpost.php?config=hfr.inc";
 	private static final String FORM_EDIT_URI = "http://forum.hardware.fr/bdd.php?config=hfr.inc";
 
-	public static final int POST_EDIT_OK = 0;
+	public static final int POST_OK = 2;
+	public static final int POST_EDIT_OK = 1;
 	public static final int POST_FLOOD = -1;
 	public static final int POST_KO = -99;
 
@@ -128,13 +129,13 @@ public class HFRMessageSender
 	{
 		if (response.matches(".*Votre réponse a été postée avec succès.*"))
 		{
-			Matcher m = Pattern.compile("<meta\\s*http\\-equiv=\"Refresh\"\\s*content=\"0;\\s*url=(?:(?:/forum2\\.php.*?page=([0-9]+))|(?:/hfr.*?([0-9]+)\\.htm))", Pattern.CASE_INSENSITIVE | Pattern.DOTALL)
+			/*Matcher m = Pattern.compile("<meta\\s*http\\-equiv=\"Refresh\"\\s*content=\"0;\\s*url=(?:(?:/forum2\\.php.*?page=([0-9]+))|(?:/hfr.*?([0-9]+)\\.htm))", Pattern.CASE_INSENSITIVE | Pattern.DOTALL)
 			.matcher(response);
 			if  (m.find())
 			{
 				return Integer.parseInt(m.group(1) != null ? m.group(1) : m.group(2));  
-			}
-			return 1;
+			}*/
+			return POST_OK;
 		}
 		else if (response.matches(".*Votre message a été édité avec succès.*"))
 		{
