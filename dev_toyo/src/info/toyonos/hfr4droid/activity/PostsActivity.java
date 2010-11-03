@@ -541,7 +541,7 @@ public class PostsActivity extends HFR4droidActivity
 		{
 			public boolean onTouch(View v, MotionEvent event)
 			{
-				return gestureDetector.onTouchEvent(event);
+				return event != null ? gestureDetector.onTouchEvent(event) : false;
 			}
 		});
 		webView.addJavascriptInterface(new Object()
