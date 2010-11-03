@@ -94,11 +94,17 @@ public class MpCheckService extends Service
 
 	private void notifyNewMps(int nbMps, Topic mp)
 	{
-		if (nbMps < 1) return;
+		NotificationManager notificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
+		
+		if (nbMps < 1)
+		{
+			nbNotification = 0;
+			notificationManager.cancel(MpCheckService.NOTIFICATION_ID);
+			return;
+		}
 
 		nbNotification++;
 		String notificationMessage = getResources().getQuantityString(R.plurals.mp_notification_content, nbMps, nbMps);
-		NotificationManager notificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
 		PendingIntent pendingIntent = null;
 		if (nbMps == 1)
 		{

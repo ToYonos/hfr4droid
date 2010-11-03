@@ -24,6 +24,7 @@ import android.app.Dialog;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.content.DialogInterface.OnDismissListener;
 import android.content.res.Configuration;
 import android.os.AsyncTask;
@@ -563,6 +564,13 @@ public class PostsActivity extends HFR4droidActivity
 							configuration.put(QuickActionWindow.Config.ARROW_OFFSET, -2);
 							HFR4droidQuickActionWindow window = HFR4droidQuickActionWindow.getWindow(PostsActivity.this, configuration);
 
+							final StringBuilder postLink = new StringBuilder("http://forum.hardware.fr/forum2.php?config=hfr.inc");
+							postLink.append("&cat=").append(topic.getCategory().getId());
+							postLink.append("&subcat=").append(topic.getSubcat());
+							postLink.append("&post=").append(topic.getId());
+							postLink.append("&page=").append(currentPageNumber);
+							postLink.append("#t").append(postId);
+							
 							if (isMine)
 							{
 								QuickActionWindow.Item edit = new QuickActionWindow.Item(PostsActivity.this, "", android.R.drawable.ic_menu_edit, new PostCallBack(PostCallBackType.EDIT, postId, true) 
@@ -680,18 +688,24 @@ public class PostsActivity extends HFR4droidActivity
 							{	
 								public void onClick(QuickActionWindow window, Item item, View anchor)
 								{
-									StringBuilder postLink = new StringBuilder("http://forum.hardware.fr/forum2.php?config=hfr.inc");
-									postLink.append("&cat=").append(topic.getCategory().getId());
-									postLink.append("&subcat=").append(topic.getSubcat());
-									postLink.append("&post=").append(topic.getId());
-									postLink.append("&page=").append(currentPageNumber);
-									postLink.append("#t").append(postId);
 									ClipboardManager clipboard = (ClipboardManager) getSystemService(CLIPBOARD_SERVICE); 
 									clipboard.setText(postLink);
 									Toast.makeText(PostsActivity.this, getText(R.string.copy_post_link), Toast.LENGTH_SHORT).show();
 								}
 							});					
 							window.addItem(copyLink);
+							
+							QuickActionWindow.Item shareLink = new QuickActionWindow.Item(PostsActivity.this, "", android.R.drawable.ic_menu_share, new QuickActionWindow.Item.Callback()
+							{	
+								public void onClick(QuickActionWindow window, Item item, View anchor)
+								{
+									Intent sendIntent = new Intent(Intent.ACTION_SEND); 
+									sendIntent.setType("text/plain");
+									sendIntent.putExtra(android.content.Intent.EXTRA_TEXT, postLink.toString());
+									startActivity(Intent.createChooser(sendIntent, getString(R.string.share_post_link_title))); 
+								}
+							});					
+							window.addItem(shareLink);
 							
 							window.show(findViewById(R.id.TopicTitle), Math.round(50 * webView.getScale()), Math.round(yOffset * webView.getScale()));
 						}
