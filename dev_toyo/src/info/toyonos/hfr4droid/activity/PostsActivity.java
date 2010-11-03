@@ -449,18 +449,7 @@ public class PostsActivity extends HFR4droidActivity
 			public void onClick(View v)
 			{
 				 TextView topicTitle = (TextView) v;
-				 switch (topicTitle.getEllipsize())
-				 {
-				 	case MARQUEE:
-				 		//topicTitle.setHorizontallyScrolling(false);
-				 		topicTitle.setEllipsize(TruncateAt.END);
-				 		break;
-
-				 	case END:
-				 		topicTitle.setEllipsize(TruncateAt.MARQUEE);
-				 		//topicTitle.setHorizontallyScrolling(true);
-				 		break;
-				 }
+				 topicTitle.setEllipsize(topicTitle.getEllipsize() == TruncateAt.MARQUEE ? TruncateAt.END : TruncateAt.MARQUEE);
 			}
 		});
 		
@@ -693,6 +682,7 @@ public class PostsActivity extends HFR4droidActivity
 								{
 									StringBuilder postLink = new StringBuilder("http://forum.hardware.fr/forum2.php?config=hfr.inc");
 									postLink.append("&cat=").append(topic.getCategory().getId());
+									postLink.append("&subcat=").append(topic.getSubcat());
 									postLink.append("&post=").append(topic.getId());
 									postLink.append("&page=").append(currentPageNumber);
 									postLink.append("#t").append(postId);
@@ -708,7 +698,7 @@ public class PostsActivity extends HFR4droidActivity
 					});
 				}
 			}
-			
+
 			@SuppressWarnings("unused")
 			public void handleQuote(String url)
 			{

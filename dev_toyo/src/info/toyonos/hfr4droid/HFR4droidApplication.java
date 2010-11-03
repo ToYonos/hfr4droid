@@ -9,6 +9,9 @@ import java.io.IOException;
 
 import org.acra.CrashReportingApplication;
 
+import android.content.SharedPreferences;
+import android.preference.PreferenceManager;
+
 /**
  * <p>Classe représentant l'application HFR4droid. Permet de centraliser les instances 
  * du <code>HttpClientHelper</code> et du <code>MDDataRetriever</code></p>
@@ -28,6 +31,12 @@ public class HFR4droidApplication extends CrashReportingApplication
 	{
 		super.onCreate();
 		dataRetriever = new HFRDataRetriever();
+		SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(this);
+		if (!settings.contains(CrashReportingApplication.PREF_DISABLE_ACRA))
+		{
+			SharedPreferences.Editor editor = settings.edit();
+			editor.putBoolean(CrashReportingApplication.PREF_DISABLE_ACRA, Boolean.parseBoolean(getString(R.string.pref_disable_acra_default)));
+		}
 	}
 
 	public MDDataRetriever getDataRetriever()
@@ -46,7 +55,7 @@ public class HFR4droidApplication extends CrashReportingApplication
 	 * @param password Le mot de passe
 	 * @return
 	 * @throws ClassNotFoundException 
-	 * @throws IOException 
+	 * @throws IOException
 	 */
 	public boolean login(String user, String password) throws IOException, ClassNotFoundException
 	{
@@ -99,7 +108,6 @@ public class HFR4droidApplication extends CrashReportingApplication
 	@Override
 	public String getFormId()
 	{
-		// TODO Auto-generated method stub
-		return null;
+		return "dHRZSC1Kc2dJMVpsanNVQWhDQ3FqX0E6MQ";
 	}	
 }

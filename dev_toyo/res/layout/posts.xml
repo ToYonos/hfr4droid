@@ -29,7 +29,7 @@
 		    	android:gravity="left"
 		    	android:textSize="15dip"
 			   	android:lines="1"
-				android:ellipsize="marquee"
+				android:ellipsize="end"
 				android:marqueeRepeatLimit="marquee_forever"
 				android:scrollHorizontally="true"
 		    	android:paddingRight="55dip"
