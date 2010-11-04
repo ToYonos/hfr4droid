@@ -199,6 +199,13 @@ public class PostsActivity extends HFR4droidActivity
 					reloadPage();
 				}
 			}
+			
+			@Override
+			public boolean onDoubleTap(MotionEvent e)
+			{
+				reloadPage();
+				return true;
+			}
 		});
 	}
 
@@ -707,7 +714,7 @@ public class PostsActivity extends HFR4droidActivity
 							});					
 							window.addItem(shareLink);
 							
-							window.show(findViewById(R.id.TopicTitle), Math.round(50 * webView.getScale()), Math.round(yOffset * webView.getScale()));
+							window.show(((LinearLayout) findViewById(R.id.TopicTitle).getParent()), Math.round(yOffset * webView.getScale()));
 						}
 					});
 				}

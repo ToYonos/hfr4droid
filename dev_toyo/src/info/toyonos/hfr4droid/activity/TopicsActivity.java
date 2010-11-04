@@ -150,6 +150,12 @@ public class TopicsActivity extends HFR4droidListActivity<Topic>
 			{
 				if (type == TopicType.ALL) loadNextPage();
 			}
+			
+			@Override
+			public boolean onDoubleTap(MotionEvent e)
+			{
+				return false;
+			}
 		});
 
 		lv.setOnTouchListener(new OnTouchListener()

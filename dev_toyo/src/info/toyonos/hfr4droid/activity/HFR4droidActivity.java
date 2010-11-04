@@ -1018,6 +1018,8 @@ public abstract class HFR4droidActivity extends Activity
 		protected abstract void onLeftToRight();
 
 		protected abstract void onRightToLeft();
+		
+		public abstract boolean onDoubleTap(MotionEvent e);
 
 		@Override
 		public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX, float velocityY)
@@ -1038,12 +1040,5 @@ public abstract class HFR4droidActivity extends Activity
 			}
 			return false;
 		}
-
-		@Override
-		public boolean onDoubleTap(MotionEvent e)
-		{
-			reloadPage();
-			return true;
-		}	
 	}
 }
