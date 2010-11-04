@@ -64,7 +64,7 @@ public abstract class BasicElement implements Serializable
 	@Override
 	public String toString()
 	{
-		return Html.fromHtml(name).toString();
+		return name != null ? Html.fromHtml(name).toString() : null;
 	}
 
 	@Override

@@ -99,13 +99,12 @@ public class CategoriesActivity extends HFR4droidListActivity<Category>
 		{
 			public void onCreateContextMenu(ContextMenu menu, View v, ContextMenuInfo menuInfo)
 			{
-				if (!isLoggedIn()) return;
+				Category currentCat = (Category) getListView().getAdapter().getItem(((AdapterContextMenuInfo)menuInfo).position);
+				if (!isLoggedIn() || isMpsCat(currentCat)) return;
 
 				MenuInflater inflater = getMenuInflater();
 				inflater.inflate(R.menu.drapeaux_simple, menu);
 				menu.setHeaderTitle(R.string.menu_drapeaux);
-
-				Category currentCat = (Category) getListView().getAdapter().getItem(((AdapterContextMenuInfo)menuInfo).position);
 				if (isAllCatsCat(currentCat)) menu.removeItem(R.id.MenuDrapeauxAll);
 			}
 		});
@@ -246,6 +245,12 @@ public class CategoriesActivity extends HFR4droidListActivity<Category>
 	{
 		loadCats();
 	}
+	
+	@Override
+	protected void redrawPage()
+	{
+		adapter.notifyDataSetChanged();
+	}
 
 	public void refreshCats(List<Category> cats)
 	{
@@ -282,6 +287,7 @@ public class CategoriesActivity extends HFR4droidListActivity<Category>
 			Category c = cats.get(position);
 
 			TextView text1 = (TextView) v.findViewById(R.id.ItemContent);
+			text1.setTextSize(getTextSize(15));
 			String newName = isMpsCat(c) || isAllCatsCat(c) || isModoCat(c) ? "<b>" + c.getName() + "</b>" : c.toString();
 			newName = isMpsCat(c) && c.getName().matches(".*?nouveaux? messages?.*?") ? "<font color=\"red\">" + newName + "</font>" : newName;
 			text1.setText(Html.fromHtml(newName));

@@ -18,7 +18,7 @@ import java.util.List;
  *  
  */
 public interface MDDataRetriever
-{	
+{
 	/**
 	 * Récupère le hash check courant
 	 * @return Le hash check dans une <code>String</code>
@@ -32,6 +32,22 @@ public interface MDDataRetriever
 	 */
 	public List<Category> getCats() throws Exception;
 
+	/**
+	 * Récupère une <code>Category</code> par son code
+	 * @param code Le code de la catégorie
+	 * @return La <code>Category</code> trouvée ou null si elle n'existe pas
+	 * @throws Exception Si un problème survient
+	 */
+	public Category getCatByCode(String code) throws Exception;
+	
+	/**
+	 * Récupère une <code>Category</code> par son id
+	 * @param id L'id de la catégorie
+	 * @return La <code>Category</code> trouvée ou null si elle n'existe pas
+	 * @throws Exception Si un problème survient
+	 */
+	public Category getCatById(long id) throws Exception;
+	
 	/**
 	 * Récupère les topics d'un type donné d'une catégorie
 	 * @param cat La <code>Category</code> désirée

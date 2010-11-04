@@ -37,7 +37,7 @@
 	        <EditText
 	        	android:id="@+id/inputSmileyTag"
 	        	android:hint="@string/smiley_tag_hint"
-	        	android:singleLine="true"
+	        	android:lines="1"
 	        	android:textSize="14dip"
 	            android:padding="3dip" />
 			<Button

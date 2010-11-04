@@ -14,7 +14,10 @@ import info.toyonos.hfr4droid.service.MpCheckService;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ExecutionException;
 
 import android.app.Activity;
 import android.app.AlertDialog;
@@ -32,14 +35,17 @@ import android.preference.PreferenceManager;
 import android.text.InputType;
 import android.util.DisplayMetrics;
 import android.util.Log;
+import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.Window;
 import android.view.WindowManager;
 import android.view.GestureDetector.SimpleOnGestureListener;
 import android.widget.EditText;
+import android.widget.SlidingDrawer;
 import android.widget.Toast;
 
 /**
@@ -55,26 +61,41 @@ import android.widget.Toast;
  */
 public abstract class HFR4droidActivity extends Activity
 {
-	public static final String PREF_WELCOME_SCREEN	= "PrefWelcomeScreen";
-	public static final String PREF_TYPE_DRAPEAU	= "PrefTypeDrapeau";
-	public static final String PREF_AVATARS_ENABLE	= "PrefAvatarsEnable";
-	public static final String PREF_SMILEYS_ENABLE	= "PrefSmileysEnable";
-	public static final String PREF_IMGS_ENABLE		= "PrefImgsEnable";
-	public static final String PREF_SRV_MPS_ENABLE	= "PrefSrvMpsEnable";
-	public static final String PREF_SRV_MPS_FREQ	= "PrefSrvMpsFreq";
+	public static final String PREF_WELCOME_SCREEN		= "PrefWelcomeScreen";
+	public static final String PREF_TYPE_DRAPEAU		= "PrefTypeDrapeau";
+	public static final String PREF_SIGNATURE_ENABLE	= "PrefSignatureEnable";
+	public static final String PREF_PRELOADING_ENABLE	= "PrefPreloadingEnable";
+	public static final String PREF_SWIPE				= "PrefSwipe";
+	public static final String PREF_FULLSCREEN_ENABLE	= "PrefFullscreenEnable";
+	public static final String PREF_POLICE_SIZE			= "PrefPoliceSize";
+	public static final String PREF_AVATARS_ENABLE		= "PrefAvatarsEnable";
+	public static final String PREF_SMILEYS_ENABLE		= "PrefSmileysEnable";
+	public static final String PREF_IMGS_ENABLE			= "PrefImgsEnable";
+	public static final String PREF_SRV_MPS_ENABLE		= "PrefSrvMpsEnable";
+	public static final String PREF_SRV_MPS_FREQ		= "PrefSrvMpsFreq";
 
+	public static boolean forceRedraw = false;
+	
 	protected AlertDialog loginDialog;
 	protected int currentPageNumber;
 
+	private PreLoadingPostsAsyncTask preLoadingPostsAsyncTask;
+	private Map<Integer, List<Post>> preLoadedPosts;
+	private boolean navForward;
+	
 	protected abstract void setTitle();
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState)
 	{
 		super.onCreate(savedInstanceState);
+		requestWindowFeature(Window.FEATURE_NO_TITLE);
 		Bundle bundle = this.getIntent().getExtras();
 		loginDialog = null;
 		currentPageNumber = bundle != null ? bundle.getInt("pageNumber") : -1;
+		preLoadingPostsAsyncTask = null;
+		preLoadedPosts = new HashMap<Integer, List<Post>>();
+		navForward = true;
 		loginFromCache();
 	}
 
@@ -82,9 +103,53 @@ public abstract class HFR4droidActivity extends Activity
 	protected void onStart()
 	{
 		super.onStart();
-		setWindowTitle();
+		setTitle();
+		if (isFullscreenEnable())
+		{
+			getWindow().setFlags(
+							WindowManager.LayoutParams.FLAG_FULLSCREEN,   
+							WindowManager.LayoutParams.FLAG_FULLSCREEN);
+		}
+		else
+		{
+			getWindow().clearFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
+		}		
+	}
+	
+	@Override
+	protected void onRestart()
+	{
+		super.onRestart();	
+		if (forceRedraw)
+		{
+			forceRedraw = false;
+			redrawPage();
+		}
 	}
 
+
+	@Override
+	protected void onDestroy()
+	{
+		super.onDestroy();
+		if (preLoadingPostsAsyncTask != null) preLoadingPostsAsyncTask.cancel(true);
+	}
+
+	@Override
+	public boolean onKeyDown(int keyCode, KeyEvent event) 
+	{
+		if (keyCode == KeyEvent.KEYCODE_BACK)
+		{
+			SlidingDrawer navDrawer = (SlidingDrawer) findViewById(R.id.Nav);
+			if (navDrawer != null && navDrawer.isOpened())
+			{
+				navDrawer.close();
+				return true;
+			}
+		}
+		return super.onKeyDown(keyCode, event);
+	}
+	
 	@Override
 	public boolean onPrepareOptionsMenu(Menu menu)
 	{
@@ -117,7 +182,7 @@ public abstract class HFR4droidActivity extends Activity
 				return true; 
 	
 			case R.id.MenuLoginLogout :
-				setWindowTitle();
+				setTitle();
 				if (!isLoggedIn())
 				{
 					showLoginDialog();
@@ -181,11 +246,6 @@ public abstract class HFR4droidActivity extends Activity
 			default:
 				return super.onOptionsItemSelected(item);
 		}		    	
-	}
-
-	protected void setWindowTitle()
-	{
-		getString(R.string.app_name);
 	}
 
 	protected HFR4droidApplication getHFR4droidApplication()
@@ -283,7 +343,6 @@ public abstract class HFR4droidActivity extends Activity
 	public void setPageNumber(int pageNumber)
 	{
 		currentPageNumber = pageNumber;
-		setWindowTitle();
 	}
 
 	private void showLoginDialog()
@@ -482,23 +541,69 @@ public abstract class HFR4droidActivity extends Activity
 	protected void loadPosts(final Topic topic, final int pageNumber, final boolean sameActivity)
 	{
 		String progressTitle = topic.toString();
-		String progressContent = getString(R.string.getting_posts, pageNumber);
+		String progressContent = topic.getNbPages() != -1 ? getString(R.string.getting_posts, pageNumber, topic.getNbPages())
+															: getString(R.string.getting_posts_simple, pageNumber, topic.getNbPages());
 		String noElement = getString(R.string.no_post);
-
+		
 		new DataRetrieverAsyncTask<Post, Topic>()
-		{	
+		{			
 			@Override
 			protected List<Post> retrieveDataInBackground(Topic... topics) throws Exception
 			{
-				return getDataRetriever().getPosts(topics[0], pageNumber);
+				List<Post> posts = new ArrayList<Post>();
+				if (preLoadingPostsAsyncTask != null && preLoadingPostsAsyncTask.getPageNumber() == pageNumber)
+				{
+					switch (preLoadingPostsAsyncTask.getStatus()) 
+					{
+						case RUNNING:
+							Log.d("HFR4droid", "Page " + pageNumber + " deja en cours de recuperation...");
+							try
+							{
+								posts = preLoadingPostsAsyncTask.waitAndGet();
+								Log.d("HFR4droid", "...page " + pageNumber + " recuperee !");
+							}
+							catch (Exception e)
+							{
+								preLoadingPostsAsyncTask = null;
+							}
+							break;
+
+						case FINISHED:
+							List<Post> tmpPosts = HFR4droidActivity.this.preLoadedPosts.get(pageNumber);
+							if ( preLoadedPosts != null)
+							{
+								Log.d("HFR4droid", "Page " + pageNumber + " recuperee dans le cache.");
+								posts = tmpPosts;
+								preLoadedPosts.clear(); // On ne conserve pas le cache des posts
+							}
+							else
+							{
+								posts = getDataRetriever().getPosts(topics[0], pageNumber);
+							}
+							break;
+						
+						default:
+							break;
+					}
+				}
+				else
+				{	
+					if (preLoadingPostsAsyncTask != null) preLoadingPostsAsyncTask.cancel(true);
+					posts = getDataRetriever().getPosts(topics[0], pageNumber);
+				}
+				return posts;
 			}
 
 			@Override
 			protected void onPostExecuteSameActivity(List<Post> posts) throws ClassCastException
 			{
 				PostsActivity activity = (PostsActivity) HFR4droidActivity.this;
+				activity.setPosts(posts);
+				navForward = currentPageNumber <= pageNumber;
 				activity.setPageNumber(pageNumber);
+				setTitle();
 				activity.refreshPosts(posts);
+				if (isPreloadingEnable()) preLoadPosts(topic, pageNumber);
 			}
 
 			@Override
@@ -514,12 +619,37 @@ public abstract class HFR4droidActivity extends Activity
 					bundle.putSerializable("fromTopicType", ((TopicsActivity) HFR4droidActivity.this).getType());
 					bundle.putBoolean("fromAllCats", ((TopicsActivity) HFR4droidActivity.this).isAllCatsCat());
 				}
+				else if (HFR4droidActivity.this instanceof HFR4droidDispatcher)
+				{
+					bundle.putSerializable("fromTopicType", ((HFR4droidDispatcher) HFR4droidActivity.this).getUrlParser().getType());	
+				}
 				intent.putExtras(bundle);
 				startActivity(intent);
 			}
 		}.execute(progressTitle, progressContent, noElement, sameActivity, topic);
 	}
 
+	protected void preLoadPosts(final Topic topic, final int currentPageNumber)
+	{
+		final int tmpPageNumber;
+		if (currentPageNumber == 1)
+		{
+			tmpPageNumber = 2;
+		}
+		else if (currentPageNumber == topic.getNbPages())
+		{
+			tmpPageNumber = topic.getNbPages() - 1;
+		}
+		else
+		{
+			tmpPageNumber = navForward ? currentPageNumber + 1 : currentPageNumber - 1;
+		}
+		final int targetPageNumber = tmpPageNumber;
+
+		preLoadingPostsAsyncTask = new PreLoadingPostsAsyncTask(targetPageNumber);
+		preLoadingPostsAsyncTask.execute(topic);
+	}
+	
 	protected void loadFirstPage(){}
 
 	protected void loadPreviousPage(){}
@@ -531,6 +661,8 @@ public abstract class HFR4droidActivity extends Activity
 	protected void loadLastPage(){}
 
 	protected void reloadPage(){}
+	
+	protected void redrawPage(){}
 
 	protected void goBack(){}
 
@@ -546,6 +678,36 @@ public abstract class HFR4droidActivity extends Activity
 	{
 		SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(this);
 		return Integer.parseInt(settings.getString(PREF_TYPE_DRAPEAU, getString(R.string.pref_type_drapeau_default)));
+	}
+	
+	protected boolean isSignatureEnable()
+	{
+		SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(this);
+		return settings.getBoolean(PREF_SIGNATURE_ENABLE, Boolean.parseBoolean(getString(R.string.pref_signature_enable_default)));
+	}
+	
+	protected boolean isPreloadingEnable()
+	{
+		SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(this);
+		return settings.getBoolean(PREF_PRELOADING_ENABLE, Boolean.parseBoolean(getString(R.string.pref_preloading_enable_default)));
+	}	
+
+	protected int getSwipe()
+	{
+		SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(this);
+		return Integer.parseInt(settings.getString(PREF_SWIPE, getString(R.string.pref_swipe_default)));
+	}
+	
+	protected boolean isFullscreenEnable()
+	{
+		SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(this);
+		return settings.getBoolean(PREF_FULLSCREEN_ENABLE, Boolean.parseBoolean(getString(R.string.pref_fullscreen_enable_default)));
+	}
+	
+	protected int getPoliceSize()
+	{
+		SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(this);
+		return Integer.parseInt(settings.getString(PREF_POLICE_SIZE, getString(R.string.pref_police_size_default)));
 	}
 
 	protected boolean isAvatarsEnable()
@@ -583,6 +745,26 @@ public abstract class HFR4droidActivity extends Activity
 		return getString(key, params);
 	}
 
+	protected int getTextSize(int normalSize)
+	{
+		int newSize;
+		switch (getPoliceSize())
+		{
+			case 2:
+				newSize = (int)Math.round(normalSize * 1.2);
+				break;
+				
+			case 3:
+				newSize = (int)Math.round(normalSize * 1.4);
+				break;				
+	
+			default:
+				newSize = normalSize;
+				break;
+		}
+		return newSize;
+	}
+	
 	/* Classes internes */
 
 	private abstract class DataRetrieverAsyncTask<E, P> extends AsyncTask<P, Void, List<E>>
@@ -605,7 +787,7 @@ public abstract class HFR4droidActivity extends Activity
 		public void execute(final String progressTitle, final String progressContent, final String noElementMsg, final boolean sameActivity, P... params)
 		{
 			progressDialog = new ProgressDialog(HFR4droidActivity.this);
-			progressDialog.setTitle(progressTitle);
+			progressDialog.setTitle(progressTitle != null ? progressTitle : getString(R.string.getting_topic));
 			progressDialog.setMessage(progressContent);
 			progressDialog.setIndeterminate(true);
 			this.noElementMsg = noElementMsg;
@@ -684,6 +866,53 @@ public abstract class HFR4droidActivity extends Activity
 		}
 	}
 
+	private class PreLoadingPostsAsyncTask extends DataRetrieverAsyncTask<Post, Topic>
+	{
+		private int targetPageNumber;
+		private boolean isFinished;
+		
+		public PreLoadingPostsAsyncTask(int targetPageNumber)
+		{
+			this.targetPageNumber = targetPageNumber;
+			isFinished = false;
+		}
+		
+		public int getPageNumber()
+		{
+			return targetPageNumber;
+		}
+		
+		public List<Post> waitAndGet() throws InterruptedException, ExecutionException
+		{
+			isFinished = true;
+			return get();
+		}
+
+		@Override
+		protected List<Post> retrieveDataInBackground(Topic... topics) throws Exception
+		{
+			return getDataRetriever().getPosts(topics[0], targetPageNumber);
+		}
+
+		@Override
+		protected void onPreExecute() {}
+		
+		@Override
+		protected void onPostExecute(List<Post> elements)
+		{
+			if (!isFinished)
+			{
+				preLoadedPosts.put(targetPageNumber, elements);
+				Log.d("HFR4droid", "Page " + targetPageNumber + " chargee avec succes !");
+			}
+		}
+
+		@Override
+		protected void onPostExecuteSameActivity(List<Post> posts) throws ClassCastException {}
+
+		@Override
+		protected void onPostExecuteOtherActivity(List<Post> posts) {}
+	}
 
 	protected abstract class PageNumberDialog
 	{
@@ -746,18 +975,58 @@ public abstract class HFR4droidActivity extends Activity
 
 	protected abstract class SimpleNavOnGestureListener extends SimpleOnGestureListener
 	{
-		private static final int SWIPE_MIN_VELOCITY = 500;
-
+		private int getVelocity()
+		{
+			int swipeMinVelocity;
+			switch (HFR4droidActivity.this.getSwipe())
+			{
+				case 2:
+					swipeMinVelocity = 350;
+					break;
+					
+				case 3:
+					swipeMinVelocity = 200;
+					break;					
+	
+				default:
+					swipeMinVelocity = 500;
+					break;			
+			}
+			return swipeMinVelocity;
+		}
+		
+		private float getWidthPercent()
+		{
+			float widthPercent;
+			switch (HFR4droidActivity.this.getSwipe())
+			{
+				case 2:
+					widthPercent = (float)0.6;
+					break;
+					
+				case 3:
+					widthPercent = (float)0.4;
+					break;					
+	
+				default:
+					widthPercent = (float)0.75;
+					break;			
+			}
+			return widthPercent;
+		}
+		
 		protected abstract void onLeftToRight();
 
 		protected abstract void onRightToLeft();
+		
+		public abstract boolean onDoubleTap(MotionEvent e);
 
 		@Override
 		public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX, float velocityY)
 		{
 			DisplayMetrics metrics = new DisplayMetrics();
 			getWindowManager().getDefaultDisplay().getMetrics(metrics);
-			if (Math.abs(velocityX) > SWIPE_MIN_VELOCITY && Math.abs(e1.getX() - e2.getX()) > (metrics.widthPixels * 0.75))
+			if (Math.abs(velocityX) > getVelocity() && Math.abs(e1.getX() - e2.getX()) > (metrics.widthPixels * getWidthPercent()))
 			{
 				if (e1.getX() < e2.getX())
 				{

@@ -95,4 +95,28 @@
 		<item>3</item>
 	</string-array>
 	
+	<string-array name="swipe_values">
+    	<item>Normal</item>
+    	<item>Sensible</item>
+    	<item>Très sensible</item> 
+	</string-array>
+	
+	<string-array name="swipe_keys">
+		<item>1</item>
+		<item>2</item>
+		<item>3</item>
+	</string-array>
+	
+	<string-array name="police_size_values">
+    	<item>Normal</item>
+    	<item>Plus grand</item>
+    	<item>Gros bigleux :o</item> 
+	</string-array>
+	
+	<string-array name="police_size_keys">
+		<item>1</item>
+		<item>2</item>
+		<item>3</item>
+	</string-array>
+	
 </resources>

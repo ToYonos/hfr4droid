@@ -7,7 +7,10 @@ import info.toyonos.hfr4droid.core.message.HFRMessageSender;
 
 import java.io.IOException;
 
-import android.app.Application;
+import org.acra.CrashReportingApplication;
+
+import android.content.SharedPreferences;
+import android.preference.PreferenceManager;
 
 /**
  * <p>Classe représentant l'application HFR4droid. Permet de centraliser les instances 
@@ -17,7 +20,7 @@ import android.app.Application;
  * @see android.app.Application
  *
  */
-public class HFR4droidApplication extends Application
+public class HFR4droidApplication extends CrashReportingApplication
 {	
 	private MDDataRetriever dataRetriever;
 	private HFRAuthentication auth;
@@ -28,6 +31,12 @@ public class HFR4droidApplication extends Application
 	{
 		super.onCreate();
 		dataRetriever = new HFRDataRetriever();
+		SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(this);
+		if (!settings.contains(CrashReportingApplication.PREF_DISABLE_ACRA))
+		{
+			SharedPreferences.Editor editor = settings.edit();
+			editor.putBoolean(CrashReportingApplication.PREF_DISABLE_ACRA, Boolean.parseBoolean(getString(R.string.pref_disable_acra_default)));
+		}
 	}
 
 	public MDDataRetriever getDataRetriever()
@@ -46,7 +55,7 @@ public class HFR4droidApplication extends Application
 	 * @param password Le mot de passe
 	 * @return
 	 * @throws ClassNotFoundException 
-	 * @throws IOException 
+	 * @throws IOException
 	 */
 	public boolean login(String user, String password) throws IOException, ClassNotFoundException
 	{
@@ -94,5 +103,11 @@ public class HFR4droidApplication extends Application
 	public boolean isLoggedIn()
 	{
 		return auth != null && auth.getCookies() != null;
+	}
+
+	@Override
+	public String getFormId()
+	{
+		return "dHRZSC1Kc2dJMVpsanNVQWhDQ3FqX0E6MQ";
 	}	
 }

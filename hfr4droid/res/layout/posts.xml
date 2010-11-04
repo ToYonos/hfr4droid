@@ -8,19 +8,43 @@
     	android:orientation="vertical"
     	android:layout_width="fill_parent"
     	android:layout_height="fill_parent">
-    	<TextView
-	    	android:id="@+id/TopicTitle"
+	    <LinearLayout
+	    	android:orientation="horizontal"
+	    	android:background="@drawable/degrad_plus"
 	    	android:gravity="center"
-	    	android:textSize="14dip"
-		   	android:singleLine="true"
-			android:ellipsize="end"
-	    	android:paddingLeft="42dip"
-	    	android:paddingRight="35dip"
-	    	android:textStyle="bold"
-	    	android:textColor="#000080"
-	    	android:background="#DEDFDF"
-	    	android:layout_width="fill_parent" 
-	    	android:layout_height="55dip" />
+	    	android:layout_width="fill_parent"
+	    	android:layout_height="40dip">
+	    	<TextView
+		    	android:id="@+id/TopicPageNumber"
+		    	android:gravity="left"
+		    	android:textSize="15dip"
+			   	android:lines="1"
+		    	android:paddingLeft="5dip"
+		    	android:textStyle="bold"
+		    	android:textColor="#1A3A60"
+		    	android:layout_width="wrap_content" 
+		    	android:layout_height="wrap_content" />	    	 	
+	    	<TextView
+		    	android:id="@+id/TopicTitle"
+		    	android:gravity="left"
+		    	android:textSize="15dip"
+			   	android:lines="1"
+				android:ellipsize="end"
+				android:marqueeRepeatLimit="marquee_forever"
+				android:scrollHorizontally="true"
+		    	android:paddingRight="55dip"
+		    	android:textStyle="bold"
+		    	android:textColor="#1A3A60"
+		    	android:layout_width="wrap_content" 
+		    	android:layout_height="wrap_content" />
+		</LinearLayout>	    	
+	   	<ProgressBar
+	  		android:id="@+id/PostsProgressBar"
+	  		android:max="100"
+	  		android:indeterminateOnly="false"
+	  		style="@android:style/Widget.ProgressBar.Horizontal"
+	  		android:layout_width="fill_parent"
+	  		android:layout_height="10dip" />	    	
 		<WebView
 			android:id="@+id/loading"
 	        android:layout_width="fill_parent"

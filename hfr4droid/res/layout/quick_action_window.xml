@@ -22,10 +22,9 @@
 		</HorizontalScrollView>
 	</FrameLayout>
 	<ImageView
-        android:id="@+id/arrow_down"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-    	android:layout_marginTop="-13dip"
+    	android:layout_marginTop="-12dip"
     	android:paddingLeft="15dip"
         android:layout_below="@id/MainActionWindow"
         android:src="@drawable/bottom_arrow" />

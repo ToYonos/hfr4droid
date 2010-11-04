@@ -3,6 +3,7 @@ package info.toyonos.hfr4droid.activity;
 import info.toyonos.hfr4droid.R;
 import info.toyonos.hfr4droid.core.bean.Category;
 import info.toyonos.hfr4droid.core.bean.Topic;
+import info.toyonos.hfr4droid.core.bean.Topic.TopicStatus;
 import info.toyonos.hfr4droid.core.bean.Topic.TopicType;
 
 import java.util.ArrayList;
@@ -30,7 +31,6 @@ import android.view.View.OnCreateContextMenuListener;
 import android.view.View.OnTouchListener;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
-import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ListView;
@@ -49,8 +49,8 @@ import android.widget.SlidingDrawer.OnDrawerOpenListener;
  */
 public class TopicsActivity extends HFR4droidListActivity<Topic>
 {
-	private Category cat;
-	private TopicType type;
+	private Category cat = null;
+	private TopicType type = null;
 	private GestureDetector gestureDetector;
 
 	@SuppressWarnings("unchecked")
@@ -62,8 +62,8 @@ public class TopicsActivity extends HFR4droidListActivity<Topic>
 		attachEvents();
 
 		Bundle bundle = this.getIntent().getExtras();
-		boolean allCats = bundle.getBoolean("allCats", false);
-		type = bundle.getSerializable("topicType") != null ? (TopicType) bundle.getSerializable("topicType") : TopicType.ALL;
+		boolean allCats = bundle == null ? false : bundle.getBoolean("allCats", false);
+		if (type == null) type = bundle != null && bundle.getSerializable("topicType") != null ? (TopicType) bundle.getSerializable("topicType") : TopicType.ALL;
 
 		List<Topic> topics = new ArrayList<Topic>();
 		if (bundle != null && bundle.getSerializable("topics") != null)
@@ -79,22 +79,25 @@ public class TopicsActivity extends HFR4droidListActivity<Topic>
 				cat = topics.get(0).getCategory();
 			}
 		}
-		else if (bundle != null && bundle.getSerializable("cat") != null)
+		else
 		{
-			cat = (Category) bundle.getSerializable("cat");
-			loadTopics(cat, type);
+			if (bundle != null && bundle.getSerializable("cat") != null)
+			{
+				cat = (Category) bundle.getSerializable("cat");
+			}
+			if (cat != null) loadTopics(cat, type, currentPageNumber);
 		}
 
+		final ListView lv = getListView();
+		adapter = new TopicAdapter(this, R.layout.topic, R.id.ItemContent, topics);
+		lv.setAdapter(adapter);
+		
 		if (cat != null)
 		{
 			setTitle();
 			updateButtonsStates();
 			if (cat.equals(Category.MPS_CAT)) clearNotifications();
 		}
-
-		final ListView lv = getListView();
-		adapter = new TopicAdapter(this, R.layout.topic, R.id.ItemContent, topics);
-		lv.setAdapter(adapter);
 
 		lv.setOnItemClickListener(new OnItemClickListener()
 		{
@@ -131,13 +134,27 @@ public class TopicsActivity extends HFR4droidListActivity<Topic>
 			@Override
 			protected void onLeftToRight()
 			{
-				if (currentPageNumber != 1 && type == TopicType.ALL) loadPreviousPage();
+				if (type != TopicType.ALL) return;
+				if (currentPageNumber != 1)
+				{
+					loadPreviousPage();
+				}
+				else
+				{
+					reloadPage();
+				}
 			}
 
 			@Override
 			protected void onRightToLeft()
 			{
 				if (type == TopicType.ALL) loadNextPage();
+			}
+			
+			@Override
+			public boolean onDoubleTap(MotionEvent e)
+			{
+				return false;
 			}
 		});
 
@@ -147,7 +164,7 @@ public class TopicsActivity extends HFR4droidListActivity<Topic>
 			{
 				return gestureDetector.onTouchEvent(event);
 			}
-		});	
+		});
 	}
 
 	@Override
@@ -288,37 +305,50 @@ public class TopicsActivity extends HFR4droidListActivity<Topic>
 	}
 
 	@Override
-	protected void setWindowTitle()
-	{
-		String title = getString(R.string.app_name) + " (";
-		switch (type)
-		{			
-			case CYAN:
-				title += getString(R.string.menu_drapeaux_cyan).toLowerCase();
-				break;
-	
-			case ROUGE:
-				title += getString(R.string.menu_drapeaux_rouges).toLowerCase();
-				break;
-	
-			case FAVORI:
-				title += getString(R.string.menu_drapeaux_favoris).toLowerCase();
-				break;
-	
-			default:
-				title += getString(R.string.menu_drapeaux_all).toLowerCase();
-				break;
-		}
-		title += ")";
-		if (type.equals(TopicType.ALL)) title += " - P." + currentPageNumber;
-		setTitle(title);
-	}
-
-	@Override
 	protected void setTitle()
 	{
-		TextView topicTitle = (TextView) findViewById(R.id.CatTitle);
-		topicTitle.setText(cat.toString());
+		TextView catTitle = (TextView) findViewById(R.id.CatTitle);
+		catTitle.setTextSize(getTextSize(15));
+		String title;
+		if (isMpsCat() && adapter.getCount() > 0)
+		{
+			int newMps = 0;
+			for (int i = 0; i < adapter.getCount(); i++)
+			{
+				if (adapter.getItem(i).getStatus() == TopicStatus.NEW_MP) newMps++;
+			}
+			cat.setName(newMps == 0 ? 
+								Category.MPS_CAT.getName() :
+								getResources().getQuantityString(R.plurals.mp_notification_content, newMps, newMps));
+			title = newMps == 0 ? "P." + currentPageNumber + " - " + cat.toString() : cat.toString();
+		}
+		else
+		{
+			switch (type)
+			{			
+				case CYAN:
+					title = " " + cat.toString();
+					catTitle.setCompoundDrawablesWithIntrinsicBounds(getResources().getDrawable(R.drawable.flag_cyan), null, null, null);
+					break;
+		
+				case ROUGE:
+					title = " " + cat.toString();
+					catTitle.setCompoundDrawablesWithIntrinsicBounds(getResources().getDrawable(R.drawable.flag_rouge), null, null, null);
+					break;
+		
+				case FAVORI:
+					title = " " + cat.toString();
+					catTitle.setCompoundDrawablesWithIntrinsicBounds(getResources().getDrawable(R.drawable.flag_favori), null, null, null);
+					break;
+		
+				default:
+					catTitle.setCompoundDrawablesWithIntrinsicBounds(null, null, null, null);
+					title = cat.toString() + ", P." + currentPageNumber;
+					break;
+			}
+		}
+		catTitle.setText(title);
+		catTitle.setSelected(true);
 	}
 
 	@Override
@@ -358,6 +388,12 @@ public class TopicsActivity extends HFR4droidListActivity<Topic>
 	}
 
 	@Override
+	protected void redrawPage()
+	{
+		adapter.notifyDataSetChanged();
+	}
+	
+	@Override
 	protected void goBack()
 	{
 		loadCats(false);
@@ -384,34 +420,40 @@ public class TopicsActivity extends HFR4droidListActivity<Topic>
 	private void updateButtonsStates()
 	{		
 		SlidingDrawer nav = (SlidingDrawer) findViewById(R.id.Nav);
+		TextView catTitle = (TextView) findViewById(R.id.CatTitle);
 		if (type == TopicType.CYAN || type == TopicType.ROUGE || type == TopicType.FAVORI)
 		{
 			nav.setVisibility(View.GONE);
+			catTitle.setPadding(5, 0, 5, 0);
 		}
 		else
 		{
 			nav.setVisibility(View.VISIBLE);
+			catTitle.setPadding(5, 0, 55, 0);
 
-			Button buttonFP = (Button) findViewById(R.id.ButtonNavFirstPage);
+			ImageView buttonFP = (ImageView) findViewById(R.id.ButtonNavFirstPage);
 			buttonFP.setEnabled(currentPageNumber != 1);
+			buttonFP.setAlpha(currentPageNumber != 1 ? 255 : 105);
 
-			Button buttonPP = (Button) findViewById(R.id.ButtonNavPreviousPage);
+			ImageView buttonPP = (ImageView) findViewById(R.id.ButtonNavPreviousPage);
 			buttonPP.setEnabled(currentPageNumber != 1);
+			buttonPP.setAlpha(currentPageNumber != 1 ? 255 : 105);
 
-			Button buttonLP = (Button) findViewById(R.id.ButtonNavLastPage);
+			ImageView buttonLP = (ImageView) findViewById(R.id.ButtonNavLastPage);
 			buttonLP.setEnabled(false);
+			buttonLP.setAlpha(105);
 		}
 	}
 
 	private void attachEvents()
 	{
 		SlidingDrawer slidingDrawer = (SlidingDrawer) findViewById(R.id.Nav);
-		final Button toggleNav = (Button) findViewById(R.id.NavToggle);
+		final ImageView toggleNav = (ImageView) ((LinearLayout) findViewById(R.id.NavToggle)).getChildAt(0);
 		slidingDrawer.setOnDrawerOpenListener(new OnDrawerOpenListener()
 		{
 			public void onDrawerOpened()
 			{
-				toggleNav.setCompoundDrawablesWithIntrinsicBounds(R.drawable.right_arrow, 0, 0, 0);
+				toggleNav.setImageResource(R.drawable.right_arrow);
 			}
 		});
 
@@ -419,11 +461,11 @@ public class TopicsActivity extends HFR4droidListActivity<Topic>
 		{
 			public void onDrawerClosed()
 			{
-				toggleNav.setCompoundDrawablesWithIntrinsicBounds(R.drawable.left_arrow, 0, 0, 0);
+				toggleNav.setImageResource(R.drawable.left_arrow);
 			}
 		});
 
-		Button buttonFP = (Button) findViewById(R.id.ButtonNavFirstPage);
+		ImageView buttonFP = (ImageView) findViewById(R.id.ButtonNavFirstPage);
 		buttonFP.setOnClickListener(new OnClickListener()
 		{
 			public void onClick(View v)
@@ -432,7 +474,7 @@ public class TopicsActivity extends HFR4droidListActivity<Topic>
 			}
 		});
 
-		Button buttonPP = (Button) findViewById(R.id.ButtonNavPreviousPage);
+		ImageView buttonPP = (ImageView) findViewById(R.id.ButtonNavPreviousPage);
 		buttonPP.setOnClickListener(new OnClickListener()
 		{
 			public void onClick(View v)
@@ -441,7 +483,7 @@ public class TopicsActivity extends HFR4droidListActivity<Topic>
 			}
 		});
 
-		Button buttonUP = (Button) findViewById(R.id.ButtonNavUserPage);
+		ImageView buttonUP = (ImageView) findViewById(R.id.ButtonNavUserPage);
 		buttonUP.setOnClickListener(new OnClickListener()
 		{
 			public void onClick(View v)
@@ -450,7 +492,7 @@ public class TopicsActivity extends HFR4droidListActivity<Topic>
 			}
 		});			
 
-		Button buttonNP = (Button) findViewById(R.id.ButtonNavNextPage);
+		ImageView buttonNP = (ImageView) findViewById(R.id.ButtonNavNextPage);
 		buttonNP.setOnClickListener(new OnClickListener()
 		{
 			public void onClick(View v)
@@ -470,6 +512,7 @@ public class TopicsActivity extends HFR4droidListActivity<Topic>
 		}
 		adapter.notifyDataSetChanged();
 		updateButtonsStates();
+		getListView().setSelection(0);
 	}
 
 	protected boolean isMpsCat()
@@ -501,6 +544,7 @@ public class TopicsActivity extends HFR4droidListActivity<Topic>
 			Topic t = topics.get(position);
 
 			TextView text1 = (TextView) v.findViewById(R.id.ItemContent);
+			text1.setTextSize(getTextSize(14));
 			ImageView flag = (ImageView) v.findViewById(R.id.TopicFlag);
 			boolean isDummyTopic = t.getId() == -1;
 
@@ -514,6 +558,7 @@ public class TopicsActivity extends HFR4droidListActivity<Topic>
 			if (isMpsCat())
 			{
 				TextView author = (TextView) ll.findViewById(R.id.ItemAuthor);
+				author.setTextSize(getTextSize(14));
 				author.setText(Html.fromHtml("<b>@" + t.getAuthor() + "</b> : "));
 				try
 				{

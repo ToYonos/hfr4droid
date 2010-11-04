@@ -10,6 +10,28 @@
 	<string name="pref_type_drapeau_summary">Le type de drapeau qui s\'affiche par défaut dans l\'application</string>
 	<string name="pref_type_drapeau_default">1</string>
 	
+	<string name="pref_signature_enable_title">Activer sa signature</string>
+	<string name="pref_signature_enable_summary">Intégrer sa signature dans les posts</string>
+	<string name="pref_signature_enable_default">true</string>
+	
+	<string name="pref_swipe_title">Sensibilité du swipe</string>
+	<string name="pref_swipe_summary">Régler la sensibilité du swipe (glissement du doigt sur l\'écran)</string>
+	<string name="pref_swipe_default">1</string>
+	
+	<string name="pref_preloading_enable_title">Activer le préchargement des pages</string>
+	<string name="pref_preloading_enable_summary">Préchargement des pages afin de fluidifier la navigation (peut perturber les drapeaux)</string>
+	<string name="pref_preloading_enable_default">false</string>
+	
+	<string name="pref_affichage_title">Affichage</string>
+	
+	<string name="pref_fullscreen_enable_title">Afficher en plein écran</string>
+	<string name="pref_fullscreen_enable_summary">Afficher l\'application en plein écran (plus de barre de notification)</string>
+	<string name="pref_fullscreen_enable_default">false</string>
+	
+	<string name="pref_police_size_title">Taille de la police</string>
+	<string name="pref_police_size_summary">Taille des polices dans les écrans de l\'application</string>
+	<string name="pref_police_size_default">1</string>
+
 	<string name="pref_avatars_enable_title">Activer les avatars</string>
 	<string name="pref_avatars_enable_summary">Afficher les avatars dans les posts</string>
 	<string name="pref_avatars_enable_default">true</string>
@@ -31,4 +53,10 @@
 	<string name="pref_srv_mps_freq_title">Fréquence de vérification (en min)</string>
 	<string name="pref_srv_mps_freq_summary">Fréquence de vérification des messages privés</string>
 	<string name="pref_srv_mps_freq_default">60</string>
+	
+	<string name="pref_debug_title">Debug</string>
+	
+	<string name="pref_disable_acra_title">Désactiver l\'envoi de rapports d\'erreurs</string>
+	<string name="pref_disable_acra_summary">Ne jamais envoyer de rapports d\'erreurs aux développeurs, lors du crash de l\'application</string>
+	<string name="pref_disable_acra_default">true</string>
 </resources>

@@ -32,7 +32,8 @@ public class HFRMessageSender
 	private static final String FORM_URI = "http://forum.hardware.fr/bddpost.php?config=hfr.inc";
 	private static final String FORM_EDIT_URI = "http://forum.hardware.fr/bdd.php?config=hfr.inc";
 
-	public static final int POST_EDIT_OK = 0;
+	public static final int POST_OK = 2;
+	public static final int POST_EDIT_OK = 1;
 	public static final int POST_FLOOD = -1;
 	public static final int POST_KO = -99;
 
@@ -43,7 +44,7 @@ public class HFRMessageSender
 		auth = authentication;
 	}
 
-	public int postMessage(Topic t, String hashCheck, String message) throws UnsupportedEncodingException, IOException
+	public int postMessage(Topic t, String hashCheck, String message, boolean signature) throws UnsupportedEncodingException, IOException
 	{
 		List<NameValuePair> params = new ArrayList<NameValuePair>();
 		params.add(new BasicNameValuePair("hash_check", hashCheck));
@@ -54,23 +55,33 @@ public class HFRMessageSender
 		params.add(new BasicNameValuePair("pseudo", auth.getUser()));
 		params.add(new BasicNameValuePair("content_form", message));
 		params.add(new BasicNameValuePair("sujet", t.getName()));
-		params.add(new BasicNameValuePair("signature", "1"));
+		params.add(new BasicNameValuePair("signature", signature ? "1" : "0"));
 
 		String response = innerGetResponse(FORM_URI, params);
 		return getResponseCode(response);
 	}
 
-	public int editMessage(Post p, String hashCheck, String message) throws UnsupportedEncodingException, IOException
+	public int editMessage(Post p, String hashCheck, String message, boolean signature) throws UnsupportedEncodingException, IOException
 	{
+		StringBuilder parents = new StringBuilder("");
+		Matcher m = Pattern.compile("\\[quotemsg=([0-9]+)", Pattern.CASE_INSENSITIVE | Pattern.DOTALL).matcher(message);
+		while (m.find())
+		{
+			if (!parents.toString().equals("")) parents.append("-");
+			parents.append(m.group(1));
+		}
+		
 		List<NameValuePair> params = new ArrayList<NameValuePair>();
 		params.add(new BasicNameValuePair("hash_check", hashCheck));
 		params.add(new BasicNameValuePair("numreponse", String.valueOf(p.getId())));
 		params.add(new BasicNameValuePair("post", String.valueOf(p.getTopic().getId())));
 		params.add(new BasicNameValuePair("cat", p.getTopic().getCategory().getRealId()));
 		params.add(new BasicNameValuePair("verifrequet", "1100"));
+		params.add(new BasicNameValuePair("parents", parents.toString()));
 		params.add(new BasicNameValuePair("pseudo", auth.getUser()));
 		params.add(new BasicNameValuePair("content_form", message));
 		params.add(new BasicNameValuePair("sujet", p.getTopic().getName()));
+		params.add(new BasicNameValuePair("signature", signature ? "1" : "0"));
 		params.add(new BasicNameValuePair("subcat", String.valueOf(p.getTopic().getSubcat())));
 
 		String response = innerGetResponse(FORM_EDIT_URI, params);
@@ -118,13 +129,13 @@ public class HFRMessageSender
 	{
 		if (response.matches(".*Votre réponse a été postée avec succès.*"))
 		{
-			Matcher m = Pattern.compile("<meta\\s*http\\-equiv=\"Refresh\"\\s*content=\"0;\\s*url=(?:(?:/forum2\\.php.*?page=([0-9]+))|(?:/hfr.*?([0-9]+)\\.htm))", Pattern.CASE_INSENSITIVE | Pattern.DOTALL)
+			/*Matcher m = Pattern.compile("<meta\\s*http\\-equiv=\"Refresh\"\\s*content=\"0;\\s*url=(?:(?:/forum2\\.php.*?page=([0-9]+))|(?:/hfr.*?([0-9]+)\\.htm))", Pattern.CASE_INSENSITIVE | Pattern.DOTALL)
 			.matcher(response);
 			if  (m.find())
 			{
 				return Integer.parseInt(m.group(1) != null ? m.group(1) : m.group(2));  
-			}
-			return 1;
+			}*/
+			return POST_OK;
 		}
 		else if (response.matches(".*Votre message a été édité avec succès.*"))
 		{

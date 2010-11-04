@@ -94,17 +94,24 @@ public class MpCheckService extends Service
 
 	private void notifyNewMps(int nbMps, Topic mp)
 	{
-		if (nbMps < 1) return;
+		NotificationManager notificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
+		
+		if (nbMps < 1)
+		{
+			nbNotification = 0;
+			notificationManager.cancel(MpCheckService.NOTIFICATION_ID);
+			return;
+		}
 
 		nbNotification++;
 		String notificationMessage = getResources().getQuantityString(R.plurals.mp_notification_content, nbMps, nbMps);
-		NotificationManager notificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
 		PendingIntent pendingIntent = null;
 		if (nbMps == 1)
 		{
 			Intent intent = new Intent(MpCheckService.this, PostsActivity.class);
 			Bundle bundle = new Bundle();
 			bundle.putSerializable("topic", mp);
+			bundle.putInt("pageNumber", mp.getNbPages());
 			intent.setAction("" + Math.random()); // Samed issue as this guy : http://stackoverflow.com/questions/2882459/getextra-from-intent-launched-from-a-pendingintent 
 			intent.putExtras(bundle);
 			pendingIntent = PendingIntent.getActivity(MpCheckService.this, 0, intent, 0);				
