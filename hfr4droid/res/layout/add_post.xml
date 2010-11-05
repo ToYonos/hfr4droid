@@ -38,7 +38,7 @@
 	        	android:id="@+id/inputSmileyTag"
 	        	android:hint="@string/smiley_tag_hint"
 	        	android:lines="1"
-	        	android:inputMethod="text"
+	        	android:inputType="text"
 	        	android:textSize="14dip"
 	            android:padding="3dip" />
 			<Button
