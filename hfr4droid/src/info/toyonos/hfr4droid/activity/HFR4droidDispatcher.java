@@ -46,6 +46,11 @@ public class HFR4droidDispatcher extends HFR4droidActivity
 					loadPosts((Topic) element, urlParser.getPage(), false);
 				}
 			}
+			else
+			{
+				Toast.makeText(this, R.string.invalid_url, Toast.LENGTH_LONG).show();
+				finish();
+			}
 		}
 		catch (Exception e)
 		{

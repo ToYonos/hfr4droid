@@ -1,6 +1,5 @@
 package info.toyonos.hfr4droid.core.auth;
 
-import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
@@ -21,6 +20,8 @@ import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.params.HttpProtocolParams;
 import org.apache.http.protocol.HTTP;
 
+import android.content.Context;
+
 /**
  * <b>HfrAuthentication est la classe permettant de gérer la connexion au site http://forum.hardware.fr</b>
  * <p>Les informations obligatoires à fournir sont les suivantes :
@@ -39,6 +40,7 @@ import org.apache.http.protocol.HTTP;
  */
 public class HFRAuthentication
 {
+	private Context context;
 	private String userName = null;
 	private String userPassword = null;
 	private String passHash = null;
@@ -46,7 +48,8 @@ public class HFRAuthentication
 
 
 	public static final String AUTH_FORM_URL = "http://forum.hardware.fr/login_validation.php?config=hfr.inc";
-	public static final String COOKIES_FILE_NAME = "/sdcard/hfr_cookies.dat";
+	public static final String OLD_COOKIES_FILE_NAME = "/sdcard/hfr_cookies.dat";
+	public static final String COOKIES_FILE_NAME = "hfr_cookies.dat";
 
 	CookieStore cookieStore = null;
 
@@ -59,16 +62,18 @@ public class HFRAuthentication
 	 * 			Le mot de passe
 	 * 
 	 */
-	public HFRAuthentication(String user, String password) throws IOException, ClassNotFoundException
+	public HFRAuthentication(Context context, String user, String password) throws IOException, ClassNotFoundException
 	{
+		this.context = context;
 		userName = user;
 		userPassword = password;
 		cookieStore = login();
 		retrieveCookiesInfos(cookieStore);
 	}
 
-	public HFRAuthentication() throws IOException, ClassNotFoundException
+	public HFRAuthentication(Context context) throws IOException, ClassNotFoundException
 	{        
+		this.context = context;
 		cookieStore = deserializeCookies();
 		retrieveCookiesInfos(cookieStore);
 	}
@@ -153,7 +158,7 @@ public class HFRAuthentication
 		for (int i=0; i<cs.getCookies().size(); i++)
 			hfrCookies.add(new SerializableCookie(cs.getCookies().get(i)));
 
-		fos = new FileOutputStream(COOKIES_FILE_NAME);
+		fos = context.openFileOutput(COOKIES_FILE_NAME, Context.MODE_PRIVATE);
 		oos = new ObjectOutputStream(fos);
 		oos.writeObject(hfrCookies);
 		oos.close();
@@ -168,7 +173,7 @@ public class HFRAuthentication
 		ObjectInputStream ois = null;
 		try
 		{
-			fis = new FileInputStream(COOKIES_FILE_NAME);
+			fis = context.openFileInput(COOKIES_FILE_NAME);
 			ois = new ObjectInputStream(fis);
 			hfrCookies = (ArrayList<SerializableCookie>) ois.readObject();
 		}
@@ -195,6 +200,6 @@ public class HFRAuthentication
 	// Ajout temporaire @toyo pour effacer le cache
 	public boolean clearCache()
 	{
-		return new File(COOKIES_FILE_NAME).delete();
+		return context.deleteFile(COOKIES_FILE_NAME);
 	}
 }

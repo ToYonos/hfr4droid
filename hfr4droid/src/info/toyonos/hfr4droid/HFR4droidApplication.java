@@ -5,6 +5,7 @@ import info.toyonos.hfr4droid.core.data.HFRDataRetriever;
 import info.toyonos.hfr4droid.core.data.MDDataRetriever;
 import info.toyonos.hfr4droid.core.message.HFRMessageSender;
 
+import java.io.File;
 import java.io.IOException;
 
 import org.acra.CrashReportingApplication;
@@ -37,6 +38,7 @@ public class HFR4droidApplication extends CrashReportingApplication
 			SharedPreferences.Editor editor = settings.edit();
 			editor.putBoolean(CrashReportingApplication.PREF_DISABLE_ACRA, Boolean.parseBoolean(getString(R.string.pref_disable_acra_default)));
 		}
+		if (new File(HFRAuthentication.OLD_COOKIES_FILE_NAME).exists()) new File(HFRAuthentication.OLD_COOKIES_FILE_NAME).delete();
 	}
 
 	public MDDataRetriever getDataRetriever()
@@ -60,8 +62,8 @@ public class HFR4droidApplication extends CrashReportingApplication
 	public boolean login(String user, String password) throws IOException, ClassNotFoundException
 	{
 		auth = user != null && password != null ?
-				new HFRAuthentication(user, password) :
-				new HFRAuthentication();
+				new HFRAuthentication(this, user, password) :
+				new HFRAuthentication(this);
 
 		boolean isLoggedIn = auth.getCookies() != null;
 		if (isLoggedIn)

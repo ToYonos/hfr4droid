@@ -11,6 +11,7 @@
         <EditText
         	android:id="@+id/inputUser"
         	android:lines="1"
+        	android:inputType="text"
             android:padding="3dip" />
     </TableRow>
     <TableRow>

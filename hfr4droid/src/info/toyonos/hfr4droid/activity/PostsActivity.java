@@ -203,6 +203,7 @@ public class PostsActivity extends HFR4droidActivity
 			@Override
 			public boolean onDoubleTap(MotionEvent e)
 			{
+				if (!isDblTapEnable()) return false;
 				reloadPage();
 				return true;
 			}
@@ -231,9 +232,12 @@ public class PostsActivity extends HFR4droidActivity
 	{
 		super.onConfigurationChanged(conf);
 		WebView webView = getWebView();
-		Display display = getWindowManager().getDefaultDisplay();
-		int width = Math.round(display.getWidth() / webView.getScale());
-		webView.loadUrl("javascript:loadDynamicCss(" + width + ")");
+		if (webView != null)
+		{
+			Display display = getWindowManager().getDefaultDisplay();
+			int width = Math.round(display.getWidth() / webView.getScale());
+			webView.loadUrl("javascript:loadDynamicCss(" + width + ")");
+		}
 	}
 
 
@@ -775,7 +779,7 @@ public class PostsActivity extends HFR4droidActivity
 		loading.setVisibility(View.VISIBLE);
 		if (!refresh)
 		{
-			loading.loadData("<html><body style=\"text-align: center; margin-top: 50%25; background-color:#F7F7F7;\"><img src=\"data:image/gif;base64,R0lGODlhKwALAPEAAP%2F%2F%2FwAAAIKCggAAACH%2FC05FVFNDQVBFMi4wAwEAAAAh%2FhpDcmVhdGVkIHdpdGggYWpheGxvYWQuaW5mbwAh%2BQQJCgAAACwAAAAAKwALAAACMoSOCMuW2diD88UKG95W88uF4DaGWFmhZid93pq%2BpwxnLUnXh8ou%2BsSz%2BT64oCAyTBUAACH5BAkKAAAALAAAAAArAAsAAAI9xI4IyyAPYWOxmoTHrHzzmGHe94xkmJifyqFKQ0pwLLgHa82xrekkDrIBZRQab1jyfY7KTtPimixiUsevAAAh%2BQQJCgAAACwAAAAAKwALAAACPYSOCMswD2FjqZpqW9xv4g8KE7d54XmMpNSgqLoOpgvC60xjNonnyc7p%2BVKamKw1zDCMR8rp8pksYlKorgAAIfkECQoAAAAsAAAAACsACwAAAkCEjgjLltnYmJS6Bxt%2Bsfq5ZUyoNJ9HHlEqdCfFrqn7DrE2m7Wdj%2F2y45FkQ13t5itKdshFExC8YCLOEBX6AhQAADsAAAAAAAAAAAA%3D\" alt=\"loading\" /></body></html>", "text/html", "UTF-8");
+			loading.loadData("<html><body style=\"text-align: center; margin-top: 150px; background-color:#F7F7F7;\"><img src=\"data:image/gif;base64,R0lGODlhKwALAPEAAP%2F%2F%2FwAAAIKCggAAACH%2FC05FVFNDQVBFMi4wAwEAAAAh%2FhpDcmVhdGVkIHdpdGggYWpheGxvYWQuaW5mbwAh%2BQQJCgAAACwAAAAAKwALAAACMoSOCMuW2diD88UKG95W88uF4DaGWFmhZid93pq%2BpwxnLUnXh8ou%2BsSz%2BT64oCAyTBUAACH5BAkKAAAALAAAAAArAAsAAAI9xI4IyyAPYWOxmoTHrHzzmGHe94xkmJifyqFKQ0pwLLgHa82xrekkDrIBZRQab1jyfY7KTtPimixiUsevAAAh%2BQQJCgAAACwAAAAAKwALAAACPYSOCMswD2FjqZpqW9xv4g8KE7d54XmMpNSgqLoOpgvC60xjNonnyc7p%2BVKamKw1zDCMR8rp8pksYlKorgAAIfkECQoAAAAsAAAAACsACwAAAkCEjgjLltnYmJS6Bxt%2Bsfq5ZUyoNJ9HHlEqdCfFrqn7DrE2m7Wdj%2F2y45FkQ13t5itKdshFExC8YCLOEBX6AhQAADsAAAAAAAAAAAA%3D\" alt=\"loading\" /></body></html>", "text/html", "UTF-8");
 		}
 
 		StringBuffer js = new StringBuffer("<script type=\"text/javascript\">");
@@ -1076,6 +1080,7 @@ public class PostsActivity extends HFR4droidActivity
 						}
 						catch (final Exception e)
 						{
+							data = null;
 							Log.e(PostsActivity.this.getClass().getSimpleName(), String.format(getString(R.string.error), e.getClass().getName(), e.getMessage()));
 							runOnUiThread(new Runnable()
 							{
@@ -1092,6 +1097,11 @@ public class PostsActivity extends HFR4droidActivity
 					@Override
 					protected void onPostExecute(String data)
 					{
+						if (data == null)
+						{
+							progressDialog.dismiss();
+							return;
+						}
 						final LinearLayout smiliesContainer = ((LinearLayout) layout.findViewById(R.id.SmiliesContainer));
 						final TextView smiliesLoading = ((TextView) layout.findViewById(R.id.SmiliesLoading));
 						final TableLayout postContainer = ((TableLayout) layout.findViewById(R.id.PostContainer));
@@ -1377,6 +1387,7 @@ public class PostsActivity extends HFR4droidActivity
 			}
 			catch (final Exception e)
 			{
+				data = null;
 				Log.e(PostsActivity.this.getClass().getSimpleName(), String.format(getString(R.string.error), e.getClass().getName(), e.getMessage()));
 				runOnUiThread(new Runnable()
 				{
@@ -1402,7 +1413,10 @@ public class PostsActivity extends HFR4droidActivity
 		@Override
 		protected void onPostExecute(String result)
 		{
-			onActionExecute(result);
+			if (result != null)
+			{
+				onActionExecute(result);
+			}
 			if (progress) progressDialog.dismiss();
 		}
 	}

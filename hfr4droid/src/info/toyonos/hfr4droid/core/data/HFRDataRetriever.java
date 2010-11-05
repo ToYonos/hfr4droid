@@ -47,6 +47,8 @@ public class HFRDataRetriever implements MDDataRetriever
 	public static final String QUOTE_URL		= "http://forum.hardware.fr/message.php?config=hfr.inc&cat={$cat}&post={$topic}&numrep={$post}";
 	public static final String EDIT_URL			= "http://forum.hardware.fr/message.php?config=hfr.inc&cat={$cat}&post={$topic}&numreponse={$post}";
 
+	public static final String MAINTENANCE 		= "Serveur en cours de maintenance. <br /><br />Veuillez nous excuser pour la gène occasionnée";
+	
 	private HFRAuthentication auth;
 	private String hashCheck;
 	private List<Category> cats;
@@ -420,8 +422,9 @@ public class HFRDataRetriever implements MDDataRetriever
 	 * @return Un <code>InputStream</code> contenant le résultat
 	 * @throws IOException Si un problème intervient durant la requête
 	 * @throws URISyntaxException Si l'url est foireuse
+	 * @throws ServerMaintenanceException Si le forum est en maintenance
 	 */
-	private String getAsString(String url) throws IOException, URISyntaxException
+	private String getAsString(String url) throws IOException, URISyntaxException, ServerMaintenanceException
 	{
 		return getAsString(url, false); 
 	}
@@ -433,8 +436,9 @@ public class HFRDataRetriever implements MDDataRetriever
 	 * @return Un <code>InputStream</code> contenant le résultat
 	 * @throws IOException Si un problème intervient durant la requête
 	 * @throws URISyntaxException Si l'url est foireuse
+	 * @throws ServerMaintenanceException Si le forum est en maintenance
 	 */
-	private String getAsString(String url, boolean cr) throws IOException, URISyntaxException
+	private String getAsString(String url, boolean cr) throws IOException, URISyntaxException, ServerMaintenanceException
 	{
 		DefaultHttpClient client = new DefaultHttpClient();
 		InputStream data = null;
@@ -476,7 +480,9 @@ public class HFRDataRetriever implements MDDataRetriever
 				client.getConnectionManager().shutdown();	
 			}
 		}
-		return content; 
+
+		if  (content.matches(MAINTENANCE)) throw new ServerMaintenanceException("Serveur en cours de maintenance :o");
+		return content;
 	}
 
 	/**

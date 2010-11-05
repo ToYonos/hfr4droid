@@ -22,6 +22,11 @@
 			android:title="@string/pref_signature_enable_title"
 			android:defaultValue="@string/pref_signature_enable_default" />
 		<CheckBoxPreference
+			android:key="PrefDblTapEnable"
+			android:summary="@string/pref_dbltap_enable_summary"
+			android:title="@string/pref_dbltap_enable_title"
+			android:defaultValue="@string/pref_dbltap_enable_default" />			
+		<CheckBoxPreference
 			android:key="PrefPreloadingEnable"
 			android:summary="@string/pref_preloading_enable_summary"
 			android:title="@string/pref_preloading_enable_title"

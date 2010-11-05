@@ -8,10 +8,10 @@ import info.toyonos.hfr4droid.core.bean.Post;
 import info.toyonos.hfr4droid.core.bean.Topic;
 import info.toyonos.hfr4droid.core.bean.Topic.TopicType;
 import info.toyonos.hfr4droid.core.data.MDDataRetriever;
+import info.toyonos.hfr4droid.core.data.ServerMaintenanceException;
 import info.toyonos.hfr4droid.core.message.HFRMessageSender;
 import info.toyonos.hfr4droid.service.MpCheckService;
 
-import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -64,6 +64,7 @@ public abstract class HFR4droidActivity extends Activity
 	public static final String PREF_WELCOME_SCREEN		= "PrefWelcomeScreen";
 	public static final String PREF_TYPE_DRAPEAU		= "PrefTypeDrapeau";
 	public static final String PREF_SIGNATURE_ENABLE	= "PrefSignatureEnable";
+	public static final String PREF_DBLTAP_ENABLE		= "PrefDblTapEnable";
 	public static final String PREF_PRELOADING_ENABLE	= "PrefPreloadingEnable";
 	public static final String PREF_SWIPE				= "PrefSwipe";
 	public static final String PREF_FULLSCREEN_ENABLE	= "PrefFullscreenEnable";
@@ -285,7 +286,7 @@ public abstract class HFR4droidActivity extends Activity
 
 	protected void loginFromCache()
 	{
-		if (!isLoggedIn() && new File(HFRAuthentication.COOKIES_FILE_NAME).exists())
+		if (!isLoggedIn() && this.getFileStreamPath(HFRAuthentication.COOKIES_FILE_NAME).exists())
 		{
 			try
 			{
@@ -679,13 +680,19 @@ public abstract class HFR4droidActivity extends Activity
 		SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(this);
 		return Integer.parseInt(settings.getString(PREF_TYPE_DRAPEAU, getString(R.string.pref_type_drapeau_default)));
 	}
-	
+
 	protected boolean isSignatureEnable()
 	{
 		SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(this);
 		return settings.getBoolean(PREF_SIGNATURE_ENABLE, Boolean.parseBoolean(getString(R.string.pref_signature_enable_default)));
 	}
-	
+
+	protected boolean isDblTapEnable()
+	{
+		SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(this);
+		return settings.getBoolean(PREF_DBLTAP_ENABLE, Boolean.parseBoolean(getString(R.string.pref_dbltap_enable_default)));
+	}
+
 	protected boolean isPreloadingEnable()
 	{
 		SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(this);
@@ -816,6 +823,17 @@ public abstract class HFR4droidActivity extends Activity
 			try
 			{
 				elements = retrieveDataInBackground(params);
+			}
+			catch (final ServerMaintenanceException sme)
+			{
+				runOnUiThread(new Runnable()
+				{
+					public void run()
+					{
+						Toast t = Toast.makeText(HFR4droidActivity.this, sme.getMessage(), Toast.LENGTH_LONG);
+						t.show();
+					}
+				});
 			}
 			catch (final Exception e)
 			{

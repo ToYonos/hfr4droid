@@ -14,6 +14,10 @@
 	<string name="pref_signature_enable_summary">Intégrer sa signature dans les posts</string>
 	<string name="pref_signature_enable_default">true</string>
 	
+	<string name="pref_dbltap_enable_title">Activer le refresh sur double tap</string>
+	<string name="pref_dbltap_enable_summary">Permettre de rafraîchir la page d\'un topic en double tappant sur l\'écran</string>
+	<string name="pref_dbltap_enable_default">true</string>	
+	
 	<string name="pref_swipe_title">Sensibilité du swipe</string>
 	<string name="pref_swipe_summary">Régler la sensibilité du swipe (glissement du doigt sur l\'écran)</string>
 	<string name="pref_swipe_default">1</string>

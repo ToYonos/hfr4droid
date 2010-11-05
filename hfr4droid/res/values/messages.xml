@@ -8,6 +8,7 @@
 	<string name="error_about">Impossible d\'afficher le contenu de cette page !</string>
 	<string name="error_settings">Cette valeur est incorrect !</string>
 	<string name="error_dispatching_url">Une erreur s\'est produite lors de l\'analyse de l\'url, %s : %s</string>
+	<string name="invalid_url">Cette url du forum est invalide !</string>
 	
 	<string name="hfr">FORUM HardWare.fr</string>
 	
