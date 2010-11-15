@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">HFR4droid</string>
+	
+	<string name="nav_go_to">Aller à...</string>
+	<string name="nav_last_read_page">La dernière page lue</string>
+	<string name="nav_first_page">La première page</string>
+	<string name="nav_previous_page">La page précèdente</string>
+	<string name="nav_next_page">La page suivante</string>
+	<string name="nav_last_page">La dernière page</string>
+	<string name="nav_user_page">La page...</string>
+	<string name="nav_page_number">Numéro de page ?</string>
+	
+	<string name="menu_drapeaux">Mes drapeaux</string>
+	<string name="menu_drapeaux_all">Tous les topics</string>
+	<string name="menu_drapeaux_cyan">Drapeaux cyan</string>
+	<string name="menu_drapeaux_rouges">Drapeaux rouges</string>
+	<string name="menu_drapeaux_favoris">Favoris</string>
+	<string name="menu_mps">Messages privés</string>
+	<string name="menu_add_post">Poster un message</string>
+	<string name="menu_login">Connexion</string>
+	<string name="menu_logout">Déconnexion</string>
+	<string name="menu_prefs">Paramètres</string>
+	<string name="menu_info">A propos</string>
+	<string name="menu_quit">Quitter</string>
+	<string name="menu_refresh">Rafraîchir</string>
+	<string name="menu_back">Retour</string>
+	
+	<string name="login_title">Connexion au forum</string>
+	<string name="login_pseudo">Pseudo :</string>
+	<string name="login_mot_de_passe">Mot de passe :</string>
+	
+	<string name="add_post_title">Poster un nouveau message</string>
+	<string name="button_post_smiley_left">[:</string>
+	<string name="button_post_smiley_right">]</string>	
+	<string name="button_post_bold_left">[b]</string>
+	<string name="button_post_bold_right">[/b]</string>
+	<string name="button_post_italic_left">[i]</string>
+	<string name="button_post_italic_right">[/i]</string>
+	<string name="button_post_underline_left">[u]</string>
+	<string name="button_post_underline_right">[/u]</string>
+	<string name="button_post_strike_left">[strike]</string>
+	<string name="button_post_strike_right">[/strike]</string>
+	<string name="button_post_fixed_left">[fixed]</string>
+	<string name="button_post_fixed_right">[/fixed]</string>
+	<string name="button_post_code_left">[code]</string>
+	<string name="button_post_code_right">[/code]</string>
+	<string name="button_post_url_left">[url]</string>
+	<string name="button_post_url_right">[/url]</string>
+	<string name="button_post_img_left">[img]</string>
+	<string name="button_post_img_right">[/img]</string>
+	<string name="button_post_puce_left">[*]</string>
+	<string name="button_post_puce_right"></string>
+	<string name="button_post_spoiler_left">[spoiler]</string>
+	<string name="button_post_spoiler_right">[/spoiler]</string>							
+	<string name="smiley_tag">Tag du smiley :</string>
+	<string name="smiley_tag_hint">Mot clef...</string>
+	
+	<string name="delete_title">Supprimer ce post</string>
+	<string name="delete_message">Êtes-vous sûr ?</string>
+
+	<string name="button_ok">Ok</string>
+	<string name="button_cancel">Annuler</string>
+	<string name="button_yes">Oui</string>
+	<string name="button_no">Non</string>
+	<string name="button_validate_post">Valider le message</string>
+	
+	<string name="test_item">Test Item</string>
+	
+	<string-array name="welcome_screen_values">
+    	<item>Les catégories</item>
+    	<item>Tous vos drapeaux cyan</item>
+    	<item>Tous vos drapeaux rouges</item>
+    	<item>Tous vos favoris</item> 
+	</string-array>
+	
+	<string-array name="welcome_screen_keys">
+		<item>-1</item>
+		<item>1</item>
+		<item>2</item>
+		<item>3</item>
+	</string-array>
+	
+	<string-array name="type_drapeau_values">
+    	<item>Tous les drapeaux</item>
+    	<item>Les drapeaux cyan</item>
+    	<item>Les drapeaux rouges</item>
+    	<item>Les favoris</item> 
+	</string-array>
+	
+	<string-array name="type_drapeau_keys">
+		<item>0</item>
+		<item>1</item>
+		<item>2</item>
+		<item>3</item>
+	</string-array>
+	
+	<string-array name="swipe_values">
+    	<item>Normal</item>
+    	<item>Sensible</item>
+    	<item>Très sensible</item> 
+	</string-array>
+	
+	<string-array name="swipe_keys">
+		<item>1</item>
+		<item>2</item>
+		<item>3</item>
+	</string-array>
+	
+	<string-array name="police_size_values">
+    	<item>Normal</item>
+    	<item>Plus grand</item>
+    	<item>Gros bigleux :o</item> 
+	</string-array>
+	
+	<string-array name="police_size_keys">
+		<item>1</item>
+		<item>2</item>
+		<item>3</item>
+	</string-array>
+	
+</resources>
