@@ -46,6 +46,7 @@ public class HFRDataRetriever implements MDDataRetriever
 	public static final String SMILIES_URL		= "http://forum.hardware.fr/message-smi-mp-aj.php?config=hfr.inc&findsmilies={$tag}";
 	public static final String QUOTE_URL		= "http://forum.hardware.fr/message.php?config=hfr.inc&cat={$cat}&post={$topic}&numrep={$post}";
 	public static final String EDIT_URL			= "http://forum.hardware.fr/message.php?config=hfr.inc&cat={$cat}&post={$topic}&numreponse={$post}";
+	public static final String KEYWORDS_URL		= "http://forum.hardware.fr/wikismilies.php?config=hfr.inc&detail={$code}";
 
 	public static final String MAINTENANCE 		= "Serveur en cours de maintenance. <br /><br />Veuillez nous excuser pour la gène occasionnée";
 	
@@ -414,6 +415,16 @@ public class HFRDataRetriever implements MDDataRetriever
 			}
 		}
 		return result.toString();
+	}
+	
+	/**
+	 * {@inheritDoc}
+	 */
+	public String getKeywords(String code) throws Exception
+	{
+		String url = KEYWORDS_URL.replaceFirst("\\{\\$code\\}", URLEncoder.encode(code, "UTF-8"));
+		String keywords = getSingleElement("name=\"keywords0\"\\s*value=\"(.*?)\"\\s*onkeyup", getAsString(url, true));
+		return keywords;
 	}
 
 	/**

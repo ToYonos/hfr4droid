@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
@@ -31,6 +32,7 @@ public class HFRMessageSender
 {	 
 	private static final String FORM_URI = "http://forum.hardware.fr/bddpost.php?config=hfr.inc";
 	private static final String FORM_EDIT_URI = "http://forum.hardware.fr/bdd.php?config=hfr.inc";
+	private static final String FORM_EDIT_KEYWORDS_URI = "http://forum.hardware.fr/wikismilies.php?config=hfr.inc&option_wiki=0&withouttag=0";
 
 	public static final int POST_OK = 2;
 	public static final int POST_EDIT_OK = 1;
@@ -100,6 +102,30 @@ public class HFRMessageSender
 
 		String response = innerGetResponse(FORM_EDIT_URI, params);
 		return response.matches(".*Message effacé avec succès.*");
+	}
+	
+	/**
+	 * Modifie les mots clés d'un smiley
+	 * @param hashCheck le hashCheck
+	 * @param code le code du smiley
+	 * @param keywords les nouveaux mots clés du smiley
+	 * @return un booleen indiquant si l'édition s'est bien passé
+	 * @throws Exception Si un problème survient
+	 */
+	public boolean setKeywords(String hashCheck, String code, String keywords) throws Exception
+	{
+		List<NameValuePair> params = new ArrayList<NameValuePair>();
+		//params.add(new BasicNameValuePair("option_wiki", "0"));
+		//params.add(new BasicNameValuePair("withouttag", "0"));
+		params.add(new BasicNameValuePair("modif0", "1"));
+		params.add(new BasicNameValuePair("smiley0", URLEncoder.encode(code, "UTF-8")));
+		params.add(new BasicNameValuePair("keywords0", URLEncoder.encode(keywords, "UTF-8")));
+		params.add(new BasicNameValuePair("hash_check", hashCheck));
+
+		String response = innerGetResponse(FORM_EDIT_KEYWORDS_URI, params);
+		//Vous ne pouvez pas modifier plusieurs fois le même smiley dans un intervale de 5 minutes
+		System.out.println(response);
+		return response.matches(".*Vos modifications sur les mots clés ont été enregistrés avec succès.*");
 	}
 
 	private String innerGetResponse(String url, List<NameValuePair> params) throws UnsupportedEncodingException, IOException

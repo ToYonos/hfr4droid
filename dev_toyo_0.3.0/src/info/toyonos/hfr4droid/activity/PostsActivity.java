@@ -30,6 +30,7 @@ import android.content.res.Configuration;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.text.ClipboardManager;
+import android.text.Html;
 import android.text.Selection;
 import android.text.TextUtils.TruncateAt;
 import android.util.Log;
@@ -773,6 +774,91 @@ public class PostsActivity extends HFR4droidActivity
 					t.show();
 				}
 			}
+
+			@SuppressWarnings("unused")
+			public void editKeywords(final String code)
+			{
+				final ProgressDialog progressDialog = new ProgressDialog(PostsActivity.this);
+				progressDialog.setMessage(getString(R.string.getting_keywords, code));
+				progressDialog.setIndeterminate(true);
+				new AsyncTask<String, Void, String>()
+				{
+					@Override
+					protected void onPreExecute() 
+					{
+						progressDialog.show();
+					}
+
+					@Override
+					protected String doInBackground(String... params)
+					{
+						String keywords = "";
+						try
+						{
+							keywords = getDataRetriever().getKeywords(params[0]);
+						}
+						catch (final Exception e)
+						{
+							keywords = null;
+							Log.e(PostsActivity.this.getClass().getSimpleName(), String.format(getString(R.string.error), e.getClass().getName(), e.getMessage()));
+							runOnUiThread(new Runnable()
+							{
+								public void run()
+								{
+									Toast t = Toast.makeText(PostsActivity.this, getString(R.string.error_retrieve_data, e.getClass().getSimpleName(), e.getMessage()), Toast.LENGTH_LONG);
+									t.show();
+								}
+							});
+						}
+						return keywords;
+					}
+
+					@Override
+					protected void onPostExecute(String keywords)
+					{
+						if (keywords == null)
+						{
+							progressDialog.dismiss();
+							return;
+						}
+						Context mContext = getApplicationContext();
+						LayoutInflater inflater = (LayoutInflater) mContext.getSystemService(LAYOUT_INFLATER_SERVICE);
+						View layout = inflater.inflate(R.layout.keywords, null);
+
+						AlertDialog.Builder builder = new AlertDialog.Builder(PostsActivity.this);
+						builder.setTitle(getString(R.string.keywords_title, code)); 
+						builder.setView(layout);
+						final EditText keywordsView = (EditText) layout.findViewById(R.id.inputKeywords);
+						keywordsView.setText(keywords);
+
+						builder.setPositiveButton(getString(R.string.button_ok), new DialogInterface.OnClickListener()
+						{  
+							public void onClick(DialogInterface dialog, int whichButton)
+							{
+								// TODO mieux
+								// TODO bug, ne marche pas
+								try
+								{
+									boolean res = getMessageSender().setKeywords(getDataRetriever().getHashCheck(), code, keywordsView.getText().toString());
+									Toast.makeText(PostsActivity.this, res ? "ok" : "ko", Toast.LENGTH_LONG).show();
+								} 
+								catch (Exception e)
+								{
+									// TODO Auto-generated catch block
+									e.printStackTrace();
+								}
+							}
+						});
+						builder.setNegativeButton(getString(R.string.button_cancel), new DialogInterface.OnClickListener()
+						{
+							public void onClick(DialogInterface dialog, int which){}
+						});
+						
+						progressDialog.dismiss();
+						builder.create().show();
+					}
+				}.execute(code);
+			}
 		}, "HFR4Droid");
 
 		final WebView loading = (WebView) findViewById(R.id.loading);
@@ -883,6 +969,7 @@ public class PostsActivity extends HFR4droidActivity
 			content = "<div class=\"HFR4droid_post\"><div class=\"HFR4droid_content\"";
 			content += ">" + p.getContent() + "</div></div>";
 			content = content.replaceAll("<b\\s*class=\"s1\"><a href=\"(.*?)\".*?>(.*?)</a></b>", "<b onclick=\"window.HFR4Droid.handleQuote('$1');\" class=\"s1\">$2</b>");
+			content = content.replaceAll("<img\\s*src=\"http://forum\\-images\\.hardware\\.fr/images/perso/(.*?)\"\\s*alt=\"(.*?)\"", "<img onclick=\"window.HFR4Droid.editKeywords('$2');\" src=\"http://forum-images.hardware.fr/images/perso/$1\" alt=\"$2\"");
 			if (!isSmileysEnable()) content = content.replaceAll("<img\\s*src=\"http://forum\\-images\\.hardware\\.fr.*?\"\\s*alt=\"(.*?)\".*?/>", "$1");
 			if (!isImgsEnable()) content = content.replaceAll("<img\\s*src=\"http://[^\"]*?\"\\s*alt=\"http://[^\"]*?\"\\s*title=\"(http://.*?)\".*?/>", "<a href=\"$1\" target=\"_blank\" class=\"cLink\">$1</a>");
 			content = content.replaceAll("ondblclick=\".*?\"", "");
@@ -1033,6 +1120,43 @@ public class PostsActivity extends HFR4droidActivity
 		postDialog.show();		
 	}
 
+	private Button getHfrRehostButton()
+	{
+		Button hfrRehost = new Button(PostsActivity.this);
+		hfrRehost.setTextSize(20);
+		hfrRehost.setLines(1);
+		hfrRehost.setLayoutParams(new LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT));
+		hfrRehost.setText(Html.fromHtml("<font color=\"#477DBF\">" + getString(R.string.button_post_hfr_rehost_left) + "</font><font color=\"black\">" + getString(R.string.button_post_hfr_rehost_right) + "</font>"));
+
+		hfrRehost.setOnClickListener(new OnClickListener()
+		{
+			public void onClick(View v)
+			{
+				Intent intent = new Intent(PostsActivity.this, ImagePicker.class);
+				intent.setAction(ImagePicker.ACTION_HFRUPLOADER);
+				startActivityForResult(intent, ImagePicker.CHOOSE_PICTURE);
+			}
+		});
+		
+		return hfrRehost;
+	}
+	
+	@Override
+	protected void onActivityResult(int requestCode, int resultCode, Intent data)
+	{
+		super.onActivityResult(requestCode, resultCode, data);
+		if (requestCode == ImagePicker.CHOOSE_PICTURE && data != null)
+		{
+			Bundle extras = data.getExtras();
+			if (extras != null)
+			{
+				String url = (String) extras.get(ImagePicker.FINAL_URL);
+				insertBBCode((EditText) postDialog.findViewById(R.id.inputPostContent), url, "");
+				postDialog.show();
+			}
+		}
+	}
+
 	private void addPostDialogButtons(final View layout)
 	{
 		LinearLayout ll = (LinearLayout) layout.findViewById(R.id.FormatButtons);
@@ -1045,6 +1169,7 @@ public class PostsActivity extends HFR4droidActivity
 		ll.addView(new FormatButton(layout, CODE_KEY));
 		ll.addView(new FormatButton(layout, URL_KEY));
 		ll.addView(new FormatButton(layout, IMG_KEY));
+		ll.addView(getHfrRehostButton());
 		ll.addView(new FormatButton(layout, PUCE_KEY));
 		ll.addView(new FormatButton(layout, SPOILER_KEY));
 
