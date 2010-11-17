@@ -3,13 +3,13 @@ package info.toyonos.hfr4droid.core.message;
 import info.toyonos.hfr4droid.core.auth.HFRAuthentication;
 import info.toyonos.hfr4droid.core.bean.Post;
 import info.toyonos.hfr4droid.core.bean.Topic;
+import info.toyonos.hfr4droid.core.data.HFRDataRetriever;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
-import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
@@ -109,23 +109,19 @@ public class HFRMessageSender
 	 * @param hashCheck le hashCheck
 	 * @param code le code du smiley
 	 * @param keywords les nouveaux mots clés du smiley
-	 * @return un booleen indiquant si l'édition s'est bien passé
+	 * @return Le message indiquant si l'opération s'est bien passée
 	 * @throws Exception Si un problème survient
 	 */
-	public boolean setKeywords(String hashCheck, String code, String keywords) throws Exception
+	public String setKeywords(String hashCheck, String code, String keywords) throws Exception
 	{
 		List<NameValuePair> params = new ArrayList<NameValuePair>();
-		//params.add(new BasicNameValuePair("option_wiki", "0"));
-		//params.add(new BasicNameValuePair("withouttag", "0"));
 		params.add(new BasicNameValuePair("modif0", "1"));
-		params.add(new BasicNameValuePair("smiley0", URLEncoder.encode(code, "UTF-8")));
-		params.add(new BasicNameValuePair("keywords0", URLEncoder.encode(keywords, "UTF-8")));
+		params.add(new BasicNameValuePair("smiley0",code));
+		params.add(new BasicNameValuePair("keywords0", keywords));
 		params.add(new BasicNameValuePair("hash_check", hashCheck));
 
 		String response = innerGetResponse(FORM_EDIT_KEYWORDS_URI, params);
-		//Vous ne pouvez pas modifier plusieurs fois le même smiley dans un intervale de 5 minutes
-		System.out.println(response);
-		return response.matches(".*Vos modifications sur les mots clés ont été enregistrés avec succès.*");
+		return HFRDataRetriever.getSingleElement("<div\\s*class=\"hop\">\\s*(.*?)\\s*</div>", response);
 	}
 
 	private String innerGetResponse(String url, List<NameValuePair> params) throws UnsupportedEncodingException, IOException

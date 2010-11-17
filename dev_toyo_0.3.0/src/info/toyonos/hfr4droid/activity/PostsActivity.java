@@ -835,18 +835,49 @@ public class PostsActivity extends HFR4droidActivity
 						{  
 							public void onClick(DialogInterface dialog, int whichButton)
 							{
-								// TODO mieux
-								// TODO bug, ne marche pas
-								try
+								final ProgressDialog progressDialog = new ProgressDialog(PostsActivity.this);
+								progressDialog.setMessage(getString(R.string.keywords_loading));
+								progressDialog.setIndeterminate(true);
+								new AsyncTask<Void, Void, String>()
 								{
-									boolean res = getMessageSender().setKeywords(getDataRetriever().getHashCheck(), code, keywordsView.getText().toString());
-									Toast.makeText(PostsActivity.this, res ? "ok" : "ko", Toast.LENGTH_LONG).show();
-								} 
-								catch (Exception e)
-								{
-									// TODO Auto-generated catch block
-									e.printStackTrace();
-								}
+									@Override
+									protected void onPreExecute() 
+									{
+										progressDialog.show();
+									}
+
+									@Override
+									protected String doInBackground(Void... params)
+									{
+										String strResponse = null;
+										try
+										{
+											strResponse = getMessageSender().setKeywords(getDataRetriever().getHashCheck(), code, keywordsView.getText().toString());
+										} 
+										catch (final Exception e)
+										{
+											Log.e(PostsActivity.this.getClass().getSimpleName(), String.format(getString(R.string.error), e.getClass().getName(), e.getMessage()));
+											runOnUiThread(new Runnable()
+											{
+												public void run()
+												{
+													Toast.makeText(PostsActivity.this, getString(R.string.error_keywords, e.getClass().getSimpleName(), e.getMessage()), Toast.LENGTH_LONG).show();
+												}
+											});
+										}
+										return strResponse;
+									}
+
+									@Override
+									protected void onPostExecute(String strResponse)
+									{
+										progressDialog.dismiss();
+										if (strResponse != null)
+										{
+											Toast.makeText(PostsActivity.this, strResponse, Toast.LENGTH_SHORT).show();
+										}
+									}
+								}.execute();
 							}
 						});
 						builder.setNegativeButton(getString(R.string.button_cancel), new DialogInterface.OnClickListener()
@@ -1316,7 +1347,7 @@ public class PostsActivity extends HFR4droidActivity
 					@Override
 					protected Integer doInBackground(Void... params)
 					{
-						int codeResponse = -99;
+						int codeResponse = HFRMessageSender.POST_KO;
 						try
 						{
 							if (postDialog.getPostId() != -1)

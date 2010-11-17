@@ -3,6 +3,7 @@
 	<string name="error">Une erreur s\'est produite, %s : %s</string>
 	<string name="error_retrieve_data">Une erreur s\'est produite lors de la récupération des données, %s : %s</string>
 	<string name="error_delete">Une erreur s\'est produite lors de la suppression du post, %s : %s</string>
+	<string name="error_keywords">Une erreur s\'est produite lors de la validation des mots clés, %s : %s</string>
 	<string name="error_login_from_cache">Une erreur s\'est produite lors de l\'authentification via le cache, %s : %s</string>
 	<string name="error_login">Votre mot de passe ou nom d\'utilisateur n\'est pas valide !</string>
 	<string name="error_about">Impossible d\'afficher le contenu de cette page !</string>
@@ -38,6 +39,7 @@
 	<string name="copy_post_link">Le lien de ce post a été copié dans le presse-papier.</string>
 	<string name="share_post_link_title">Partager le lien de ce post via :</string>
 	<string name="getting_keywords">Récupération des mots clés du smiley %s</string>
+	<string name="keywords_loading">Validation des mots clés...</string>
 
 	<string name="file_hfr_rehost">Sélectionnez le fichier à uploader</string>
 	<string name="loading_hfr_rehost">Upload en cours...</string>
