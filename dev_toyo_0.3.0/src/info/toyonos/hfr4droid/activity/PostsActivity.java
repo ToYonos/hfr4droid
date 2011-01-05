@@ -104,7 +104,8 @@ public class PostsActivity extends HFR4droidActivity
 		QUOTE("quote"),
 		DELETE("delete"),
 		MULTIQUOTE_ADD("multiquote_add"),
-		MULTIQUOTE_REMOVE("multiquote_remove");
+		MULTIQUOTE_REMOVE("multiquote_remove"),
+		FAVORITE("favorite");
 
 		private final String key;
 
@@ -695,6 +696,22 @@ public class PostsActivity extends HFR4droidActivity
 								}								
 							});
 							window.addItem(multiQuote);
+							
+							QuickActionWindow.Item addFavorite = new QuickActionWindow.Item(PostsActivity.this, "", R.drawable.ic_menu_star, new PostCallBack(PostCallBackType.FAVORITE, postId, true)
+							{									
+								@Override
+								protected String doActionInBackground(Post p) throws Exception
+								{
+									return getMessageSender().addFavorite(p);
+								}
+
+								@Override
+								protected void onActionExecute(String data)
+								{
+									Toast.makeText(PostsActivity.this, data, Toast.LENGTH_SHORT).show();
+								}
+							});							
+							if (isLoggedIn()) window.addItem(addFavorite);
 							
 							QuickActionWindow.Item copyLink = new QuickActionWindow.Item(PostsActivity.this, "", R.drawable.ic_menu_copy, new QuickActionWindow.Item.Callback()
 							{	
@@ -1395,7 +1412,7 @@ public class PostsActivity extends HFR4droidActivity
 								postContent.setText("");
 								postDialog.dismiss();
 								topic.setLastReadPost(BOTTOM_PAGE_ID);
-								reloadPage();
+								if (currentPageNumber == topic.getNbPages()) reloadPage();
 								break;
 						}
 						progressDialog.dismiss();

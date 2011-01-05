@@ -19,6 +19,7 @@ import org.apache.http.HttpResponse;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
+import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.protocol.ClientContext;
 import org.apache.http.impl.client.DefaultHttpClient;
@@ -33,6 +34,7 @@ public class HFRMessageSender
 	private static final String FORM_URI = "http://forum.hardware.fr/bddpost.php?config=hfr.inc";
 	private static final String FORM_EDIT_URI = "http://forum.hardware.fr/bdd.php?config=hfr.inc";
 	private static final String FORM_EDIT_KEYWORDS_URI = "http://forum.hardware.fr/wikismilies.php?config=hfr.inc&option_wiki=0&withouttag=0";
+	private static final String FAVORITE_URI = "http://forum.hardware.fr/user/addflag.php?config=hfr.inc&cat={$cat}&post={$topic}&numreponse={$post}";
 
 	public static final int POST_OK = 2;
 	public static final int POST_EDIT_OK = 1;
@@ -53,6 +55,7 @@ public class HFRMessageSender
 		params.add(new BasicNameValuePair("post", String.valueOf(t.getId())));
 		params.add(new BasicNameValuePair("cat", t.getCategory().getRealId()));
 		params.add(new BasicNameValuePair("verifrequet", "1100"));
+		params.add(new BasicNameValuePair("MsgIcon", "20"));
 		params.add(new BasicNameValuePair("page", String.valueOf(t.getNbPages())));
 		params.add(new BasicNameValuePair("pseudo", auth.getUser()));
 		params.add(new BasicNameValuePair("content_form", message));
@@ -123,6 +126,22 @@ public class HFRMessageSender
 		String response = innerGetResponse(FORM_EDIT_KEYWORDS_URI, params);
 		return HFRDataRetriever.getSingleElement("<div\\s*class=\"hop\">\\s*(.*?)\\s*</div>", response);
 	}
+	
+	/**
+	 * Ajoute un favori sur un post donné
+	 * @param p le post concerné
+	 * @return Le message indiquant si l'opération s'est bien passée
+	 * @throws Exception Si un problème survient
+	 */
+	public String addFavorite(Post p) throws Exception
+	{
+		String url = FAVORITE_URI.replaceFirst("\\{\\$cat\\}", p.getTopic().getCategory().getRealId())
+		.replaceFirst("\\{\\$topic\\}", String.valueOf(p.getTopic().getId()))
+		.replaceFirst("\\{\\$post\\}", String.valueOf(p.getId()));
+		
+		String response = innerGetResponse(url);
+		return HFRDataRetriever.getSingleElement("<div\\s*class=\"hop\">\\s*(.*?)\\s*</div>", response);
+	}
 
 	private String innerGetResponse(String url, List<NameValuePair> params) throws UnsupportedEncodingException, IOException
 	{
@@ -134,6 +153,28 @@ public class HFRMessageSender
 		post.setEntity(new UrlEncodedFormEntity(params, HTTP.UTF_8));
 		StringBuilder sb = new StringBuilder("");
 		HttpResponse rep = client.execute(post, ctx);
+		InputStream is = rep.getEntity().getContent();
+		BufferedReader reader = new BufferedReader(new InputStreamReader(is));
+		String repHtml = reader.readLine();
+		while (repHtml != null)
+		{
+			sb.append(repHtml);
+			repHtml = reader.readLine();
+		}
+		rep.getEntity().consumeContent();
+		client.getConnectionManager().shutdown();
+		return sb.toString();		
+	}
+	
+	private String innerGetResponse(String url) throws IOException
+	{
+		HttpContext ctx = new BasicHttpContext();
+		ctx.setAttribute(ClientContext.COOKIE_STORE, auth.getCookies());
+		HttpClient client = new DefaultHttpClient();
+		HttpProtocolParams.setUseExpectContinue(client.getParams(), false);
+		HttpGet get = new HttpGet(url);
+		StringBuilder sb = new StringBuilder("");
+		HttpResponse rep = client.execute(get, ctx);
 		InputStream is = rep.getEntity().getContent();
 		BufferedReader reader = new BufferedReader(new InputStreamReader(is));
 		String repHtml = reader.readLine();

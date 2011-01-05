@@ -147,7 +147,7 @@ public class HFRUrlParser implements MDUrlParser
 		else if (url.matches("http://forum\\.hardware\\.fr/forum1.*"))
 		{
 			// C'est une liste de topics pour une cat
-			element = dataRetriever.getCatById(Long.parseLong(HFRDataRetriever.getSingleElement("(?:&|\\?)cat=([0-9]+)", url)));
+			element = getCat(url);
 			page = Integer.parseInt(HFRDataRetriever.getSingleElement("(?:&|\\?)page=([0-9]+)", url));
 			type = TopicType.fromInt(Integer.parseInt(HFRDataRetriever.getSingleElement("(?:&|\\?)owntopic=([0-9])", url)));
 			return true;
@@ -164,7 +164,7 @@ public class HFRUrlParser implements MDUrlParser
 			}
 			else
 			{
-				Category cat = dataRetriever.getCatById(Long.parseLong(HFRDataRetriever.getSingleElement("(?:&|\\?)cat=([0-9]+)", url)));
+				Category cat = getCat(url);
 				element = new Topic(Long.parseLong(HFRDataRetriever.getSingleElement("(?:&|\\?)post=([0-9]+)", url)));
 				((Topic) element).setCategory(cat);
 				((Topic) element).setLastReadPost(handlePostId(HFRDataRetriever.getSingleElement(POST_REGEXP, url)));
@@ -175,6 +175,19 @@ public class HFRUrlParser implements MDUrlParser
 			}
 		}	
 		return false;
+	}
+	
+	private Category getCat(String url) throws Exception
+	{
+		String catId = HFRDataRetriever.getSingleElement("(?:&|\\?)cat=(prive|[0-9]+)", url);
+		try
+		{
+			return dataRetriever.getCatById(Long.parseLong(catId));
+		}
+		catch (NumberFormatException e)
+		{
+			return Category.MPS_CAT;
+		}
 	}
 
 	private long handlePostId(String content)
