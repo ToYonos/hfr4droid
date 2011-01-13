@@ -39,6 +39,7 @@ public class HFRMessageSender
 	public static final int POST_OK = 2;
 	public static final int POST_EDIT_OK = 1;
 	public static final int POST_FLOOD = -1;
+	public static final int POST_MDP_KO = -2;
 	public static final int POST_KO = -99;
 
 	private HFRAuthentication auth;
@@ -204,6 +205,10 @@ public class HFRMessageSender
 		{
 			return POST_EDIT_OK;
 		}
+		else if (response.matches(".*Mot de passe incorrect !*"))
+		{
+			return POST_MDP_KO;
+		}		
 		else if (response.matches(".*flood.*"))
 		{
 			return POST_FLOOD;

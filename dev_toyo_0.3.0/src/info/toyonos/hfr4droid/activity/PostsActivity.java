@@ -1399,7 +1399,12 @@ public class PostsActivity extends HFR4droidActivity
 							case HFRMessageSender.POST_FLOOD: // Flood
 								t = Toast.makeText(PostsActivity.this, getString(R.string.post_flood), Toast.LENGTH_SHORT);
 								t.show();
-								break;								
+								break;
+								
+							case HFRMessageSender.POST_MDP_KO: // Wrong password
+								t = Toast.makeText(PostsActivity.this, getString(R.string.post_wrong_password), Toast.LENGTH_SHORT);
+								t.show();
+								break;									
 	
 							case HFRMessageSender.POST_EDIT_OK: // Edit ok
 								postContent.setText("");
