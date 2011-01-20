@@ -30,6 +30,7 @@ import android.content.res.Configuration;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.text.ClipboardManager;
+import android.text.Html;
 import android.text.Selection;
 import android.text.TextUtils.TruncateAt;
 import android.util.Log;
@@ -103,7 +104,8 @@ public class PostsActivity extends HFR4droidActivity
 		QUOTE("quote"),
 		DELETE("delete"),
 		MULTIQUOTE_ADD("multiquote_add"),
-		MULTIQUOTE_REMOVE("multiquote_remove");
+		MULTIQUOTE_REMOVE("multiquote_remove"),
+		FAVORITE("favorite");
 
 		private final String key;
 
@@ -695,6 +697,22 @@ public class PostsActivity extends HFR4droidActivity
 							});
 							window.addItem(multiQuote);
 							
+							QuickActionWindow.Item addFavorite = new QuickActionWindow.Item(PostsActivity.this, "", R.drawable.ic_menu_star, new PostCallBack(PostCallBackType.FAVORITE, postId, true)
+							{									
+								@Override
+								protected String doActionInBackground(Post p) throws Exception
+								{
+									return getMessageSender().addFavorite(p);
+								}
+
+								@Override
+								protected void onActionExecute(String data)
+								{
+									Toast.makeText(PostsActivity.this, data, Toast.LENGTH_SHORT).show();
+								}
+							});							
+							if (isLoggedIn()) window.addItem(addFavorite);
+							
 							QuickActionWindow.Item copyLink = new QuickActionWindow.Item(PostsActivity.this, "", R.drawable.ic_menu_copy, new QuickActionWindow.Item.Callback()
 							{	
 								public void onClick(QuickActionWindow window, Item item, View anchor)
@@ -773,6 +791,122 @@ public class PostsActivity extends HFR4droidActivity
 					t.show();
 				}
 			}
+
+			@SuppressWarnings("unused")
+			public void editKeywords(final String code)
+			{
+				final ProgressDialog progressDialog = new ProgressDialog(PostsActivity.this);
+				progressDialog.setMessage(getString(R.string.getting_keywords, code));
+				progressDialog.setIndeterminate(true);
+				new AsyncTask<String, Void, String>()
+				{
+					@Override
+					protected void onPreExecute() 
+					{
+						progressDialog.show();
+					}
+
+					@Override
+					protected String doInBackground(String... params)
+					{
+						String keywords = "";
+						try
+						{
+							keywords = getDataRetriever().getKeywords(params[0]);
+						}
+						catch (final Exception e)
+						{
+							keywords = null;
+							Log.e(PostsActivity.this.getClass().getSimpleName(), String.format(getString(R.string.error), e.getClass().getName(), e.getMessage()));
+							runOnUiThread(new Runnable()
+							{
+								public void run()
+								{
+									Toast t = Toast.makeText(PostsActivity.this, getString(R.string.error_retrieve_data, e.getClass().getSimpleName(), e.getMessage()), Toast.LENGTH_LONG);
+									t.show();
+								}
+							});
+						}
+						return keywords;
+					}
+
+					@Override
+					protected void onPostExecute(String keywords)
+					{
+						if (keywords == null)
+						{
+							progressDialog.dismiss();
+							return;
+						}
+						Context mContext = getApplicationContext();
+						LayoutInflater inflater = (LayoutInflater) mContext.getSystemService(LAYOUT_INFLATER_SERVICE);
+						View layout = inflater.inflate(R.layout.keywords, null);
+
+						AlertDialog.Builder builder = new AlertDialog.Builder(PostsActivity.this);
+						builder.setTitle(getString(R.string.keywords_title, code)); 
+						builder.setView(layout);
+						final EditText keywordsView = (EditText) layout.findViewById(R.id.inputKeywords);
+						keywordsView.setText(keywords);
+
+						builder.setPositiveButton(getString(R.string.button_ok), new DialogInterface.OnClickListener()
+						{  
+							public void onClick(DialogInterface dialog, int whichButton)
+							{
+								final ProgressDialog progressDialog = new ProgressDialog(PostsActivity.this);
+								progressDialog.setMessage(getString(R.string.keywords_loading));
+								progressDialog.setIndeterminate(true);
+								new AsyncTask<Void, Void, String>()
+								{
+									@Override
+									protected void onPreExecute() 
+									{
+										progressDialog.show();
+									}
+
+									@Override
+									protected String doInBackground(Void... params)
+									{
+										String strResponse = null;
+										try
+										{
+											strResponse = getMessageSender().setKeywords(getDataRetriever().getHashCheck(), code, keywordsView.getText().toString());
+										} 
+										catch (final Exception e)
+										{
+											Log.e(PostsActivity.this.getClass().getSimpleName(), String.format(getString(R.string.error), e.getClass().getName(), e.getMessage()));
+											runOnUiThread(new Runnable()
+											{
+												public void run()
+												{
+													Toast.makeText(PostsActivity.this, getString(R.string.error_keywords, e.getClass().getSimpleName(), e.getMessage()), Toast.LENGTH_LONG).show();
+												}
+											});
+										}
+										return strResponse;
+									}
+
+									@Override
+									protected void onPostExecute(String strResponse)
+									{
+										progressDialog.dismiss();
+										if (strResponse != null)
+										{
+											Toast.makeText(PostsActivity.this, strResponse, Toast.LENGTH_SHORT).show();
+										}
+									}
+								}.execute();
+							}
+						});
+						builder.setNegativeButton(getString(R.string.button_cancel), new DialogInterface.OnClickListener()
+						{
+							public void onClick(DialogInterface dialog, int which){}
+						});
+						
+						progressDialog.dismiss();
+						builder.create().show();
+					}
+				}.execute(code);
+			}
 		}, "HFR4Droid");
 
 		final WebView loading = (WebView) findViewById(R.id.loading);
@@ -790,7 +924,7 @@ public class PostsActivity extends HFR4droidActivity
 		js.append("var loadDynamicCss = function(width) { var headID = document.getElementsByTagName('head')[0]; var styles = headID.getElementsByTagName('style'); for (var i=1;i<styles.length;i++) headID.removeChild(styles[i]); var cssNode = document.createElement('style'); cssNode.type = 'text/css'; cssNode.appendChild(document.createTextNode('");
 		js.append("ol { width:' + (Math.round(width * 0.80) - 40) + 'px; }");
 		js.append(".citation p, .oldcitation p, .quote p, .oldquote p, .fixed p, .code p, .spoiler p, .oldspoiler p { width:' + Math.round(width * 0.80) + 'px; }");
-		js.append(".HFR4droid_post { width:' + width + 'px; word-wrap: break-word; }");
+		js.append(".HFR4droid_post { width:' + width + 'px; word-wrap: break-word; padding-top: 5px; }");
 		js.append(".HFR4droid_content img { max-width: ' + (width - 30) + 'px; }");
 		js.append(".citation img, .oldcitation img, .quote img, .oldquote img, .fixed img, .code img, .spoiler img, .oldspoiler img { max-width: ' + (Math.round(width * 0.80) - 15) + 'px; }");
 		js.append("')); headID.appendChild(cssNode); };");
@@ -840,8 +974,9 @@ public class PostsActivity extends HFR4droidActivity
 				break;
 		}
 		css.append("px; margin-left:0; }");
-		css.append(".HFR4droid_edit_quote { margin-top: 5px; padding: 4px; padding-bottom: 3px; background-color: #DEDFDE;  font-style:italic; color:#555; font-size: " + getTextSize(9) + "px; }");
-		css.append(".HFR4droid_content { padding: 10px; padding-top: 10px; font-size: " + getTextSize(16) + "px}");
+		css.append(".HFR4droid_edit_quote { margin-bottom: 5px; padding: 4px; padding-bottom: 3px; background-color: #DEDFDE;  font-style:italic; color:#555; font-size: " + getTextSize(9) + "px; }");
+		css.append(".HFR4droid_content { padding: 10px; padding-top: 5px; font-size: " + getTextSize(16) + "px}");
+		css.append(".modo_post { background-color: #FFEEEE; }");
 		css.append(".HFR4droid_footer { height: 10px; width:100%; background: url(\"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAA%2FCAMAAAAWu1JmAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAgY0hSTQAAeiYAAICEAAD6AAAAgOgAAHUwAADqYAAAOpgAABdwnLpRPAAAAwBQTFRFhYWFs7SzysrKy8vLyszKzMzMzc3Nzs7Oz8%2FP0NDQ0dHR0dLR0tLS09PT1NTU1dXV1tbW19fX2NjY2dnZ2tna2tra29rb3Nvc3Nzc3dzdAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAWKfi1AAAABh0RVh0U29mdHdhcmUAUGFpbnQuTkVUIHYzLjM2qefiJQAAAEFJREFUGFddwkcOgDAQBMHBhCWDCQb%2B%2F1Fai8TBqlKhSoOiDiVdejK3PgkndrchYsXiZkwY0bsO7c9kalCjdAF6ARIIA4Sqnjr8AAAAAElFTkSuQmCC\"); }");
 		css.append("</style>");
 
@@ -877,12 +1012,15 @@ public class PostsActivity extends HFR4droidActivity
 				}
 				editQuoteDiv.append("</div>");
 			}
-			String header = "<div id=\"" + p.getId() + "\" class=\"HFR4droid_header\" onclick=\"openQuickActionWindow(" + p.getId() + ", " + p.isMine() + ")\"><div>" + avatar + pseudoSpan + "<br />" + dateSpan + "</div></div>" + editQuoteDiv;
+			String header = "<div id=\"" + p.getId() + "\" class=\"HFR4droid_header\" onclick=\"openQuickActionWindow(" + p.getId() + ", " + p.isMine() + ")\"><div>" + avatar + pseudoSpan + "<br />" + dateSpan + "</div></div>";
 
 			String content = "";
-			content = "<div class=\"HFR4droid_post\"><div class=\"HFR4droid_content\"";
+			content = "<div class=\"HFR4droid_post";
+			if (p.isModo()) content += " modo_post";
+			content += "\">" + editQuoteDiv + "<div class=\"HFR4droid_content\"";
 			content += ">" + p.getContent() + "</div></div>";
 			content = content.replaceAll("<b\\s*class=\"s1\"><a href=\"(.*?)\".*?>(.*?)</a></b>", "<b onclick=\"window.HFR4Droid.handleQuote('$1');\" class=\"s1\">$2</b>");
+			content = content.replaceAll("<img\\s*src=\"http://forum\\-images\\.hardware\\.fr/images/perso/(.*?)\"\\s*alt=\"(.*?)\"", "<img onclick=\"window.HFR4Droid.editKeywords('$2');\" src=\"http://forum-images.hardware.fr/images/perso/$1\" alt=\"$2\"");
 			if (!isSmileysEnable()) content = content.replaceAll("<img\\s*src=\"http://forum\\-images\\.hardware\\.fr.*?\"\\s*alt=\"(.*?)\".*?/>", "$1");
 			if (!isImgsEnable()) content = content.replaceAll("<img\\s*src=\"http://[^\"]*?\"\\s*alt=\"http://[^\"]*?\"\\s*title=\"(http://.*?)\".*?/>", "<a href=\"$1\" target=\"_blank\" class=\"cLink\">$1</a>");
 			content = content.replaceAll("ondblclick=\".*?\"", "");
@@ -1033,6 +1171,43 @@ public class PostsActivity extends HFR4droidActivity
 		postDialog.show();		
 	}
 
+	private Button getHfrRehostButton()
+	{
+		Button hfrRehost = new Button(PostsActivity.this);
+		hfrRehost.setTextSize(20);
+		hfrRehost.setLines(1);
+		hfrRehost.setLayoutParams(new LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT));
+		hfrRehost.setText(Html.fromHtml("<font color=\"#477DBF\">" + getString(R.string.button_post_hfr_rehost_left) + "</font><font color=\"black\">" + getString(R.string.button_post_hfr_rehost_right) + "</font>"));
+
+		hfrRehost.setOnClickListener(new OnClickListener()
+		{
+			public void onClick(View v)
+			{
+				Intent intent = new Intent(PostsActivity.this, ImagePicker.class);
+				intent.setAction(ImagePicker.ACTION_HFRUPLOADER);
+				startActivityForResult(intent, ImagePicker.CHOOSE_PICTURE);
+			}
+		});
+		
+		return hfrRehost;
+	}
+	
+	@Override
+	protected void onActivityResult(int requestCode, int resultCode, Intent data)
+	{
+		super.onActivityResult(requestCode, resultCode, data);
+		if (requestCode == ImagePicker.CHOOSE_PICTURE && data != null)
+		{
+			Bundle extras = data.getExtras();
+			if (extras != null)
+			{
+				String url = (String) extras.get(ImagePicker.FINAL_URL);
+				insertBBCode((EditText) postDialog.findViewById(R.id.inputPostContent), url, "");
+				postDialog.show();
+			}
+		}
+	}
+
 	private void addPostDialogButtons(final View layout)
 	{
 		LinearLayout ll = (LinearLayout) layout.findViewById(R.id.FormatButtons);
@@ -1045,6 +1220,7 @@ public class PostsActivity extends HFR4droidActivity
 		ll.addView(new FormatButton(layout, CODE_KEY));
 		ll.addView(new FormatButton(layout, URL_KEY));
 		ll.addView(new FormatButton(layout, IMG_KEY));
+		ll.addView(getHfrRehostButton());
 		ll.addView(new FormatButton(layout, PUCE_KEY));
 		ll.addView(new FormatButton(layout, SPOILER_KEY));
 
@@ -1191,7 +1367,7 @@ public class PostsActivity extends HFR4droidActivity
 					@Override
 					protected Integer doInBackground(Void... params)
 					{
-						int codeResponse = -99;
+						int codeResponse = HFRMessageSender.POST_KO;
 						try
 						{
 							if (postDialog.getPostId() != -1)
@@ -1226,7 +1402,12 @@ public class PostsActivity extends HFR4droidActivity
 							case HFRMessageSender.POST_FLOOD: // Flood
 								t = Toast.makeText(PostsActivity.this, getString(R.string.post_flood), Toast.LENGTH_SHORT);
 								t.show();
-								break;								
+								break;
+								
+							case HFRMessageSender.POST_MDP_KO: // Wrong password
+								t = Toast.makeText(PostsActivity.this, getString(R.string.post_wrong_password), Toast.LENGTH_SHORT);
+								t.show();
+								break;									
 	
 							case HFRMessageSender.POST_EDIT_OK: // Edit ok
 								postContent.setText("");
@@ -1239,7 +1420,7 @@ public class PostsActivity extends HFR4droidActivity
 								postContent.setText("");
 								postDialog.dismiss();
 								topic.setLastReadPost(BOTTOM_PAGE_ID);
-								reloadPage();
+								if (currentPageNumber == topic.getNbPages()) reloadPage();
 								break;
 						}
 						progressDialog.dismiss();

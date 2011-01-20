@@ -110,7 +110,7 @@ public class CategoriesActivity extends HFR4droidListActivity<Category>
 		});
 
 		startMpCheckService();
-	}  
+	}
 
 	@Override
 	protected void onRestart()

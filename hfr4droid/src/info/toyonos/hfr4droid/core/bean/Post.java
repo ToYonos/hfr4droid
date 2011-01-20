@@ -19,6 +19,7 @@ public class Post extends BasicElement
 	private int nbCitations;
 	private Topic topic;
 	private boolean isMine;
+	private boolean isModo;
 
 	public Post(long id)
 	{
@@ -29,6 +30,7 @@ public class Post extends BasicElement
 		this.lastEdition = null;
 		this.nbCitations = 0;
 		this.isMine = false;
+		this.isModo = false;
 		this.topic = null;
 	}
 
@@ -41,10 +43,11 @@ public class Post extends BasicElement
 		this.lastEdition = null;
 		this.nbCitations = 0;
 		this.isMine = false;
+		this.isModo = false;
 		this.topic = null;
 	}
 
-	public Post(int id, String content, String pseudo, String avatar, Date date, Date lastEdition, int nbCitations, boolean isMine, Topic topic)
+	public Post(int id, String content, String pseudo, String avatar, Date date, Date lastEdition, int nbCitations, boolean isMine, boolean isModo, Topic topic)
 	{
 		super(id, content);
 		this.pseudo = pseudo;
@@ -53,6 +56,7 @@ public class Post extends BasicElement
 		this.lastEdition = lastEdition;
 		this.nbCitations = nbCitations;
 		this.isMine = isMine;
+		this.isModo = isModo;
 		this.topic = topic;
 	}
 
@@ -134,5 +138,15 @@ public class Post extends BasicElement
 	public void setMine(boolean isMine)
 	{
 		this.isMine = isMine;
+	}
+	
+	public boolean isModo()
+	{
+		return isModo;
+	}
+
+	public void setModo(boolean isModo)
+	{
+		this.isModo = isModo;
 	}
 }

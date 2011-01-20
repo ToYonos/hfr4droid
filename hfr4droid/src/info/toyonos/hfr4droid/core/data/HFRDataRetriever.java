@@ -46,6 +46,7 @@ public class HFRDataRetriever implements MDDataRetriever
 	public static final String SMILIES_URL		= "http://forum.hardware.fr/message-smi-mp-aj.php?config=hfr.inc&findsmilies={$tag}";
 	public static final String QUOTE_URL		= "http://forum.hardware.fr/message.php?config=hfr.inc&cat={$cat}&post={$topic}&numrep={$post}";
 	public static final String EDIT_URL			= "http://forum.hardware.fr/message.php?config=hfr.inc&cat={$cat}&post={$topic}&numreponse={$post}";
+	public static final String KEYWORDS_URL		= "http://forum.hardware.fr/wikismilies.php?config=hfr.inc&detail={$code}";
 
 	public static final String MAINTENANCE 		= "Serveur en cours de maintenance. <br /><br />Veuillez nous excuser pour la gène occasionnée";
 	
@@ -279,7 +280,7 @@ public class HFRDataRetriever implements MDDataRetriever
 		.replaceFirst("\\{\\$page\\}", String.valueOf(pageNumber));
 		String content = getAsString(url);
 
-		Pattern p = Pattern.compile("(<tr.*?class=\"message\\s*cBackCouleurTab[0-9]\".*?" +
+		Pattern p = Pattern.compile("(<tr.*?class=\"message\\s*(?:cBackCouleurTab[0-9])?(caseModoGeneric)?\".*?" +
 									"<a.*?href=\"#t([0-9]+)\".*?" +
 									"<b.*?class=\"s2\">(?:<a.*?>)?(.*?)(?:</a>)?</b>.*?" +
 									"(?:(?:<div\\s*class=\"avatar_center\".*?><img src=\"(.*?)\"\\s*alt=\".*?\"\\s*/></div>)|</td>).*?" +
@@ -293,27 +294,29 @@ public class HFRDataRetriever implements MDDataRetriever
 		{
 			Matcher m2 = Pattern.compile("edit\\-in\\.gif").matcher(m.group(1));
 			boolean isMine = m2.find();
-			String postContent = m.group(11);
-			posts.add(new Post(Integer.parseInt(m.group(2)),
+			boolean isModo = m.group(2) != null;
+			String postContent = m.group(12);
+			posts.add(new Post(Integer.parseInt(m.group(3)),
 								postContent,
-								m.group(3),
 								m.group(4),
-								new GregorianCalendar(Integer.parseInt(m.group(7)), // Year
-										Integer.parseInt(m.group(6)) - 1, // Month
-										Integer.parseInt(m.group(5)), // Day
-										Integer.parseInt(m.group(8)), // Hour
-										Integer.parseInt(m.group(9)), // Minute
-										Integer.parseInt(m.group(10))  // Second
+								m.group(5),
+								new GregorianCalendar(Integer.parseInt(m.group(8)), // Year
+										Integer.parseInt(m.group(7)) - 1, // Month
+										Integer.parseInt(m.group(6)), // Day
+										Integer.parseInt(m.group(9)), // Hour
+										Integer.parseInt(m.group(10)), // Minute
+										Integer.parseInt(m.group(11))  // Second
 								).getTime(),
-								m.group(13) != null ? new GregorianCalendar(Integer.parseInt(m.group(15)), // Year
-										Integer.parseInt(m.group(14)) - 1, // Month
-										Integer.parseInt(m.group(13)), // Day
-										Integer.parseInt(m.group(16)), // Hour
-										Integer.parseInt(m.group(17)), // Minute
-										Integer.parseInt(m.group(18))  // Second
+								m.group(14) != null ? new GregorianCalendar(Integer.parseInt(m.group(16)), // Year
+										Integer.parseInt(m.group(15)) - 1, // Month
+										Integer.parseInt(m.group(14)), // Day
+										Integer.parseInt(m.group(17)), // Hour
+										Integer.parseInt(m.group(18)), // Minute
+										Integer.parseInt(m.group(19))  // Second
 								).getTime() : null,
-								m.group(12) != null ? Integer.parseInt(m.group(12)) : 0,
+								m.group(13) != null ? Integer.parseInt(m.group(13)) : 0,
 								isMine,
+								isModo,
 								topic
 								)
 			);
@@ -414,6 +417,16 @@ public class HFRDataRetriever implements MDDataRetriever
 			}
 		}
 		return result.toString();
+	}
+	
+	/**
+	 * {@inheritDoc}
+	 */
+	public String getKeywords(String code) throws Exception
+	{
+		String url = KEYWORDS_URL.replaceFirst("\\{\\$code\\}", URLEncoder.encode(code, "UTF-8"));
+		String keywords = getSingleElement("name=\"keywords0\"\\s*value=\"(.*?)\"\\s*onkeyup", getAsString(url, true));
+		return keywords;
 	}
 
 	/**

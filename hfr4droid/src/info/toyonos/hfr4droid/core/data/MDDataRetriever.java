@@ -89,6 +89,7 @@ public interface MDDataRetriever
 	 * Récupère les smileys à insérer dans un post 
 	 * @param tag Le tag des smileys recherchés
 	 * @return Le code HTML des smileys trouvés
+	 * @throws Exception Si un problème survient
 	 */
 	public String getSmiliesByTag(String tag) throws Exception;
 
@@ -96,6 +97,7 @@ public interface MDDataRetriever
 	 * Récupère le BBCode d'un post à quoter 
 	 * @param post Le post concerné
 	 * @return Le BBCode obtenu
+	 * @throws Exception Si un problème survient
 	 */
 	public String getQuote(Post post) throws Exception;
 
@@ -103,6 +105,15 @@ public interface MDDataRetriever
 	 * Récupère le BBCode d'un post à éditer 
 	 * @param post Le post concerné
 	 * @return Le BBCode obtenu
+	 * @throws Exception Si un problème survient
 	 */
 	public String getPostContent(Post post) throws Exception;
+	
+	/**
+	 * Récupère les mots clés d'un smiley
+	 * @param code le code du smiley
+	 * @return Les mots clés obtenus
+	 * @throws Exception Si un problème survient
+	 */
+	public String getKeywords(String code) throws Exception;
 }

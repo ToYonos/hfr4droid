@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">HFR4droid</string>
+    <string name="upload_hfr_rehost">Upload sur hfr-rehost.net</string>
 	
 	<string name="nav_go_to">Aller à...</string>
 	<string name="nav_last_read_page">La dernière page lue</string>
@@ -49,23 +50,25 @@
 	<string name="button_post_url_right">[/url]</string>
 	<string name="button_post_img_left">[img]</string>
 	<string name="button_post_img_right">[/img]</string>
+	<string name="button_post_hfr_rehost_left">hfr</string>
+	<string name="button_post_hfr_rehost_right">Rehost</string>
 	<string name="button_post_puce_left">[*]</string>
 	<string name="button_post_puce_right"></string>
 	<string name="button_post_spoiler_left">[spoiler]</string>
-	<string name="button_post_spoiler_right">[/spoiler]</string>							
+	<string name="button_post_spoiler_right">[/spoiler]</string>
 	<string name="smiley_tag">Tag du smiley :</string>
 	<string name="smiley_tag_hint">Mot clef...</string>
 	
 	<string name="delete_title">Supprimer ce post</string>
 	<string name="delete_message">Êtes-vous sûr ?</string>
 
+<string name="keywords_title">Edition des mots clés du smiley %s</string>
+
 	<string name="button_ok">Ok</string>
 	<string name="button_cancel">Annuler</string>
 	<string name="button_yes">Oui</string>
 	<string name="button_no">Non</string>
 	<string name="button_validate_post">Valider le message</string>
-	
-	<string name="test_item">Test Item</string>
 	
 	<string-array name="welcome_screen_values">
     	<item>Les catégories</item>

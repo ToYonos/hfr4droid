@@ -120,12 +120,20 @@ public class TopicsActivity extends HFR4droidListActivity<Topic>
 		lv.setOnCreateContextMenuListener(new OnCreateContextMenuListener()
 		{
 			public void onCreateContextMenu(ContextMenu menu, View v, ContextMenuInfo menuInfo)
-			{                
+			{
 				MenuInflater inflater = getMenuInflater();
-				inflater.inflate(R.menu.nav_simple, menu);
-				menu.setHeaderTitle(R.string.nav_go_to);
 				Topic currentTopic = (Topic) getListView().getAdapter().getItem(((AdapterContextMenuInfo)menuInfo).position);
-				if (!isLoggedIn() || currentTopic.getLastReadPage() == -1) menu.removeItem(R.id.MenuNavLastReadPage);
+				if (currentTopic.getId() != -1)
+				{
+					inflater.inflate(R.menu.nav_simple, menu);
+					menu.setHeaderTitle(R.string.nav_go_to);
+					if (!isLoggedIn() || currentTopic.getLastReadPage() == -1) menu.removeItem(R.id.MenuNavLastReadPage);
+				}
+				else
+				{
+					inflater.inflate(R.menu.drapeaux_simple, menu);
+					menu.setHeaderTitle(R.string.menu_drapeaux);
+				}
 			}
 		});
 
@@ -196,6 +204,26 @@ public class TopicsActivity extends HFR4droidListActivity<Topic>
 			case R.id.MenuNavLastPage:
 				loadPosts(currentTopic, currentTopic.getNbPages(), false);
 				return true;
+				
+			case R.id.MenuDrapeauxAll:
+				cat = currentTopic.getCategory();
+				loadTopics(currentTopic.getCategory(), TopicType.ALL, 1);
+				return true;
+	
+			case R.id.MenuDrapeauxCyan:
+				cat = currentTopic.getCategory();
+				loadTopics(currentTopic.getCategory(), TopicType.CYAN);
+				return true;
+	
+			case R.id.MenuDrapeauxRouges:
+				cat = currentTopic.getCategory();
+				loadTopics(currentTopic.getCategory(), TopicType.ROUGE);
+				return true;
+	
+			case R.id.MenuDrapeauxFavoris:
+				cat = currentTopic.getCategory();
+				loadTopics(currentTopic.getCategory(), TopicType.FAVORI);
+				return true;    				
 	
 			default:
 				return false;
