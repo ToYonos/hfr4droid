@@ -161,8 +161,11 @@ public abstract class HFR4droidActivity extends Activity
 			loginLogout.setTitle(isLoggedIn ? R.string.menu_logout : R.string.menu_login);
 
 			MenuItem mps = menu.findItem(R.id.MenuMps);
-			mps.setVisible(isLoggedIn());
-			mps.setEnabled(isLoggedIn());
+			if (mps != null)
+			{
+				mps.setVisible(isLoggedIn());
+				mps.setEnabled(isLoggedIn());
+			}
 		}
 		return true;
 	}
@@ -192,23 +195,7 @@ public abstract class HFR4droidActivity extends Activity
 				{
 					logout();
 					stopMpCheckService();
-					if ((HFR4droidActivity.this instanceof TopicsActivity))
-					{
-						TopicsActivity ta = (TopicsActivity) HFR4droidActivity.this;
-						if (ta.isMpsCat())
-						{
-							loadCats(false);
-						}
-						else
-						{
-							ta.setType(TopicType.ALL);
-							ta.loadFirstPage();
-						}
-					}
-					else
-					{
-						reloadPage();
-					}
+					onLogout();
 				}
 				return true;
 	
@@ -666,6 +653,11 @@ public abstract class HFR4droidActivity extends Activity
 	protected void redrawPage(){}
 
 	protected void goBack(){}
+	
+	protected void onLogout()
+	{
+		reloadPage();
+	}
 
 	// Getter des préférences modifiables par l'utilisateur
 

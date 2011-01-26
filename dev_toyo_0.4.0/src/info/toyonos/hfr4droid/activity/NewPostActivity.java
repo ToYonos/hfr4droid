@@ -1,0 +1,144 @@
+package info.toyonos.hfr4droid.activity;
+
+import info.toyonos.hfr4droid.R;
+import info.toyonos.hfr4droid.core.bean.Category;
+import android.content.Intent;
+import android.net.Uri;
+import android.os.Bundle;
+import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.View;
+import android.view.ViewGroup.LayoutParams;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.LinearLayout;
+import android.widget.ScrollView;
+import android.widget.TableRow;
+import android.widget.TextView;
+
+/**
+ * <p>Activity permettant d'ajouter / modifier un post</p>
+ * 
+ * @author ToYonos
+ *
+ */
+public class NewPostActivity extends NewPostUIActivity
+{
+	private Category cat = null; 
+	//private Category cat = Category.MPS_CAT;
+	
+	@Override
+	protected void onCreate(Bundle savedInstanceState)
+	{
+		super.onCreate(savedInstanceState);
+		LayoutInflater inflater = (LayoutInflater) getApplicationContext().getSystemService(LAYOUT_INFLATER_SERVICE);
+		View layout = inflater.inflate(R.layout.new_post, null);
+		ScrollView sv = (ScrollView) layout.findViewById(R.id.SVPostContent);
+		LinearLayout child = (LinearLayout) sv.getChildAt(0);
+		TableRow parent = (TableRow) sv.getParent();
+		parent.removeView(sv);
+		sv.removeView(child);
+		TableRow.LayoutParams tllp = new TableRow.LayoutParams(LayoutParams.FILL_PARENT, LayoutParams.WRAP_CONTENT);
+		tllp.span = 3;
+		child.setLayoutParams(tllp);
+		parent.addView(child);
+		setContentView(layout);
+		
+		Intent intent = getIntent();
+		Bundle bundle = intent.getExtras();
+		String action = intent.getAction();
+		if (bundle != null && bundle.getSerializable("cat") != null)
+		{
+			cat = (Category) bundle.getSerializable("cat");
+		}
+		else if (action.equals(Intent.ACTION_SEND))
+		{
+			// Envoie de données par message privé
+			cat = Category.MPS_CAT;
+			if (bundle.get(Intent.EXTRA_TEXT) != null)
+			{
+				((TextView) findViewById(R.id.InputPostContent)).setText(((String) bundle.get(Intent.EXTRA_TEXT)));
+			}
+			if (bundle.get(Intent.EXTRA_SUBJECT) != null)
+			{
+				((TextView) findViewById(R.id.inputMpSubject)).setText(((String) bundle.get(Intent.EXTRA_SUBJECT)));
+			}
+			if (bundle.get(Intent.EXTRA_STREAM) != null)
+			{
+				Uri uri = (Uri) bundle.get(Intent.EXTRA_STREAM);
+				Intent intentRehost = new Intent(this, ImagePicker.class);
+				intentRehost.setAction(ImagePicker.ACTION_HFRUPLOADER_MP);
+				intentRehost.putExtra(Intent.EXTRA_STREAM, uri.toString());
+				startActivityForResult(intentRehost, ImagePicker.CHOOSE_PICTURE);
+			}
+		}
+		if (cat == null || !isLoggedIn())
+		{
+			// TODO !loggedIn -> connection
+			finish();
+			return;
+		}
+		
+		addPostDialogButtons(layout);
+	}
+	
+	@Override
+	protected void onActivityResult(int requestCode, int resultCode, Intent data)
+	{
+		super.onActivityResult(requestCode, resultCode, data);
+		if (requestCode == ImagePicker.CHOOSE_PICTURE && data != null)
+		{
+			Bundle extras = data.getExtras();
+			if (extras != null)
+			{
+				String url = (String) extras.get(ImagePicker.FINAL_URL);
+				insertBBCode((EditText) findViewById(R.id.InputPostContent), url, "");
+			}
+		}
+	}
+	
+	@Override
+	public boolean onCreateOptionsMenu(Menu menu)
+	{
+		MenuInflater inflater = getMenuInflater();
+		inflater.inflate(R.menu.common, menu);
+		inflater.inflate(R.menu.misc, menu);
+		menu.removeItem(R.id.MenuMps);
+		menu.removeItem(R.id.MenuRefresh);
+		return true;
+	}
+	
+	@Override
+	protected void setTitle()
+	{
+		final TextView topicTitle = (TextView) findViewById(R.id.NewPostTitle);
+		topicTitle.setText(isMpsCat(cat) ? getString(R.string.new_mp) : getString(R.string.new_topic, cat.getName()));
+	}
+	
+	@Override
+	protected void goBack()
+	{
+		finish();
+	}
+	
+	@Override
+	protected void onLogout()
+	{
+		loadCats(false);
+	}
+
+	@Override
+	protected void setCancelButtonClickListener(Button cancelButton)
+	{
+		// TODO Auto-generated method stub
+
+	}
+
+	@Override
+	protected void setOkButtonClickListener(Button okButton)
+	{
+		// TODO Auto-generated method stub
+
+	}
+}

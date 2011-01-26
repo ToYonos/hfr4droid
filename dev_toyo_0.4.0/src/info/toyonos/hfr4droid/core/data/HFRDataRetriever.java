@@ -39,7 +39,8 @@ import android.text.Html;
  */
 public class HFRDataRetriever implements MDDataRetriever
 {
-	public static final String CATS_URL			= "http://forum.hardware.fr/";
+	public static final String BASE_URL			= "http://forum.hardware.fr";
+	public static final String CATS_URL			= BASE_URL + "/";
 	public static final String TOPICS_URL		= "http://forum.hardware.fr/forum1.php?config=hfr.inc&cat={$cat}&page={$page}&owntopic={$type}";
 	public static final String ALL_TOPICS_URL	= "http://forum.hardware.fr/forum1f.php?config=hfr.inc&owntopic={$type}";
 	public static final String POSTS_URL		= "http://forum.hardware.fr/forum2.php?config=hfr.inc&cat={$cat}&post={$topic}&page={$page}";
@@ -70,11 +71,25 @@ public class HFRDataRetriever implements MDDataRetriever
 	/**
 	 * {@inheritDoc}
 	 */
-	public String getHashCheck()
+	public String getHashCheck() throws Exception
 	{
+		if (hashCheck == null)
+		{
+			// Dans ce cas on va le lire sur la page principale du forum (la page des cats)
+			String content = getAsString(CATS_URL);
+			hashCheck = getSingleElement("<input\\s*type=\"hidden\"\\s*name=\"hash_check\"\\s*value=\"(.+?)\" />", content);
+		}
 		return hashCheck;
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
+	public String getBaseUrl()
+	{
+		return BASE_URL;
+	}
+	
 	/**
 	 * {@inheritDoc}
 	 */

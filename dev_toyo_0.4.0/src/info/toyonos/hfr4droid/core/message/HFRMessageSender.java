@@ -1,6 +1,7 @@
 package info.toyonos.hfr4droid.core.message;
 
 import info.toyonos.hfr4droid.core.auth.HFRAuthentication;
+import info.toyonos.hfr4droid.core.bean.Category;
 import info.toyonos.hfr4droid.core.bean.Post;
 import info.toyonos.hfr4droid.core.bean.Topic;
 import info.toyonos.hfr4droid.core.data.HFRDataRetriever;
@@ -61,6 +62,23 @@ public class HFRMessageSender
 		params.add(new BasicNameValuePair("pseudo", auth.getUser()));
 		params.add(new BasicNameValuePair("content_form", message));
 		params.add(new BasicNameValuePair("sujet", t.getName()));
+		params.add(new BasicNameValuePair("signature", signature ? "1" : "0"));
+
+		String response = innerGetResponse(FORM_URI, params);
+		return getResponseCode(response);
+	}
+	
+	public int newTopic(Category c, String hashCheck, String sujet, String message, boolean signature) throws UnsupportedEncodingException, IOException
+	{
+		List<NameValuePair> params = new ArrayList<NameValuePair>();
+		params.add(new BasicNameValuePair("hash_check", hashCheck));
+		params.add(new BasicNameValuePair("cat", c.getRealId()));
+		params.add(new BasicNameValuePair("verifrequet", "1100"));
+		params.add(new BasicNameValuePair("MsgIcon", "20"));
+		//params.add(new BasicNameValuePair("page", String.valueOf(t.getNbPages())));
+		params.add(new BasicNameValuePair("pseudo", auth.getUser()));
+		params.add(new BasicNameValuePair("content_form", message));
+		params.add(new BasicNameValuePair("sujet", sujet));
 		params.add(new BasicNameValuePair("signature", signature ? "1" : "0"));
 
 		String response = innerGetResponse(FORM_URI, params);

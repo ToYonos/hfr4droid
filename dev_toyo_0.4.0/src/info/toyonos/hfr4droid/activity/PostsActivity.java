@@ -30,7 +30,6 @@ import android.content.res.Configuration;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.text.ClipboardManager;
-import android.text.Html;
 import android.text.Selection;
 import android.text.TextUtils.TruncateAt;
 import android.util.Log;
@@ -53,7 +52,6 @@ import android.view.ViewGroup.LayoutParams;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.view.animation.Animation.AnimationListener;
-import android.view.inputmethod.InputMethodManager;
 import android.webkit.WebChromeClient;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
@@ -63,8 +61,6 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.SlidingDrawer;
-import android.widget.TableLayout;
-import android.widget.TableRow;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.SlidingDrawer.OnDrawerCloseListener;
@@ -80,20 +76,8 @@ import com.naholyr.android.ui.QuickActionWindow.Item;
  * @author ToYonos
  *
  */
-public class PostsActivity extends HFR4droidActivity
+public class PostsActivity extends NewPostUIActivity
 {
-	private static final String SMILEY_KEY		= "smiley";
-	private static final String BOLD_KEY		= "bold";
-	private static final String ITALIC_KEY		= "italic";
-	private static final String UNDERLINE_KEY	= "underline";
-	private static final String STRIKE_KEY		= "strike";
-	private static final String FIXED_KEY		= "fixed";
-	private static final String CODE_KEY		= "code";
-	private static final String URL_KEY			= "url";
-	private static final String IMG_KEY			= "img";
-	private static final String PUCE_KEY		= "puce";
-	private static final String SPOILER_KEY		= "spoiler";
-
 	private static final String POST_LOADING 	= ">¤>¤>¤>¤>¤...post_loading...<¤<¤<¤<¤<¤";
 	public static final long BOTTOM_PAGE_ID		= 999999999999999L;
 
@@ -577,7 +561,7 @@ public class PostsActivity extends HFR4droidActivity
 							configuration.put(QuickActionWindow.Config.ARROW_OFFSET, -2);
 							HFR4droidQuickActionWindow window = HFR4droidQuickActionWindow.getWindow(PostsActivity.this, configuration);
 
-							final StringBuilder postLink = new StringBuilder("http://forum.hardware.fr/forum2.php?config=hfr.inc");
+							final StringBuilder postLink = new StringBuilder(getDataRetriever().getBaseUrl() + "/forum2.php?config=hfr.inc");
 							postLink.append("&cat=").append(topic.getCategory().getId());
 							postLink.append("&subcat=").append(topic.getSubcat());
 							postLink.append("&post=").append(topic.getId());
@@ -748,7 +732,7 @@ public class PostsActivity extends HFR4droidActivity
 				try
 				{
 					MDUrlParser urlParser = new HFRUrlParser(getDataRetriever());
-					if (urlParser.parseUrl("http://forum.hardware.fr" + url))
+					if (urlParser.parseUrl(getDataRetriever().getBaseUrl() + url))
 					{
 						BasicElement element = urlParser.getElement();
 						if (element == null)
@@ -1072,7 +1056,7 @@ public class PostsActivity extends HFR4droidActivity
 			}
 		}); 
 		//webView.loadData("<html><head>" + fixHTML(js.toString()) + css + fixHTML(js2.toString()) + "</head><body>" + fixHTML(postsContent.toString()) + "</body></html>", "text/html", "UTF-8");
-		webView.loadDataWithBaseURL("http://forum.hardware.fr", "<html><head>" + js.toString() + css.toString() + js2.toString() + "</head><body>" + postsContent.toString() + "</body></html>", "text/html", "UTF-8", null);
+		webView.loadDataWithBaseURL(getDataRetriever().getBaseUrl(), "<html><head>" + js.toString() + css.toString() + js2.toString() + "</head><body>" + postsContent.toString() + "</body></html>", "text/html", "UTF-8", null);
 		if (oldWebView != null)
 		{
 			oldWebView.destroy();
@@ -1080,31 +1064,6 @@ public class PostsActivity extends HFR4droidActivity
 		}
 		parent.addView(webView);
 		if (refresh) updateButtonsStates();
-	}
-
-	private String fixHTML(String htmlContent)
-	{
-		int len = htmlContent.length();
-		StringBuilder buf = new StringBuilder(len + 100);
-		for (int i = 0; i < len; i++)
-		{
-			char chr = htmlContent.charAt(i);
-			switch (chr)
-			{
-				case '%':
-					buf.append("%25");
-					break;
-				case '\'':
-					buf.append("%27");
-					break;
-				case '#':
-					buf.append("%23");
-					break;
-				default:
-					buf.append(chr);
-			}
-		}
-		return buf.toString();
 	}
 
 	private void showAddPostDialog(PostCallBackType type, String data)
@@ -1120,10 +1079,10 @@ public class PostsActivity extends HFR4droidActivity
 			postDialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
 			postDialog.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE);
 			LayoutInflater inflater = (LayoutInflater) getApplicationContext().getSystemService(LAYOUT_INFLATER_SERVICE);
-			final View layout = inflater.inflate(R.layout.add_post, null);
+			final View layout = inflater.inflate(R.layout.new_post_content, null);
 			postDialog.setContentView(layout);
 			addPostDialogButtons(layout);
-			((EditText) postDialog.findViewById(R.id.inputPostContent)).setTextSize(getTextSize(14));
+			((EditText) postDialog.findViewById(R.id.InputPostContent)).setTextSize(getTextSize(14));
 
 			postDialog.setOnKeyListener(new DialogInterface.OnKeyListener()
 			{
@@ -1154,7 +1113,7 @@ public class PostsActivity extends HFR4droidActivity
 					}
 					if (type == PostCallBackType.EDIT)
 					{
-						EditText postContent = (EditText) postDialog.findViewById(R.id.inputPostContent);
+						EditText postContent = (EditText) postDialog.findViewById(R.id.InputPostContent);
 						postContent.setText("");
 					}
 				}
@@ -1162,34 +1121,13 @@ public class PostsActivity extends HFR4droidActivity
 		}
 
 		postDialog.setPostId(postId);
-		final EditText postContent = (EditText) postDialog.findViewById(R.id.inputPostContent);
+		final EditText postContent = (EditText) postDialog.findViewById(R.id.InputPostContent);
 		if (data != null) postContent.setText(data);
 		postContent.requestFocus();
 		Selection.setSelection(postContent.getText(), postContent.length());
 		EditText smileyTag = (EditText) postDialog.findViewById(R.id.inputSmileyTag);
 		smileyTag.setText("");
 		postDialog.show();		
-	}
-
-	private Button getHfrRehostButton()
-	{
-		Button hfrRehost = new Button(PostsActivity.this);
-		hfrRehost.setTextSize(20);
-		hfrRehost.setLines(1);
-		hfrRehost.setLayoutParams(new LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT));
-		hfrRehost.setText(Html.fromHtml("<font color=\"#477DBF\">" + getString(R.string.button_post_hfr_rehost_left) + "</font><font color=\"black\">" + getString(R.string.button_post_hfr_rehost_right) + "</font>"));
-
-		hfrRehost.setOnClickListener(new OnClickListener()
-		{
-			public void onClick(View v)
-			{
-				Intent intent = new Intent(PostsActivity.this, ImagePicker.class);
-				intent.setAction(ImagePicker.ACTION_HFRUPLOADER);
-				startActivityForResult(intent, ImagePicker.CHOOSE_PICTURE);
-			}
-		});
-		
-		return hfrRehost;
 	}
 	
 	@Override
@@ -1202,155 +1140,20 @@ public class PostsActivity extends HFR4droidActivity
 			if (extras != null)
 			{
 				String url = (String) extras.get(ImagePicker.FINAL_URL);
-				insertBBCode((EditText) postDialog.findViewById(R.id.inputPostContent), url, "");
+				insertBBCode((EditText) postDialog.findViewById(R.id.InputPostContent), url, "");
 				postDialog.show();
 			}
 		}
 	}
 
-	private void addPostDialogButtons(final View layout)
+	@Override
+	protected void setOkButtonClickListener(Button okButton)
 	{
-		LinearLayout ll = (LinearLayout) layout.findViewById(R.id.FormatButtons);
-		ll.addView(new FormatButton(layout, SMILEY_KEY));
-		ll.addView(new FormatButton(layout, BOLD_KEY));
-		ll.addView(new FormatButton(layout, ITALIC_KEY));
-		ll.addView(new FormatButton(layout, UNDERLINE_KEY));
-		ll.addView(new FormatButton(layout, STRIKE_KEY));
-		ll.addView(new FormatButton(layout, FIXED_KEY));
-		ll.addView(new FormatButton(layout, CODE_KEY));
-		ll.addView(new FormatButton(layout, URL_KEY));
-		ll.addView(new FormatButton(layout, IMG_KEY));
-		ll.addView(getHfrRehostButton());
-		ll.addView(new FormatButton(layout, PUCE_KEY));
-		ll.addView(new FormatButton(layout, SPOILER_KEY));
-
-		Button wikiButton = (Button) layout.findViewById(R.id.ButtonWikiSmilies);
-		wikiButton.setOnClickListener(new OnClickListener()
-		{
-			public void onClick(View v)
-			{
-				final EditText smileyTag = (EditText) layout.findViewById(R.id.inputSmileyTag);
-				if (smileyTag.getText().length() == 0) return;
-
-				InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
-				imm.hideSoftInputFromWindow(((EditText) layout.findViewById(R.id.inputSmileyTag)).getWindowToken(), 0);
-
-				final ProgressDialog progressDialog = new ProgressDialog(PostsActivity.this);
-				progressDialog.setMessage(getString(R.string.getting_smilies));
-				progressDialog.setIndeterminate(true);
-				new AsyncTask<Void, Void, String>()
-				{
-					@Override
-					protected void onPreExecute() 
-					{
-						progressDialog.show();
-					}
-
-					@Override
-					protected String doInBackground(Void... params)
-					{
-						String data = "";
-						try
-						{
-							data = getDataRetriever().getSmiliesByTag(smileyTag.getText().toString());
-						}
-						catch (final Exception e)
-						{
-							data = null;
-							Log.e(PostsActivity.this.getClass().getSimpleName(), String.format(getString(R.string.error), e.getClass().getName(), e.getMessage()));
-							runOnUiThread(new Runnable()
-							{
-								public void run()
-								{
-									Toast t = Toast.makeText(PostsActivity.this, getString(R.string.error_retrieve_data, e.getClass().getSimpleName(), e.getMessage()), Toast.LENGTH_LONG);
-									t.show();
-								}
-							});
-						}
-						return data;
-					}
-
-					@Override
-					protected void onPostExecute(String data)
-					{
-						if (data == null)
-						{
-							progressDialog.dismiss();
-							return;
-						}
-						final LinearLayout smiliesContainer = ((LinearLayout) layout.findViewById(R.id.SmiliesContainer));
-						final TextView smiliesLoading = ((TextView) layout.findViewById(R.id.SmiliesLoading));
-						final TableLayout postContainer = ((TableLayout) layout.findViewById(R.id.PostContainer));
-						WebView oldWebView = (WebView) smiliesContainer.getChildAt(0);
-						final WebView webView = new WebView(PostsActivity.this);
-						TableRow.LayoutParams tllp = new TableRow.LayoutParams(LayoutParams.FILL_PARENT, LayoutParams.WRAP_CONTENT);
-						tllp.span = 3;
-						webView.setLayoutParams(tllp);
-						webView.setBackgroundColor(0); 
-						WebSettings settings = webView.getSettings();
-						settings.setDefaultTextEncodingName("UTF-8");
-						settings.setJavaScriptEnabled(true);
-						webView.addJavascriptInterface(new Object()
-						{
-							@SuppressWarnings("unused")
-							public void addSmiley(final String smiley)
-							{
-								runOnUiThread(new Runnable()
-								{
-									public void run()
-									{
-										insertBBCode((EditText) layout.findViewById(R.id.inputPostContent), " " + smiley + " ", "");
-										smiliesContainer.setVisibility(View.GONE);
-										postContainer.setVisibility(View.VISIBLE);
-									}
-								});
-							}
-						}, "HFR4Droid");
-
-						StringBuffer css = new StringBuffer("<style type=\"text/css\">");
-						css.append("img { margin: 5px }");
-						css.append("</style>");
-						StringBuffer js = new StringBuffer("<script type=\"text/javascript\">");
-						js.append("function putSmiley(code, src) { window.HFR4Droid.addSmiley(code); }");
-						js.append("</script>");
-
-						webView.setWebChromeClient(new WebChromeClient()
-						{
-							public void onProgressChanged(WebView view, int progress)
-							{
-								if (progress > 0 && progressDialog.isShowing())
-								{
-									progressDialog.dismiss();
-									smiliesLoading.setVisibility(View.VISIBLE);
-									postContainer.setVisibility(View.GONE);
-								}
-								else if (progress > 15 && smiliesLoading.getVisibility() == View.VISIBLE)
-								{
-									smiliesLoading.setVisibility(View.GONE);
-									smiliesContainer.setVisibility(View.VISIBLE);
-								}
-							}
-						});
-
-						webView.loadData("<html><head>" + fixHTML(js.toString()) + fixHTML(css.toString()) + "</head><body>" + fixHTML(data.toString()) + "</body></html>", "text/html", "UTF-8");
-
-						if (oldWebView != null)
-						{
-							oldWebView.destroy();
-							smiliesContainer.removeView(oldWebView);
-						}
-						smiliesContainer.addView(webView);
-					}
-				}.execute();
-			}
-		});
-
-		Button okButton = (Button) layout.findViewById(R.id.ButtonOkAddPost);
 		okButton.setOnClickListener(new OnClickListener()
 		{
 			public void onClick(View v)
 			{
-				final EditText postContent = (EditText) postDialog.findViewById(R.id.inputPostContent);
+				final EditText postContent = (EditText) postDialog.findViewById(R.id.InputPostContent);
 				if (postContent.getText().length() == 0) return;
 
 				final ProgressDialog progressDialog = new ProgressDialog(PostsActivity.this);
@@ -1428,8 +1231,11 @@ public class PostsActivity extends HFR4droidActivity
 				}.execute();
 			}
 		});
+	}
 
-		Button cancelButton = (Button) layout.findViewById(R.id.ButtonCancelAddPost);
+	@Override
+	protected void setCancelButtonClickListener(Button cancelButton)
+	{
 		cancelButton.setOnClickListener(new OnClickListener()
 		{
 			public void onClick(View v)
@@ -1437,61 +1243,10 @@ public class PostsActivity extends HFR4droidActivity
 				postDialog.dismiss();	
 			}
 		});
-	}
-
-	private void insertBBCode(EditText editText, String left, String right)
-	{
-		if (editText.getSelectionStart() != -1)
-		{
-			int firstPos = Math.min(editText.getSelectionStart(), editText.getSelectionEnd());
-			int secondPos = Math.max(editText.getSelectionStart(), editText.getSelectionEnd()) + left.length();
-
-			editText.setText(editText.getText().toString().subSequence(0, firstPos) + left + editText.getText().toString().substring(firstPos));
-			editText.setText(editText.getText().toString().subSequence(0, secondPos) + right + editText.getText().toString().substring(secondPos));
-
-			editText.setSelection(firstPos + left.length(), secondPos);
-			editText.requestFocus();
-		}
+		
 	}
 
 	/* Classes internes */
-
-	private class FormatButton extends Button
-	{
-		public FormatButton(Context context)
-		{
-			super(context);
-		}
-
-		public FormatButton(final View layout, String key)
-		{
-			super(PostsActivity.this);
-			final String left = getString("button_post_" + key.toLowerCase() + "_left");
-			final String right = getString("button_post_" + key.toLowerCase() + "_right");
-			setTextSize(20);
-			setLines(1);
-			setLayoutParams(new LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT));
-			setText(left);
-
-			this.setOnClickListener(new OnClickListener()
-			{
-				public void onClick(View v)
-				{
-					EditText postContent = (EditText) layout.findViewById(R.id.inputPostContent);
-					if (postContent.getSelectionStart() != postContent.getSelectionEnd())
-					{
-						insertBBCode(postContent, left, right);
-					}
-					else
-					{
-						String currentTag = ((FormatButton) v).getText().toString();
-						insertBBCode(postContent, currentTag, "");
-						if (!right.equals("")) setText(currentTag.equals(left) ? right : left);
-					}
-				}
-			});	
-		}
-	}
 
 	private abstract class PostCallBack extends AsyncTask<Void, Void, String> implements QuickActionWindow.Item.Callback
 	{

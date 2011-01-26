@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+	xmlns:android="http://schemas.android.com/apk/res/android"
+   	android:orientation="vertical"
+   	android:background="#F7F7F7"
+   	android:gravity="center_horizontal"
+   	android:layout_width="fill_parent"
+   	android:layout_height="wrap_content">	
+    <LinearLayout
+    	android:orientation="horizontal"
+    	android:background="@drawable/degrad_plus"
+    	android:gravity="center"
+    	android:layout_width="fill_parent"
+    	android:layout_height="40dip">    	
+    	<TextView
+	    	android:id="@+id/NewPostTitle"
+	    	android:gravity="center"		    	
+	    	android:textSize="15dip"
+		   	android:lines="1"
+	    	android:paddingLeft="5dip"
+	    	android:paddingRight="5dip"
+	    	android:textStyle="bold"
+	    	android:textColor="#1A3A60"
+	    	android:layout_width="wrap_content" 
+	    	android:layout_height="wrap_content" />
+	</LinearLayout>
+	<ScrollView
+		android:layout_width="fill_parent"
+		android:layout_height="fill_parent"
+		android:scrollbarStyle="outsideOverlay">
+		<LinearLayout
+			android:layout_width="fill_parent"
+			android:layout_height="wrap_content"
+			android:orientation="vertical">		
+			<LinearLayout
+				android:layout_width="fill_parent"
+				android:layout_height="wrap_content"
+				android:paddingTop="8dip"
+				android:paddingBottom="4dip"
+				android:paddingLeft="25dip"
+				android:paddingRight="25dip">
+				<EditText
+					android:id="@+id/inputMpTo"
+					android:layout_width="200dip"
+					android:layout_height="wrap_content"
+					android:hint="@string/mp_to_hint"
+					android:lines="1"
+					android:inputType="text"
+					android:textSize="18dip"
+					android:padding="5dip" />
+			</LinearLayout>
+			<LinearLayout
+				android:layout_width="fill_parent"
+				android:layout_height="wrap_content"
+				android:paddingTop="4dip"
+				android:paddingBottom="3dip"
+				android:paddingLeft="25dip"
+				android:paddingRight="25dip">
+				<EditText
+					android:id="@+id/inputMpSubject"
+					android:layout_width="fill_parent"
+					android:layout_height="wrap_content"
+					android:hint="@string/mp_subject_hint"
+					android:lines="1"
+					android:inputType="text"
+					android:textSize="18dip"
+					android:padding="5dip" />
+			</LinearLayout>	
+			<include layout="@layout/new_post_content" />
+		</LinearLayout>				
+	</ScrollView>
+</LinearLayout>

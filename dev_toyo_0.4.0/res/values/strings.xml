@@ -26,6 +26,7 @@
 	<string name="menu_quit">Quitter</string>
 	<string name="menu_refresh">Rafraîchir</string>
 	<string name="menu_back">Retour</string>
+	<string name="menu_add_topic">Nouveau topic</string>
 	
 	<string name="login_title">Connexion au forum</string>
 	<string name="login_pseudo">Pseudo :</string>
@@ -62,7 +63,13 @@
 	<string name="delete_title">Supprimer ce post</string>
 	<string name="delete_message">Êtes-vous sûr ?</string>
 
-<string name="keywords_title">Edition des mots clés du smiley %s</string>
+	<string name="new_mp">Nouveau message privé</string>
+	<string name="new_topic">Nouveau topic dans %s</string>
+	<string name="mp_to_hint">Pseudo du dest.</string>
+	<string name="mp_subject_hint">Sujet du message</string>
+	<string name="send_mp">Envoyer par MP</string>
+
+	<string name="keywords_title">Edition des mots clés du smiley %s</string>
 
 	<string name="button_ok">Ok</string>
 	<string name="button_cancel">Annuler</string>

@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import android.content.Context;
+import android.content.Intent;
 import android.content.res.ColorStateList;
 import android.graphics.Color;
 import android.graphics.Typeface;
@@ -238,6 +239,7 @@ public class TopicsActivity extends HFR4droidListActivity<Topic>
 		inflater.inflate(R.menu.drapeaux, menu);
 		inflater.inflate(R.menu.misc, menu);
 		inflater.inflate(R.menu.nav, menu);
+		inflater.inflate(R.menu.topics, menu);
 		SubMenu menuNav = menu.findItem(R.id.MenuNav).getSubMenu();
 		menuNav.removeItem(R.id.MenuNavLastPage);
 		return true;
@@ -250,10 +252,15 @@ public class TopicsActivity extends HFR4droidListActivity<Topic>
 
 		MenuItem drapeaux = menu.findItem(R.id.MenuDrapeaux);
 		MenuItem mps = menu.findItem(R.id.MenuMps);
+		MenuItem addTopic = menu.findItem(R.id.MenuAddTopic);
 		drapeaux.setVisible(isLoggedIn() && !isMpsCat());
 		drapeaux.setEnabled(isLoggedIn() && !isMpsCat());
 		mps.setVisible(isLoggedIn() && !isMpsCat());
 		mps.setEnabled(isLoggedIn() && !isMpsCat());
+		// Pour l'instant on a juste la création de mp
+		if (isMpsCat()) addTopic.setTitle(R.string.new_mp);
+		addTopic.setVisible(isLoggedIn() && isMpsCat());
+		addTopic.setEnabled(isLoggedIn() && isMpsCat());
 
 		MenuItem drapeauxAll = drapeaux.getSubMenu().findItem(R.id.MenuDrapeauxAll);
 		drapeauxAll.setVisible(!isAllCatsCat());
@@ -311,6 +318,15 @@ public class TopicsActivity extends HFR4droidListActivity<Topic>
 					type = TopicType.FAVORI;
 					reloadPage();
 					return true;
+					
+				case R.id.MenuAddTopic :
+					Intent intent = new Intent(TopicsActivity.this, NewPostActivity.class);
+					intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+					Bundle bundle = new Bundle();
+					bundle.putSerializable("cat", cat);
+					intent.putExtras(bundle);
+					startActivity(intent);
+					return true;					
 	
 				default:
 					return false;
@@ -425,6 +441,20 @@ public class TopicsActivity extends HFR4droidListActivity<Topic>
 	protected void goBack()
 	{
 		loadCats(false);
+	}
+
+	@Override
+	protected void onLogout()
+	{
+		if (isMpsCat())
+		{
+			loadCats(false);
+		}
+		else
+		{
+			setType(TopicType.ALL);
+			loadFirstPage();
+		}
 	}
 
 	private List<Topic> addCats(List<Topic> topics)

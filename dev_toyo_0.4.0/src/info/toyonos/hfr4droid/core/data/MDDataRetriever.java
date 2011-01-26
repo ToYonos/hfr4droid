@@ -22,8 +22,15 @@ public interface MDDataRetriever
 	/**
 	 * Récupère le hash check courant
 	 * @return Le hash check dans une <code>String</code>
+	 * @throws Exception Si un problème survient
 	 */
-	public String getHashCheck();
+	public String getHashCheck() throws Exception;
+	
+	/**
+	 * Récupère l'url de base du forum
+	 * @return L'url de base du forum sous forme de <code>String</code>
+	 */
+	public String getBaseUrl();
 
 	/**
 	 * Récupère les catégories

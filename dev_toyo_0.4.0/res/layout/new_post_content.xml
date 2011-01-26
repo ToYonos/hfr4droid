@@ -51,6 +51,7 @@
 	    </TableRow>	
 	    <TableRow>
 	        <ScrollView
+	        	android:id="@+id/SVPostContent"
 			    android:layout_width="fill_parent"
 			    android:layout_height="fill_parent"
 			    android:layout_span="3"
@@ -62,12 +63,11 @@
 			        <EditText
 			        	android:layout_width="fill_parent"
 				   	 	android:layout_height="wrap_content"
-			        	android:id="@+id/inputPostContent"
+			        	android:id="@+id/InputPostContent"
 			        	android:inputType="textMultiLine|textCapSentences"
 			        	android:textSize="14dip"
 			        	android:gravity="top"
 			        	android:minLines="10"
-			        	android:layout_span="3"
 			            android:padding="10dip" />
 			    	<LinearLayout
 			    		android:orientation="horizontal"

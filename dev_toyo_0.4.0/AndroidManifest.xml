@@ -1,20 +1,20 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
       package="info.toyonos.hfr4droid"
-      android:versionCode="030"
-      android:versionName="0.3.0"
+      android:versionCode="040"
+      android:versionName="0.4.0 beta1"
       android:installLocation="auto">
 
 	<uses-permission android:name="android.permission.INTERNET" />
 	<uses-permission android:name="android.permission.VIBRATE" />
 	<uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
-	
+
 	<uses-sdk android:minSdkVersion="3" android:targetSdkVersion="8" />
 	<supports-screens android:smallScreens="true" android:anyDensity="true"/>
 
     <application android:icon="@drawable/icon" android:label="@string/app_name" android:name="HFR4droidApplication" android:debuggable="true">
         <activity android:label="@string/app_name" android:name=".activity.CategoriesActivity" android:configChanges="keyboard|keyboardHidden|orientation">
-            <intent-filter>
+			<intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
@@ -27,22 +27,31 @@
 	    <activity android:name=".activity.HFR4droidDispatcher" android:noHistory="true">
 	        <intent-filter>
 				<action android:name="android.intent.action.VIEW" />
-	      		<category android:name="android.intent.category.DEFAULT" />
-	      		<category android:name="android.intent.category.BROWSABLE" />
-	      		<data android:host="forum.hardware.fr" android:scheme="http" />
+				<category android:name="android.intent.category.DEFAULT" />
+				<category android:name="android.intent.category.BROWSABLE" />
+				<data android:host="forum.hardware.fr" android:scheme="http" />
 	      	</intent-filter>
 		</activity>
-	  	
+
+		<activity android:name=".activity.NewPostActivity" android:configChanges="keyboard|keyboardHidden|orientation">
+			<intent-filter android:label="@string/send_mp">
+				<action android:name="android.intent.action.SEND" />
+				<category android:name="android.intent.category.DEFAULT" />
+				<data android:mimeType="text/plain" />
+				<data android:mimeType="image/*" />
+			</intent-filter>
+		</activity>
+
         <activity android:name=".activity.HFR4droidPrefs"/>
 		
 		<activity android:name=".activity.ImagePicker" android:icon="@drawable/hfrrehostnet" android:theme="@android:style/Theme.Translucent.NoTitleBar">
-	    	<intent-filter android:label="@string/upload_hfr_rehost">
-				<action android:name="android.intent.action.SEND"></action>
+			<intent-filter android:label="@string/upload_hfr_rehost">
+				<action android:name="android.intent.action.SEND" />
 				<category android:name="android.intent.category.DEFAULT" />
 				<data android:mimeType="image/*" />
-			</intent-filter>	    
+			</intent-filter>
 	    </activity>
 
-        <service android:name=".service.MpCheckService"/>
+		<service android:name=".service.MpCheckService" />
 	</application>
 </manifest>
