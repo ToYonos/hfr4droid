@@ -48,7 +48,6 @@ import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
 import android.view.View.OnClickListener;
-import android.view.View.OnTouchListener;
 import android.view.ViewGroup.LayoutParams;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
@@ -554,10 +553,15 @@ public class PostsActivity extends HFR4droidActivity
                 boolean result = false;
                 try
                 {
-                    result = super.onTouchEvent(ev);
+                	result = ev != null ? gestureDetector.onTouchEvent(ev) : false;
+                	if (!result)
+                	{
+                		result = super.onTouchEvent(ev);
+                	}
                 }
                 catch (NullPointerException e)
                 {
+                	//Toast.makeText(PostsActivity.this, "Une NullPointerException a été catchée", Toast.LENGTH_LONG).show();
                 	Log.e(this.getClass().getSimpleName(), String.format(getString(R.string.error), e.getClass().getName(), e.getMessage()));
                 }
                 return result;
@@ -566,13 +570,6 @@ public class PostsActivity extends HFR4droidActivity
 		webView.setFocusable(true);
 		webView.setFocusableInTouchMode(false); 
 		webView.setLayoutParams(new LayoutParams(LayoutParams.FILL_PARENT, LayoutParams.WRAP_CONTENT));
-		webView.setOnTouchListener(new OnTouchListener()
-		{
-			public boolean onTouch(View v, MotionEvent event)
-			{
-				return event != null ? gestureDetector.onTouchEvent(event) : false;
-			}
-		});
 		webView.addJavascriptInterface(new Object()
 		{
 			@SuppressWarnings("unused")
