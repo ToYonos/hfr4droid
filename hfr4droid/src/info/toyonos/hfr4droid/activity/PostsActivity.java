@@ -546,7 +546,23 @@ public class PostsActivity extends HFR4droidActivity
 		final LinearLayout parent = ((LinearLayout) findViewById(R.id.PostsLayout));
 		WebView oldWebView = getWebView();
 
-		final WebView webView = new WebView(this);
+	    final WebView webView = new WebView(this)
+        {
+            @Override
+            public boolean onTouchEvent(MotionEvent ev)
+            {
+                boolean result = false;
+                try
+                {
+                    result = super.onTouchEvent(ev);
+                }
+                catch (NullPointerException e)
+                {
+                	Log.e(this.getClass().getSimpleName(), String.format(getString(R.string.error), e.getClass().getName(), e.getMessage()));
+                }
+                return result;
+            }
+        };
 		webView.setFocusable(true);
 		webView.setFocusableInTouchMode(false); 
 		webView.setLayoutParams(new LayoutParams(LayoutParams.FILL_PARENT, LayoutParams.WRAP_CONTENT));
