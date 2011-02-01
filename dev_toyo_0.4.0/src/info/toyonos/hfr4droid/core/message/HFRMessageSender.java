@@ -37,10 +37,12 @@ public class HFRMessageSender
 	private static final String FORM_EDIT_KEYWORDS_URI = "http://forum.hardware.fr/wikismilies.php?config=hfr.inc&option_wiki=0&withouttag=0";
 	private static final String FAVORITE_URI = "http://forum.hardware.fr/user/addflag.php?config=hfr.inc&cat={$cat}&post={$topic}&numreponse={$post}";
 
-	public static final int POST_OK = 2;
 	public static final int POST_EDIT_OK = 1;
+	public static final int POST_ADD_OK = 2;
+	public static final int TOPIC_NEW_OK = 3;
 	public static final int POST_FLOOD = -1;
 	public static final int POST_MDP_KO = -2;
+	public static final int MP_INVALID_RECIPIENT = -3;
 	public static final int POST_KO = -99;
 
 	private HFRAuthentication auth;
@@ -68,7 +70,7 @@ public class HFRMessageSender
 		return getResponseCode(response);
 	}
 	
-	public int newTopic(Category c, String hashCheck, String sujet, String message, boolean signature) throws UnsupportedEncodingException, IOException
+	public int newTopic(Category c, String hashCheck, String dest, String sujet, String message, boolean signature) throws UnsupportedEncodingException, IOException
 	{
 		List<NameValuePair> params = new ArrayList<NameValuePair>();
 		params.add(new BasicNameValuePair("hash_check", hashCheck));
@@ -78,6 +80,7 @@ public class HFRMessageSender
 		//params.add(new BasicNameValuePair("page", String.valueOf(t.getNbPages())));
 		params.add(new BasicNameValuePair("pseudo", auth.getUser()));
 		params.add(new BasicNameValuePair("content_form", message));
+		params.add(new BasicNameValuePair("dest", dest));
 		params.add(new BasicNameValuePair("sujet", sujet));
 		params.add(new BasicNameValuePair("signature", signature ? "1" : "0"));
 
@@ -217,11 +220,19 @@ public class HFRMessageSender
 			{
 				return Integer.parseInt(m.group(1) != null ? m.group(1) : m.group(2));  
 			}*/
-			return POST_OK;
+			return POST_ADD_OK;
 		}
+		else if (response.matches(".*Votre message a été posté avec succès.*"))
+		{
+			return TOPIC_NEW_OK;
+		}		
 		else if (response.matches(".*Votre message a été édité avec succès.*"))
 		{
 			return POST_EDIT_OK;
+		}
+		else if (response.matches(".*Désolé, le pseudo suivant n'existe pas.*"))
+		{
+			return MP_INVALID_RECIPIENT;
 		}
 		else if (response.matches(".*Mot de passe incorrect !*"))
 		{

@@ -1,6 +1,7 @@
 package info.toyonos.hfr4droid.activity;
 
 import info.toyonos.hfr4droid.R;
+import info.toyonos.hfr4droid.core.message.HFRMessageSender;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
@@ -43,6 +44,8 @@ public abstract class NewPostUIActivity extends HFR4droidActivity
 	private static final String PUCE_KEY		= "puce";
 	private static final String SPOILER_KEY		= "spoiler";
 
+	protected long postId = -1;
+	
 	@Override
 	protected void onCreate(Bundle savedInstanceState)
 	{
@@ -150,8 +153,7 @@ public abstract class NewPostUIActivity extends HFR4droidActivity
 							{
 								public void run()
 								{
-									Toast t = Toast.makeText(NewPostUIActivity.this, getString(R.string.error_retrieve_data, e.getClass().getSimpleName(), e.getMessage()), Toast.LENGTH_LONG);
-									t.show();
+									Toast.makeText(NewPostUIActivity.this, getString(R.string.error_retrieve_data, e.getClass().getSimpleName(), e.getMessage()), Toast.LENGTH_LONG).show();
 								}
 							});
 						}
@@ -166,8 +168,11 @@ public abstract class NewPostUIActivity extends HFR4droidActivity
 							progressDialog.dismiss();
 							return;
 						}
-						final LinearLayout smiliesContainer = ((LinearLayout) layout.findViewById(R.id.SmiliesContainer));
-						final TextView smiliesLoading = ((TextView) layout.findViewById(R.id.SmiliesLoading));
+						
+						//TODO MEGA FACTO §§§§§
+						
+						final LinearLayout smiliesContainer = ((LinearLayout) layout.findViewById(R.id.SmiliesContainer)); // TODO construire si besoin est
+						final TextView smiliesLoading = ((TextView) layout.findViewById(R.id.SmiliesLoading)); // TODO construire si besoin 
 						final TableLayout postContainer = ((TableLayout) layout.findViewById(R.id.PostContainer));
 						WebView oldWebView = (WebView) smiliesContainer.getChildAt(0);
 						final WebView webView = new WebView(NewPostUIActivity.this);
@@ -241,7 +246,7 @@ public abstract class NewPostUIActivity extends HFR4droidActivity
 	}
 	
 	protected abstract void setOkButtonClickListener(Button okButton);
-	
+
 	protected abstract void setCancelButtonClickListener(Button cancelButton);
 
 	protected void insertBBCode(EditText editText, String left, String right)
@@ -261,6 +266,79 @@ public abstract class NewPostUIActivity extends HFR4droidActivity
 
 	/* Classes internes */
 
+	protected abstract class ValidateMessageAsynckTask extends AsyncTask<Void, Void, Integer>
+	{
+		private ProgressDialog progressDialog;
+		
+		public ValidateMessageAsynckTask()
+		{
+			progressDialog = new ProgressDialog(NewPostUIActivity.this);
+			progressDialog.setMessage(getString(R.string.post_loading));
+			progressDialog.setIndeterminate(true);
+		}
+		
+		protected abstract boolean canExecute(); 
+		
+		protected abstract int validateMessage() throws Exception;
+		
+		@Override
+		protected void onPreExecute() 
+		{
+			if (canExecute())
+			{
+				progressDialog.show();
+			}
+			else
+			{
+				cancel(true);
+			}
+		}
+
+		@Override
+		protected Integer doInBackground(Void... params)
+		{
+			int codeResponse = HFRMessageSender.POST_KO;
+			try
+			{
+				codeResponse = validateMessage();
+			}
+			catch (final Exception e)
+			{
+				Log.e(NewPostUIActivity.this.getClass().getSimpleName(), String.format(getString(R.string.error), e.getClass().getName(), e.getMessage()));
+			}
+			return codeResponse;
+		}
+
+		@Override
+		protected void onPostExecute(Integer codeResponse)
+		{
+			handleCodeResponse(codeResponse);
+			progressDialog.dismiss();
+		}
+
+		protected boolean handleCodeResponse(Integer codeResponse)
+		{
+			switch (codeResponse)
+			{
+				case HFRMessageSender.POST_KO: // Undefined error
+					Toast.makeText(NewPostUIActivity.this, getString("post_" + (postId != -1 ? "edit" : "add") + "_failed"), Toast.LENGTH_SHORT).show();
+					return true;
+
+				case HFRMessageSender.POST_FLOOD: // Flood // TODO ajout autre flood
+					Toast.makeText(NewPostUIActivity.this, getString(R.string.post_flood), Toast.LENGTH_SHORT).show();
+					return true;
+					
+				case HFRMessageSender.POST_MDP_KO: // Wrong password
+					Toast.makeText(NewPostUIActivity.this, getString(R.string.post_wrong_password), Toast.LENGTH_SHORT).show();
+					return true;
+					
+				default:
+					return false;
+					
+			}
+		}		
+	}
+	
 	protected class FormatButton extends Button
 	{
 		public FormatButton(Context context)

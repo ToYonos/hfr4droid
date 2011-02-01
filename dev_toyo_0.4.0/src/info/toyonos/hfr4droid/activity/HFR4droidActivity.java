@@ -282,8 +282,7 @@ public abstract class HFR4droidActivity extends Activity
 			catch (final Exception e)
 			{
 				Log.e(HFR4droidActivity.this.getClass().getSimpleName(), String.format(getString(R.string.error), e.getClass().getName(), e.getMessage()));
-				Toast t = Toast.makeText(this, getString(R.string.error_login_from_cache, e.getClass().getSimpleName(), e.getMessage()), Toast.LENGTH_LONG);
-				t.show();
+				Toast.makeText(this, getString(R.string.error_login_from_cache, e.getClass().getSimpleName(), e.getMessage()), Toast.LENGTH_LONG).show();
 			}
 		}
 	}
@@ -333,7 +332,12 @@ public abstract class HFR4droidActivity extends Activity
 		currentPageNumber = pageNumber;
 	}
 
-	private void showLoginDialog()
+	protected void showLoginDialog()
+	{
+		showLoginDialog(false);
+	}
+	
+	protected void showLoginDialog(final boolean forceLogin)
 	{
 		if (loginDialog == null)
 		{
@@ -387,19 +391,39 @@ public abstract class HFR4droidActivity extends Activity
 							}
 							else
 							{
-								Toast t = Toast.makeText(HFR4droidActivity.this, getString(R.string.error_login), Toast.LENGTH_SHORT);
-								t.show();
+								Toast.makeText(HFR4droidActivity.this, getString(R.string.error_login), Toast.LENGTH_SHORT).show();
+								if (forceLogin) showLoginDialog(true);
 							}
 							progressDialog.dismiss();
 						}
 					}.execute();
 				}
 			});
+
 			builder.setNegativeButton(getString(R.string.button_cancel), new OnClickListener()
 			{
-				public void onClick(DialogInterface dialog, int which){}
+				public void onClick(DialogInterface dialog, int which)
+				{
+					if (forceLogin) finish();
+				}
 			});
+
 			loginDialog = builder.create(); 
+			
+			if (forceLogin)
+			{
+				loginDialog.setOnKeyListener(new DialogInterface.OnKeyListener()
+				{
+					public boolean onKey(DialogInterface dialog, int keyCode, KeyEvent event)
+					{
+						if (keyCode == KeyEvent.KEYCODE_BACK)
+						{
+							return true;
+						}
+						return false;
+					}
+				});
+			}
 		}
 		loginDialog.show();
 	}
@@ -822,8 +846,7 @@ public abstract class HFR4droidActivity extends Activity
 				{
 					public void run()
 					{
-						Toast t = Toast.makeText(HFR4droidActivity.this, sme.getMessage(), Toast.LENGTH_LONG);
-						t.show();
+						Toast.makeText(HFR4droidActivity.this, sme.getMessage(), Toast.LENGTH_LONG).show();
 					}
 				});
 			}
@@ -834,8 +857,7 @@ public abstract class HFR4droidActivity extends Activity
 				{
 					public void run()
 					{
-						Toast t = Toast.makeText(HFR4droidActivity.this, getString(R.string.error_retrieve_data, e.getClass().getSimpleName(), e.getMessage()), Toast.LENGTH_LONG);
-						t.show();
+						Toast.makeText(HFR4droidActivity.this, getString(R.string.error_retrieve_data, e.getClass().getSimpleName(), e.getMessage()), Toast.LENGTH_LONG).show();
 					}
 				});
 			}

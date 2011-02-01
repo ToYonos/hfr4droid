@@ -89,8 +89,7 @@ public class HFR4droidPrefs extends PreferenceActivity
 					{
 						public void run()
 						{
-							Toast t = Toast.makeText(HFR4droidPrefs.this, getString(R.string.error_settings), Toast.LENGTH_SHORT);
-							t.show();
+							Toast.makeText(HFR4droidPrefs.this, getString(R.string.error_settings), Toast.LENGTH_SHORT).show();
 						}
 					});
 					return false;

@@ -2,6 +2,8 @@ package info.toyonos.hfr4droid.activity;
 
 import info.toyonos.hfr4droid.R;
 import info.toyonos.hfr4droid.core.bean.Category;
+import info.toyonos.hfr4droid.core.bean.Topic.TopicType;
+import info.toyonos.hfr4droid.core.message.HFRMessageSender;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
@@ -9,6 +11,7 @@ import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.View;
+import android.view.View.OnClickListener;
 import android.view.ViewGroup.LayoutParams;
 import android.widget.Button;
 import android.widget.EditText;
@@ -16,17 +19,17 @@ import android.widget.LinearLayout;
 import android.widget.ScrollView;
 import android.widget.TableRow;
 import android.widget.TextView;
+import android.widget.Toast;
 
 /**
- * <p>Activity permettant d'ajouter / modifier un post</p>
+ * <p>Activity permettant d'ajouter un topic (classique ou MP)</p>
  * 
  * @author ToYonos
  *
  */
-public class NewPostActivity extends NewPostUIActivity
+public class NewTopicActivity extends NewPostUIActivity
 {
 	private Category cat = null; 
-	//private Category cat = Category.MPS_CAT;
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState)
@@ -62,7 +65,7 @@ public class NewPostActivity extends NewPostUIActivity
 			}
 			if (bundle.get(Intent.EXTRA_SUBJECT) != null)
 			{
-				((TextView) findViewById(R.id.inputMpSubject)).setText(((String) bundle.get(Intent.EXTRA_SUBJECT)));
+				((TextView) findViewById(R.id.inputPostSubject)).setText(((String) bundle.get(Intent.EXTRA_SUBJECT)));
 			}
 			if (bundle.get(Intent.EXTRA_STREAM) != null)
 			{
@@ -73,14 +76,20 @@ public class NewPostActivity extends NewPostUIActivity
 				startActivityForResult(intentRehost, ImagePicker.CHOOSE_PICTURE);
 			}
 		}
-		if (cat == null || !isLoggedIn())
+		
+		if (cat == null)
 		{
-			// TODO !loggedIn -> connection
 			finish();
 			return;
-		}
-		
+		}		
 		addPostDialogButtons(layout);
+	}
+	
+	@Override
+	protected void onStart()
+	{
+		super.onStart();
+		if (!isLoggedIn()) showLoginDialog(true);	
 	}
 	
 	@Override
@@ -127,18 +136,69 @@ public class NewPostActivity extends NewPostUIActivity
 	{
 		loadCats(false);
 	}
-
-	@Override
-	protected void setCancelButtonClickListener(Button cancelButton)
-	{
-		// TODO Auto-generated method stub
-
-	}
-
+		
 	@Override
 	protected void setOkButtonClickListener(Button okButton)
 	{
-		// TODO Auto-generated method stub
+		okButton.setOnClickListener(new OnClickListener()
+		{
+			public void onClick(View v)
+			{
+				final EditText postDest = (EditText) findViewById(R.id.inputMpTo);
+				final EditText postSubject = (EditText) findViewById(R.id.inputPostSubject);
+				final EditText postContent = (EditText) findViewById(R.id.InputPostContent);
+				new ValidateMessageAsynckTask()
+				{
+					@Override
+					protected boolean canExecute()
+					{
+						return postSubject.getText().length() != 0 && postContent.getText().length() != 0 && postDest.getText().length() != 0;
+					}
 
+					@Override
+					protected int validateMessage() throws Exception
+					{
+						return getMessageSender().newTopic(Category.MPS_CAT, getDataRetriever().getHashCheck(), postDest.getText().toString(), postSubject.getText().toString(), postContent.getText().toString(), isSignatureEnable());
+					}
+
+					@Override
+					protected boolean handleCodeResponse(Integer codeResponse)
+					{
+						if (!super.handleCodeResponse(codeResponse))
+						{
+							switch (codeResponse)
+							{	
+								case HFRMessageSender.TOPIC_NEW_OK: // New topic ok
+									loadTopics(Category.MPS_CAT, TopicType.ALL, 1, false);
+									return true;
+									
+								case HFRMessageSender.MP_INVALID_RECIPIENT: // Invalid recipient
+									Toast.makeText(NewTopicActivity.this, getString(R.string.mp_invalid_recipient), Toast.LENGTH_SHORT).show();
+									return true;									
+								
+								default:
+									return false;
+							}							
+						}
+						else
+						{
+							return true;
+						}
+					}
+				}.execute();
+			}
+		});
+	}
+	
+	@Override
+	protected void setCancelButtonClickListener(Button cancelButton)
+	{
+		cancelButton.setOnClickListener(new OnClickListener()
+		{
+			public void onClick(View v)
+			{
+				finish();	
+			}
+		});
 	}
 }

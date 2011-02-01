@@ -55,8 +55,7 @@ public class HFR4droidDispatcher extends HFR4droidActivity
 		catch (Exception e)
 		{
 			Log.e(this.getClass().getSimpleName(), String.format(getString(R.string.error), e.getClass().getName(), e.getMessage()));
-			Toast t = Toast.makeText(this, getString(R.string.error_dispatching_url, e.getClass().getSimpleName(), e.getMessage()), Toast.LENGTH_LONG);
-			t.show();
+			Toast.makeText(this, getString(R.string.error_dispatching_url, e.getClass().getSimpleName(), e.getMessage()), Toast.LENGTH_LONG).show();
 			finish();
 		}
 	}

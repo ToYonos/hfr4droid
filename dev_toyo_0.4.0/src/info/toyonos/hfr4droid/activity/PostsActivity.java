@@ -112,7 +112,7 @@ public class PostsActivity extends NewPostUIActivity
 	private GestureDetector gestureDetector;
 	private int currentScrollY;
 
-	private PostDialog postDialog;
+	private Dialog postDialog;
 
 	protected Map<Long, String> quotes;
 	protected boolean lockQuickAction;
@@ -605,8 +605,7 @@ public class PostsActivity extends NewPostUIActivity
 										}
 										else
 										{
-											Toast t = Toast.makeText(PostsActivity.this, getString(R.string.delete_failed), Toast.LENGTH_SHORT);
-											t.show();
+											Toast.makeText(PostsActivity.this, getString(R.string.delete_failed), Toast.LENGTH_SHORT).show();
 										}
 									}
 								});
@@ -771,8 +770,7 @@ public class PostsActivity extends NewPostUIActivity
 				catch (Exception e)
 				{
 					Log.e(this.getClass().getSimpleName(), String.format(getString(R.string.error), e.getClass().getName(), e.getMessage()));
-					Toast t = Toast.makeText(PostsActivity.this, getString(R.string.error_dispatching_url, e.getClass().getSimpleName(), e.getMessage()), Toast.LENGTH_LONG);
-					t.show();
+					Toast.makeText(PostsActivity.this, getString(R.string.error_dispatching_url, e.getClass().getSimpleName(), e.getMessage()), Toast.LENGTH_LONG).show();
 				}
 			}
 
@@ -806,8 +804,7 @@ public class PostsActivity extends NewPostUIActivity
 							{
 								public void run()
 								{
-									Toast t = Toast.makeText(PostsActivity.this, getString(R.string.error_retrieve_data, e.getClass().getSimpleName(), e.getMessage()), Toast.LENGTH_LONG);
-									t.show();
+									Toast.makeText(PostsActivity.this, getString(R.string.error_retrieve_data, e.getClass().getSimpleName(), e.getMessage()), Toast.LENGTH_LONG).show();
 								}
 							});
 						}
@@ -1075,7 +1072,7 @@ public class PostsActivity extends NewPostUIActivity
 	{
 		if (postDialog == null)
 		{
-			postDialog = new PostDialog(this);
+			postDialog = new Dialog(this);
 			postDialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
 			postDialog.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE);
 			LayoutInflater inflater = (LayoutInflater) getApplicationContext().getSystemService(LAYOUT_INFLATER_SERVICE);
@@ -1120,7 +1117,7 @@ public class PostsActivity extends NewPostUIActivity
 			});
 		}
 
-		postDialog.setPostId(postId);
+		this.postId = postId;
 		final EditText postContent = (EditText) postDialog.findViewById(R.id.InputPostContent);
 		if (data != null) postContent.setText(data);
 		postContent.requestFocus();
@@ -1154,79 +1151,58 @@ public class PostsActivity extends NewPostUIActivity
 			public void onClick(View v)
 			{
 				final EditText postContent = (EditText) postDialog.findViewById(R.id.InputPostContent);
-				if (postContent.getText().length() == 0) return;
-
-				final ProgressDialog progressDialog = new ProgressDialog(PostsActivity.this);
-				progressDialog.setMessage(getString(R.string.post_loading));
-				progressDialog.setIndeterminate(true);
-				new AsyncTask<Void, Void, Integer>()
+				new ValidateMessageAsynckTask()
 				{
 					@Override
-					protected void onPreExecute() 
+					protected boolean canExecute()
 					{
-						progressDialog.show();
+						return postContent.getText().length() != 0;
 					}
 
 					@Override
-					protected Integer doInBackground(Void... params)
+					protected int validateMessage() throws Exception
 					{
-						int codeResponse = HFRMessageSender.POST_KO;
-						try
+						if (postId != -1)
 						{
-							if (postDialog.getPostId() != -1)
-							{
-								Post p = new Post(postDialog.getPostId());
-								p.setTopic(topic);
-								codeResponse = getMessageSender().editMessage(p, getDataRetriever().getHashCheck(), postContent.getText().toString(), isSignatureEnable());
-							}
-							else
-							{
-								codeResponse = getMessageSender().postMessage(topic, getDataRetriever().getHashCheck(), postContent.getText().toString(), isSignatureEnable());
-							}
+							Post p = new Post(postId);
+							p.setTopic(topic);
+							return getMessageSender().editMessage(p, getDataRetriever().getHashCheck(), postContent.getText().toString(), isSignatureEnable());
 						}
-						catch (final Exception e)
+						else
 						{
-							Log.e(PostsActivity.this.getClass().getSimpleName(), String.format(getString(R.string.error), e.getClass().getName(), e.getMessage()));
+							return getMessageSender().postMessage(topic, getDataRetriever().getHashCheck(), postContent.getText().toString(), isSignatureEnable());
 						}
-						return codeResponse;
 					}
 
 					@Override
-					protected void onPostExecute(Integer codeResponse)
+					protected boolean handleCodeResponse(Integer codeResponse)
 					{
-						Toast t;
-						switch (codeResponse)
+						if (!super.handleCodeResponse(codeResponse))
 						{
-							case HFRMessageSender.POST_KO: // Undefined error
-								t = Toast.makeText(PostsActivity.this, getString("post_" + (postDialog.getPostId() != -1 ? "edit" : "add") + "_failed"), Toast.LENGTH_SHORT);
-								t.show();
-								break;
-	
-							case HFRMessageSender.POST_FLOOD: // Flood
-								t = Toast.makeText(PostsActivity.this, getString(R.string.post_flood), Toast.LENGTH_SHORT);
-								t.show();
-								break;
+							switch (codeResponse)
+							{	
+								case HFRMessageSender.POST_EDIT_OK: // Edit ok
+									postContent.setText("");
+									postDialog.dismiss();
+									topic.setLastReadPost(postId);
+									reloadPage();
+									return true;									
+		
+								case HFRMessageSender.POST_ADD_OK: // New post ok
+									postContent.setText("");
+									postDialog.dismiss();
+									topic.setLastReadPost(BOTTOM_PAGE_ID);
+									if (currentPageNumber == topic.getNbPages()) reloadPage();
+									return true;
 								
-							case HFRMessageSender.POST_MDP_KO: // Wrong password
-								t = Toast.makeText(PostsActivity.this, getString(R.string.post_wrong_password), Toast.LENGTH_SHORT);
-								t.show();
-								break;									
-	
-							case HFRMessageSender.POST_EDIT_OK: // Edit ok
-								postContent.setText("");
-								postDialog.dismiss();
-								topic.setLastReadPost(postDialog.getPostId());
-								reloadPage();
-								break;										
-	
-							case HFRMessageSender.POST_OK: // New post ok
-								postContent.setText("");
-								postDialog.dismiss();
-								topic.setLastReadPost(BOTTOM_PAGE_ID);
-								if (currentPageNumber == topic.getNbPages()) reloadPage();
-								break;
+								default:
+									return false;
+							}							
 						}
-						progressDialog.dismiss();
+						else
+						{
+							return true;
+						}
 					}
 				}.execute();
 			}
@@ -1243,7 +1219,6 @@ public class PostsActivity extends NewPostUIActivity
 				postDialog.dismiss();	
 			}
 		});
-		
 	}
 
 	/* Classes internes */
@@ -1338,8 +1313,7 @@ public class PostsActivity extends NewPostUIActivity
 						{
 							error =  getString(R.string.error_retrieve_data, e.getClass().getSimpleName(), e.getMessage()); 
 						}
-						Toast t = Toast.makeText(PostsActivity.this, error, Toast.LENGTH_LONG);
-						t.show();
+						Toast.makeText(PostsActivity.this, error, Toast.LENGTH_LONG).show();
 					}
 				});
 			}
@@ -1354,27 +1328,6 @@ public class PostsActivity extends NewPostUIActivity
 				onActionExecute(result);
 			}
 			if (progress) progressDialog.dismiss();
-		}
-	}
-
-	private class PostDialog extends Dialog
-	{
-		private long postId;
-
-		public PostDialog(Context context)
-		{
-			super(context);
-			postId = -1;
-		}
-
-		public long getPostId()
-		{
-			return postId;
-		}
-
-		public void setPostId(long postId)
-		{
-			this.postId = postId;
 		}
 	}
 }

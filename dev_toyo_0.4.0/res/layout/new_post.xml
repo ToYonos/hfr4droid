@@ -57,10 +57,10 @@
 				android:paddingLeft="25dip"
 				android:paddingRight="25dip">
 				<EditText
-					android:id="@+id/inputMpSubject"
+					android:id="@+id/inputPostSubject"
 					android:layout_width="fill_parent"
 					android:layout_height="wrap_content"
-					android:hint="@string/mp_subject_hint"
+					android:hint="@string/post_subject_hint"
 					android:lines="1"
 					android:inputType="text"
 					android:textSize="18dip"

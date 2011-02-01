@@ -320,8 +320,7 @@ public class TopicsActivity extends HFR4droidListActivity<Topic>
 					return true;
 					
 				case R.id.MenuAddTopic :
-					Intent intent = new Intent(TopicsActivity.this, NewPostActivity.class);
-					intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+					Intent intent = new Intent(TopicsActivity.this, NewTopicActivity.class);
 					Bundle bundle = new Bundle();
 					bundle.putSerializable("cat", cat);
 					intent.putExtras(bundle);

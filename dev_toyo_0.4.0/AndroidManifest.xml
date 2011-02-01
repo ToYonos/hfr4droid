@@ -33,7 +33,7 @@
 	      	</intent-filter>
 		</activity>
 
-		<activity android:name=".activity.NewPostActivity" android:configChanges="keyboard|keyboardHidden|orientation">
+		<activity android:name=".activity.NewTopicActivity" android:noHistory="true" android:configChanges="keyboard|keyboardHidden|orientation">
 			<intent-filter android:label="@string/send_mp">
 				<action android:name="android.intent.action.SEND" />
 				<category android:name="android.intent.category.DEFAULT" />
