@@ -5,11 +5,13 @@ import info.toyonos.hfr4droid.core.message.HFRMessageSender;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Color;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.text.Html;
 import android.util.Log;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.View.OnClickListener;
 import android.view.ViewGroup.LayoutParams;
 import android.view.inputmethod.InputMethodManager;
@@ -20,7 +22,6 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.TableLayout;
-import android.widget.TableRow;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -50,7 +51,6 @@ public abstract class NewPostUIActivity extends HFR4droidActivity
 	protected void onCreate(Bundle savedInstanceState)
 	{
 		super.onCreate(savedInstanceState);
-		// TODO quelque chose ?
 	}
 	
 	protected String fixHTML(String htmlContent)
@@ -99,7 +99,7 @@ public abstract class NewPostUIActivity extends HFR4droidActivity
 		return hfrRehost;
 	}
 
-	protected void addPostDialogButtons(final View layout)
+	protected void addPostDialogButtons(final ViewGroup layout)
 	{
 		LinearLayout ll = (LinearLayout) layout.findViewById(R.id.FormatButtons);
 		ll.addView(new FormatButton(layout, SMILEY_KEY));
@@ -168,18 +168,12 @@ public abstract class NewPostUIActivity extends HFR4droidActivity
 							progressDialog.dismiss();
 							return;
 						}
-						
-						//TODO MEGA FACTO §§§§§
-						
-						final LinearLayout smiliesContainer = ((LinearLayout) layout.findViewById(R.id.SmiliesContainer)); // TODO construire si besoin est
-						final TextView smiliesLoading = ((TextView) layout.findViewById(R.id.SmiliesLoading)); // TODO construire si besoin 
+
 						final TableLayout postContainer = ((TableLayout) layout.findViewById(R.id.PostContainer));
-						WebView oldWebView = (WebView) smiliesContainer.getChildAt(0);
 						final WebView webView = new WebView(NewPostUIActivity.this);
-						TableRow.LayoutParams tllp = new TableRow.LayoutParams(LayoutParams.FILL_PARENT, LayoutParams.WRAP_CONTENT);
-						tllp.span = 3;
-						webView.setLayoutParams(tllp);
-						webView.setBackgroundColor(0); 
+						webView.setLayoutParams(new LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT));
+						webView.setBackgroundColor(0);
+						webView.setVisibility(View.GONE); 
 						WebSettings settings = webView.getSettings();
 						settings.setDefaultTextEncodingName("UTF-8");
 						settings.setJavaScriptEnabled(true);
@@ -193,7 +187,8 @@ public abstract class NewPostUIActivity extends HFR4droidActivity
 									public void run()
 									{
 										insertBBCode((EditText) layout.findViewById(R.id.InputPostContent), " " + smiley + " ", "");
-										smiliesContainer.setVisibility(View.GONE);
+										layout.removeView(webView);
+										webView.destroy();
 										postContainer.setVisibility(View.VISIBLE);
 									}
 								});
@@ -211,28 +206,30 @@ public abstract class NewPostUIActivity extends HFR4droidActivity
 						{
 							public void onProgressChanged(WebView view, int progress)
 							{
+								View lastChild = layout.getChildAt(layout.getChildCount() - 1);
 								if (progress > 0 && progressDialog.isShowing())
 								{
 									progressDialog.dismiss();
-									smiliesLoading.setVisibility(View.VISIBLE);
+									TextView smiliesLoading = new TextView(NewPostUIActivity.this);
+									smiliesLoading.setLayoutParams(new LayoutParams(LayoutParams.FILL_PARENT, LayoutParams.FILL_PARENT));
+									smiliesLoading.setTextColor(Color.BLACK);
+									float scale = getResources().getDisplayMetrics().density;
+									float dip = 20;
+									int pixel = (int) (dip * scale + 0.5f);
+									smiliesLoading.setPadding(pixel, pixel, pixel, pixel);
+									smiliesLoading.setText(R.string.smilies_loading);
+									layout.addView(smiliesLoading);
 									postContainer.setVisibility(View.GONE);
 								}
-								else if (progress > 15 && smiliesLoading.getVisibility() == View.VISIBLE)
+								else if (progress > 15 && lastChild instanceof TextView)
 								{
-									smiliesLoading.setVisibility(View.GONE);
-									smiliesContainer.setVisibility(View.VISIBLE);
+									layout.removeView(lastChild);
+									webView.setVisibility(View.VISIBLE);
 								}
 							}
 						});
-
 						webView.loadData("<html><head>" + fixHTML(js.toString()) + fixHTML(css.toString()) + "</head><body>" + fixHTML(data.toString()) + "</body></html>", "text/html", "UTF-8");
-
-						if (oldWebView != null)
-						{
-							oldWebView.destroy();
-							smiliesContainer.removeView(oldWebView);
-						}
-						smiliesContainer.addView(webView);
+						layout.addView(webView, 0);
 					}
 				}.execute();
 			}

@@ -44,6 +44,7 @@ import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.SubMenu;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.Window;
 import android.view.WindowManager;
 import android.view.View.OnClickListener;
@@ -1040,9 +1041,9 @@ public class PostsActivity extends NewPostUIActivity
 					anim.setAnimationListener(new AnimationListener()
 					{
 						public void onAnimationStart(Animation animation) {}
-						
+
 						public void onAnimationRepeat(Animation animation) {}
-						
+
 						public void onAnimationEnd(Animation animation)
 						{
 							progressBar.setVisibility(View.GONE);
@@ -1051,7 +1052,7 @@ public class PostsActivity extends NewPostUIActivity
 					progressBar.startAnimation(anim);
 				}
 			}
-		}); 
+		});
 		//webView.loadData("<html><head>" + fixHTML(js.toString()) + css + fixHTML(js2.toString()) + "</head><body>" + fixHTML(postsContent.toString()) + "</body></html>", "text/html", "UTF-8");
 		webView.loadDataWithBaseURL(getDataRetriever().getBaseUrl(), "<html><head>" + js.toString() + css.toString() + js2.toString() + "</head><body>" + postsContent.toString() + "</body></html>", "text/html", "UTF-8", null);
 		if (oldWebView != null)
@@ -1076,9 +1077,9 @@ public class PostsActivity extends NewPostUIActivity
 			postDialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
 			postDialog.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE);
 			LayoutInflater inflater = (LayoutInflater) getApplicationContext().getSystemService(LAYOUT_INFLATER_SERVICE);
-			final View layout = inflater.inflate(R.layout.new_post_content, null);
+			final ViewGroup layout = (ViewGroup) inflater.inflate(R.layout.new_post_content, null);
 			postDialog.setContentView(layout);
-			addPostDialogButtons(layout);
+			addPostDialogButtons( layout);
 			((EditText) postDialog.findViewById(R.id.InputPostContent)).setTextSize(getTextSize(14));
 
 			postDialog.setOnKeyListener(new DialogInterface.OnKeyListener()
@@ -1087,9 +1088,11 @@ public class PostsActivity extends NewPostUIActivity
 				{
 					if (keyCode == KeyEvent.KEYCODE_BACK)
 					{
-						if (postDialog.isShowing() && postDialog.findViewById(R.id.SmiliesContainer).getVisibility() == View.VISIBLE)
+						View firstChild = layout.getChildAt(0);
+						if (postDialog.isShowing() && firstChild instanceof WebView)
 						{
-							layout.findViewById(R.id.SmiliesContainer).setVisibility(View.GONE);
+							layout.removeView(firstChild);
+							((WebView) firstChild).destroy();
 							layout.findViewById(R.id.PostContainer).setVisibility(View.VISIBLE);
 							return true;
 						}
@@ -1101,13 +1104,7 @@ public class PostsActivity extends NewPostUIActivity
 			{
 				public void onDismiss(DialogInterface dialog)
 				{
-					WebView webView = (WebView) ((LinearLayout) layout.findViewById(R.id.SmiliesContainer)).getChildAt(0);
-					if (webView != null)
-					{
-						webView.destroy();
-						layout.findViewById(R.id.SmiliesContainer).setVisibility(View.GONE);
-						layout.findViewById(R.id.PostContainer).setVisibility(View.VISIBLE);
-					}
+					// TODO Gérer tous les cas
 					if (type == PostCallBackType.EDIT)
 					{
 						EditText postContent = (EditText) postDialog.findViewById(R.id.InputPostContent);

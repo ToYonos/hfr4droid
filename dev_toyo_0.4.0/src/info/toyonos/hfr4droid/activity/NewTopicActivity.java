@@ -11,6 +11,7 @@ import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.View.OnClickListener;
 import android.view.ViewGroup.LayoutParams;
 import android.widget.Button;
@@ -36,7 +37,7 @@ public class NewTopicActivity extends NewPostUIActivity
 	{
 		super.onCreate(savedInstanceState);
 		LayoutInflater inflater = (LayoutInflater) getApplicationContext().getSystemService(LAYOUT_INFLATER_SERVICE);
-		View layout = inflater.inflate(R.layout.new_post, null);
+		ViewGroup layout = (ViewGroup) inflater.inflate(R.layout.new_post, null);
 		ScrollView sv = (ScrollView) layout.findViewById(R.id.SVPostContent);
 		LinearLayout child = (LinearLayout) sv.getChildAt(0);
 		TableRow parent = (TableRow) sv.getParent();
