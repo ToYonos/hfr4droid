@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+	<item
+		android:title="@string/nav_last_read_page"
+		android:id="@+id/MenuNavLastReadPage" />
+	<item
+		android:title="@string/nav_first_page"
+		android:id="@+id/MenuNavFirstPage" />
+	<item
+		android:title="@string/nav_user_page"
+		android:id="@+id/MenuNavUserPage" />		
+	<item
+		android:title="@string/nav_last_page"
+		android:id="@+id/MenuNavLastPage" />					
+</menu>
