@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+	<PreferenceCategory
+		android:title="@string/pref_general_title">
+		<ListPreference
+			android:key="PrefWelcomeScreen"
+			android:summary="@string/pref_welcome_screen_summary"
+			android:title="@string/pref_welcome_screen_title"
+			android:defaultValue="@string/pref_welcome_screen_default" 
+			android:entries="@array/welcome_screen_values"
+            android:entryValues="@array/welcome_screen_keys" />
+		<ListPreference
+			android:key="PrefTypeDrapeau"
+			android:summary="@string/pref_type_drapeau_summary"
+			android:title="@string/pref_type_drapeau_title"
+			android:defaultValue="@string/pref_type_drapeau_default" 
+			android:entries="@array/type_drapeau_values"
+            android:entryValues="@array/type_drapeau_keys" /> 
+		<CheckBoxPreference
+			android:key="PrefSignatureEnable"
+			android:summary="@string/pref_signature_enable_summary"
+			android:title="@string/pref_signature_enable_title"
+			android:defaultValue="@string/pref_signature_enable_default" />
+		<CheckBoxPreference
+			android:key="PrefDblTapEnable"
+			android:summary="@string/pref_dbltap_enable_summary"
+			android:title="@string/pref_dbltap_enable_title"
+			android:defaultValue="@string/pref_dbltap_enable_default" />			
+		<CheckBoxPreference
+			android:key="PrefPreloadingEnable"
+			android:summary="@string/pref_preloading_enable_summary"
+			android:title="@string/pref_preloading_enable_title"
+			android:defaultValue="@string/pref_preloading_enable_default" />
+		<ListPreference
+			android:key="PrefSwipe"
+			android:summary="@string/pref_swipe_summary"
+			android:title="@string/pref_swipe_title"
+			android:defaultValue="@string/pref_swipe_default"
+			android:entries="@array/swipe_values"
+            android:entryValues="@array/swipe_keys" />			        
+	</PreferenceCategory>
+
+	<PreferenceCategory
+		android:title="@string/pref_affichage_title">
+		<CheckBoxPreference
+			android:key="PrefFullscreenEnable"
+			android:summary="@string/pref_fullscreen_enable_summary"
+			android:title="@string/pref_fullscreen_enable_title"
+			android:defaultValue="@string/pref_fullscreen_enable_default" />
+		<ListPreference
+			android:key="PrefPoliceSize"
+			android:summary="@string/pref_police_size_summary"
+			android:title="@string/pref_police_size_title"
+			android:defaultValue="@string/pref_police_size_default" 
+			android:entries="@array/police_size_values"
+            android:entryValues="@array/police_size_keys" />			
+		<CheckBoxPreference
+			android:key="PrefAvatarsEnable"
+			android:summary="@string/pref_avatars_enable_summary"
+			android:title="@string/pref_avatars_enable_title"
+			android:defaultValue="@string/pref_avatars_enable_default" />
+		<CheckBoxPreference
+			android:key="PrefSmileysEnable"
+			android:summary="@string/pref_smileys_enable_summary"
+			android:title="@string/pref_smileys_enable_title"
+			android:defaultValue="@string/pref_smileys_enable_default" />
+		<CheckBoxPreference
+			android:key="PrefImgsEnable"
+			android:summary="@string/pref_imgs_enable_summary"
+			android:title="@string/pref_imgs_enable_title"
+			android:defaultValue="@string/pref_imgs_enable_default" />
+	</PreferenceCategory>	
+
+	<PreferenceCategory
+		android:title="@string/pref_srv_mps_title">
+		<CheckBoxPreference
+			android:key="PrefSrvMpsEnable"
+			android:summary="@string/pref_srv_mps_enable_summary"
+			android:title="@string/pref_srv_mps_enable_title"
+			android:defaultValue="@string/pref_srv_mps_enable_default" />
+		<EditTextPreference
+			android:key="PrefSrvMpsFreq"
+			android:summary="@string/pref_srv_mps_freq_summary"
+			android:title="@string/pref_srv_mps_freq_title"
+			android:defaultValue="@string/pref_srv_mps_freq_default" />
+	</PreferenceCategory>
+	
+	<PreferenceCategory
+		android:title="@string/pref_debug_title">
+		<CheckBoxPreference
+			android:key="acra.disable"
+			android:summary="@string/pref_disable_acra_summary"
+			android:title="@string/pref_disable_acra_title"
+			android:defaultValue="@string/pref_disable_acra_default" />
+	</PreferenceCategory>	
+</PreferenceScreen>
