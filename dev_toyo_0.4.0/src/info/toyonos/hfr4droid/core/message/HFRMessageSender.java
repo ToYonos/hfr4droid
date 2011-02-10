@@ -1,5 +1,6 @@
 package info.toyonos.hfr4droid.core.message;
 
+import info.toyonos.hfr4droid.R;
 import info.toyonos.hfr4droid.core.auth.HFRAuthentication;
 import info.toyonos.hfr4droid.core.bean.Category;
 import info.toyonos.hfr4droid.core.bean.Post;
@@ -30,6 +31,8 @@ import org.apache.http.protocol.BasicHttpContext;
 import org.apache.http.protocol.HTTP;
 import org.apache.http.protocol.HttpContext;
 
+import android.content.Context;
+
 public class HFRMessageSender
 {	 
 	private static final String FORM_URI = "http://forum.hardware.fr/bddpost.php?config=hfr.inc";
@@ -37,22 +40,31 @@ public class HFRMessageSender
 	private static final String FORM_EDIT_KEYWORDS_URI = "http://forum.hardware.fr/wikismilies.php?config=hfr.inc&option_wiki=0&withouttag=0";
 	private static final String FAVORITE_URI = "http://forum.hardware.fr/user/addflag.php?config=hfr.inc&cat={$cat}&post={$topic}&numreponse={$post}";
 
-	public static final int POST_EDIT_OK = 1;
-	public static final int POST_ADD_OK = 2;
-	public static final int TOPIC_NEW_OK = 3;
-	public static final int POST_FLOOD = -1;
-	public static final int POST_MDP_KO = -2;
-	public static final int MP_INVALID_RECIPIENT = -3;
-	public static final int POST_KO = -99;
+	/**
+	 * Les codes des réponses
+	 */
+	public static enum ResponseCode
+	{
+		POST_EDIT_OK,
+		POST_ADD_OK,
+		TOPIC_NEW_OK,
+		POST_FLOOD,
+		POST_MDP_KO,
+		MP_INVALID_RECIPIENT,
+		POST_KO,
+		POST_KO_EXCEPTION;
+	};
 
+	private Context context;
 	private HFRAuthentication auth;
 
-	public HFRMessageSender(HFRAuthentication authentication)
+	public HFRMessageSender(Context context, HFRAuthentication auth)
 	{
-		auth = authentication;
+		this.context = context;
+		this.auth = auth;
 	}
 
-	public int postMessage(Topic t, String hashCheck, String message, boolean signature) throws UnsupportedEncodingException, IOException
+	public ResponseCode postMessage(Topic t, String hashCheck, String message, boolean signature) throws MessageSenderException
 	{
 		List<NameValuePair> params = new ArrayList<NameValuePair>();
 		params.add(new BasicNameValuePair("hash_check", hashCheck));
@@ -66,11 +78,19 @@ public class HFRMessageSender
 		params.add(new BasicNameValuePair("sujet", t.getName()));
 		params.add(new BasicNameValuePair("signature", signature ? "1" : "0"));
 
-		String response = innerGetResponse(FORM_URI, params);
+		String response = null;
+		try
+		{
+			response = innerGetResponse(FORM_URI, params);
+		}
+		catch (Exception e)
+		{
+			throw new MessageSenderException(context.getString(R.string.post_failed), e);
+		}
 		return getResponseCode(response);
 	}
 	
-	public int newTopic(Category c, String hashCheck, String dest, String sujet, String message, boolean signature) throws UnsupportedEncodingException, IOException
+	public ResponseCode newTopic(Category c, String hashCheck, String dest, String sujet, String message, boolean signature) throws MessageSenderException
 	{
 		List<NameValuePair> params = new ArrayList<NameValuePair>();
 		params.add(new BasicNameValuePair("hash_check", hashCheck));
@@ -84,11 +104,19 @@ public class HFRMessageSender
 		params.add(new BasicNameValuePair("sujet", sujet));
 		params.add(new BasicNameValuePair("signature", signature ? "1" : "0"));
 
-		String response = innerGetResponse(FORM_URI, params);
+		String response = null;
+		try
+		{
+			response = innerGetResponse(FORM_URI, params);
+		}
+		catch (Exception e)
+		{
+			throw new MessageSenderException(context.getString(R.string.post_failed), e);
+		}
 		return getResponseCode(response);
 	}
 
-	public int editMessage(Post p, String hashCheck, String message, boolean signature) throws UnsupportedEncodingException, IOException
+	public ResponseCode editMessage(Post p, String hashCheck, String message, boolean signature) throws MessageSenderException
 	{
 		StringBuilder parents = new StringBuilder("");
 		Matcher m = Pattern.compile("\\[quotemsg=([0-9]+)", Pattern.CASE_INSENSITIVE | Pattern.DOTALL).matcher(message);
@@ -111,11 +139,19 @@ public class HFRMessageSender
 		params.add(new BasicNameValuePair("signature", signature ? "1" : "0"));
 		params.add(new BasicNameValuePair("subcat", String.valueOf(p.getTopic().getSubcat())));
 
-		String response = innerGetResponse(FORM_EDIT_URI, params);
+		String response = null;
+		try
+		{
+			response = innerGetResponse(FORM_EDIT_URI, params);
+		}
+		catch (Exception e)
+		{
+			throw new MessageSenderException(context.getString(R.string.post_failed), e);
+		}
 		return getResponseCode(response);
 	}
 
-	public boolean deleteMessage(Post p, String hashCheck) throws UnsupportedEncodingException, IOException
+	public boolean deleteMessage(Post p, String hashCheck) throws MessageSenderException
 	{
 		List<NameValuePair> params = new ArrayList<NameValuePair>();
 		params.add(new BasicNameValuePair("hash_check", hashCheck));
@@ -125,7 +161,15 @@ public class HFRMessageSender
 		params.add(new BasicNameValuePair("pseudo", auth.getUser()));
 		params.add(new BasicNameValuePair("delete", "1"));
 
-		String response = innerGetResponse(FORM_EDIT_URI, params);
+		String response = null;
+		try
+		{
+			response = innerGetResponse(FORM_EDIT_URI, params);
+		}
+		catch (Exception e)
+		{
+			throw new MessageSenderException(context.getString(R.string.delete_failed), e);
+		}
 		return response.matches(".*Message effacé avec succès.*");
 	}
 	
@@ -137,7 +181,7 @@ public class HFRMessageSender
 	 * @return Le message indiquant si l'opération s'est bien passée
 	 * @throws Exception Si un problème survient
 	 */
-	public String setKeywords(String hashCheck, String code, String keywords) throws Exception
+	public String setKeywords(String hashCheck, String code, String keywords) throws MessageSenderException
 	{
 		List<NameValuePair> params = new ArrayList<NameValuePair>();
 		params.add(new BasicNameValuePair("modif0", "1"));
@@ -145,7 +189,15 @@ public class HFRMessageSender
 		params.add(new BasicNameValuePair("keywords0", keywords));
 		params.add(new BasicNameValuePair("hash_check", hashCheck));
 
-		String response = innerGetResponse(FORM_EDIT_KEYWORDS_URI, params);
+		String response = null;
+		try
+		{
+			response = innerGetResponse(FORM_EDIT_KEYWORDS_URI, params);
+		}
+		catch (Exception e)
+		{
+			throw new MessageSenderException(context.getString(R.string.keywords_failed), e);
+		}
 		return HFRDataRetriever.getSingleElement("<div\\s*class=\"hop\">\\s*(.*?)\\s*</div>", response);
 	}
 	
@@ -155,13 +207,21 @@ public class HFRMessageSender
 	 * @return Le message indiquant si l'opération s'est bien passée
 	 * @throws Exception Si un problème survient
 	 */
-	public String addFavorite(Post p) throws Exception
+	public String addFavorite(Post p) throws MessageSenderException
 	{
 		String url = FAVORITE_URI.replaceFirst("\\{\\$cat\\}", p.getTopic().getCategory().getRealId())
 		.replaceFirst("\\{\\$topic\\}", String.valueOf(p.getTopic().getId()))
 		.replaceFirst("\\{\\$post\\}", String.valueOf(p.getId()));
 		
-		String response = innerGetResponse(url);
+		String response = null;
+		try
+		{
+			response = innerGetResponse(url);
+		}
+		catch (Exception e)
+		{
+			throw new MessageSenderException(context.getString(R.string.favorite_failed), e);
+		}
 		return HFRDataRetriever.getSingleElement("<div\\s*class=\"hop\">\\s*(.*?)\\s*</div>", response);
 	}
 
@@ -210,7 +270,7 @@ public class HFRMessageSender
 		return sb.toString();		
 	}
 
-	private int getResponseCode(String response)
+	private ResponseCode getResponseCode(String response)
 	{
 		if (response.matches(".*Votre réponse a été postée avec succès.*"))
 		{
@@ -220,31 +280,31 @@ public class HFRMessageSender
 			{
 				return Integer.parseInt(m.group(1) != null ? m.group(1) : m.group(2));  
 			}*/
-			return POST_ADD_OK;
+			return ResponseCode.POST_ADD_OK;
 		}
 		else if (response.matches(".*Votre message a été posté avec succès.*"))
 		{
-			return TOPIC_NEW_OK;
+			return ResponseCode.TOPIC_NEW_OK;
 		}		
 		else if (response.matches(".*Votre message a été édité avec succès.*"))
 		{
-			return POST_EDIT_OK;
+			return ResponseCode.POST_EDIT_OK;
 		}
 		else if (response.matches(".*Désolé, le pseudo suivant n'existe pas.*"))
 		{
-			return MP_INVALID_RECIPIENT;
+			return ResponseCode.MP_INVALID_RECIPIENT;
 		}
 		else if (response.matches(".*Mot de passe incorrect !*"))
 		{
-			return POST_MDP_KO;
+			return ResponseCode.POST_MDP_KO;
 		}		
 		else if (response.matches(".*flood.*"))
 		{
-			return POST_FLOOD;
+			return ResponseCode.POST_FLOOD;
 		}
 		else
 		{
-			return POST_KO;
+			return ResponseCode.POST_KO;
 		}
 	}
 }

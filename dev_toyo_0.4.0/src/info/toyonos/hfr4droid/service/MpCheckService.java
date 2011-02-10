@@ -7,6 +7,7 @@ import info.toyonos.hfr4droid.activity.PostsActivity;
 import info.toyonos.hfr4droid.activity.TopicsActivity;
 import info.toyonos.hfr4droid.core.bean.Category;
 import info.toyonos.hfr4droid.core.bean.Topic;
+import info.toyonos.hfr4droid.core.data.DataRetrieverException;
 import info.toyonos.hfr4droid.core.data.MDDataRetriever;
 
 import java.util.Timer;
@@ -61,9 +62,9 @@ public class MpCheckService extends Service
 				{
 					nbMps = getDataRetriever().countNewMps(mp);
 				}
-				catch (Exception e)
+				catch (DataRetrieverException e)
 				{
-					Log.e(this.getClass().getSimpleName(), String.format(getString(R.string.error), e.getClass().getName(), e.getMessage()));
+					Log.e(HFR4droidApplication.TAG, HFR4droidActivity.getMessage(e, null));
 				}
 
 				if (nbMps > 0)

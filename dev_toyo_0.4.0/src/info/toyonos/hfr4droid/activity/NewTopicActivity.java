@@ -3,7 +3,9 @@ package info.toyonos.hfr4droid.activity;
 import info.toyonos.hfr4droid.R;
 import info.toyonos.hfr4droid.core.bean.Category;
 import info.toyonos.hfr4droid.core.bean.Topic.TopicType;
-import info.toyonos.hfr4droid.core.message.HFRMessageSender;
+import info.toyonos.hfr4droid.core.data.DataRetrieverException;
+import info.toyonos.hfr4droid.core.message.MessageSenderException;
+import info.toyonos.hfr4droid.core.message.HFRMessageSender.ResponseCode;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
@@ -157,23 +159,23 @@ public class NewTopicActivity extends NewPostUIActivity
 					}
 
 					@Override
-					protected int validateMessage() throws Exception
+					protected ResponseCode validateMessage() throws MessageSenderException, DataRetrieverException
 					{
 						return getMessageSender().newTopic(Category.MPS_CAT, getDataRetriever().getHashCheck(), postDest.getText().toString(), postSubject.getText().toString(), postContent.getText().toString(), isSignatureEnable());
 					}
 
 					@Override
-					protected boolean handleCodeResponse(Integer codeResponse)
+					protected boolean handleCodeResponse(ResponseCode code)
 					{
-						if (!super.handleCodeResponse(codeResponse))
+						if (!super.handleCodeResponse(code))
 						{
-							switch (codeResponse)
+							switch (code)
 							{	
-								case HFRMessageSender.TOPIC_NEW_OK: // New topic ok
+								case TOPIC_NEW_OK: // New topic ok
 									loadTopics(Category.MPS_CAT, TopicType.ALL, 1, false);
 									return true;
 									
-								case HFRMessageSender.MP_INVALID_RECIPIENT: // Invalid recipient
+								case MP_INVALID_RECIPIENT: // Invalid recipient
 									Toast.makeText(NewTopicActivity.this, getString(R.string.mp_invalid_recipient), Toast.LENGTH_SHORT).show();
 									return true;									
 								

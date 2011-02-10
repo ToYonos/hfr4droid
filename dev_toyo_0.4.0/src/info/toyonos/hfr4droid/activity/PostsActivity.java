@@ -1,5 +1,6 @@
 package info.toyonos.hfr4droid.activity;
 
+import info.toyonos.hfr4droid.HFR4droidException;
 import info.toyonos.hfr4droid.R;
 import info.toyonos.hfr4droid.core.bean.BasicElement;
 import info.toyonos.hfr4droid.core.bean.Category;
@@ -7,9 +8,11 @@ import info.toyonos.hfr4droid.core.bean.Post;
 import info.toyonos.hfr4droid.core.bean.Topic;
 import info.toyonos.hfr4droid.core.bean.Topic.TopicStatus;
 import info.toyonos.hfr4droid.core.bean.Topic.TopicType;
+import info.toyonos.hfr4droid.core.data.DataRetrieverException;
 import info.toyonos.hfr4droid.core.data.HFRUrlParser;
 import info.toyonos.hfr4droid.core.data.MDUrlParser;
-import info.toyonos.hfr4droid.core.message.HFRMessageSender;
+import info.toyonos.hfr4droid.core.message.MessageSenderException;
+import info.toyonos.hfr4droid.core.message.HFRMessageSender.ResponseCode;
 
 import java.text.SimpleDateFormat;
 import java.util.Collections;
@@ -32,7 +35,6 @@ import android.os.Bundle;
 import android.text.ClipboardManager;
 import android.text.Selection;
 import android.text.TextUtils.TruncateAt;
-import android.util.Log;
 import android.util.SparseIntArray;
 import android.view.Display;
 import android.view.GestureDetector;
@@ -574,7 +576,7 @@ public class PostsActivity extends NewPostUIActivity
 								QuickActionWindow.Item edit = new QuickActionWindow.Item(PostsActivity.this, "", android.R.drawable.ic_menu_edit, new PostCallBack(PostCallBackType.EDIT, postId, true) 
 								{
 									@Override
-									protected String doActionInBackground(Post p) throws Exception
+									protected String doActionInBackground(Post p) throws DataRetrieverException, MessageSenderException
 									{
 										String content = getDataRetriever().getPostContent(p);
 										return content.substring(0, content.length() - 1);
@@ -591,7 +593,7 @@ public class PostsActivity extends NewPostUIActivity
 								QuickActionWindow.Item delete = new QuickActionWindow.Item(PostsActivity.this, "", android.R.drawable.ic_menu_delete, new PostCallBack(PostCallBackType.DELETE, postId, true, true)
 								{									
 									@Override
-									protected String doActionInBackground(Post p) throws Exception
+									protected String doActionInBackground(Post p) throws DataRetrieverException, MessageSenderException
 									{
 										return getMessageSender().deleteMessage(p, getDataRetriever().getHashCheck()) ? "1" : "0";
 									}
@@ -616,7 +618,7 @@ public class PostsActivity extends NewPostUIActivity
 							QuickActionWindow.Item quote = new QuickActionWindow.Item(PostsActivity.this, "", R.drawable.ic_menu_quote, new PostCallBack(PostCallBackType.QUOTE, postId, true)
 							{									
 								@Override
-								protected String doActionInBackground(Post p) throws Exception
+								protected String doActionInBackground(Post p) throws DataRetrieverException, MessageSenderException
 								{
 									return getDataRetriever().getQuote(p);
 								}
@@ -635,7 +637,7 @@ public class PostsActivity extends NewPostUIActivity
 											new PostCallBack(quoteExists ? PostCallBackType.MULTIQUOTE_REMOVE : PostCallBackType.MULTIQUOTE_ADD, postId, false)
 							{								
 								@Override
-								protected String doActionInBackground(Post p) throws Exception
+								protected String doActionInBackground(Post p) throws DataRetrieverException, MessageSenderException
 								{
 									String data = "";
 									switch (type)
@@ -684,7 +686,7 @@ public class PostsActivity extends NewPostUIActivity
 							QuickActionWindow.Item addFavorite = new QuickActionWindow.Item(PostsActivity.this, "", R.drawable.ic_menu_star, new PostCallBack(PostCallBackType.FAVORITE, postId, true)
 							{									
 								@Override
-								protected String doActionInBackground(Post p) throws Exception
+								protected String doActionInBackground(Post p) throws DataRetrieverException, MessageSenderException
 								{
 									return getMessageSender().addFavorite(p);
 								}
@@ -768,10 +770,9 @@ public class PostsActivity extends NewPostUIActivity
 						}
 					}
 				}
-				catch (Exception e)
+				catch (DataRetrieverException e)
 				{
-					Log.e(this.getClass().getSimpleName(), String.format(getString(R.string.error), e.getClass().getName(), e.getMessage()));
-					Toast.makeText(PostsActivity.this, getString(R.string.error_dispatching_url, e.getClass().getSimpleName(), e.getMessage()), Toast.LENGTH_LONG).show();
+					error(getString(R.string.error_dispatching_url), e, true, false);
 				}
 			}
 
@@ -797,17 +798,10 @@ public class PostsActivity extends NewPostUIActivity
 						{
 							keywords = getDataRetriever().getKeywords(params[0]);
 						}
-						catch (final Exception e)
+						catch (DataRetrieverException e)
 						{
 							keywords = null;
-							Log.e(PostsActivity.this.getClass().getSimpleName(), String.format(getString(R.string.error), e.getClass().getName(), e.getMessage()));
-							runOnUiThread(new Runnable()
-							{
-								public void run()
-								{
-									Toast.makeText(PostsActivity.this, getString(R.string.error_retrieve_data, e.getClass().getSimpleName(), e.getMessage()), Toast.LENGTH_LONG).show();
-								}
-							});
+							error(e, true, true);
 						}
 						return keywords;
 					}
@@ -853,16 +847,9 @@ public class PostsActivity extends NewPostUIActivity
 										{
 											strResponse = getMessageSender().setKeywords(getDataRetriever().getHashCheck(), code, keywordsView.getText().toString());
 										} 
-										catch (final Exception e)
+										catch (HFR4droidException e) // MessageSenderException, DataRetrieverException
 										{
-											Log.e(PostsActivity.this.getClass().getSimpleName(), String.format(getString(R.string.error), e.getClass().getName(), e.getMessage()));
-											runOnUiThread(new Runnable()
-											{
-												public void run()
-												{
-													Toast.makeText(PostsActivity.this, getString(R.string.error_keywords, e.getClass().getSimpleName(), e.getMessage()), Toast.LENGTH_LONG).show();
-												}
-											});
+											error(e, true, true);
 										}
 										return strResponse;
 									}
@@ -1157,7 +1144,7 @@ public class PostsActivity extends NewPostUIActivity
 					}
 
 					@Override
-					protected int validateMessage() throws Exception
+					protected ResponseCode validateMessage() throws MessageSenderException, DataRetrieverException
 					{
 						if (postId != -1)
 						{
@@ -1172,20 +1159,20 @@ public class PostsActivity extends NewPostUIActivity
 					}
 
 					@Override
-					protected boolean handleCodeResponse(Integer codeResponse)
+					protected boolean handleCodeResponse(ResponseCode code)
 					{
-						if (!super.handleCodeResponse(codeResponse))
+						if (!super.handleCodeResponse(code))
 						{
-							switch (codeResponse)
+							switch (code)
 							{	
-								case HFRMessageSender.POST_EDIT_OK: // Edit ok
+								case POST_EDIT_OK: // Edit ok
 									postContent.setText("");
 									postDialog.dismiss();
 									topic.setLastReadPost(postId);
 									reloadPage();
 									return true;									
 		
-								case HFRMessageSender.POST_ADD_OK: // New post ok
+								case POST_ADD_OK: // New post ok
 									postContent.setText("");
 									postDialog.dismiss();
 									topic.setLastReadPost(BOTTOM_PAGE_ID);
@@ -1243,7 +1230,7 @@ public class PostsActivity extends NewPostUIActivity
 			this.confirm = confirm;
 		}
 
-		protected abstract String doActionInBackground(Post p) throws Exception;
+		protected abstract String doActionInBackground(Post p) throws DataRetrieverException, MessageSenderException;
 
 		protected abstract void onActionExecute(String data);
 
@@ -1293,26 +1280,10 @@ public class PostsActivity extends NewPostUIActivity
 				p.setTopic(topic);
 				data = doActionInBackground(p);
 			}
-			catch (final Exception e)
+			catch (final Exception e) // DataRetrieverException, MessageSenderException
 			{
 				data = null;
-				Log.e(PostsActivity.this.getClass().getSimpleName(), String.format(getString(R.string.error), e.getClass().getName(), e.getMessage()));
-				runOnUiThread(new Runnable()
-				{
-					public void run()
-					{
-						String error = "";
-						try
-						{
-							error = getString("error_" + type.getKey(), e.getClass().getSimpleName(), e.getMessage());
-						}
-						catch (Exception e2)
-						{
-							error =  getString(R.string.error_retrieve_data, e.getClass().getSimpleName(), e.getMessage()); 
-						}
-						Toast.makeText(PostsActivity.this, error, Toast.LENGTH_LONG).show();
-					}
-				});
+				error(e, true, true);
 			}
 			return data;
 		}

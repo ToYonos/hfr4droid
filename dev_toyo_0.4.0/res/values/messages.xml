@@ -1,16 +1,21 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-	<string name="error">Une erreur s\'est produite, %s : %s</string>
-	<string name="error_retrieve_data">Une erreur s\'est produite lors de la récupération des données, %s : %s</string>
-	<string name="error_delete">Une erreur s\'est produite lors de la suppression du post, %s : %s</string>
-	<string name="error_keywords">Une erreur s\'est produite lors de la validation des mots clés, %s : %s</string>
-	<string name="error_favorite">Une erreur s\'est produite lors de la pose du favori, %s : %s</string>
-	<string name="error_login_from_cache">Une erreur s\'est produite lors de l\'authentification via le cache, %s : %s</string>
-	<string name="error_login">Votre mot de passe ou nom d\'utilisateur n\'est pas valide !</string>
+	<string name="error_login_from_cache">Une erreur s\'est produite lors de l\'authentification via le cache</string>
+	<string name="error_login">Une erreur s\'est produite lors de l\'authentification</string>
+	<string name="wrong_login_or_password">Votre mot de passe ou nom d\'utilisateur n\'est pas valide !</string>
 	<string name="error_about">Impossible d\'afficher le contenu de cette page !</string>
 	<string name="error_settings">Cette valeur est incorrect !</string>
-	<string name="error_dispatching_url">Une erreur s\'est produite lors de l\'analyse de l\'url, %s : %s</string>
+	<string name="error_dispatching_url">Erreur lors de l\'analyse de l\'url</string>
 	<string name="invalid_url">Cette url du forum est invalide !</string>
+	<string name="server_maintenance">Serveur en cours de maintenance !</string>
+	<string name="error_dr_hash_check">Une erreur s\'est produite lors de la récupération du hash check</string>
+	<string name="error_dr_cats">Une erreur s\'est produite lors de la récupération des catégories</string>
+	<string name="error_dr_topics">Une erreur s\'est produite lors de la récupération des topics</string>
+	<string name="error_dr_posts">Une erreur s\'est produite lors de la récupération des posts</string>
+	<string name="error_dr_mps">Une erreur s\'est produite lors de la récupération des mps</string>
+	<string name="error_dr_smilies">Une erreur s\'est produite lors de la récupération des smileys</string>
+	<string name="error_dr_bbcode">Une erreur s\'est produite lors de la récupération du BBCode</string>
+	<string name="error_dr_keywords">Une erreur s\'est produite lors de la récupération des mots-clés</string>
 	
 	<string name="hfr">FORUM HardWare.fr</string>
 	
@@ -36,6 +41,7 @@
 	<string name="post_loading">Validation du message...</string>
 	<string name="post_add_failed">Impossible de poster ce message !</string>
 	<string name="post_edit_failed">Impossible de modifier ce message !</string>
+	<string name="post_failed">Impossible d\'envoyer ce message !</string>
 	<string name="post_flood">Tentative de flood spotted !</string>
 	<string name="post_wrong_password">Mauvais mot de passe, veuillez vous déconnecter puis reconnecter.</string>
 	<string name="mp_invalid_recipient">Désolé, le pseudo renseigné n\'existe pas !</string>
@@ -43,7 +49,9 @@
 	<string name="share_post_link_title">Partager le lien de ce post via :</string>
 	<string name="getting_keywords">Récupération des mots clés du smiley %s</string>
 	<string name="keywords_loading">Validation des mots clés...</string>
+	<string name="keywords_failed">Impossible de modifier les mots clés !</string>
 	<string name="favorite_loading">Ajout du favori...</string>
+	<string name="favorite_failed">Impossible de poser le favori !</string>
 
 	<string name="file_hfr_rehost">Sélectionnez le fichier à uploader</string>
 	<string name="loading_hfr_rehost">Upload en cours...</string>

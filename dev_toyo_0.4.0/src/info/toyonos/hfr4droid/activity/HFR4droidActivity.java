@@ -2,17 +2,17 @@ package info.toyonos.hfr4droid.activity;
 
 import info.toyonos.hfr4droid.HFR4droidApplication;
 import info.toyonos.hfr4droid.R;
+import info.toyonos.hfr4droid.core.auth.AuthenticationException;
 import info.toyonos.hfr4droid.core.auth.HFRAuthentication;
 import info.toyonos.hfr4droid.core.bean.Category;
 import info.toyonos.hfr4droid.core.bean.Post;
 import info.toyonos.hfr4droid.core.bean.Topic;
 import info.toyonos.hfr4droid.core.bean.Topic.TopicType;
+import info.toyonos.hfr4droid.core.data.DataRetrieverException;
 import info.toyonos.hfr4droid.core.data.MDDataRetriever;
-import info.toyonos.hfr4droid.core.data.ServerMaintenanceException;
 import info.toyonos.hfr4droid.core.message.HFRMessageSender;
 import info.toyonos.hfr4droid.service.MpCheckService;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -86,6 +86,69 @@ public abstract class HFR4droidActivity extends Activity
 	
 	protected abstract void setTitle();
 
+	protected void error(Exception e, boolean toast, boolean onUiThread)
+	{
+		error(null, e, toast, onUiThread);
+	}
+	
+	protected void error(Exception e, boolean toast)
+	{
+		error(null, e, toast, false);
+	}
+	
+	protected void error(Exception e)
+	{
+		error(null, e, false, false);
+	}
+	
+	protected void error(String msg, Exception e, boolean toast, boolean onUiThread)
+	{
+		final String logMsg = getMessage(e, msg);
+		Log.e(HFR4droidApplication.TAG, logMsg.toString(), e);
+
+		if (toast)
+		{
+			if (onUiThread)
+			{
+				runOnUiThread(new Runnable()
+				{
+					public void run()
+					{
+						Toast.makeText(HFR4droidActivity.this, logMsg.toString(), Toast.LENGTH_LONG).show();
+					}
+				});
+			}
+			else
+			{
+				Toast.makeText(HFR4droidActivity.this, logMsg.toString(), Toast.LENGTH_LONG).show();
+			}
+		}
+	}
+	
+	public static String getMessage(Exception e, String msg)
+	{
+		StringBuilder logMsg = new StringBuilder("");
+		if (msg != null)
+		{
+			logMsg.append(", ")
+			.append(e.getMessage().substring(0, 1).toLowerCase())
+			.append(e.getMessage().substring(1));
+		}
+		else
+		{
+			logMsg.append(e.getMessage());
+		}
+		if (e.getCause() != null)
+		{
+			logMsg.append(" (")
+			.append(e.getCause().getClass().getSimpleName())
+			.append(" : ")
+			.append(e.getCause().getMessage())
+			.append(")");
+		}
+		return logMsg.toString();
+	}
+	
 	@Override
 	protected void onCreate(Bundle savedInstanceState)
 	{
@@ -251,12 +314,12 @@ public abstract class HFR4droidActivity extends Activity
 		return ((HFR4droidApplication)getApplication()).getMessageSender();
 	}
 
-	protected boolean login(String user, String password) throws IOException, ClassNotFoundException 
+	protected boolean login(String user, String password) throws AuthenticationException
 	{
 		return getHFR4droidApplication().login(user, password);
 	}
 
-	protected boolean login() throws IOException, ClassNotFoundException
+	protected boolean login() throws AuthenticationException
 	{
 		return getHFR4droidApplication().login();
 	}
@@ -279,10 +342,9 @@ public abstract class HFR4droidActivity extends Activity
 			{
 				login();
 			}
-			catch (final Exception e)
+			catch (final AuthenticationException e)
 			{
-				Log.e(HFR4droidActivity.this.getClass().getSimpleName(), String.format(getString(R.string.error), e.getClass().getName(), e.getMessage()));
-				Toast.makeText(this, getString(R.string.error_login_from_cache, e.getClass().getSimpleName(), e.getMessage()), Toast.LENGTH_LONG).show();
+				error(e, true);
 			}
 		}
 	}
@@ -369,14 +431,14 @@ public abstract class HFR4droidActivity extends Activity
 						@Override
 						protected Boolean doInBackground(Void... params)
 						{
-							boolean isLoggedIn = false;
+							Boolean isLoggedIn = null;
 							try
 							{
 								isLoggedIn = login(user.getText().toString(), pass.getText().toString());
 							}
-							catch (final Exception e)
+							catch (AuthenticationException e)
 							{
-								Log.e(HFR4droidActivity.this.getClass().getSimpleName(), String.format(getString(R.string.error), e.getClass().getName(), e.getMessage()));
+								error(e, true, true);
 							}
 							return isLoggedIn;
 						}
@@ -384,16 +446,19 @@ public abstract class HFR4droidActivity extends Activity
 						@Override
 						protected void onPostExecute(Boolean isLoggedIn)
 						{
-							if (isLoggedIn)
+							if (isLoggedIn != null)
 							{
-								startMpCheckService();
-								reloadPage();
+								if (isLoggedIn)
+								{
+									startMpCheckService();
+									reloadPage();
+								}
+								else
+								{
+									Toast.makeText(HFR4droidActivity.this, getString(R.string.wrong_login_or_password), Toast.LENGTH_SHORT).show();	
+								}
 							}
-							else
-							{
-								Toast.makeText(HFR4droidActivity.this, getString(R.string.error_login), Toast.LENGTH_SHORT).show();
-								if (forceLogin) showLoginDialog(true);
-							}
+							if ((isLoggedIn == null || !isLoggedIn) && forceLogin) showLoginDialog(true);
 							progressDialog.dismiss();
 						}
 					}.execute();
@@ -442,7 +507,7 @@ public abstract class HFR4droidActivity extends Activity
 		new DataRetrieverAsyncTask<Category, Void>()
 		{	
 			@Override
-			protected List<Category> retrieveDataInBackground(Void... params) throws Exception
+			protected List<Category> retrieveDataInBackground(Void... params) throws DataRetrieverException
 			{
 				return getDataRetriever().getCats();
 			}
@@ -492,7 +557,7 @@ public abstract class HFR4droidActivity extends Activity
 		new DataRetrieverAsyncTask<Topic, Category>()
 		{	
 			@Override
-			protected List<Topic> retrieveDataInBackground(Category... cats) throws Exception
+			protected List<Topic> retrieveDataInBackground(Category... cats) throws DataRetrieverException
 			{
 				return getDataRetriever().getTopics(cats[0], type, pageNumber);
 			}
@@ -560,7 +625,7 @@ public abstract class HFR4droidActivity extends Activity
 		new DataRetrieverAsyncTask<Post, Topic>()
 		{			
 			@Override
-			protected List<Post> retrieveDataInBackground(Topic... topics) throws Exception
+			protected List<Post> retrieveDataInBackground(Topic... topics) throws DataRetrieverException
 			{
 				List<Post> posts = new ArrayList<Post>();
 				if (preLoadingPostsAsyncTask != null && preLoadingPostsAsyncTask.getPageNumber() == pageNumber)
@@ -568,11 +633,11 @@ public abstract class HFR4droidActivity extends Activity
 					switch (preLoadingPostsAsyncTask.getStatus()) 
 					{
 						case RUNNING:
-							Log.d("HFR4droid", "Page " + pageNumber + " deja en cours de recuperation...");
+							Log.d(HFR4droidApplication.TAG, "Page " + pageNumber + " deja en cours de recuperation...");
 							try
 							{
 								posts = preLoadingPostsAsyncTask.waitAndGet();
-								Log.d("HFR4droid", "...page " + pageNumber + " recuperee !");
+								Log.d(HFR4droidApplication.TAG, "...page " + pageNumber + " recuperee !");
 							}
 							catch (Exception e)
 							{
@@ -584,7 +649,7 @@ public abstract class HFR4droidActivity extends Activity
 							List<Post> tmpPosts = HFR4droidActivity.this.preLoadedPosts.get(pageNumber);
 							if ( preLoadedPosts != null)
 							{
-								Log.d("HFR4droid", "Page " + pageNumber + " recuperee dans le cache.");
+								Log.d(HFR4droidApplication.TAG, "Page " + pageNumber + " recuperee dans le cache.");
 								posts = tmpPosts;
 								preLoadedPosts.clear(); // On ne conserve pas le cache des posts
 							}
@@ -796,7 +861,7 @@ public abstract class HFR4droidActivity extends Activity
 		private boolean sameActivity;
 		private String noElementMsg;
 
-		protected abstract List<E> retrieveDataInBackground(P... params) throws Exception;
+		protected abstract List<E> retrieveDataInBackground(P... params) throws DataRetrieverException;
 
 		protected abstract void onPostExecuteSameActivity(List<E> elements) throws ClassCastException;
 
@@ -840,26 +905,9 @@ public abstract class HFR4droidActivity extends Activity
 			{
 				elements = retrieveDataInBackground(params);
 			}
-			catch (final ServerMaintenanceException sme)
+			catch (DataRetrieverException e)
 			{
-				runOnUiThread(new Runnable()
-				{
-					public void run()
-					{
-						Toast.makeText(HFR4droidActivity.this, sme.getMessage(), Toast.LENGTH_LONG).show();
-					}
-				});
-			}
-			catch (final Exception e)
-			{
-				Log.e(HFR4droidActivity.this.getClass().getSimpleName(), String.format(getString(R.string.error), e.getClass().getName(), e.getMessage()));
-				runOnUiThread(new Runnable()
-				{
-					public void run()
-					{
-						Toast.makeText(HFR4droidActivity.this, getString(R.string.error_retrieve_data, e.getClass().getSimpleName(), e.getMessage()), Toast.LENGTH_LONG).show();
-					}
-				});
+				error(e, true, true);
 			}
 			return elements;
 		}
@@ -879,7 +927,7 @@ public abstract class HFR4droidActivity extends Activity
 						}
 						catch (ClassCastException e)
 						{
-							Log.e(this.getClass().getName(), String.format(getString(R.string.error), e.getClass().getName(), e.getMessage()));
+							error(e);
 							throw new RuntimeException(e);
 						}
 					}
@@ -921,7 +969,7 @@ public abstract class HFR4droidActivity extends Activity
 		}
 
 		@Override
-		protected List<Post> retrieveDataInBackground(Topic... topics) throws Exception
+		protected List<Post> retrieveDataInBackground(Topic... topics) throws DataRetrieverException
 		{
 			return getDataRetriever().getPosts(topics[0], targetPageNumber);
 		}
@@ -935,7 +983,7 @@ public abstract class HFR4droidActivity extends Activity
 			if (!isFinished)
 			{
 				preLoadedPosts.put(targetPageNumber, elements);
-				Log.d("HFR4droid", "Page " + targetPageNumber + " chargee avec succes !");
+				Log.d(HFR4droidApplication.TAG, "Page " + targetPageNumber + " chargee avec succes !");
 			}
 		}
 

@@ -1,7 +1,10 @@
 package info.toyonos.hfr4droid.activity;
 
+import info.toyonos.hfr4droid.HFR4droidException;
 import info.toyonos.hfr4droid.R;
-import info.toyonos.hfr4droid.core.message.HFRMessageSender;
+import info.toyonos.hfr4droid.core.data.DataRetrieverException;
+import info.toyonos.hfr4droid.core.message.MessageSenderException;
+import info.toyonos.hfr4droid.core.message.HFRMessageSender.ResponseCode;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
@@ -9,7 +12,6 @@ import android.graphics.Color;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.text.Html;
-import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.View.OnClickListener;
@@ -145,17 +147,10 @@ public abstract class NewPostUIActivity extends HFR4droidActivity
 						{
 							data = getDataRetriever().getSmiliesByTag(smileyTag.getText().toString());
 						}
-						catch (final Exception e)
+						catch (DataRetrieverException e)
 						{
 							data = null;
-							Log.e(NewPostUIActivity.this.getClass().getSimpleName(), String.format(getString(R.string.error), e.getClass().getName(), e.getMessage()));
-							runOnUiThread(new Runnable()
-							{
-								public void run()
-								{
-									Toast.makeText(NewPostUIActivity.this, getString(R.string.error_retrieve_data, e.getClass().getSimpleName(), e.getMessage()), Toast.LENGTH_LONG).show();
-								}
-							});
+							error(e, true, true);
 						}
 						return data;
 					}
@@ -263,7 +258,7 @@ public abstract class NewPostUIActivity extends HFR4droidActivity
 
 	/* Classes internes */
 
-	protected abstract class ValidateMessageAsynckTask extends AsyncTask<Void, Void, Integer>
+	protected abstract class ValidateMessageAsynckTask extends AsyncTask<Void, Void, ResponseCode>
 	{
 		private ProgressDialog progressDialog;
 		
@@ -276,7 +271,7 @@ public abstract class NewPostUIActivity extends HFR4droidActivity
 		
 		protected abstract boolean canExecute(); 
 		
-		protected abstract int validateMessage() throws Exception;
+		protected abstract ResponseCode validateMessage() throws MessageSenderException, DataRetrieverException;
 		
 		@Override
 		protected void onPreExecute() 
@@ -292,40 +287,40 @@ public abstract class NewPostUIActivity extends HFR4droidActivity
 		}
 
 		@Override
-		protected Integer doInBackground(Void... params)
+		protected ResponseCode doInBackground(Void... params)
 		{
-			int codeResponse = HFRMessageSender.POST_KO;
+			ResponseCode code = ResponseCode.POST_KO_EXCEPTION;
 			try
 			{
-				codeResponse = validateMessage();
+				code = validateMessage();
 			}
-			catch (final Exception e)
+			catch (HFR4droidException e) // MessageSenderException, DataRetrieverException
 			{
-				Log.e(NewPostUIActivity.this.getClass().getSimpleName(), String.format(getString(R.string.error), e.getClass().getName(), e.getMessage()));
+				error(e, true, true);
 			}
-			return codeResponse;
+			return code;
 		}
 
 		@Override
-		protected void onPostExecute(Integer codeResponse)
+		protected void onPostExecute(ResponseCode code)
 		{
-			handleCodeResponse(codeResponse);
+			handleCodeResponse(code);
 			progressDialog.dismiss();
 		}
 
-		protected boolean handleCodeResponse(Integer codeResponse)
+		protected boolean handleCodeResponse(ResponseCode code)
 		{
-			switch (codeResponse)
+			switch (code)
 			{
-				case HFRMessageSender.POST_KO: // Undefined error
+				case POST_KO: // Undefined error
 					Toast.makeText(NewPostUIActivity.this, getString("post_" + (postId != -1 ? "edit" : "add") + "_failed"), Toast.LENGTH_SHORT).show();
 					return true;
 
-				case HFRMessageSender.POST_FLOOD: // Flood // TODO ajout autre flood
+				case POST_FLOOD: // Flood // TODO ajout autre flood
 					Toast.makeText(NewPostUIActivity.this, getString(R.string.post_flood), Toast.LENGTH_SHORT).show();
 					return true;
 					
-				case HFRMessageSender.POST_MDP_KO: // Wrong password
+				case POST_MDP_KO: // Wrong password
 					Toast.makeText(NewPostUIActivity.this, getString(R.string.post_wrong_password), Toast.LENGTH_SHORT).show();
 					return true;
 					

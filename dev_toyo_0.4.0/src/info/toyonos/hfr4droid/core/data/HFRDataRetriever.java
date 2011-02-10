@@ -1,5 +1,7 @@
 package info.toyonos.hfr4droid.core.data;
 
+import info.toyonos.hfr4droid.HFR4droidApplication;
+import info.toyonos.hfr4droid.R;
 import info.toyonos.hfr4droid.core.auth.HFRAuthentication;
 import info.toyonos.hfr4droid.core.bean.Category;
 import info.toyonos.hfr4droid.core.bean.Post;
@@ -11,6 +13,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URLEncoder;
@@ -28,7 +31,9 @@ import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.protocol.BasicHttpContext;
 import org.apache.http.protocol.HttpContext;
 
+import android.content.Context;
 import android.text.Html;
+import android.util.Log;
 
 /**
  * <p>Implémentation pour le forum de Hardware.fr du <code>MDDataRetriever</code></p>
@@ -51,32 +56,43 @@ public class HFRDataRetriever implements MDDataRetriever
 
 	public static final String MAINTENANCE 		= "Serveur en cours de maintenance. <br /><br />Veuillez nous excuser pour la gène occasionnée";
 	
+	private Context context;
 	private HFRAuthentication auth;
 	private String hashCheck;
 	private List<Category> cats;
 
-	public HFRDataRetriever()
+	public HFRDataRetriever(Context context)
 	{
+		this.context = context;
 		hashCheck = null;
 		cats = null;
 	}
 
-	public HFRDataRetriever(HFRAuthentication auth)
+	public HFRDataRetriever(Context context, HFRAuthentication auth)
 	{
+		this.context = context;
+		this.auth = auth;
 		hashCheck = null;
 		cats = null;
-		this.auth = auth;
 	}
 
 	/**
 	 * {@inheritDoc}
 	 */
-	public String getHashCheck() throws Exception
+	public String getHashCheck() throws DataRetrieverException
 	{
 		if (hashCheck == null)
 		{
 			// Dans ce cas on va le lire sur la page principale du forum (la page des cats)
-			String content = getAsString(CATS_URL);
+			String content = null;
+			try
+			{
+				content = getAsString(CATS_URL);
+			}
+			catch (Exception e)
+			{
+				throw new DataRetrieverException(context.getString(R.string.error_dr_hash_check), e);
+			}
 			hashCheck = getSingleElement("<input\\s*type=\"hidden\"\\s*name=\"hash_check\"\\s*value=\"(.+?)\" />", content);
 		}
 		return hashCheck;
@@ -93,10 +109,18 @@ public class HFRDataRetriever implements MDDataRetriever
 	/**
 	 * {@inheritDoc}
 	 */
-	public List<Category> getCats() throws Exception
+	public List<Category> getCats() throws DataRetrieverException
 	{
 		ArrayList<Category> cats = new ArrayList<Category>();
-		String content = getAsString(CATS_URL);
+		String content = null;
+		try
+		{
+			content = getAsString(CATS_URL);
+		}
+		catch (Exception e)
+		{
+			throw new DataRetrieverException(context.getString(R.string.error_dr_cats));
+		}
 		Pattern p;
 		Matcher m;
 		
@@ -141,7 +165,7 @@ public class HFRDataRetriever implements MDDataRetriever
 	/**
 	 * {@inheritDoc}
 	 */
-	public Category getCatByCode(String code) throws Exception
+	public Category getCatByCode(String code) throws DataRetrieverException
 	{
 		if (code == null) return null;
 		
@@ -156,7 +180,7 @@ public class HFRDataRetriever implements MDDataRetriever
 	/**
 	 * {@inheritDoc}
 	 */
-	public Category getCatById(long id) throws Exception
+	public Category getCatById(long id) throws DataRetrieverException
 	{		
 		if (cats == null) getCats();
 		for (Category cat : cats)
@@ -169,7 +193,7 @@ public class HFRDataRetriever implements MDDataRetriever
 	/**
 	 * {@inheritDoc}
 	 */
-	public List<Topic> getTopics(Category cat, TopicType type) throws Exception
+	public List<Topic> getTopics(Category cat, TopicType type) throws DataRetrieverException
 	{
 		return getTopics(cat, type, 1);
 	}
@@ -177,7 +201,7 @@ public class HFRDataRetriever implements MDDataRetriever
 	/**
 	 * {@inheritDoc}
 	 */
-	public List<Topic> getTopics(Category cat, TopicType type, int pageNumber) throws Exception
+	public List<Topic> getTopics(Category cat, TopicType type, int pageNumber) throws DataRetrieverException
 	{
 		String url = null;
 		if (cat.equals(Category.ALL_CATS))
@@ -193,10 +217,18 @@ public class HFRDataRetriever implements MDDataRetriever
 		return innerGetTopics(cat, url);
 	}
 
-	private List<Topic> innerGetTopics(Category cat, String url) throws Exception
+	private List<Topic> innerGetTopics(Category cat, String url) throws DataRetrieverException
 	{
 		ArrayList<Topic> topics = new ArrayList<Topic>();
-		String content = getAsString(url);
+		String content = null;
+		try
+		{
+			content = getAsString(url);
+		}
+		catch (Exception e)
+		{
+			throw new DataRetrieverException(context.getString(R.string.error_dr_topics), e);
+		}
 
 		Pattern p = Pattern.compile("(?:(?:<th\\s*class=\"padding\".*?<a\\s*href=\"/forum1\\.php\\?config=hfr\\.inc&amp;cat=([0-9]+).*?\"\\s*class=\"cHeader\">(.*?)</a></th>)" +
 									"|(?:<tr\\s*class=\"sujet\\s*ligne_booleen\\s*cBackCouleurTab[0-9]\\s*(ligne_sticky)?.*?" +
@@ -287,13 +319,21 @@ public class HFRDataRetriever implements MDDataRetriever
 	/**
 	 * {@inheritDoc}
 	 */
-	public List<Post> getPosts(Topic topic, int pageNumber) throws Exception
+	public List<Post> getPosts(Topic topic, int pageNumber) throws DataRetrieverException
 	{
 		ArrayList<Post> posts = new ArrayList<Post>();
 		String url = POSTS_URL.replaceFirst("\\{\\$cat\\}", topic.getCategory().getRealId())
 		.replaceFirst("\\{\\$topic\\}", String.valueOf(topic.getId()))
 		.replaceFirst("\\{\\$page\\}", String.valueOf(pageNumber));
-		String content = getAsString(url);
+		String content = null;
+		try
+		{
+			content = getAsString(url);
+		}
+		catch (Exception e)
+		{
+			throw new DataRetrieverException(context.getString(R.string.error_dr_posts), e);
+		}
 
 		Pattern p = Pattern.compile("(<tr.*?class=\"message\\s*(?:cBackCouleurTab[0-9])?(caseModoGeneric)?\".*?" +
 									"<a.*?href=\"#t([0-9]+)\".*?" +
@@ -359,12 +399,20 @@ public class HFRDataRetriever implements MDDataRetriever
 	/**
 	 * {@inheritDoc}
 	 */
-	public int countNewMps(Topic topic) throws Exception
+	public int countNewMps(Topic topic) throws DataRetrieverException
 	{
 		String url = TOPICS_URL.replaceFirst("\\{\\$cat\\}", "prive")
 		.replaceFirst("\\{\\$page\\}", "1")
 		.replaceFirst("\\{\\$type\\}", String.valueOf(TopicType.ALL.getValue()));
-		String content = getAsString(url);
+		String content = null;
+		try
+		{
+			content = getAsString(url);
+		}
+		catch (Exception e)
+		{
+			throw new DataRetrieverException(context.getString(R.string.error_dr_mps), e);
+		}
 
 		Pattern p = Pattern.compile("closedbp\\.gif\".*?" +
 									"<td.*?class=\"sujetCase3\".*?<a.*?class=\"cCatTopic\"\\s*title=\"Sujet n°([0-9]+)\">(.+?)</a></td>.*?" +
@@ -391,16 +439,33 @@ public class HFRDataRetriever implements MDDataRetriever
 	/**
 	 * {@inheritDoc}
 	 */
-	public String getSmiliesByTag(String tag) throws Exception
+	public String getSmiliesByTag(String tag) throws DataRetrieverException
 	{
-		String url = SMILIES_URL.replaceFirst("\\{\\$tag\\}",  URLEncoder.encode(tag, "UTF-8"));
-		return getAsString(url);
+		String encodedTag = tag;
+		try
+		{
+			encodedTag = URLEncoder.encode(tag, "UTF-8");
+		}
+		catch (UnsupportedEncodingException e1)
+		{
+			Log.w(HFR4droidApplication.TAG, e1);
+		}
+		
+		String url = SMILIES_URL.replaceFirst("\\{\\$tag\\}",  encodedTag);
+		try
+		{
+			return getAsString(url);
+		}
+		catch (Exception e)
+		{
+			throw new DataRetrieverException(context.getString(R.string.error_dr_smilies), e);
+		}
 	}
 
 	/**
 	 * {@inheritDoc}
 	 */
-	public String getQuote(Post post) throws Exception
+	public String getQuote(Post post) throws DataRetrieverException
 	{
 		String url = QUOTE_URL.replaceFirst("\\{\\$cat\\}", post.getTopic().getCategory().getRealId())
 		.replaceFirst("\\{\\$topic\\}", String.valueOf(post.getTopic().getId()))
@@ -411,7 +476,7 @@ public class HFRDataRetriever implements MDDataRetriever
 	/**
 	 * {@inheritDoc}
 	 */
-	public String getPostContent(Post post) throws Exception
+	public String getPostContent(Post post) throws DataRetrieverException
 	{
 		String url = EDIT_URL.replaceFirst("\\{\\$cat\\}", post.getTopic().getCategory().getRealId())
 		.replaceFirst("\\{\\$topic\\}", String.valueOf(post.getTopic().getId()))
@@ -419,10 +484,20 @@ public class HFRDataRetriever implements MDDataRetriever
 		return innerGetBBCode(url);
 	}
 
-	private String innerGetBBCode(String url) throws Exception
+	private String innerGetBBCode(String url) throws DataRetrieverException
 	{
 		StringBuilder result = new StringBuilder("");
-		String BBCode = getSingleElement("<textarea.*?name=\"content_form\".*?>(.*?)</textarea>", getAsString(url, true));
+		String content = null;
+		try
+		{
+			content = getAsString(url, true);
+		}
+		catch (Exception e)
+		{
+			throw new DataRetrieverException(context.getString(R.string.error_dr_bbcode), e);
+		}
+		
+		String BBCode = getSingleElement("<textarea.*?name=\"content_form\".*?>(.*?)</textarea>", content);
 		if (BBCode != null)
 		{
 			for (String line : BBCode.split("\n"))
@@ -437,10 +512,30 @@ public class HFRDataRetriever implements MDDataRetriever
 	/**
 	 * {@inheritDoc}
 	 */
-	public String getKeywords(String code) throws Exception
+	public String getKeywords(String code) throws DataRetrieverException
 	{
-		String url = KEYWORDS_URL.replaceFirst("\\{\\$code\\}", URLEncoder.encode(code, "UTF-8"));
-		String keywords = getSingleElement("name=\"keywords0\"\\s*value=\"(.*?)\"\\s*onkeyup", getAsString(url, true));
+		String encodedCode = code;
+		try
+		{
+			encodedCode = URLEncoder.encode(code, "UTF-8");
+		}
+		catch (UnsupportedEncodingException e1)
+		{
+			Log.w(HFR4droidApplication.TAG, e1);
+		}
+
+		String url = KEYWORDS_URL.replaceFirst("\\{\\$code\\}", encodedCode);
+		String content = null;
+		try
+		{
+			content = getAsString(url, true);
+		}
+		catch (Exception e)
+		{
+			throw new DataRetrieverException(context.getString(R.string.error_dr_keywords), e);
+		}
+		
+		String keywords = getSingleElement("name=\"keywords0\"\\s*value=\"(.*?)\"\\s*onkeyup", content);
 		return keywords;
 	}
 
@@ -509,7 +604,7 @@ public class HFRDataRetriever implements MDDataRetriever
 			}
 		}
 
-		if  (content.matches(MAINTENANCE)) throw new ServerMaintenanceException("Serveur en cours de maintenance :o");
+		if  (content.matches(MAINTENANCE)) throw new ServerMaintenanceException(context.getString(R.string.server_maintenance));
 		return content;
 	}
 

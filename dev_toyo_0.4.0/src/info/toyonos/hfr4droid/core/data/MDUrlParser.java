@@ -17,7 +17,7 @@ public interface MDUrlParser
 	 * @param url L'url à parser
 	 * @return true le parsing à réussi, false sinon
 	 */
-	public boolean parseUrl(String url) throws Exception;
+	public boolean parseUrl(String url) throws DataRetrieverException;
 	
 	/**
 	 * Renvoie le <code>BasicElement</code> correspondant aux données de l'url

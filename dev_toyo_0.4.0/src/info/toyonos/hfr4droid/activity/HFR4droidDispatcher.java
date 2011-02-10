@@ -4,10 +4,10 @@ import info.toyonos.hfr4droid.R;
 import info.toyonos.hfr4droid.core.bean.BasicElement;
 import info.toyonos.hfr4droid.core.bean.Category;
 import info.toyonos.hfr4droid.core.bean.Topic;
+import info.toyonos.hfr4droid.core.data.DataRetrieverException;
 import info.toyonos.hfr4droid.core.data.HFRUrlParser;
 import info.toyonos.hfr4droid.core.data.MDUrlParser;
 import android.os.Bundle;
-import android.util.Log;
 import android.widget.Toast;
 
 /**
@@ -52,10 +52,9 @@ public class HFR4droidDispatcher extends HFR4droidActivity
 				finish();
 			}
 		}
-		catch (Exception e)
+		catch (DataRetrieverException e)
 		{
-			Log.e(this.getClass().getSimpleName(), String.format(getString(R.string.error), e.getClass().getName(), e.getMessage()));
-			Toast.makeText(this, getString(R.string.error_dispatching_url, e.getClass().getSimpleName(), e.getMessage()), Toast.LENGTH_LONG).show();
+			error(getString(R.string.error_dispatching_url), e, true, false);
 			finish();
 		}
 	}
