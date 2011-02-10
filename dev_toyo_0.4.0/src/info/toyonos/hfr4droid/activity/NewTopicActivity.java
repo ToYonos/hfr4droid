@@ -85,7 +85,7 @@ public class NewTopicActivity extends NewPostUIActivity
 			finish();
 			return;
 		}		
-		addPostDialogButtons(layout);
+		addPostButtons(layout);
 	}
 	
 	@Override
@@ -203,5 +203,41 @@ public class NewTopicActivity extends NewPostUIActivity
 				finish();	
 			}
 		});
+	}
+	
+	/*smiliesDialog.setOnKeyListener(new DialogInterface.OnKeyListener()
+	{
+		public boolean onKey(DialogInterface dialog, int keyCode, KeyEvent event)
+		{
+			if (keyCode == KeyEvent.KEYCODE_BACK)
+			{
+				if (smiliesDialog.isShowing())
+				{
+					hideWikiSmiliesResults(layout);
+					return true;
+				}
+			}
+			return false;
+		}
+	});*/
+
+	@Override
+	protected ViewGroup getSmiliesLayout()
+	{
+		// TODO Renvoyer le layout root de la dialog (id ?)
+		return null;
+	}
+
+	@Override
+	protected void showWikiSmiliesResults(ViewGroup layout)
+	{
+		// TODO afficher la dialog
+	}
+	
+	@Override
+	protected void hideWikiSmiliesResults(ViewGroup layout)
+	{
+		super.hideWikiSmiliesResults(layout);
+		// TODO cacher la dialog
 	}
 }

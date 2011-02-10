@@ -1066,7 +1066,7 @@ public class PostsActivity extends NewPostUIActivity
 			LayoutInflater inflater = (LayoutInflater) getApplicationContext().getSystemService(LAYOUT_INFLATER_SERVICE);
 			final ViewGroup layout = (ViewGroup) inflater.inflate(R.layout.new_post_content, null);
 			postDialog.setContentView(layout);
-			addPostDialogButtons( layout);
+			addPostButtons(layout);
 			((EditText) postDialog.findViewById(R.id.InputPostContent)).setTextSize(getTextSize(14));
 
 			postDialog.setOnKeyListener(new DialogInterface.OnKeyListener()
@@ -1078,9 +1078,7 @@ public class PostsActivity extends NewPostUIActivity
 						View firstChild = layout.getChildAt(0);
 						if (postDialog.isShowing() && firstChild instanceof WebView)
 						{
-							layout.removeView(firstChild);
-							((WebView) firstChild).destroy();
-							layout.findViewById(R.id.PostContainer).setVisibility(View.VISIBLE);
+							hideWikiSmiliesResults(layout);
 							return true;
 						}
 					}
@@ -1091,7 +1089,7 @@ public class PostsActivity extends NewPostUIActivity
 			{
 				public void onDismiss(DialogInterface dialog)
 				{
-					// TODO Gérer tous les cas
+					// TODO Gérer tous les cas de fermeture de popup (webview ?)
 					if (type == PostCallBackType.EDIT)
 					{
 						EditText postContent = (EditText) postDialog.findViewById(R.id.InputPostContent);
@@ -1109,6 +1107,23 @@ public class PostsActivity extends NewPostUIActivity
 		EditText smileyTag = (EditText) postDialog.findViewById(R.id.inputSmileyTag);
 		smileyTag.setText("");
 		postDialog.show();		
+	}
+	
+	protected ViewGroup getSmiliesLayout()
+	{
+		return (ViewGroup) postDialog.findViewById(R.id.PostContainer).getParent();
+	}
+	
+	protected void showWikiSmiliesResults(ViewGroup layout)
+	{
+		layout.findViewById(R.id.PostContainer).setVisibility(View.GONE);
+	}
+	
+	@Override
+	protected void hideWikiSmiliesResults(ViewGroup layout)
+	{
+		super.hideWikiSmiliesResults(layout);
+		layout.findViewById(R.id.PostContainer).setVisibility(View.VISIBLE);
 	}
 	
 	@Override

@@ -23,7 +23,6 @@ import android.webkit.WebView;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.LinearLayout;
-import android.widget.TableLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -101,7 +100,7 @@ public abstract class NewPostUIActivity extends HFR4droidActivity
 		return hfrRehost;
 	}
 
-	protected void addPostDialogButtons(final ViewGroup layout)
+	protected void addPostButtons(final ViewGroup layout)
 	{
 		LinearLayout ll = (LinearLayout) layout.findViewById(R.id.FormatButtons);
 		ll.addView(new FormatButton(layout, SMILEY_KEY));
@@ -133,6 +132,69 @@ public abstract class NewPostUIActivity extends HFR4droidActivity
 				progressDialog.setIndeterminate(true);
 				new AsyncTask<Void, Void, String>()
 				{
+					protected WebView getWebView(final ViewGroup layout, final ViewGroup smiliesLayout, String smiliesData)
+					{
+						final WebView webView = new WebView(NewPostUIActivity.this);
+						webView.setLayoutParams(new LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT));
+						webView.setBackgroundColor(0);
+						webView.setVisibility(View.GONE); 
+						WebSettings settings = webView.getSettings();
+						settings.setDefaultTextEncodingName("UTF-8");
+						settings.setJavaScriptEnabled(true);
+						webView.addJavascriptInterface(new Object()
+						{
+							@SuppressWarnings("unused")
+							public void addSmiley(final String smiley)
+							{
+								runOnUiThread(new Runnable()
+								{
+									public void run()
+									{
+										insertBBCode((EditText) layout.findViewById(R.id.InputPostContent), " " + smiley + " ", "");
+										hideWikiSmiliesResults(smiliesLayout);
+									}
+								});
+							}
+						}, "HFR4Droid");
+
+						StringBuffer css = new StringBuffer("<style type=\"text/css\">");
+						css.append("img { margin: 5px }");
+						css.append("</style>");
+						StringBuffer js = new StringBuffer("<script type=\"text/javascript\">");
+						js.append("function putSmiley(code, src) { window.HFR4Droid.addSmiley(code); }");
+						js.append("</script>");
+
+						webView.setWebChromeClient(new WebChromeClient()
+						{
+							public void onProgressChanged(WebView view, int progress)
+							{
+								View lastChild = smiliesLayout.getChildAt(smiliesLayout.getChildCount() - 1);
+								if (progress > 0 && progressDialog.isShowing())
+								{
+									progressDialog.dismiss();
+									TextView smiliesLoading = new TextView(NewPostUIActivity.this);
+									smiliesLoading.setLayoutParams(new LayoutParams(LayoutParams.FILL_PARENT, LayoutParams.FILL_PARENT));
+									smiliesLoading.setTextColor(Color.BLACK);
+									float scale = getResources().getDisplayMetrics().density;
+									float dip = 20;
+									int pixel = (int) (dip * scale + 0.5f);
+									smiliesLoading.setPadding(pixel, pixel, pixel, pixel);
+									smiliesLoading.setText(R.string.smilies_loading);
+									smiliesLayout.addView(smiliesLoading);
+									showWikiSmiliesResults(smiliesLayout);
+								}
+								else if (progress > 15 && lastChild instanceof TextView)
+								{
+									smiliesLayout.removeView(lastChild);
+									webView.setVisibility(View.VISIBLE);
+								}
+							}
+						});
+
+						webView.loadData("<html><head>" + fixHTML(js.toString()) + fixHTML(css.toString()) + "</head><body>" + fixHTML(smiliesData.toString()) + "</body></html>", "text/html", "UTF-8");
+						return webView;
+					}
+					
 					@Override
 					protected void onPreExecute() 
 					{
@@ -163,68 +225,10 @@ public abstract class NewPostUIActivity extends HFR4droidActivity
 							progressDialog.dismiss();
 							return;
 						}
-
-						final TableLayout postContainer = ((TableLayout) layout.findViewById(R.id.PostContainer));
-						final WebView webView = new WebView(NewPostUIActivity.this);
-						webView.setLayoutParams(new LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT));
-						webView.setBackgroundColor(0);
-						webView.setVisibility(View.GONE); 
-						WebSettings settings = webView.getSettings();
-						settings.setDefaultTextEncodingName("UTF-8");
-						settings.setJavaScriptEnabled(true);
-						webView.addJavascriptInterface(new Object()
-						{
-							@SuppressWarnings("unused")
-							public void addSmiley(final String smiley)
-							{
-								runOnUiThread(new Runnable()
-								{
-									public void run()
-									{
-										insertBBCode((EditText) layout.findViewById(R.id.InputPostContent), " " + smiley + " ", "");
-										layout.removeView(webView);
-										webView.destroy();
-										postContainer.setVisibility(View.VISIBLE);
-									}
-								});
-							}
-						}, "HFR4Droid");
-
-						StringBuffer css = new StringBuffer("<style type=\"text/css\">");
-						css.append("img { margin: 5px }");
-						css.append("</style>");
-						StringBuffer js = new StringBuffer("<script type=\"text/javascript\">");
-						js.append("function putSmiley(code, src) { window.HFR4Droid.addSmiley(code); }");
-						js.append("</script>");
-
-						webView.setWebChromeClient(new WebChromeClient()
-						{
-							public void onProgressChanged(WebView view, int progress)
-							{
-								View lastChild = layout.getChildAt(layout.getChildCount() - 1);
-								if (progress > 0 && progressDialog.isShowing())
-								{
-									progressDialog.dismiss();
-									TextView smiliesLoading = new TextView(NewPostUIActivity.this);
-									smiliesLoading.setLayoutParams(new LayoutParams(LayoutParams.FILL_PARENT, LayoutParams.FILL_PARENT));
-									smiliesLoading.setTextColor(Color.BLACK);
-									float scale = getResources().getDisplayMetrics().density;
-									float dip = 20;
-									int pixel = (int) (dip * scale + 0.5f);
-									smiliesLoading.setPadding(pixel, pixel, pixel, pixel);
-									smiliesLoading.setText(R.string.smilies_loading);
-									layout.addView(smiliesLoading);
-									postContainer.setVisibility(View.GONE);
-								}
-								else if (progress > 15 && lastChild instanceof TextView)
-								{
-									layout.removeView(lastChild);
-									webView.setVisibility(View.VISIBLE);
-								}
-							}
-						});
-						webView.loadData("<html><head>" + fixHTML(js.toString()) + fixHTML(css.toString()) + "</head><body>" + fixHTML(data.toString()) + "</body></html>", "text/html", "UTF-8");
-						layout.addView(webView, 0);
+						
+						ViewGroup smiliesLayout = getSmiliesLayout();
+						WebView webView = getWebView(layout, smiliesLayout, data);
+						smiliesLayout.addView(webView, 0);
 					}
 				}.execute();
 			}
@@ -235,6 +239,17 @@ public abstract class NewPostUIActivity extends HFR4droidActivity
 
 		Button cancelButton = (Button) layout.findViewById(R.id.ButtonCancelAddPost);
 		setCancelButtonClickListener(cancelButton);
+	}
+	
+	protected abstract ViewGroup getSmiliesLayout();
+	
+	protected abstract void showWikiSmiliesResults(ViewGroup layout);
+	
+	protected void hideWikiSmiliesResults(ViewGroup layout)
+	{
+		WebView webView = (WebView) layout.getChildAt(0);
+		layout.removeView(webView);
+		webView.destroy();
 	}
 	
 	protected abstract void setOkButtonClickListener(Button okButton);
