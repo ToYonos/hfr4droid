@@ -15,12 +15,8 @@ import android.view.MenuInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.View.OnClickListener;
-import android.view.ViewGroup.LayoutParams;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.LinearLayout;
-import android.widget.ScrollView;
-import android.widget.TableRow;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -30,25 +26,17 @@ import android.widget.Toast;
  * @author ToYonos
  *
  */
-public class NewTopicActivity extends NewPostUIActivity
+public class NewTopicActivity extends NewPostGenericActivity
 {
-	private Category cat = null; 
+	private Category cat = null;
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState)
 	{
 		super.onCreate(savedInstanceState);
 		LayoutInflater inflater = (LayoutInflater) getApplicationContext().getSystemService(LAYOUT_INFLATER_SERVICE);
-		ViewGroup layout = (ViewGroup) inflater.inflate(R.layout.new_post, null);
-		ScrollView sv = (ScrollView) layout.findViewById(R.id.SVPostContent);
-		LinearLayout child = (LinearLayout) sv.getChildAt(0);
-		TableRow parent = (TableRow) sv.getParent();
-		parent.removeView(sv);
-		sv.removeView(child);
-		TableRow.LayoutParams tllp = new TableRow.LayoutParams(LayoutParams.FILL_PARENT, LayoutParams.WRAP_CONTENT);
-		tllp.span = 3;
-		child.setLayoutParams(tllp);
-		parent.addView(child);
+		ViewGroup layout = (ViewGroup) inflater.inflate(R.layout.new_topic, null);
+		removeUselessScrollView(layout);
 		setContentView(layout);
 		
 		Intent intent = getIntent();
@@ -68,7 +56,7 @@ public class NewTopicActivity extends NewPostUIActivity
 			}
 			if (bundle.get(Intent.EXTRA_SUBJECT) != null)
 			{
-				((TextView) findViewById(R.id.inputPostSubject)).setText(((String) bundle.get(Intent.EXTRA_SUBJECT)));
+				((TextView) findViewById(R.id.inputTopicSubject)).setText(((String) bundle.get(Intent.EXTRA_SUBJECT)));
 			}
 			if (bundle.get(Intent.EXTRA_STREAM) != null)
 			{
@@ -86,13 +74,6 @@ public class NewTopicActivity extends NewPostUIActivity
 			return;
 		}		
 		addPostButtons(layout);
-	}
-	
-	@Override
-	protected void onStart()
-	{
-		super.onStart();
-		if (!isLoggedIn()) showLoginDialog(true);	
 	}
 	
 	@Override
@@ -124,20 +105,8 @@ public class NewTopicActivity extends NewPostUIActivity
 	@Override
 	protected void setTitle()
 	{
-		final TextView topicTitle = (TextView) findViewById(R.id.NewPostTitle);
+		final TextView topicTitle = (TextView) findViewById(R.id.NewTopicTitle);
 		topicTitle.setText(isMpsCat(cat) ? getString(R.string.new_mp) : getString(R.string.new_topic, cat.getName()));
-	}
-	
-	@Override
-	protected void goBack()
-	{
-		finish();
-	}
-	
-	@Override
-	protected void onLogout()
-	{
-		loadCats(false);
 	}
 		
 	@Override
@@ -147,21 +116,39 @@ public class NewTopicActivity extends NewPostUIActivity
 		{
 			public void onClick(View v)
 			{
-				final EditText postDest = (EditText) findViewById(R.id.inputMpTo);
-				final EditText postSubject = (EditText) findViewById(R.id.inputPostSubject);
+				final EditText postRecipient = (EditText) findViewById(R.id.inputMpTo);
+				final EditText postSubject = (EditText) findViewById(R.id.inputTopicSubject);
 				final EditText postContent = (EditText) findViewById(R.id.InputPostContent);
 				new ValidateMessageAsynckTask()
 				{
 					@Override
 					protected boolean canExecute()
 					{
-						return postSubject.getText().length() != 0 && postContent.getText().length() != 0 && postDest.getText().length() != 0;
+						if (postRecipient.getText().length() == 0)
+						{
+							Toast.makeText(NewTopicActivity.this, R.string.missing_recipient, Toast.LENGTH_SHORT).show();
+							return false;
+						}
+
+						if (postSubject.getText().length() == 0)
+						{
+							Toast.makeText(NewTopicActivity.this, R.string.missing_subject, Toast.LENGTH_SHORT).show();
+							return false;
+						}
+
+						if (postContent.getText().length() == 0)
+						{
+							Toast.makeText(NewTopicActivity.this, R.string.missing_post_content, Toast.LENGTH_SHORT).show();
+							return false;
+						}						
+
+						return true;
 					}
 
 					@Override
 					protected ResponseCode validateMessage() throws MessageSenderException, DataRetrieverException
 					{
-						return getMessageSender().newTopic(Category.MPS_CAT, getDataRetriever().getHashCheck(), postDest.getText().toString(), postSubject.getText().toString(), postContent.getText().toString(), isSignatureEnable());
+						return getMessageSender().newTopic(Category.MPS_CAT, getDataRetriever().getHashCheck(), postRecipient.getText().toString(), postSubject.getText().toString(), postContent.getText().toString(), isSignatureEnable());
 					}
 
 					@Override
@@ -191,53 +178,5 @@ public class NewTopicActivity extends NewPostUIActivity
 				}.execute();
 			}
 		});
-	}
-	
-	@Override
-	protected void setCancelButtonClickListener(Button cancelButton)
-	{
-		cancelButton.setOnClickListener(new OnClickListener()
-		{
-			public void onClick(View v)
-			{
-				finish();	
-			}
-		});
-	}
-	
-	/*smiliesDialog.setOnKeyListener(new DialogInterface.OnKeyListener()
-	{
-		public boolean onKey(DialogInterface dialog, int keyCode, KeyEvent event)
-		{
-			if (keyCode == KeyEvent.KEYCODE_BACK)
-			{
-				if (smiliesDialog.isShowing())
-				{
-					hideWikiSmiliesResults(layout);
-					return true;
-				}
-			}
-			return false;
-		}
-	});*/
-
-	@Override
-	protected ViewGroup getSmiliesLayout()
-	{
-		// TODO Renvoyer le layout root de la dialog (id ?)
-		return null;
-	}
-
-	@Override
-	protected void showWikiSmiliesResults(ViewGroup layout)
-	{
-		// TODO afficher la dialog
-	}
-	
-	@Override
-	protected void hideWikiSmiliesResults(ViewGroup layout)
-	{
-		super.hideWikiSmiliesResults(layout);
-		// TODO cacher la dialog
 	}
 }

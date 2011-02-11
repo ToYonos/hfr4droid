@@ -17,6 +17,10 @@
 	<string name="error_dr_bbcode">Une erreur s\'est produite lors de la récupération du BBCode</string>
 	<string name="error_dr_keywords">Une erreur s\'est produite lors de la récupération des mots-clés</string>
 	
+	<string name="missing_subject">Le sujet est vide !</string>
+	<string name="missing_recipient">Le destinataire est vide !</string>
+	<string name="missing_post_content">Le contenu du post est vide !</string>
+	
 	<string name="hfr">FORUM HardWare.fr</string>
 	
 	<string name="getting_cats">Récupération des catégories</string>
@@ -26,7 +30,7 @@
 	<string name="getting_topics_favoris">Favoris...</string>
 	<string name="getting_mps">Messages de la page %d...</string>
 	<string name="getting_topic">Chargement du topic</string>
-	<string name="getting_posts">Posts de la page %d sur %d...</string>
+	<string name="getting_posts">Posts de la page %1$d sur %2$d...</string>
 	<string name="getting_posts_simple">Posts de la page %d...</string>
 	<string name="no_cat">Aucune catégorie n\'a été trouvée !</string>
 	<string name="no_topic">Aucun topic n\'a été trouvé !</string>

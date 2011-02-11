@@ -27,7 +27,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 /**
- * <p>Activity abstraite proposant des méthodes pour l'interface d'ajout / modification d'un post</p>
+ * <p>Activity abstraite proposant des méthodes pour l'interface d'ajout / modification d'un post / topic</p>
  * 
  * @author ToYonos
  *
@@ -248,8 +248,11 @@ public abstract class NewPostUIActivity extends HFR4droidActivity
 	protected void hideWikiSmiliesResults(ViewGroup layout)
 	{
 		WebView webView = (WebView) layout.getChildAt(0);
-		layout.removeView(webView);
-		webView.destroy();
+		if (webView != null)
+		{
+			layout.removeView(webView);
+			webView.destroy();
+		}
 	}
 	
 	protected abstract void setOkButtonClickListener(Button okButton);

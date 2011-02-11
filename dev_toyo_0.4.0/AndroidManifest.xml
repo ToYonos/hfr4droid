@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-      package="info.toyonos.hfr4droid"
-      android:versionCode="040"
-      android:versionName="0.4.0 beta1"
-      android:installLocation="auto">
+	package="info.toyonos.hfr4droid"
+	android:versionCode="040"
+	android:versionName="0.4.0 beta1"
+	android:installLocation="auto">
 
 	<uses-permission android:name="android.permission.INTERNET" />
 	<uses-permission android:name="android.permission.VIBRATE" />
@@ -12,25 +12,25 @@
 	<uses-sdk android:minSdkVersion="3" android:targetSdkVersion="8" />
 	<supports-screens android:smallScreens="true" android:anyDensity="true"/>
 
-    <application android:icon="@drawable/icon" android:label="@string/app_name" android:name="HFR4droidApplication" android:debuggable="true">
-        <activity android:label="@string/app_name" android:name=".activity.CategoriesActivity" android:configChanges="keyboard|keyboardHidden|orientation">
+	<application android:icon="@drawable/icon" android:label="@string/app_name" android:name="HFR4droidApplication" android:debuggable="true">
+		<activity android:label="@string/app_name" android:name=".activity.CategoriesActivity" android:configChanges="keyboard|keyboardHidden|orientation">
 			<intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
-        </activity>
+				<action android:name="android.intent.action.MAIN" />
+				<category android:name="android.intent.category.LAUNCHER" />
+			</intent-filter>
+		</activity>
 
-        <activity android:name=".activity.TopicsActivity" android:configChanges="keyboard|keyboardHidden|orientation" />
+		<activity android:name=".activity.TopicsActivity" android:configChanges="keyboard|keyboardHidden|orientation" />
 
-        <activity android:name=".activity.PostsActivity" android:configChanges="keyboard|keyboardHidden|orientation" />
+		<activity android:name=".activity.PostsActivity" android:configChanges="keyboard|keyboardHidden|orientation" />
 
-	    <activity android:name=".activity.HFR4droidDispatcher" android:noHistory="true">
-	        <intent-filter>
+		<activity android:name=".activity.HFR4droidDispatcher" android:noHistory="true">
+			<intent-filter>
 				<action android:name="android.intent.action.VIEW" />
 				<category android:name="android.intent.category.DEFAULT" />
 				<category android:name="android.intent.category.BROWSABLE" />
 				<data android:host="forum.hardware.fr" android:scheme="http" />
-	      	</intent-filter>
+			</intent-filter>
 		</activity>
 
 		<activity android:name=".activity.NewTopicActivity" android:noHistory="true" android:configChanges="keyboard|keyboardHidden|orientation">
@@ -42,7 +42,7 @@
 			</intent-filter>
 		</activity>
 
-        <activity android:name=".activity.HFR4droidPrefs"/>
+		<activity android:name=".activity.HFR4droidPrefs"/>
 		
 		<activity android:name=".activity.ImagePicker" android:icon="@drawable/hfrrehostnet" android:theme="@android:style/Theme.Translucent.NoTitleBar">
 			<intent-filter android:label="@string/upload_hfr_rehost">
@@ -50,7 +50,7 @@
 				<category android:name="android.intent.category.DEFAULT" />
 				<data android:mimeType="image/*" />
 			</intent-filter>
-	    </activity>
+		</activity>
 
 		<service android:name=".service.MpCheckService" />
 	</application>

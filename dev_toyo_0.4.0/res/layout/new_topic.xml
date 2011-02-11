@@ -13,7 +13,7 @@
     	android:layout_width="fill_parent"
     	android:layout_height="40dip">    	
     	<TextView
-	    	android:id="@+id/NewPostTitle"
+	    	android:id="@+id/NewTopicTitle"
 	    	android:gravity="center"		    	
 	    	android:textSize="15dip"
 		   	android:lines="1"
@@ -31,7 +31,41 @@
 		<LinearLayout
 			android:layout_width="fill_parent"
 			android:layout_height="wrap_content"
-			android:orientation="vertical">
+			android:orientation="vertical">		
+			<LinearLayout
+				android:layout_width="fill_parent"
+				android:layout_height="wrap_content"
+				android:paddingTop="8dip"
+				android:paddingBottom="4dip"
+				android:paddingLeft="25dip"
+				android:paddingRight="25dip">
+				<EditText
+					android:id="@+id/inputMpTo"
+					android:layout_width="200dip"
+					android:layout_height="wrap_content"
+					android:hint="@string/mp_to_hint"
+					android:lines="1"
+					android:inputType="text"
+					android:textSize="18dip"
+					android:padding="5dip" />
+			</LinearLayout>
+			<LinearLayout
+				android:layout_width="fill_parent"
+				android:layout_height="wrap_content"
+				android:paddingTop="4dip"
+				android:paddingBottom="3dip"
+				android:paddingLeft="25dip"
+				android:paddingRight="25dip">
+				<EditText
+					android:id="@+id/inputTopicSubject"
+					android:layout_width="fill_parent"
+					android:layout_height="wrap_content"
+					android:hint="@string/topic_subject_hint"
+					android:lines="1"
+					android:inputType="text"
+					android:textSize="18dip"
+					android:padding="5dip" />
+			</LinearLayout>	
 			<include layout="@layout/new_post_content" />
 		</LinearLayout>				
 	</ScrollView>

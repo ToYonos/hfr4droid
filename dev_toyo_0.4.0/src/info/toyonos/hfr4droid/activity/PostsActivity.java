@@ -1155,7 +1155,13 @@ public class PostsActivity extends NewPostUIActivity
 					@Override
 					protected boolean canExecute()
 					{
-						return postContent.getText().length() != 0;
+						if (postContent.getText().length() == 0)
+						{
+							Toast.makeText(PostsActivity.this, R.string.missing_post_content, Toast.LENGTH_SHORT).show();
+							return false;
+						}
+
+						return true;
 					}
 
 					@Override
