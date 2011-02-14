@@ -36,7 +36,6 @@ public class NewTopicActivity extends NewPostGenericActivity
 		super.onCreate(savedInstanceState);
 		LayoutInflater inflater = (LayoutInflater) getApplicationContext().getSystemService(LAYOUT_INFLATER_SERVICE);
 		ViewGroup layout = (ViewGroup) inflater.inflate(R.layout.new_topic, null);
-		removeUselessScrollView(layout);
 		setContentView(layout);
 		
 		Intent intent = getIntent();

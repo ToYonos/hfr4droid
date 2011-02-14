@@ -10,11 +10,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
 import android.view.View.OnClickListener;
-import android.view.ViewGroup.LayoutParams;
 import android.widget.Button;
-import android.widget.LinearLayout;
-import android.widget.ScrollView;
-import android.widget.TableRow;
 
 /**
  * <p>Activity abstraite permettant d'ajouter un topic ou un post</p>
@@ -48,21 +44,7 @@ public abstract class NewPostGenericActivity extends NewPostUIActivity
 		super.onPause();
 		if (smiliesDialog != null) smiliesDialog.dismiss();
 	}
-	
-	protected void removeUselessScrollView(View layout)
-	{
-		// Suppression de la ScrollView inutile (utilisée seulement quand new_post_content.xml est utilisé seul) 
-		ScrollView sv = (ScrollView) layout.findViewById(R.id.SVPostContent);
-		LinearLayout child = (LinearLayout) sv.getChildAt(0);
-		TableRow parent = (TableRow) sv.getParent();
-		parent.removeView(sv);
-		sv.removeView(child);
-		TableRow.LayoutParams tllp = new TableRow.LayoutParams(LayoutParams.FILL_PARENT, LayoutParams.WRAP_CONTENT);
-		tllp.span = 3;
-		child.setLayoutParams(tllp);
-		parent.addView(child);
-	}
-	
+
 	@Override
 	protected void goBack()
 	{

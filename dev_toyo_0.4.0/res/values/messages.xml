@@ -17,6 +17,8 @@
 	<string name="error_dr_bbcode">Une erreur s\'est produite lors de la récupération du BBCode</string>
 	<string name="error_dr_keywords">Une erreur s\'est produite lors de la récupération des mots-clés</string>
 	
+	<string name="warning_allcats_topicall">Vous ne pouvez pas consulter tous les drapeaux de toutes les catégories. Faites un appui long pour sélectionner un type de drapeau.</string>
+	
 	<string name="missing_subject">Le sujet est vide !</string>
 	<string name="missing_recipient">Le destinataire est vide !</string>
 	<string name="missing_post_content">Le contenu du post est vide !</string>
@@ -56,6 +58,8 @@
 	<string name="keywords_failed">Impossible de modifier les mots clés !</string>
 	<string name="favorite_loading">Ajout du favori...</string>
 	<string name="favorite_failed">Impossible de poser le favori !</string>
+	<string name="unread_loading">Marquage en non lu...</string>
+	<string name="unread_failed">Impossible de mettre ce mp en non lu !</string>
 
 	<string name="file_hfr_rehost">Sélectionnez le fichier à uploader</string>
 	<string name="loading_hfr_rehost">Upload en cours...</string>

@@ -700,6 +700,11 @@ public abstract class HFR4droidActivity extends Activity
 				{
 					bundle.putSerializable("fromTopicType", ((HFR4droidDispatcher) HFR4droidActivity.this).getUrlParser().getType());	
 				}
+				else if (HFR4droidActivity.this instanceof NewPostActivity)
+				{
+					bundle.putSerializable("fromTopicType", ((NewPostActivity) HFR4droidActivity.this).getFromType());
+					bundle.putBoolean("fromAllCats", ((NewPostActivity) HFR4droidActivity.this).isFromAllCats());
+				}
 				intent.putExtras(bundle);
 				startActivity(intent);
 			}

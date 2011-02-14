@@ -119,7 +119,7 @@ public class HFRDataRetriever implements MDDataRetriever
 		}
 		catch (Exception e)
 		{
-			throw new DataRetrieverException(context.getString(R.string.error_dr_cats));
+			throw new DataRetrieverException(context.getString(R.string.error_dr_cats), e);
 		}
 		Pattern p;
 		Matcher m;
@@ -233,7 +233,7 @@ public class HFRDataRetriever implements MDDataRetriever
 		Pattern p = Pattern.compile("(?:(?:<th\\s*class=\"padding\".*?<a\\s*href=\"/forum1\\.php\\?config=hfr\\.inc&amp;cat=([0-9]+).*?\"\\s*class=\"cHeader\">(.*?)</a></th>)" +
 									"|(?:<tr\\s*class=\"sujet\\s*ligne_booleen\\s*cBackCouleurTab[0-9]\\s*(ligne_sticky)?.*?" +
 									"<td.*?class=\"sujetCase1\\s*cBackCouleurTab[0-9]\\s*\".*?><img\\s*src=\".*?([A-Za-z0-9]+)\\.gif\".*?" +
-									"<td.*?class=\"sujetCase3\".*?>(?:<span\\s*class=\"red\"\\s*title=\".*?\">\\[non lu\\]</span>\\s*)?(?:<img\\s*src=\".*?flechesticky\\.gif\".*?/>\\s*)?(?:&nbsp;)?(?:<img\\s*src=\".*?(lock)\\.gif\".*?/>\\s*)?<a.*?class=\"cCatTopic\"\\s*title=\"Sujet n°([0-9]+)\">(.+?)</a></td>.*?" +
+									"<td.*?class=\"sujetCase3\".*?>(<span\\s*class=\"red\"\\s*title=\".*?\">\\[non lu\\]</span>\\s*)?(?:<img\\s*src=\".*?flechesticky\\.gif\".*?/>\\s*)?(?:&nbsp;)?(?:<img\\s*src=\".*?(lock)\\.gif\".*?/>\\s*)?<a.*?class=\"cCatTopic\"\\s*title=\"Sujet n°([0-9]+)\">(.+?)</a></td>.*?" +
 									"<td.*?class=\"sujetCase4\".*?(?:(?:<a.*?class=\"cCatTopic\">(.+?)</a>)|&nbsp;)</td>.*?" +
 									"<td.*?class=\"sujetCase5\".*?(?:(?:<a\\s*href=\".*?#t([0-9]+)\"><img.*?src=\".*?([A-Za-z0-9]+)\\.gif\"\\s*title=\".*?\\(p\\.([0-9]+)\\)\".*?/></a>)|&nbsp;)</td>.*?" +
 									"<td.*?class=\"sujetCase6\\s*cBackCouleurTab[0-9]\\s*\".*?>(?:<a\\s*rel=\"nofollow\"\\s*href=\"/profilebdd.*?>)?(.+?)(?:</a>)?</td>.*?" +
@@ -256,18 +256,19 @@ public class HFRDataRetriever implements MDDataRetriever
 			}
 			else
 			{
-				TopicStatus status = getStatusFromImgName(m.group(5) != null ? m.group(5) : (m.group(10) != null ? m.group(10) : m.group(4)));
-				int nbPages = m.group(8) != null ? Integer.parseInt(m.group(8)) : 1;
-				int lastReadPage = status == TopicStatus.NEW_MP ? nbPages : (m.group(11) != null ? Integer.parseInt(m.group(11)) : -1);
-				topics.add(new Topic(Integer.parseInt(m.group(6)),
-									m.group(7),
-									m.group(12),
+				TopicStatus status = getStatusFromImgName(m.group(6) != null ? m.group(6) : (m.group(11) != null ? m.group(11) : m.group(4)));
+				int nbPages = m.group(9) != null ? Integer.parseInt(m.group(9)) : 1;
+				int lastReadPage = status == TopicStatus.NEW_MP ? nbPages : (m.group(12) != null ? Integer.parseInt(m.group(12)) : -1);
+				topics.add(new Topic(Integer.parseInt(m.group(7)),
+									m.group(8),
+									m.group(13),
 									status,
 									lastReadPage,
-									m.group(9) != null ? Long.parseLong(m.group(9)) : -1,
-									Integer.parseInt(m.group(13)),
+									m.group(10) != null ? Long.parseLong(m.group(10)) : -1,
+									Integer.parseInt(m.group(14)),
 									nbPages,
 									m.group(3) != null,
+									m.group(5) != null,
 									currentCat
 									)
 				);
@@ -388,7 +389,8 @@ public class HFRDataRetriever implements MDDataRetriever
 		// Pour HFRUrlParser, récupération d'informations complémentaires
 		if (topic.getName() == null)
 		{
-			String topicTitle = getSingleElement("<input\\s*type=\"hidden\"\\s*name=\"sujet\"\\s*value=\"(.+?)\"\\s*/>", content);
+			//String topicTitle = getSingleElement("<input\\s*type=\"hidden\"\\s*name=\"sujet\"\\s*value=\"(.+?)\"\\s*/>", content);
+			String topicTitle =  HFRDataRetriever.getSingleElement("(?:&nbsp;)*(.*)", HFRDataRetriever.getSingleElement("([^>]+)(?:</a>)?</h1>", content));
 			if (topicTitle != null) topic.setName(topicTitle);
 			topic.setStatus(getSingleElement("(repondre\\.gif)", content) != null ? TopicStatus.NONE : TopicStatus.LOCKED);
 		}

@@ -17,6 +17,8 @@
 	    	android:gravity="center"		    	
 	    	android:textSize="15dip"
 		   	android:lines="1"
+		   	android:ellipsize="end"
+		   	android:scrollHorizontally="true"
 	    	android:paddingLeft="5dip"
 	    	android:paddingRight="5dip"
 	    	android:textStyle="bold"
@@ -24,15 +26,5 @@
 	    	android:layout_width="wrap_content" 
 	    	android:layout_height="wrap_content" />
 	</LinearLayout>
-	<ScrollView
-		android:layout_width="fill_parent"
-		android:layout_height="fill_parent"
-		android:scrollbarStyle="outsideOverlay">
-		<LinearLayout
-			android:layout_width="fill_parent"
-			android:layout_height="wrap_content"
-			android:orientation="vertical">
-			<include layout="@layout/new_post_content" />
-		</LinearLayout>				
-	</ScrollView>
+	<include layout="@layout/new_post_content" />
 </LinearLayout>

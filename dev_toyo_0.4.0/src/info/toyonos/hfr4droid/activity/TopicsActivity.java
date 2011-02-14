@@ -5,15 +5,18 @@ import info.toyonos.hfr4droid.core.bean.Category;
 import info.toyonos.hfr4droid.core.bean.Topic;
 import info.toyonos.hfr4droid.core.bean.Topic.TopicStatus;
 import info.toyonos.hfr4droid.core.bean.Topic.TopicType;
+import info.toyonos.hfr4droid.core.message.MessageSenderException;
 
 import java.util.ArrayList;
 import java.util.List;
 
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.content.res.ColorStateList;
 import android.graphics.Color;
 import android.graphics.Typeface;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.text.Html;
 import android.view.ContextMenu;
@@ -37,6 +40,7 @@ import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.SlidingDrawer;
 import android.widget.TextView;
+import android.widget.Toast;
 import android.widget.AdapterView.AdapterContextMenuInfo;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.SlidingDrawer.OnDrawerCloseListener;
@@ -126,9 +130,11 @@ public class TopicsActivity extends HFR4droidListActivity<Topic>
 				Topic currentTopic = (Topic) getListView().getAdapter().getItem(((AdapterContextMenuInfo)menuInfo).position);
 				if (currentTopic.getId() != -1)
 				{
-					inflater.inflate(R.menu.nav_simple, menu);
-					menu.setHeaderTitle(R.string.nav_go_to);
+					inflater.inflate(R.menu.topic, menu);
+					menu.setHeaderTitle(currentTopic.getName());
 					if (!isLoggedIn() || currentTopic.getLastReadPage() == -1) menu.removeItem(R.id.MenuNavLastReadPage);
+					if (!isLoggedIn() || !isMpsCat()) menu.removeItem(R.id.MenuNavSetUnread);
+					if (!isLoggedIn() || currentTopic.getStatus() == TopicStatus.LOCKED) menu.removeItem(R.id.MenuNavNewPost);
 				}
 				else
 				{
@@ -226,6 +232,56 @@ public class TopicsActivity extends HFR4droidListActivity<Topic>
 				loadTopics(currentTopic.getCategory(), TopicType.FAVORI);
 				return true;    				
 	
+			case R.id.MenuNavNewPost:
+				Intent intent = new Intent(TopicsActivity.this, NewPostActivity.class);
+				Bundle bundle = new Bundle();
+				bundle.putSerializable("topic", currentTopic);
+				if (cat.equals(Category.ALL_CATS)) bundle.putBoolean("allCats", true);
+				if (type != null) bundle.putSerializable("fromTopicType", type);
+				intent.putExtras(bundle);
+				startActivity(intent);
+				return true;
+				
+			case R.id.MenuNavSetUnread:
+				final ProgressDialog progressDialog = new ProgressDialog(TopicsActivity.this);
+				progressDialog.setMessage(getString(R.string.unread_loading));
+				progressDialog.setIndeterminate(true);
+				new AsyncTask<Void, Void, String>()
+				{
+					@Override
+					protected void onPreExecute() 
+					{
+						progressDialog.show();
+					}
+
+					@Override
+					protected String doInBackground(Void... params)
+					{
+						String strResponse = null;
+						try
+						{
+							strResponse = getMessageSender().setUnread(currentTopic);
+						} 
+						catch (MessageSenderException e)
+						{
+							error(e, true, true);
+						}
+						return strResponse;
+					}
+
+					@Override
+					protected void onPostExecute(String strResponse)
+					{
+						progressDialog.dismiss();
+						if (strResponse != null)
+						{
+							Toast.makeText(TopicsActivity.this, strResponse, Toast.LENGTH_SHORT).show();
+						}
+						reloadPage();
+					}
+				}.execute();
+				return true;
+				
 			default:
 				return false;
 		}
@@ -445,7 +501,7 @@ public class TopicsActivity extends HFR4droidListActivity<Topic>
 	@Override
 	protected void onLogout()
 	{
-		if (isMpsCat())
+		if (isMpsCat() || isAllCatsCat())
 		{
 			loadCats(false);
 		}
@@ -614,6 +670,9 @@ public class TopicsActivity extends HFR4droidListActivity<Topic>
 			LinearLayout ll = (LinearLayout) text1.getParent();
 			if (isMpsCat())
 			{
+				TextView unread = (TextView) ll.findViewById(R.id.ItemUnread);
+				unread.setVisibility(t.isUnread() ? View.VISIBLE : View.GONE);
+
 				TextView author = (TextView) ll.findViewById(R.id.ItemAuthor);
 				author.setTextSize(getTextSize(14));
 				author.setText(Html.fromHtml("<b>@" + t.getAuthor() + "</b> : "));
@@ -625,6 +684,7 @@ public class TopicsActivity extends HFR4droidListActivity<Topic>
 			}
 			else
 			{
+				ll.removeView(ll.findViewById(R.id.ItemUnread));
 				ll.removeView(ll.findViewById(R.id.ItemAuthor));
 			}
 

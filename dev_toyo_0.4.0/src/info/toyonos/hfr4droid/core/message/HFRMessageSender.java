@@ -39,6 +39,7 @@ public class HFRMessageSender
 	private static final String FORM_EDIT_URI = "http://forum.hardware.fr/bdd.php?config=hfr.inc";
 	private static final String FORM_EDIT_KEYWORDS_URI = "http://forum.hardware.fr/wikismilies.php?config=hfr.inc&option_wiki=0&withouttag=0";
 	private static final String FAVORITE_URI = "http://forum.hardware.fr/user/addflag.php?config=hfr.inc&cat={$cat}&post={$topic}&numreponse={$post}";
+	private static final String UNREAD_URI = "http://forum.hardware.fr/user/nonlu.php?config=hfr.inc&cat={$cat}&post={$topic}";
 
 	/**
 	 * Les codes des réponses
@@ -179,7 +180,7 @@ public class HFRMessageSender
 	 * @param code le code du smiley
 	 * @param keywords les nouveaux mots clés du smiley
 	 * @return Le message indiquant si l'opération s'est bien passée
-	 * @throws Exception Si un problème survient
+	 * @throws MessageSenderException Si un problème survient
 	 */
 	public String setKeywords(String hashCheck, String code, String keywords) throws MessageSenderException
 	{
@@ -205,7 +206,7 @@ public class HFRMessageSender
 	 * Ajoute un favori sur un post donné
 	 * @param p le post concerné
 	 * @return Le message indiquant si l'opération s'est bien passée
-	 * @throws Exception Si un problème survient
+	 * @throws MessageSenderException Si un problème survient
 	 */
 	public String addFavorite(Post p) throws MessageSenderException
 	{
@@ -221,6 +222,29 @@ public class HFRMessageSender
 		catch (Exception e)
 		{
 			throw new MessageSenderException(context.getString(R.string.favorite_failed), e);
+		}
+		return HFRDataRetriever.getSingleElement("<div\\s*class=\"hop\">\\s*(.*?)\\s*</div>", response);
+	}
+	
+	/**
+	 * Met un mp en non lu
+	 * @param t le topic concerné
+	 * @return Le message indiquant si l'opération s'est bien passée
+	 * @throws MessageSenderException Si un problème survient
+	 */
+	public String setUnread(Topic t) throws MessageSenderException
+	{
+		String url = UNREAD_URI.replaceFirst("\\{\\$cat\\}", t.getCategory().getRealId())
+		.replaceFirst("\\{\\$topic\\}", String.valueOf(t.getId()));
+		
+		String response = null;
+		try
+		{
+			response = innerGetResponse(url);
+		}
+		catch (Exception e)
+		{
+			throw new MessageSenderException(context.getString(R.string.unread_failed), e);
 		}
 		return HFRDataRetriever.getSingleElement("<div\\s*class=\"hop\">\\s*(.*?)\\s*</div>", response);
 	}

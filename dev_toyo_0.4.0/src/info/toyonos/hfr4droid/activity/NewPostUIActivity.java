@@ -46,6 +46,8 @@ public abstract class NewPostUIActivity extends HFR4droidActivity
 	private static final String PUCE_KEY		= "puce";
 	private static final String SPOILER_KEY		= "spoiler";
 
+	public static final long BOTTOM_PAGE_ID		= 999999999999999L;
+	
 	protected long postId = -1;
 	
 	@Override

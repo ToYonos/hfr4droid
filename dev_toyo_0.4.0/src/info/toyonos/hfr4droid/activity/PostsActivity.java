@@ -82,7 +82,6 @@ import com.naholyr.android.ui.QuickActionWindow.Item;
 public class PostsActivity extends NewPostUIActivity
 {
 	private static final String POST_LOADING 	= ">¤>¤>¤>¤>¤...post_loading...<¤<¤<¤<¤<¤";
-	public static final long BOTTOM_PAGE_ID		= 999999999999999L;
 
 	public static enum PostCallBackType
 	{
@@ -204,7 +203,7 @@ public class PostsActivity extends NewPostUIActivity
 	{
 		super.onDestroy();
 		WebView postsWV = getWebView();
-		if (posts != null) postsWV.destroy();
+		if (posts != null && postsWV != null) postsWV.destroy();
 		((WebView) findViewById(R.id.loading)).destroy();
 		posts.clear();
 	}
@@ -1015,7 +1014,11 @@ public class PostsActivity extends NewPostUIActivity
 			public void onProgressChanged(WebView view, int progress)
 			{
 				progressBar.setProgress(progress);
-				if (progress > 15 && loading.getVisibility() == View.VISIBLE) loading.setVisibility(View.GONE);
+				if (progress > 15 && loading.getVisibility() == View.VISIBLE)
+				{
+					loading.setVisibility(View.GONE);
+					parent.addView(webView);
+				}
 				if (progress == 100)
 				{
 					if (currentScrollY != -1)
@@ -1047,7 +1050,6 @@ public class PostsActivity extends NewPostUIActivity
 			oldWebView.destroy();
 			parent.removeView(oldWebView);
 		}
-		parent.addView(webView);
 		if (refresh) updateButtonsStates();
 	}
 
@@ -1062,7 +1064,7 @@ public class PostsActivity extends NewPostUIActivity
 		{
 			postDialog = new Dialog(this);
 			postDialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
-			postDialog.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE);
+			postDialog.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_PAN);
 			LayoutInflater inflater = (LayoutInflater) getApplicationContext().getSystemService(LAYOUT_INFLATER_SERVICE);
 			final ViewGroup layout = (ViewGroup) inflater.inflate(R.layout.new_post_content, null);
 			postDialog.setContentView(layout);

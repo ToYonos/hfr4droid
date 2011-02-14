@@ -72,13 +72,13 @@ public class Topic extends BasicElement
 	private int nbPosts;
 	private int nbPages;
 	private boolean sticky;
+	private boolean unread;
 	private Category category;
 	private int subcat;
 
 	public Topic(long id)
 	{
-		super(id);
-		this.name = null;
+		super(id, "undefined");
 		this.author = "undefined";
 		this.status = TopicStatus.NONE;
 		this.lastReadPage = -1;
@@ -86,27 +86,20 @@ public class Topic extends BasicElement
 		this.nbPosts = -1;
 		this.nbPages = -1;
 		this.sticky = false;
+		this.unread = false;
 		this.category = null;
 		this.subcat = -1;
 	}
 
 	public Topic(long id, String name)
 	{
-		super(id, name);
-		this.author = "undefined";
-		this.status = TopicStatus.NONE;
-		this.lastReadPage = -1;
-		this.lastReadPost = -1;
-		this.nbPosts = -1;
-		this.nbPages = -1;
-		this.sticky = false;
-		this.category = null;
-		this.subcat = -1;
+		this(id);
+		this.name = name;
 	}
 
-	public Topic(int id, String name, String author, TopicStatus status, int lastReadPage, long lastReadPost, int nbPosts, int nbPages, boolean sticky, Category category)
+	public Topic(int id, String name, String author, TopicStatus status, int lastReadPage, long lastReadPost, int nbPosts, int nbPages, boolean sticky, boolean unread, Category category)
 	{
-		this(id, name);
+		super(id, name);
 		this.status = status;
 		this.author = author;
 		this.lastReadPage = lastReadPage;
@@ -114,7 +107,9 @@ public class Topic extends BasicElement
 		this.nbPosts = nbPosts;
 		this.nbPages = nbPages;
 		this.sticky = sticky;
+		this.unread = unread;
 		this.category = category;
+		this.subcat = -1;
 	}
 
 	public TopicStatus getStatus()
@@ -194,6 +189,16 @@ public class Topic extends BasicElement
 	public void setSticky(boolean sticky)
 	{
 		this.sticky = sticky;
+	}
+
+	public boolean isUnread()
+	{
+		return unread;
+	}
+
+	public void setUnread(boolean unread)
+	{
+		this.unread = unread;
 	}
 
 	public int getSubcat() 

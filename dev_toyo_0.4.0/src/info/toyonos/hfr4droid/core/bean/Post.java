@@ -36,15 +36,8 @@ public class Post extends BasicElement
 
 	public Post(long id, String content)
 	{
-		super(id, content);
-		this.pseudo = null;
-		this.avatarUrl = null;
-		this.date = null;
-		this.lastEdition = null;
-		this.nbCitations = 0;
-		this.isMine = false;
-		this.isModo = false;
-		this.topic = null;
+		this(id);
+		this.name = content;
 	}
 
 	public Post(int id, String content, String pseudo, String avatar, Date date, Date lastEdition, int nbCitations, boolean isMine, boolean isModo, Topic topic)
