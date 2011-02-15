@@ -160,6 +160,10 @@ public class NewTopicActivity extends NewPostGenericActivity
 								case TOPIC_NEW_OK: // New topic ok
 									loadTopics(Category.MPS_CAT, TopicType.ALL, 1, false);
 									return true;
+								
+								case TOPIC_FLOOD: // Flood
+									Toast.makeText(NewTopicActivity.this, getString(R.string.topic_flood), Toast.LENGTH_SHORT).show();
+									return true;
 									
 								case MP_INVALID_RECIPIENT: // Invalid recipient
 									Toast.makeText(NewTopicActivity.this, getString(R.string.mp_invalid_recipient), Toast.LENGTH_SHORT).show();

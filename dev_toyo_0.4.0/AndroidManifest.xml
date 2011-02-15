@@ -33,7 +33,7 @@
 			</intent-filter>
 		</activity>
 
-		<activity android:name=".activity.NewTopicActivity" android:noHistory="true" android:configChanges="keyboard|keyboardHidden|orientation" android:windowSoftInputMode="adjustPan">
+		<activity android:name=".activity.NewTopicActivity" android:configChanges="keyboard|keyboardHidden|orientation" android:windowSoftInputMode="adjustPan">
 			<intent-filter android:label="@string/send_mp">
 				<action android:name="android.intent.action.SEND" />
 				<category android:name="android.intent.category.DEFAULT" />
@@ -42,7 +42,7 @@
 			</intent-filter>
 		</activity>
 
-		<activity android:name=".activity.NewPostActivity" android:noHistory="true" android:configChanges="keyboard|keyboardHidden|orientation" android:windowSoftInputMode="adjustPan" />
+		<activity android:name=".activity.NewPostActivity" android:configChanges="keyboard|keyboardHidden|orientation" android:windowSoftInputMode="adjustPan" />
 
 		<activity android:name=".activity.HFR4droidPrefs"/>
 		

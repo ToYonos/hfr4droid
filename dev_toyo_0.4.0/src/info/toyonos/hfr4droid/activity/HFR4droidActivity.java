@@ -528,6 +528,7 @@ public abstract class HFR4droidActivity extends Activity
 				bundle.putSerializable("cats", new ArrayList<Category>(cats));
 				intent.putExtras(bundle);
 				startActivity(intent);
+				if (HFR4droidActivity.this instanceof NewPostGenericActivity) finish();
 			}
 		}.execute(progressTitle, progressContent, noElement, sameActivity);
 	}
@@ -583,6 +584,7 @@ public abstract class HFR4droidActivity extends Activity
 				if (type != null) bundle.putSerializable("topicType", type);
 				intent.putExtras(bundle);
 				startActivity(intent);
+				if (HFR4droidActivity.this instanceof NewPostGenericActivity) finish();
 			}
 
 			@Override
@@ -707,6 +709,7 @@ public abstract class HFR4droidActivity extends Activity
 				}
 				intent.putExtras(bundle);
 				startActivity(intent);
+				if (HFR4droidActivity.this instanceof NewPostGenericActivity) finish();
 			}
 		}.execute(progressTitle, progressContent, noElement, sameActivity, topic);
 	}

@@ -50,6 +50,7 @@ public class HFRMessageSender
 		POST_ADD_OK,
 		TOPIC_NEW_OK,
 		POST_FLOOD,
+		TOPIC_FLOOD,
 		POST_MDP_KO,
 		MP_INVALID_RECIPIENT,
 		POST_KO,
@@ -322,9 +323,13 @@ public class HFRMessageSender
 		{
 			return ResponseCode.POST_MDP_KO;
 		}		
-		else if (response.matches(".*flood.*"))
+		else if (response.matches(".*réponses consécutives.*"))
 		{
 			return ResponseCode.POST_FLOOD;
+		}
+		else if (response.matches(".*nouveaux sujets consécutifs.*"))
+		{
+			return ResponseCode.TOPIC_FLOOD;
 		}
 		else
 		{
