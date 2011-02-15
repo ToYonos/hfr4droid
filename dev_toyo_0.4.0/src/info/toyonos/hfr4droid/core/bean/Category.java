@@ -1,5 +1,8 @@
 package info.toyonos.hfr4droid.core.bean;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * <p>Bean modélisant un catégorie</p>
  * 
@@ -24,19 +27,20 @@ public class Category extends BasicElement
 
 	public Category(long id, String name)
 	{
-		super(id, name);
-		this.code = null;
+		this(id);
+		this.name = name;
 	}
 
 	public Category(long id, String code, String name)
 	{
-		super(id, name);
+		this(id, name);
 		this.code = code;
 	}
 
 	public Category(Category c)
 	{
 		super(c);
+		this.code = new String(c.getCode());
 	}
 
 	public String getRealId()
@@ -52,5 +56,10 @@ public class Category extends BasicElement
 	public void setCode(String code)
 	{
 		this.code = code;
+	}
+	
+	public long getSubCatId()
+	{
+		return -1;
 	}
 }

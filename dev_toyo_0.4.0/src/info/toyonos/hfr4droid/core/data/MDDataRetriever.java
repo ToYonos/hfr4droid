@@ -2,6 +2,7 @@ package info.toyonos.hfr4droid.core.data;
 
 import info.toyonos.hfr4droid.core.bean.Category;
 import info.toyonos.hfr4droid.core.bean.Post;
+import info.toyonos.hfr4droid.core.bean.SubCategory;
 import info.toyonos.hfr4droid.core.bean.Topic;
 import info.toyonos.hfr4droid.core.bean.Topic.TopicType;
 
@@ -54,6 +55,14 @@ public interface MDDataRetriever
 	 * @throws DataRetrieverException Si un problème survient
 	 */
 	public Category getCatById(long id) throws DataRetrieverException;
+	
+	/**
+	 * Récupère les sous catégories d'une catégorie
+	 * @param cat La <code>Category</code> désirée
+	 * @return Une <code>List</code> de <code>SubCategory</code>
+	 * @throws DataRetrieverException Si un problème survient
+	 */
+	public List<SubCategory> getSubCats(Category cat) throws DataRetrieverException;
 	
 	/**
 	 * Récupère les topics d'un type donné d'une catégorie

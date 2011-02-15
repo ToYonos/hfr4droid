@@ -336,7 +336,7 @@ public abstract class NewPostUIActivity extends HFR4droidActivity
 					Toast.makeText(NewPostUIActivity.this, getString("post_" + (postId != -1 ? "edit" : "add") + "_failed"), Toast.LENGTH_SHORT).show();
 					return true;
 
-				case POST_FLOOD: // Flood // TODO ajout autre flood
+				case POST_FLOOD: // Flood
 					Toast.makeText(NewPostUIActivity.this, getString(R.string.post_flood), Toast.LENGTH_SHORT).show();
 					return true;
 					

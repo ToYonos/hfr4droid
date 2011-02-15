@@ -10,11 +10,12 @@ import android.text.Html;
  * @author ToYonos
  *
  */
-public abstract class BasicElement implements Serializable
+public class BasicElement implements Serializable
 {
 	private static final long serialVersionUID = -2107268897920840964L;
 
 	protected long id;
+
 	protected String name;
 
 	public BasicElement()
@@ -38,7 +39,7 @@ public abstract class BasicElement implements Serializable
 	public BasicElement(BasicElement element)
 	{
 		this.id = element.id;
-		this.name = element.name;
+		this.name = new String(element.name);
 	}
 
 	public long getId()
@@ -71,5 +72,5 @@ public abstract class BasicElement implements Serializable
 	public boolean equals(Object o)
 	{
 		return (o instanceof BasicElement) && ((BasicElement) o).getId() == this.id; 
-	}
+	}	
 }

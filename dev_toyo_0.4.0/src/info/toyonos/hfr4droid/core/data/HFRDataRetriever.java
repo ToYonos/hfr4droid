@@ -5,6 +5,7 @@ import info.toyonos.hfr4droid.R;
 import info.toyonos.hfr4droid.core.auth.HFRAuthentication;
 import info.toyonos.hfr4droid.core.bean.Category;
 import info.toyonos.hfr4droid.core.bean.Post;
+import info.toyonos.hfr4droid.core.bean.SubCategory;
 import info.toyonos.hfr4droid.core.bean.Topic;
 import info.toyonos.hfr4droid.core.bean.Topic.TopicStatus;
 import info.toyonos.hfr4droid.core.bean.Topic.TopicType;
@@ -19,7 +20,9 @@ import java.net.URISyntaxException;
 import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.GregorianCalendar;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -46,20 +49,21 @@ public class HFRDataRetriever implements MDDataRetriever
 {
 	public static final String BASE_URL			= "http://forum.hardware.fr";
 	public static final String CATS_URL			= BASE_URL + "/";
-	public static final String TOPICS_URL		= "http://forum.hardware.fr/forum1.php?config=hfr.inc&cat={$cat}&page={$page}&owntopic={$type}";
-	public static final String ALL_TOPICS_URL	= "http://forum.hardware.fr/forum1f.php?config=hfr.inc&owntopic={$type}";
-	public static final String POSTS_URL		= "http://forum.hardware.fr/forum2.php?config=hfr.inc&cat={$cat}&post={$topic}&page={$page}";
-	public static final String SMILIES_URL		= "http://forum.hardware.fr/message-smi-mp-aj.php?config=hfr.inc&findsmilies={$tag}";
-	public static final String QUOTE_URL		= "http://forum.hardware.fr/message.php?config=hfr.inc&cat={$cat}&post={$topic}&numrep={$post}";
-	public static final String EDIT_URL			= "http://forum.hardware.fr/message.php?config=hfr.inc&cat={$cat}&post={$topic}&numreponse={$post}";
-	public static final String KEYWORDS_URL		= "http://forum.hardware.fr/wikismilies.php?config=hfr.inc&detail={$code}";
+	public static final String SUBCATS_URL		= BASE_URL + "/message.php?&config=hfr.inc&cat={$cat}";
+	public static final String TOPICS_URL		= BASE_URL + "/forum1.php?config=hfr.inc&cat={$cat}&subcat={$subcat}&page={$page}&owntopic={$type}";
+	public static final String ALL_TOPICS_URL	= BASE_URL + "/forum1f.php?config=hfr.inc&owntopic={$type}";
+	public static final String POSTS_URL		= BASE_URL + "/forum2.php?config=hfr.inc&cat={$cat}&post={$topic}&page={$page}";
+	public static final String SMILIES_URL		= BASE_URL + "/message-smi-mp-aj.php?config=hfr.inc&findsmilies={$tag}";
+	public static final String QUOTE_URL		= BASE_URL + "/message.php?config=hfr.inc&cat={$cat}&post={$topic}&numrep={$post}";
+	public static final String EDIT_URL			= BASE_URL + "/message.php?config=hfr.inc&cat={$cat}&post={$topic}&numreponse={$post}";
+	public static final String KEYWORDS_URL		= BASE_URL + "/wikismilies.php?config=hfr.inc&detail={$code}";
 
 	public static final String MAINTENANCE 		= "Serveur en cours de maintenance. <br /><br />Veuillez nous excuser pour la gène occasionnée";
 	
 	private Context context;
 	private HFRAuthentication auth;
 	private String hashCheck;
-	private List<Category> cats;
+	private Map<Category, List<SubCategory>> cats;
 
 	public HFRDataRetriever(Context context)
 	{
@@ -73,7 +77,7 @@ public class HFRDataRetriever implements MDDataRetriever
 		this.context = context;
 		this.auth = auth;
 		hashCheck = null;
-		cats = null;
+		cats = null; // TODO cache disque
 	}
 
 	/**
@@ -126,7 +130,7 @@ public class HFRDataRetriever implements MDDataRetriever
 		
 		if (this.cats == null)
 		{
-			this.cats = new ArrayList<Category>();
+			this.cats = new HashMap<Category, List<SubCategory>>();
 			p = Pattern.compile("<tr.*?id=\"cat([0-9]+)\".*?" +
 								"<td.*?class=\"catCase1\".*?<b><a\\s*href=\"/hfr/([a-zA-Z0-9-]+)/.*?\"\\s*class=\"cCatTopic\">(.+?)</a></b>.*?" +
 								"</tr>"
@@ -135,10 +139,10 @@ public class HFRDataRetriever implements MDDataRetriever
 			while (m.find())
 			{
 				Category newCat = new Category(Integer.parseInt(m.group(1)), m.group(2), m.group(3));
-				this.cats.add(newCat);
+				this.cats.put(newCat, null);
 			}
 		}
-		cats.addAll(this.cats);
+		cats.addAll(this.cats.keySet());
 
 		Category mpCat = new Category(Category.MPS_CAT);		
 		String mpCatTitle = getSingleElement("<b><a\\s*class=\"cCatTopic red\"\\s*href=\".*?\">(Vous avez [0-9]+ nouveaux? messages? privés?)</a></b>", content);
@@ -170,7 +174,7 @@ public class HFRDataRetriever implements MDDataRetriever
 		if (code == null) return null;
 		
 		if (cats == null) getCats();
-		for (Category cat : cats)
+		for (Category cat : cats.keySet())
 		{
 			if (code.equals(cat.getCode())) return cat;
 		}
@@ -183,13 +187,50 @@ public class HFRDataRetriever implements MDDataRetriever
 	public Category getCatById(long id) throws DataRetrieverException
 	{		
 		if (cats == null) getCats();
-		for (Category cat : cats)
+		for (Category cat : cats.keySet())
 		{
 			if (id == cat.getId()) return cat;
 		}
 		return null;
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
+	public List<SubCategory> getSubCats(Category cat) throws DataRetrieverException
+	{
+		if (cats != null && cats.containsKey(cat))
+		{
+			List<SubCategory> currentSubCats = cats.get(cat);
+			if (currentSubCats == null)
+			{
+				currentSubCats = new ArrayList<SubCategory>();
+				String content = null;
+				try
+				{
+					String url = SUBCATS_URL.replaceFirst("\\{\\$cat\\}", cat.getRealId());
+					content = getAsString(url);
+				}
+				catch (Exception e)
+				{
+					throw new DataRetrieverException(context.getString(R.string.error_dr_subcats), e);
+				}
+
+				Pattern p = Pattern.compile("<option\\s*value=\"([0-9]+)\"\\s*>(.+?)</option>"
+						, Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
+				Matcher m = p.matcher(content);
+				while (m.find())
+				{
+					SubCategory subCat = new SubCategory(cat, Integer.parseInt(m.group(1)), m.group(2));
+					currentSubCats.add(subCat);
+				}
+				cats.put(cat, currentSubCats);
+			}
+			return currentSubCats;
+		}
+		return null;
+	}
+	
 	/**
 	 * {@inheritDoc}
 	 */
@@ -210,7 +251,9 @@ public class HFRDataRetriever implements MDDataRetriever
 		}
 		else
 		{
+			String subCatId = cat.getSubCatId() != -1 ? String.valueOf(cat.getSubCatId()) : "";
 			url = TOPICS_URL.replaceFirst("\\{\\$cat\\}", cat.getRealId())
+			.replaceFirst("\\{\\$subcat\\}", subCatId)
 			.replaceFirst("\\{\\$page\\}", String.valueOf(pageNumber))
 			.replaceFirst("\\{\\$type\\}", String.valueOf(type.getValue()));
 		}
@@ -274,6 +317,7 @@ public class HFRDataRetriever implements MDDataRetriever
 				);
 			}
 		}
+
 		return topics;
 	}
 

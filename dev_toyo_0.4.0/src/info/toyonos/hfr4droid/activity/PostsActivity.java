@@ -565,7 +565,7 @@ public class PostsActivity extends NewPostUIActivity
 
 							final StringBuilder postLink = new StringBuilder(getDataRetriever().getBaseUrl() + "/forum2.php?config=hfr.inc");
 							postLink.append("&cat=").append(topic.getCategory().getId());
-							postLink.append("&subcat=").append(topic.getSubcat());
+							//postLink.append("&subcat=").append(topic.getSubcat()); useless
 							postLink.append("&post=").append(topic.getId());
 							postLink.append("&page=").append(currentPageNumber);
 							postLink.append("#t").append(postId);

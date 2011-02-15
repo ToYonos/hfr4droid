@@ -10,6 +10,7 @@
 	<string name="server_maintenance">Serveur en cours de maintenance !</string>
 	<string name="error_dr_hash_check">Une erreur s\'est produite lors de la récupération du hash check</string>
 	<string name="error_dr_cats">Une erreur s\'est produite lors de la récupération des catégories</string>
+	<string name="error_dr_subcats">Une erreur s\'est produite lors de la récupération des sous-catégories</string>
 	<string name="error_dr_topics">Une erreur s\'est produite lors de la récupération des topics</string>
 	<string name="error_dr_posts">Une erreur s\'est produite lors de la récupération des posts</string>
 	<string name="error_dr_mps">Une erreur s\'est produite lors de la récupération des mps</string>
