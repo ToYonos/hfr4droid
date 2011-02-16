@@ -69,8 +69,14 @@ public class BasicElement implements Serializable
 	}
 
 	@Override
+	public int hashCode()
+	{
+		return (int) id;
+	}
+
+	@Override
 	public boolean equals(Object o)
 	{
 		return (o instanceof BasicElement) && ((BasicElement) o).getId() == this.id; 
-	}	
+	}
 }

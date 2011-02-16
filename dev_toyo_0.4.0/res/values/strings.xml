@@ -35,6 +35,9 @@
 	<string name="menu_refresh">Rafraîchir</string>
 	<string name="menu_back">Retour</string>
 	<string name="menu_add_topic">Nouveau topic</string>
+	<string name="menu_subcats">Une sous-catégorie</string>
+	<string name="menu_subcat_filter">Filter par sous-catégorie</string>
+	<string name="menu_subcat_none">Aucune</string>
 	
 	<string name="login_title">Connexion au forum</string>
 	<string name="login_pseudo">Pseudo :</string>

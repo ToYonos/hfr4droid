@@ -12,6 +12,8 @@ public class SubCategory extends Category
 {
 	private static final long serialVersionUID = 267571710469223260L;
 	
+	public static enum ToStringType{CAT, SUBCAT, FULL}
+	
 	private BasicElement subCat;
 
 	public SubCategory(Category c)
@@ -35,9 +37,28 @@ public class SubCategory extends Category
 	@Override
 	public String toString()
 	{
-		return subCat.name != null ? Html.fromHtml(name).toString() + " - " + super.toString() : super.toString();
+		return toString(ToStringType.FULL);
 	}
 
+	public String toString(ToStringType type)
+	{
+		String SCname = subCat.name != null ? Html.fromHtml(subCat.name).toString() : "";
+		switch (type)
+		{
+			case CAT:
+				return super.toString();
+
+			case SUBCAT:
+				return SCname;
+				
+			default:
+				StringBuilder sb = new StringBuilder(SCname);
+				if (subCat.name != null) sb.append(" - ");
+				sb.append(super.toString());
+				return sb.toString();
+		}
+	}
+	
 	@Override
 	public long getSubCatId()
 	{

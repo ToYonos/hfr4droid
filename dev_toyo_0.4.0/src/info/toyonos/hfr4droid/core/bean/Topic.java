@@ -74,7 +74,6 @@ public class Topic extends BasicElement
 	private boolean sticky;
 	private boolean unread;
 	private Category category;
-	private int subcat;
 
 	public Topic(long id)
 	{
@@ -88,7 +87,6 @@ public class Topic extends BasicElement
 		this.sticky = false;
 		this.unread = false;
 		this.category = null;
-		this.subcat = -1;
 	}
 
 	public Topic(long id, String name)
@@ -109,7 +107,6 @@ public class Topic extends BasicElement
 		this.sticky = sticky;
 		this.unread = unread;
 		this.category = category;
-		this.subcat = -1;
 	}
 
 	public TopicStatus getStatus()
@@ -199,15 +196,5 @@ public class Topic extends BasicElement
 	public void setUnread(boolean unread)
 	{
 		this.unread = unread;
-	}
-
-	public int getSubcat() 
-	{
-		return subcat;
-	}
-
-	public void setSubcat(int subcat) 
-	{
-		this.subcat = subcat;
 	}
 }

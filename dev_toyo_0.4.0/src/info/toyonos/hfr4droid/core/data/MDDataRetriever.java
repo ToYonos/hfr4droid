@@ -65,6 +65,15 @@ public interface MDDataRetriever
 	public List<SubCategory> getSubCats(Category cat) throws DataRetrieverException;
 	
 	/**
+	 * Récupère une <code>SubCategory</code> par son id
+	 * @param cat La catégorie ciblée
+	 * @param id L'id de la sous-catégorie
+	 * @return La <code>SubCategory</code> trouvée ou null si elle n'existe pas
+	 * @throws DataRetrieverException Si un problème survient
+	 */
+	public SubCategory getSubCatById(Category cat, long id) throws DataRetrieverException;
+	
+	/**
 	 * Récupère les topics d'un type donné d'une catégorie
 	 * @param cat La <code>Category</code> désirée
 	 * @param type Le type de topic (tous, drapeaux cyan, drapeau rouges ou favoris)

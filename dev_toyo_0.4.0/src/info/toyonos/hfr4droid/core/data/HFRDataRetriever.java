@@ -20,7 +20,7 @@ import java.net.URISyntaxException;
 import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.GregorianCalendar;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
@@ -130,7 +130,7 @@ public class HFRDataRetriever implements MDDataRetriever
 		
 		if (this.cats == null)
 		{
-			this.cats = new HashMap<Category, List<SubCategory>>();
+			this.cats = new LinkedHashMap<Category, List<SubCategory>>();
 			p = Pattern.compile("<tr.*?id=\"cat([0-9]+)\".*?" +
 								"<td.*?class=\"catCase1\".*?<b><a\\s*href=\"/hfr/([a-zA-Z0-9-]+)/.*?\"\\s*class=\"cCatTopic\">(.+?)</a></b>.*?" +
 								"</tr>"
@@ -199,16 +199,17 @@ public class HFRDataRetriever implements MDDataRetriever
 	 */
 	public List<SubCategory> getSubCats(Category cat) throws DataRetrieverException
 	{
-		if (cats != null && cats.containsKey(cat))
+		Category keyCat = getCatById(cat.getId());
+		if (keyCat != null)
 		{
-			List<SubCategory> currentSubCats = cats.get(cat);
+			List<SubCategory> currentSubCats = cats.get(keyCat);
 			if (currentSubCats == null)
 			{
 				currentSubCats = new ArrayList<SubCategory>();
 				String content = null;
 				try
 				{
-					String url = SUBCATS_URL.replaceFirst("\\{\\$cat\\}", cat.getRealId());
+					String url = SUBCATS_URL.replaceFirst("\\{\\$cat\\}", keyCat.getRealId());
 					content = getAsString(url);
 				}
 				catch (Exception e)
@@ -221,15 +222,32 @@ public class HFRDataRetriever implements MDDataRetriever
 				Matcher m = p.matcher(content);
 				while (m.find())
 				{
-					SubCategory subCat = new SubCategory(cat, Integer.parseInt(m.group(1)), m.group(2));
+					SubCategory subCat = new SubCategory(keyCat, Integer.parseInt(m.group(1)), m.group(2));
 					currentSubCats.add(subCat);
 				}
-				cats.put(cat, currentSubCats);
+				cats.put(keyCat, currentSubCats);
 			}
 			return currentSubCats;
 		}
 		return null;
 	}
+	
+	/**
+	 * {@inheritDoc}
+	 */
+	public SubCategory getSubCatById(Category cat, long id) throws DataRetrieverException
+	{		
+		if (cats == null) throw new DataRetrieverException(context.getString(R.string.no_cats_cache));
+
+		Category keyCat = getCatById(cat.getId());
+		if (cats.get(keyCat) == null) throw new DataRetrieverException(context.getString(R.string.no_subcat_cache, keyCat.toString()));
+		for (SubCategory subCat : cats.get(keyCat))
+		{
+			if (subCat.getSubCatId() == id) return subCat;
+		}
+		return null;
+	}
+
 	
 	/**
 	 * {@inheritDoc}
@@ -426,9 +444,6 @@ public class HFRDataRetriever implements MDDataRetriever
 		if (nbPages != null) topic.setNbPages(Integer.parseInt(nbPages));
 
 		hashCheck = getSingleElement("<input\\s*type=\"hidden\"\\s*name=\"hash_check\"\\s*value=\"(.+?)\" />", content);
-
-		String subCat = getSingleElement("<input\\s*type=\"hidden\"\\s*name=\"subcat\"\\s*value=\"([0-9]+)\"\\s*/>", content);
-		if (subCat != null) topic.setSubcat(Integer.parseInt(subCat));
 		
 		// Pour HFRUrlParser, récupération d'informations complémentaires
 		if (topic.getName() == null)

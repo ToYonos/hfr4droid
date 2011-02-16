@@ -7,6 +7,9 @@
 		android:icon="@drawable/ic_menu_goto">
 		<menu>
 			<item
+				android:title="@string/menu_subcats"
+				android:id="@+id/MenuNavSubCats" />
+			<item
 				android:title="@string/menu_refresh"
 				android:id="@+id/MenuNavRefresh" />	
 			<item

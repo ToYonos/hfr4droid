@@ -6,6 +6,7 @@ import info.toyonos.hfr4droid.core.auth.AuthenticationException;
 import info.toyonos.hfr4droid.core.auth.HFRAuthentication;
 import info.toyonos.hfr4droid.core.bean.Category;
 import info.toyonos.hfr4droid.core.bean.Post;
+import info.toyonos.hfr4droid.core.bean.SubCategory;
 import info.toyonos.hfr4droid.core.bean.Topic;
 import info.toyonos.hfr4droid.core.bean.Topic.TopicType;
 import info.toyonos.hfr4droid.core.data.DataRetrieverException;
@@ -560,6 +561,8 @@ public abstract class HFR4droidActivity extends Activity
 			@Override
 			protected List<Topic> retrieveDataInBackground(Category... cats) throws DataRetrieverException
 			{
+				// On charge les sous-cats pour les mettre en cache
+				getDataRetriever().getSubCats(cats[0]);
 				return getDataRetriever().getTopics(cats[0], type, pageNumber);
 			}
 
@@ -596,7 +599,7 @@ public abstract class HFR4droidActivity extends Activity
 					CategoriesActivity ca = (CategoriesActivity) HFR4droidActivity.this;
 					if (!ca.isCatsLoaded()) loadCats();
 				}
-				else if (HFR4droidActivity.this instanceof TopicsActivity && sameActivity)
+				else if (HFR4droidActivity.this instanceof TopicsActivity && sameActivity && !(cat instanceof SubCategory))
 				{
 					TopicsActivity pa = (TopicsActivity) HFR4droidActivity.this;
 					if (pa.getType() != TopicType.ALL)

@@ -20,6 +20,9 @@
 	
 	<string name="warning_allcats_topicall">Vous ne pouvez pas consulter tous les drapeaux de toutes les catégories. Faites un appui long pour sélectionner un type de drapeau.</string>
 	
+	<string name="no_cats_cache">Les catégories et sous-catégories ne sont pas en cache, veuillez relancer l\'application !</string>
+	<string name="no_subcat_cache">Les sous-catégories de %s ne sont pas en cache, veuillez relancer l\'application !</string>
+	
 	<string name="missing_subject">Le sujet est vide !</string>
 	<string name="missing_recipient">Le destinataire est vide !</string>
 	<string name="missing_post_content">Le contenu du post est vide !</string>

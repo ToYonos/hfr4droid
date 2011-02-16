@@ -2,9 +2,12 @@ package info.toyonos.hfr4droid.activity;
 
 import info.toyonos.hfr4droid.R;
 import info.toyonos.hfr4droid.core.bean.Category;
+import info.toyonos.hfr4droid.core.bean.SubCategory;
 import info.toyonos.hfr4droid.core.bean.Topic;
+import info.toyonos.hfr4droid.core.bean.SubCategory.ToStringType;
 import info.toyonos.hfr4droid.core.bean.Topic.TopicStatus;
 import info.toyonos.hfr4droid.core.bean.Topic.TopicType;
+import info.toyonos.hfr4droid.core.data.DataRetrieverException;
 import info.toyonos.hfr4droid.core.message.MessageSenderException;
 
 import java.util.ArrayList;
@@ -19,6 +22,7 @@ import android.graphics.Typeface;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.text.Html;
+import android.text.TextUtils.TruncateAt;
 import android.view.ContextMenu;
 import android.view.GestureDetector;
 import android.view.Gravity;
@@ -180,13 +184,43 @@ public class TopicsActivity extends HFR4droidListActivity<Topic>
 				return gestureDetector.onTouchEvent(event);
 			}
 		});
+		
+		if (!isMpsCat() && !isAllCatsCat())
+		{
+			TextView catTitle = (TextView) findViewById(R.id.CatTitle);
+			registerForContextMenu(catTitle);
+			catTitle.setOnCreateContextMenuListener(new OnCreateContextMenuListener()
+			{
+				public void onCreateContextMenu(ContextMenu menu, View v, ContextMenuInfo menuInfo)
+				{
+					// Gestion des sous-cats
+					menu.setHeaderTitle(R.string.menu_subcat_filter);
+					try
+					{
+						MenuItem itemNone = menu.add(Menu.NONE, -1, Menu.NONE, R.string.menu_subcat_none);
+						itemNone.setCheckable(cat.getSubCatId() == -1);
+						itemNone.setChecked(cat.getSubCatId() == -1);
+						for (SubCategory subCat : getDataRetriever().getSubCats(cat))
+						{
+							MenuItem item = menu.add(Menu.NONE, (int) subCat.getSubCatId(), Menu.NONE, subCat.toString(ToStringType.SUBCAT));
+							item.setCheckable(cat.equals(subCat));
+							item.setChecked(cat.equals(subCat));
+						}
+					}
+					catch (DataRetrieverException e)
+					{
+						error(e, true);
+					}
+				}
+			});
+		}
 	}
 
 	@Override
 	public boolean onContextItemSelected(MenuItem aItem)
 	{
 		AdapterContextMenuInfo menuInfo = (AdapterContextMenuInfo) aItem.getMenuInfo();
-		final Topic currentTopic = (Topic) getListView().getAdapter().getItem(menuInfo.position);
+		final Topic currentTopic = menuInfo != null ? (Topic) getListView().getAdapter().getItem(menuInfo.position) : null;
 
 		switch (aItem.getItemId())
 		{    	
@@ -283,6 +317,22 @@ public class TopicsActivity extends HFR4droidListActivity<Topic>
 				return true;
 				
 			default:
+				try
+				{
+					Category newCat = aItem.getItemId() != -1 ?
+							getDataRetriever().getSubCatById(cat, new Long(aItem.getItemId())) :
+							getDataRetriever().getCatById(cat.getId());
+					if (newCat != null)
+					{
+						cat = newCat;
+						reloadPage();
+						return true;
+					}
+				}
+				catch (DataRetrieverException e)
+				{
+					error(e, true);
+				}
 				return false;
 		}
 	}
@@ -298,6 +348,7 @@ public class TopicsActivity extends HFR4droidListActivity<Topic>
 		inflater.inflate(R.menu.topics, menu);
 		SubMenu menuNav = menu.findItem(R.id.MenuNav).getSubMenu();
 		menuNav.removeItem(R.id.MenuNavLastPage);
+
 		return true;
 	}
 
@@ -313,6 +364,7 @@ public class TopicsActivity extends HFR4droidListActivity<Topic>
 		drapeaux.setEnabled(isLoggedIn() && !isMpsCat());
 		mps.setVisible(isLoggedIn() && !isMpsCat());
 		mps.setEnabled(isLoggedIn() && !isMpsCat());
+
 		// Pour l'instant on a juste la création de mp
 		if (isMpsCat()) addTopic.setTitle(R.string.new_mp);
 		addTopic.setVisible(isLoggedIn() && isMpsCat());
@@ -325,15 +377,20 @@ public class TopicsActivity extends HFR4droidListActivity<Topic>
 		boolean myTopics = type == TopicType.CYAN || type == TopicType.ROUGE || type == TopicType.FAVORI;
 		MenuItem menuNav = menu.findItem(R.id.MenuNav);
 
-		menuNav.setVisible(!myTopics);
-		menuNav.setEnabled(!myTopics);
-
+		menuNav.setVisible(!isAllCatsCat());
+		menuNav.setEnabled(!isAllCatsCat());
+		
 		MenuItem menuNavRefresh =  menuNav.getSubMenu().findItem(R.id.MenuNavRefresh);
-		menuNavRefresh.setVisible(!myTopics && !isMpsCat() && isLoggedIn());
-		menuNavRefresh.setEnabled(!myTopics && !isMpsCat() && isLoggedIn());
+		menuNavRefresh.setVisible(!isMpsCat() && isLoggedIn());
+		menuNavRefresh.setEnabled(!isMpsCat() && isLoggedIn());
+
+		MenuItem menuNavSubCats =  menuNav.getSubMenu().findItem(R.id.MenuNavSubCats);
+		menuNavSubCats.setVisible(!isMpsCat() && !isAllCatsCat());
+		menuNavSubCats.setEnabled(!isMpsCat() && !isAllCatsCat());
+		
 		MenuItem refresh = menu.findItem(R.id.MenuRefresh);
-		refresh.setVisible(myTopics || isMpsCat() || !isLoggedIn());
-		refresh.setEnabled(myTopics || isMpsCat() || !isLoggedIn());	
+		refresh.setVisible(isMpsCat() || !isLoggedIn() || isAllCatsCat());
+		refresh.setEnabled(isMpsCat() || !isLoggedIn() || isAllCatsCat());	
 
 		MenuItem menuNavFP =  menuNav.getSubMenu().findItem(R.id.MenuNavFirstPage);
 		menuNavFP.setVisible(currentPageNumber != 1);
@@ -342,6 +399,14 @@ public class TopicsActivity extends HFR4droidListActivity<Topic>
 		MenuItem menuNavPP =  menuNav.getSubMenu().findItem(R.id.MenuNavPreviousPage);
 		menuNavPP.setVisible(currentPageNumber != 1);
 		menuNavPP.setEnabled(currentPageNumber != 1);
+		
+		MenuItem menuNavUP =  menuNav.getSubMenu().findItem(R.id.MenuNavUserPage);
+		menuNavUP.setVisible(!myTopics);
+		menuNavUP.setEnabled(!myTopics);
+		
+		MenuItem menuNavNP =  menuNav.getSubMenu().findItem(R.id.MenuNavNextPage);
+		menuNavNP.setVisible(!myTopics);
+		menuNavNP.setEnabled(!myTopics);		
 
 		return true;
 	}
@@ -359,30 +424,34 @@ public class TopicsActivity extends HFR4droidListActivity<Topic>
 					if (currentPageNumber < 1) currentPageNumber = 1;
 					reloadPage();
 					return true;
-	
+
 				case R.id.MenuDrapeauxCyan :
 					type = TopicType.CYAN;
 					reloadPage();
 					return true;
-	
+
 				case R.id.MenuDrapeauxRouges :
 					type = TopicType.ROUGE;
 					reloadPage();
 					return true; 
-	
+
 				case R.id.MenuDrapeauxFavoris :
 					type = TopicType.FAVORI;
 					reloadPage();
 					return true;
-					
+
 				case R.id.MenuAddTopic :
 					Intent intent = new Intent(TopicsActivity.this, NewTopicActivity.class);
 					Bundle bundle = new Bundle();
 					bundle.putSerializable("cat", cat);
 					intent.putExtras(bundle);
 					startActivity(intent);
-					return true;					
-	
+					return true;
+
+				case R.id.MenuNavSubCats :
+					openContextMenu(findViewById(R.id.CatTitle));
+					return true;
+					
 				default:
 					return false;
 			}
@@ -560,6 +629,16 @@ public class TopicsActivity extends HFR4droidListActivity<Topic>
 
 	private void attachEvents()
 	{
+		final TextView catTitle = (TextView) findViewById(R.id.CatTitle);
+		catTitle.setOnClickListener(new OnClickListener()
+		{	
+			public void onClick(View v)
+			{
+				 TextView catTitle = (TextView) v;
+				 catTitle.setEllipsize(catTitle.getEllipsize() == TruncateAt.MARQUEE ? TruncateAt.END : TruncateAt.MARQUEE);
+			}
+		});
+		
 		SlidingDrawer slidingDrawer = (SlidingDrawer) findViewById(R.id.Nav);
 		final ImageView toggleNav = (ImageView) ((LinearLayout) findViewById(R.id.NavToggle)).getChildAt(0);
 		slidingDrawer.setOnDrawerOpenListener(new OnDrawerOpenListener()
