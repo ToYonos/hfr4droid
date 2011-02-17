@@ -184,12 +184,12 @@ public class HFRDataRetriever implements MDDataRetriever
 		String content = getAsString(url);
 
 		Pattern p = Pattern.compile("(?:(?:<th\\s*class=\"padding\".*?<a\\s*href=\"/forum1\\.php\\?config=hfr\\.inc&amp;cat=([0-9]+).*?\"\\s*class=\"cHeader\">(.*?)</a></th>)" +
-									"|(?:<tr\\s*class=\"sujet\\s*ligne_booleen\\s*cBackCouleurTab[0-9]\\s*(ligne_sticky)?.*?" +
-									"<td.*?class=\"sujetCase1\\s*cBackCouleurTab[0-9]\\s*\".*?><img\\s*src=\".*?([A-Za-z0-9]+)\\.gif\".*?" +
+									"|(?:<tr\\s*class=\"sujet\\s*ligne_booleen.*?(ligne_sticky)?\".*?" +
+									"<td.*?class=\"sujetCase1.*?><img\\s*src=\".*?([A-Za-z0-9]+)\\.gif\".*?" +
 									"<td.*?class=\"sujetCase3\".*?>(?:<span\\s*class=\"red\"\\s*title=\".*?\">\\[non lu\\]</span>\\s*)?(?:<img\\s*src=\".*?flechesticky\\.gif\".*?/>\\s*)?(?:&nbsp;)?(?:<img\\s*src=\".*?(lock)\\.gif\".*?/>\\s*)?<a.*?class=\"cCatTopic\"\\s*title=\"Sujet n°([0-9]+)\">(.+?)</a></td>.*?" +
 									"<td.*?class=\"sujetCase4\".*?(?:(?:<a.*?class=\"cCatTopic\">(.+?)</a>)|&nbsp;)</td>.*?" +
 									"<td.*?class=\"sujetCase5\".*?(?:(?:<a\\s*href=\".*?#t([0-9]+)\"><img.*?src=\".*?([A-Za-z0-9]+)\\.gif\"\\s*title=\".*?\\(p\\.([0-9]+)\\)\".*?/></a>)|&nbsp;)</td>.*?" +
-									"<td.*?class=\"sujetCase6\\s*cBackCouleurTab[0-9]\\s*\".*?>(?:<a\\s*rel=\"nofollow\"\\s*href=\"/profilebdd.*?>)?(.+?)(?:</a>)?</td>.*?" +
+									"<td.*?class=\"sujetCase6.*?>(?:<a\\s*rel=\"nofollow\"\\s*href=\"/profilebdd.*?>)?(.+?)(?:</a>)?</td>.*?" +
 									"<td.*?class=\"sujetCase7\".*?>(.+?)</td>.*?" +
 									"</tr>))"
 									, Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
@@ -280,7 +280,7 @@ public class HFRDataRetriever implements MDDataRetriever
 		.replaceFirst("\\{\\$page\\}", String.valueOf(pageNumber));
 		String content = getAsString(url);
 
-		Pattern p = Pattern.compile("(<tr.*?class=\"message\\s*(?:cBackCouleurTab[0-9])?(caseModoGeneric)?\".*?" +
+		Pattern p = Pattern.compile("(<tr.*?class=\"message.*?" +
 									"<a.*?href=\"#t([0-9]+)\".*?" +
 									"<b.*?class=\"s2\">(?:<a.*?>)?(.*?)(?:</a>)?</b>.*?" +
 									"(?:(?:<div\\s*class=\"avatar_center\".*?><img src=\"(.*?)\"\\s*alt=\".*?\"\\s*/></div>)|</td>).*?" +
@@ -294,27 +294,28 @@ public class HFRDataRetriever implements MDDataRetriever
 		{
 			Matcher m2 = Pattern.compile("edit\\-in\\.gif").matcher(m.group(1));
 			boolean isMine = m2.find();
-			boolean isModo = m.group(2) != null;
-			String postContent = m.group(12);
-			posts.add(new Post(Integer.parseInt(m.group(3)),
+			m2 = Pattern.compile("messageModo").matcher(m.group(1));
+			boolean isModo = m2.find();
+			String postContent = m.group(11);
+			posts.add(new Post(Integer.parseInt(m.group(2)),
 								postContent,
+								m.group(3),
 								m.group(4),
-								m.group(5),
-								new GregorianCalendar(Integer.parseInt(m.group(8)), // Year
-										Integer.parseInt(m.group(7)) - 1, // Month
-										Integer.parseInt(m.group(6)), // Day
-										Integer.parseInt(m.group(9)), // Hour
-										Integer.parseInt(m.group(10)), // Minute
-										Integer.parseInt(m.group(11))  // Second
+								new GregorianCalendar(Integer.parseInt(m.group(7)), // Year
+										Integer.parseInt(m.group(6)) - 1, // Month
+										Integer.parseInt(m.group(5)), // Day
+										Integer.parseInt(m.group(8)), // Hour
+										Integer.parseInt(m.group(9)), // Minute
+										Integer.parseInt(m.group(10))  // Second
 								).getTime(),
-								m.group(14) != null ? new GregorianCalendar(Integer.parseInt(m.group(16)), // Year
-										Integer.parseInt(m.group(15)) - 1, // Month
-										Integer.parseInt(m.group(14)), // Day
-										Integer.parseInt(m.group(17)), // Hour
-										Integer.parseInt(m.group(18)), // Minute
-										Integer.parseInt(m.group(19))  // Second
+								m.group(13) != null ? new GregorianCalendar(Integer.parseInt(m.group(15)), // Year
+										Integer.parseInt(m.group(14)) - 1, // Month
+										Integer.parseInt(m.group(13)), // Day
+										Integer.parseInt(m.group(16)), // Hour
+										Integer.parseInt(m.group(17)), // Minute
+										Integer.parseInt(m.group(18))  // Second
 								).getTime() : null,
-								m.group(13) != null ? Integer.parseInt(m.group(13)) : 0,
+								m.group(12) != null ? Integer.parseInt(m.group(12)) : 0,
 								isMine,
 								isModo,
 								topic
