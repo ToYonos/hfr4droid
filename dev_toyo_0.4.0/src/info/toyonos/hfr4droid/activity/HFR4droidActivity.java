@@ -12,7 +12,7 @@ import info.toyonos.hfr4droid.core.bean.Topic.TopicType;
 import info.toyonos.hfr4droid.core.data.DataRetrieverException;
 import info.toyonos.hfr4droid.core.data.MDDataRetriever;
 import info.toyonos.hfr4droid.core.message.HFRMessageSender;
-import info.toyonos.hfr4droid.service.MpCheckService;
+import info.toyonos.hfr4droid.service.MpTimerCheckService;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -63,6 +63,7 @@ import android.widget.Toast;
 public abstract class HFR4droidActivity extends Activity
 {
 	public static final String PREF_WELCOME_SCREEN		= "PrefWelcomeScreen";
+	public static final String PREF_CHECK_MPS_ENABLE	= "PrefCheckMpsCatsScreenEnable";
 	public static final String PREF_TYPE_DRAPEAU		= "PrefTypeDrapeau";
 	public static final String PREF_SIGNATURE_ENABLE	= "PrefSignatureEnable";
 	public static final String PREF_DBLTAP_ENABLE		= "PrefDblTapEnable";
@@ -354,24 +355,24 @@ public abstract class HFR4droidActivity extends Activity
 	{
 		if (isLoggedIn() && isSrvMpEnable())
 		{
-			Intent intent = new Intent(this, MpCheckService.class); 
+			Intent intent = new Intent(this, MpTimerCheckService.class); 
 			startService(intent);
 		}
 	}
 
 	protected void stopMpCheckService()
 	{
-		Intent intent = new Intent(this, MpCheckService.class); 
+		Intent intent = new Intent(this, MpTimerCheckService.class); 
 		stopService(intent);
 	}
 
 	protected void clearNotifications()
 	{
-		if (MpCheckService.nbNotification > 0)
+		if (MpTimerCheckService.nbNotification > 0)
 		{
-			MpCheckService.nbNotification = 0;
+			MpTimerCheckService.nbNotification = 0;
 			NotificationManager notificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
-			notificationManager.cancel(MpCheckService.NOTIFICATION_ID);
+			notificationManager.cancel(MpTimerCheckService.NOTIFICATION_ID);
 		}
 	}
 
@@ -510,7 +511,7 @@ public abstract class HFR4droidActivity extends Activity
 			@Override
 			protected List<Category> retrieveDataInBackground(Void... params) throws DataRetrieverException
 			{
-				return getDataRetriever().getCats();
+				return getDataRetriever().getCats(isCheckMpsCatsScreenEnable());
 			}
 
 			@Override
@@ -767,6 +768,12 @@ public abstract class HFR4droidActivity extends Activity
 		return Integer.parseInt(settings.getString(PREF_WELCOME_SCREEN, getString(R.string.pref_welcome_screen_default)));
 	}
 
+	protected boolean isCheckMpsCatsScreenEnable()
+	{
+		SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(this);
+		return settings.getBoolean(PREF_CHECK_MPS_ENABLE, Boolean.parseBoolean(getString(R.string.pref_check_mps_cats_screen_enable_default)));
+	}
+	
 	protected int getTypeDrapeau()
 	{
 		SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(this);

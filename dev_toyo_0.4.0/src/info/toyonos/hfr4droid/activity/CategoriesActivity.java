@@ -83,7 +83,7 @@ public class CategoriesActivity extends HFR4droidListActivity<Category>
 		lv.setOnItemClickListener(new OnItemClickListener()
 		{
 			public void onItemClick(AdapterView<?> a, View v, int position, long id)
-			{	
+			{
 				Category cat = (Category) lv.getItemAtPosition(position);
 				if (isLoggedIn() && !isMpsCat(cat))
 				{

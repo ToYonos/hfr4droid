@@ -203,9 +203,9 @@ public class PostsActivity extends NewPostUIActivity
 	{
 		super.onDestroy();
 		WebView postsWV = getWebView();
-		if (posts != null && postsWV != null) postsWV.destroy();
+		if (postsWV != null) postsWV.destroy();
 		((WebView) findViewById(R.id.loading)).destroy();
-		posts.clear();
+		if (posts != null) posts.clear();
 	}
 
 	@Override

@@ -64,15 +64,14 @@ public class HFR4droidApplication extends CrashReportingApplication
 	 */
 	public boolean login(String user, String password) throws AuthenticationException
 	{
-		auth = user != null && password != null ?
-				new HFRAuthentication(this, user, password) :
-				new HFRAuthentication(this);
+		boolean fromCache = user == null && password == null;
+		auth = fromCache ? new HFRAuthentication(this) : new HFRAuthentication(this, user, password);
 
 		boolean isLoggedIn = auth.getCookies() != null;
 		if (isLoggedIn)
 		{
 			msgSender = new HFRMessageSender(this, auth);
-			dataRetriever = new HFRDataRetriever(this, auth);
+			dataRetriever = new HFRDataRetriever(this, auth, !fromCache);
 		}
 		return isLoggedIn;
 	}
@@ -98,7 +97,7 @@ public class HFR4droidApplication extends CrashReportingApplication
 			auth.clearCache();
 			auth = null;
 			msgSender = null;
-			dataRetriever = new HFRDataRetriever(this);
+			dataRetriever = new HFRDataRetriever(this, true);
 		}
 	}
 

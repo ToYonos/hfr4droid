@@ -1,7 +1,7 @@
 package info.toyonos.hfr4droid.activity;
 
 import info.toyonos.hfr4droid.R;
-import info.toyonos.hfr4droid.service.MpCheckService;
+import info.toyonos.hfr4droid.service.MpTimerCheckService;
 import android.content.Intent;
 import android.os.Bundle;
 import android.preference.Preference;
@@ -58,7 +58,7 @@ public class HFR4droidPrefs extends PreferenceActivity
 		{
 			public boolean onPreferenceChange(Preference preference, Object newValue)
 			{
-				Intent intent = new Intent(HFR4droidPrefs.this, MpCheckService.class); 
+				Intent intent = new Intent(HFR4droidPrefs.this, MpTimerCheckService.class); 
 				preferenceScreen.findPreference(HFR4droidActivity.PREF_SRV_MPS_FREQ).setEnabled((Boolean) newValue);
 				if ((Boolean) newValue) startService(intent); else stopService(intent);
 				return true;
@@ -97,7 +97,7 @@ public class HFR4droidPrefs extends PreferenceActivity
 
 				if (oldFreq != freq)
 				{
-					Intent intent = new Intent(HFR4droidPrefs.this, MpCheckService.class);
+					Intent intent = new Intent(HFR4droidPrefs.this, MpTimerCheckService.class);
 					stopService(intent);
 					startService(intent);
 				}

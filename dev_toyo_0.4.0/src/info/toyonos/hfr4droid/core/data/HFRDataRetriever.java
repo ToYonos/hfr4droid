@@ -11,9 +11,15 @@ import info.toyonos.hfr4droid.core.bean.Topic.TopicStatus;
 import info.toyonos.hfr4droid.core.bean.Topic.TopicType;
 
 import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -47,6 +53,8 @@ import android.util.Log;
  */
 public class HFRDataRetriever implements MDDataRetriever
 {
+	private static final String CATS_CACHE_FILE_NAME = "hfr4droid_cats.dat";
+	
 	public static final String BASE_URL			= "http://forum.hardware.fr";
 	public static final String CATS_URL			= BASE_URL + "/";
 	public static final String SUBCATS_URL		= BASE_URL + "/message.php?&config=hfr.inc&cat={$cat}";
@@ -67,17 +75,21 @@ public class HFRDataRetriever implements MDDataRetriever
 
 	public HFRDataRetriever(Context context)
 	{
-		this.context = context;
-		hashCheck = null;
-		cats = null;
+		this(context, null, false);
+	}
+	
+	public HFRDataRetriever(Context context, boolean clearCache)
+	{
+		this(context, null, clearCache);
 	}
 
-	public HFRDataRetriever(Context context, HFRAuthentication auth)
+	public HFRDataRetriever(Context context, HFRAuthentication auth, boolean clearCache)
 	{
 		this.context = context;
 		this.auth = auth;
 		hashCheck = null;
-		cats = null; // TODO cache disque
+		cats = null;
+		if (clearCache) clearCache();
 	}
 
 	/**
@@ -115,55 +127,72 @@ public class HFRDataRetriever implements MDDataRetriever
 	 */
 	public List<Category> getCats() throws DataRetrieverException
 	{
-		ArrayList<Category> cats = new ArrayList<Category>();
+		return getCats(true);
+	}
+	
+	/**
+	 * {@inheritDoc}
+	 */
+	public List<Category> getCats(boolean chechMps) throws DataRetrieverException
+	{	
+		ArrayList<Category> tmpCats = new ArrayList<Category>();
 		String content = null;
-		try
-		{
-			content = getAsString(CATS_URL);
-		}
-		catch (Exception e)
-		{
-			throw new DataRetrieverException(context.getString(R.string.error_dr_cats), e);
-		}
-		Pattern p;
-		Matcher m;
-		
-		if (this.cats == null)
-		{
-			this.cats = new LinkedHashMap<Category, List<SubCategory>>();
-			p = Pattern.compile("<tr.*?id=\"cat([0-9]+)\".*?" +
-								"<td.*?class=\"catCase1\".*?<b><a\\s*href=\"/hfr/([a-zA-Z0-9-]+)/.*?\"\\s*class=\"cCatTopic\">(.+?)</a></b>.*?" +
-								"</tr>"
-								, Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
-			m = p.matcher(content);
-			while (m.find())
-			{
-				Category newCat = new Category(Integer.parseInt(m.group(1)), m.group(2), m.group(3));
-				this.cats.put(newCat, null);
-			}
-		}
-		cats.addAll(this.cats.keySet());
-
-		Category mpCat = new Category(Category.MPS_CAT);		
-		String mpCatTitle = getSingleElement("<b><a\\s*class=\"cCatTopic red\"\\s*href=\".*?\">(Vous avez [0-9]+ nouveaux? messages? privés?)</a></b>", content);
-		if (mpCatTitle != null) mpCat.setName(mpCatTitle);
 
 		// Cat des messages privés
-		cats.add(0, mpCat);
+		Category mpCat = new Category(Category.MPS_CAT);
+		tmpCats.add(mpCat);
 
-		// Cat représentant "toutes les cats"
-		cats.add(1, Category.ALL_CATS);
-
-		// Cat des modals
-		p = Pattern.compile("<a\\s*class=\"cCatTopic\"\\s*href=\"/forum1\\.php\\?config=hfr\\.inc&amp;cat=0&amp;"
-							, Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
-		m = p.matcher(content);
-		if  (m.find())
+		if ((this.cats == null && !deserializeCats()) || chechMps)
 		{
-			cats.add(1, Category.MODO_CAT);
+			try
+			{
+				content = getAsString(CATS_URL);
+			}
+			catch (Exception e)
+			{
+				throw new DataRetrieverException(context.getString(R.string.error_dr_cats), e);
+			}
+
+			if (this.cats == null)
+			{
+				this.cats = new LinkedHashMap<Category, List<SubCategory>>();
+				
+				// Cat des modals
+				Pattern p = Pattern.compile("<a\\s*class=\"cCatTopic\"\\s*href=\"/forum1\\.php\\?config=hfr\\.inc&amp;cat=0&amp;"
+									, Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
+				Matcher m = p.matcher(content);
+				if  (m.find())
+				{
+					this.cats.put(Category.MODO_CAT, null);
+				}
+				
+				p = Pattern.compile("<tr.*?id=\"cat([0-9]+)\".*?" +
+									"<td.*?class=\"catCase1\".*?<b><a\\s*href=\"/hfr/([a-zA-Z0-9-]+)/.*?\"\\s*class=\"cCatTopic\">(.+?)</a></b>.*?" +
+									"</tr>"
+									, Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
+				m = p.matcher(content);
+				while (m.find())
+				{
+					Category newCat = new Category(Integer.parseInt(m.group(1)), m.group(2), m.group(3));
+					this.cats.put(newCat, null);
+				}
+				Log.d(HFR4droidApplication.TAG, "New cats retrieved, let's serialize them...");
+				serializeCats();
+			}
+		}
+		
+		tmpCats.addAll(this.cats.keySet());
+		
+		// Cat représentant "toutes les cats"
+		tmpCats.add(tmpCats.get(1).equals(Category.MODO_CAT) ? 2 : 1, Category.ALL_CATS);
+
+		if (chechMps)
+		{
+			String mpCatTitle = getSingleElement("<b><a\\s*class=\"cCatTopic red\"\\s*href=\".*?\">(Vous avez [0-9]+ nouveaux? messages? privés?)</a></b>", content);
+			if (mpCatTitle != null) mpCat.setName(mpCatTitle);
 		}
 
-		return cats;
+		return tmpCats;
 	}
 	
 	/**
@@ -226,6 +255,8 @@ public class HFRDataRetriever implements MDDataRetriever
 					currentSubCats.add(subCat);
 				}
 				cats.put(keyCat, currentSubCats);
+				Log.d(HFR4droidApplication.TAG, "New subcats retrieved (from " + keyCat.toString() + "), let's serialize them...");
+				serializeCats();
 			}
 			return currentSubCats;
 		}
@@ -292,12 +323,12 @@ public class HFRDataRetriever implements MDDataRetriever
 		}
 
 		Pattern p = Pattern.compile("(?:(?:<th\\s*class=\"padding\".*?<a\\s*href=\"/forum1\\.php\\?config=hfr\\.inc&amp;cat=([0-9]+).*?\"\\s*class=\"cHeader\">(.*?)</a></th>)" +
-									"|(?:<tr\\s*class=\"sujet\\s*ligne_booleen\\s*cBackCouleurTab[0-9]\\s*(ligne_sticky)?.*?" +
-									"<td.*?class=\"sujetCase1\\s*cBackCouleurTab[0-9]\\s*\".*?><img\\s*src=\".*?([A-Za-z0-9]+)\\.gif\".*?" +
+									"|(?:<tr\\s*class=\"sujet\\s*ligne_booleen.*?(ligne_sticky)?.*?" +
+									"<td.*?class=\"sujetCase1.*?\".*?><img\\s*src=\".*?([A-Za-z0-9]+)\\.gif\".*?" +
 									"<td.*?class=\"sujetCase3\".*?>(<span\\s*class=\"red\"\\s*title=\".*?\">\\[non lu\\]</span>\\s*)?(?:<img\\s*src=\".*?flechesticky\\.gif\".*?/>\\s*)?(?:&nbsp;)?(?:<img\\s*src=\".*?(lock)\\.gif\".*?/>\\s*)?<a.*?class=\"cCatTopic\"\\s*title=\"Sujet n°([0-9]+)\">(.+?)</a></td>.*?" +
 									"<td.*?class=\"sujetCase4\".*?(?:(?:<a.*?class=\"cCatTopic\">(.+?)</a>)|&nbsp;)</td>.*?" +
 									"<td.*?class=\"sujetCase5\".*?(?:(?:<a\\s*href=\".*?#t([0-9]+)\"><img.*?src=\".*?([A-Za-z0-9]+)\\.gif\"\\s*title=\".*?\\(p\\.([0-9]+)\\)\".*?/></a>)|&nbsp;)</td>.*?" +
-									"<td.*?class=\"sujetCase6\\s*cBackCouleurTab[0-9]\\s*\".*?>(?:<a\\s*rel=\"nofollow\"\\s*href=\"/profilebdd.*?>)?(.+?)(?:</a>)?</td>.*?" +
+									"<td.*?class=\"sujetCase6.*?\".*?>(?:<a\\s*rel=\"nofollow\"\\s*href=\"/profilebdd.*?>)?(.+?)(?:</a>)?</td>.*?" +
 									"<td.*?class=\"sujetCase7\".*?>(.+?)</td>.*?" +
 									"</tr>))"
 									, Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
@@ -398,7 +429,7 @@ public class HFRDataRetriever implements MDDataRetriever
 			throw new DataRetrieverException(context.getString(R.string.error_dr_posts), e);
 		}
 
-		Pattern p = Pattern.compile("(<tr.*?class=\"message\\s*(?:cBackCouleurTab[0-9])?(caseModoGeneric)?\".*?" +
+		Pattern p = Pattern.compile("(<tr.*?class=\"message.*?(caseModoGeneric)?\".*?" + // TODO vérifer ça
 									"<a.*?href=\"#t([0-9]+)\".*?" +
 									"<b.*?class=\"s2\">(?:<a.*?>)?(.*?)(?:</a>)?</b>.*?" +
 									"(?:(?:<div\\s*class=\"avatar_center\".*?><img src=\"(.*?)\"\\s*alt=\".*?\"\\s*/></div>)|</td>).*?" +
@@ -463,6 +494,7 @@ public class HFRDataRetriever implements MDDataRetriever
 	public int countNewMps(Topic topic) throws DataRetrieverException
 	{
 		String url = TOPICS_URL.replaceFirst("\\{\\$cat\\}", "prive")
+		.replaceFirst("\\{\\$subcat\\}", "")
 		.replaceFirst("\\{\\$page\\}", "1")
 		.replaceFirst("\\{\\$type\\}", String.valueOf(TopicType.ALL.getValue()));
 		String content = null;
@@ -713,5 +745,65 @@ public class HFRDataRetriever implements MDDataRetriever
 	{
 		Matcher m = Pattern.compile(pattern, Pattern.CASE_INSENSITIVE | Pattern.DOTALL).matcher(content);
 		return m.find() ? (m.group(1) != null ? m.group(1) : m.group(2)) : null;
+	}
+	
+	private void serializeCats() throws DataRetrieverException
+	{
+		FileOutputStream fos = null;
+		ObjectOutputStream oos = null;
+
+		try
+		{
+		    File cacheDir = context.getCacheDir();
+		    if (!cacheDir.exists()) cacheDir.mkdirs();
+
+	        fos = new FileOutputStream(new File(context.getCacheDir(), CATS_CACHE_FILE_NAME));
+			oos = new ObjectOutputStream(fos);
+			oos.writeObject(cats);
+		}
+		catch (Exception e) // FileNotFoundException, IOException
+		{
+			throw new DataRetrieverException(context.getString(R.string.error_serializing_cats), e);
+		}
+		finally
+		{
+			if (oos != null) try { oos.close(); } catch (IOException e) {} 
+		}
+		Log.d(HFR4droidApplication.TAG, "Serializing " + cats.keySet().size() + " categories");
+	}
+	
+	@SuppressWarnings("unchecked")
+	private boolean deserializeCats() throws DataRetrieverException
+	{
+		FileInputStream fis = null;
+		ObjectInputStream ois = null;
+		try
+		{
+			fis = new FileInputStream(new File(context.getCacheDir(), CATS_CACHE_FILE_NAME));
+			ois = new ObjectInputStream(fis);
+			cats = (Map<Category, List<SubCategory>>) ois.readObject();
+		}
+		catch (FileNotFoundException e)
+		{
+			Log.d(HFR4droidApplication.TAG, "No cache yet");
+			return false;
+		}
+		catch (Exception e) // ClassNotFoundException, IOException
+		{
+			throw new DataRetrieverException(context.getString(R.string.error_deserializing_cats), e);
+		}
+		finally
+		{
+			if (ois != null) try { ois.close(); } catch (IOException e) {} 
+		}
+		Log.d(HFR4droidApplication.TAG, "Deserializing " + cats.keySet().size() + " categories");
+		return true;
+	}
+	
+	private void clearCache()
+	{
+		File f = new File(context.getCacheDir(), CATS_CACHE_FILE_NAME);
+		f.delete();
+		Log.d(HFR4droidApplication.TAG, "Destroying categories");
 	}
 }

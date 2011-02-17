@@ -5,6 +5,10 @@
 	<string name="pref_welcome_screen_title">Page d\'accueil</string>
 	<string name="pref_welcome_screen_summary">La page qui s\'affiche lorsque vous lancez l\'application</string>
 	<string name="pref_welcome_screen_default">-1</string>
+
+	<string name="pref_check_mps_cats_screen_enable_title">Vérifier les MPs sur la page d\'accueil</string>
+	<string name="pref_check_mps_cats_screen_enable_summary">Active la vérification des MPs sur la page des catégories (empêche la mise en cache totale des catégories)</string>
+	<string name="pref_check_mps_cats_screen_enable_default">1</string>	
 	
 	<string name="pref_type_drapeau_title">Type de drapeau</string>
 	<string name="pref_type_drapeau_summary">Le type de drapeau qui s\'affiche par défaut dans l\'application</string>
