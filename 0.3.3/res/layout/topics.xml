@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent">
+    <LinearLayout
+    	android:orientation="vertical"
+    	android:background="#F7F7F7"
+    	android:gravity="center_horizontal"
+    	android:layout_width="fill_parent"
+    	android:layout_height="fill_parent">
+	    <LinearLayout
+	    	android:orientation="horizontal"
+	    	android:background="@drawable/degrad_plus"
+	    	android:gravity="center"
+	    	android:layout_width="fill_parent"
+	    	android:layout_height="40dip">    	
+	    	<TextView
+		    	android:id="@+id/CatTitle"
+		    	android:gravity="center"		    	
+		    	android:textSize="15dip"
+			   	android:lines="1"
+				android:ellipsize="marquee"
+				android:marqueeRepeatLimit="marquee_forever"
+				android:scrollHorizontally="true"
+		    	android:paddingLeft="5dip"
+		    	android:paddingRight="55dip"
+		    	android:textStyle="bold"
+		    	android:textColor="#1A3A60"
+		    	android:layout_width="wrap_content" 
+		    	android:layout_height="wrap_content" />
+		</LinearLayout>
+		<ListView
+			android:id="@+id/MainList"
+			android:layout_width="fill_parent"
+	        android:layout_height="fill_parent"
+	        android:layout_weight="1"
+			android:divider="#C0C0C0"
+            android:dividerHeight="1px"
+            android:cacheColorHint="#00000000"
+            android:listSelector="@drawable/list_selector" 
+	        android:drawSelectorOnTop="false" />
+	</LinearLayout>      
+	<include layout="@layout/nav_drawer" />
+</FrameLayout>
