@@ -2,6 +2,7 @@ package info.toyonos.hfr4droid.core.data;
 
 import info.toyonos.hfr4droid.HFR4droidApplication;
 import info.toyonos.hfr4droid.R;
+import info.toyonos.hfr4droid.activity.HFR4droidActivity;
 import info.toyonos.hfr4droid.core.auth.HFRAuthentication;
 import info.toyonos.hfr4droid.core.bean.Category;
 import info.toyonos.hfr4droid.core.bean.Post;
@@ -9,6 +10,7 @@ import info.toyonos.hfr4droid.core.bean.SubCategory;
 import info.toyonos.hfr4droid.core.bean.Topic;
 import info.toyonos.hfr4droid.core.bean.Topic.TopicStatus;
 import info.toyonos.hfr4droid.core.bean.Topic.TopicType;
+import info.toyonos.hfr4droid.service.MpNotifyService;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -41,6 +43,9 @@ import org.apache.http.protocol.BasicHttpContext;
 import org.apache.http.protocol.HttpContext;
 
 import android.content.Context;
+import android.content.Intent;
+import android.content.SharedPreferences;
+import android.preference.PreferenceManager;
 import android.text.Html;
 import android.util.Log;
 
@@ -65,6 +70,7 @@ public class HFRDataRetriever implements MDDataRetriever
 	public static final String QUOTE_URL		= BASE_URL + "/message.php?config=hfr.inc&cat={$cat}&post={$topic}&numrep={$post}";
 	public static final String EDIT_URL			= BASE_URL + "/message.php?config=hfr.inc&cat={$cat}&post={$topic}&numreponse={$post}";
 	public static final String KEYWORDS_URL		= BASE_URL + "/wikismilies.php?config=hfr.inc&detail={$code}";
+	public static final String MPS_URL			= BASE_URL + "/forum1.php?config=hfr.inc&cat=1&page=500000&owntopic=0";
 
 	public static final String MAINTENANCE 		= "Serveur en cours de maintenance. <br /><br />Veuillez nous excuser pour la gène occasionnée";
 	
@@ -126,24 +132,16 @@ public class HFRDataRetriever implements MDDataRetriever
 	 * {@inheritDoc}
 	 */
 	public List<Category> getCats() throws DataRetrieverException
-	{
-		return getCats(true);
-	}
-	
-	/**
-	 * {@inheritDoc}
-	 */
-	public List<Category> getCats(boolean chechMps) throws DataRetrieverException
 	{	
 		ArrayList<Category> tmpCats = new ArrayList<Category>();
-		String content = null;
 
 		// Cat des messages privés
 		Category mpCat = new Category(Category.MPS_CAT);
 		tmpCats.add(mpCat);
 
-		if ((this.cats == null && !deserializeCats()) || chechMps)
+		if (this.cats == null && !deserializeCats())
 		{
+			String content = null;
 			try
 			{
 				content = getAsString(CATS_URL);
@@ -153,44 +151,36 @@ public class HFRDataRetriever implements MDDataRetriever
 				throw new DataRetrieverException(context.getString(R.string.error_dr_cats), e);
 			}
 
-			if (this.cats == null)
+			this.cats = new LinkedHashMap<Category, List<SubCategory>>();
+			
+			// Cat des modals
+			Pattern p = Pattern.compile("<a\\s*class=\"cCatTopic\"\\s*href=\"/forum1\\.php\\?config=hfr\\.inc&amp;cat=0&amp;"
+				, Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
+			Matcher m = p.matcher(content);
+			if  (m.find())
 			{
-				this.cats = new LinkedHashMap<Category, List<SubCategory>>();
-				
-				// Cat des modals
-				Pattern p = Pattern.compile("<a\\s*class=\"cCatTopic\"\\s*href=\"/forum1\\.php\\?config=hfr\\.inc&amp;cat=0&amp;"
-									, Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
-				Matcher m = p.matcher(content);
-				if  (m.find())
-				{
-					this.cats.put(Category.MODO_CAT, null);
-				}
-				
-				p = Pattern.compile("<tr.*?id=\"cat([0-9]+)\".*?" +
-									"<td.*?class=\"catCase1\".*?<b><a\\s*href=\"/hfr/([a-zA-Z0-9-]+)/.*?\"\\s*class=\"cCatTopic\">(.+?)</a></b>.*?" +
-									"</tr>"
-									, Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
-				m = p.matcher(content);
-				while (m.find())
-				{
-					Category newCat = new Category(Integer.parseInt(m.group(1)), m.group(2), m.group(3));
-					this.cats.put(newCat, null);
-				}
-				Log.d(HFR4droidApplication.TAG, "New cats retrieved, let's serialize them...");
-				serializeCats();
+				this.cats.put(Category.MODO_CAT, null);
 			}
+			
+			p = Pattern.compile(
+				"<tr.*?id=\"cat([0-9]+)\".*?" +
+				"<td.*?class=\"catCase1\".*?<b><a\\s*href=\"/hfr/([a-zA-Z0-9-]+)/.*?\"\\s*class=\"cCatTopic\">(.+?)</a></b>.*?" +
+				"</tr>"
+				, Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
+			m = p.matcher(content);
+			while (m.find())
+			{
+				Category newCat = new Category(Integer.parseInt(m.group(1)), m.group(2), m.group(3));
+				this.cats.put(newCat, null);
+			}
+			Log.d(HFR4droidApplication.TAG, "New cats retrieved, let's serialize them...");
+			serializeCats();
 		}
 		
 		tmpCats.addAll(this.cats.keySet());
 		
 		// Cat représentant "toutes les cats"
 		tmpCats.add(tmpCats.get(1).equals(Category.MODO_CAT) ? 2 : 1, Category.ALL_CATS);
-
-		if (chechMps)
-		{
-			String mpCatTitle = getSingleElement("<b><a\\s*class=\"cCatTopic red\"\\s*href=\".*?\">(Vous avez [0-9]+ nouveaux? messages? privés?)</a></b>", content);
-			if (mpCatTitle != null) mpCat.setName(mpCatTitle);
-		}
 
 		return tmpCats;
 	}
@@ -247,7 +237,7 @@ public class HFRDataRetriever implements MDDataRetriever
 				}
 
 				Pattern p = Pattern.compile("<option\\s*value=\"([0-9]+)\"\\s*>(.+?)</option>"
-						, Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
+					, Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
 				Matcher m = p.matcher(content);
 				while (m.find())
 				{
@@ -322,16 +312,17 @@ public class HFRDataRetriever implements MDDataRetriever
 			throw new DataRetrieverException(context.getString(R.string.error_dr_topics), e);
 		}
 
-		Pattern p = Pattern.compile("(?:(?:<th\\s*class=\"padding\".*?<a\\s*href=\"/forum1\\.php\\?config=hfr\\.inc&amp;cat=([0-9]+).*?\"\\s*class=\"cHeader\">(.*?)</a></th>)" +
-									"|(?:<tr\\s*class=\"sujet\\s*ligne_booleen.*?(ligne_sticky)?.*?" +
-									"<td.*?class=\"sujetCase1.*?\".*?><img\\s*src=\".*?([A-Za-z0-9]+)\\.gif\".*?" +
-									"<td.*?class=\"sujetCase3\".*?>(<span\\s*class=\"red\"\\s*title=\".*?\">\\[non lu\\]</span>\\s*)?(?:<img\\s*src=\".*?flechesticky\\.gif\".*?/>\\s*)?(?:&nbsp;)?(?:<img\\s*src=\".*?(lock)\\.gif\".*?/>\\s*)?<a.*?class=\"cCatTopic\"\\s*title=\"Sujet n°([0-9]+)\">(.+?)</a></td>.*?" +
-									"<td.*?class=\"sujetCase4\".*?(?:(?:<a.*?class=\"cCatTopic\">(.+?)</a>)|&nbsp;)</td>.*?" +
-									"<td.*?class=\"sujetCase5\".*?(?:(?:<a\\s*href=\".*?#t([0-9]+)\"><img.*?src=\".*?([A-Za-z0-9]+)\\.gif\"\\s*title=\".*?\\(p\\.([0-9]+)\\)\".*?/></a>)|&nbsp;)</td>.*?" +
-									"<td.*?class=\"sujetCase6.*?\".*?>(?:<a\\s*rel=\"nofollow\"\\s*href=\"/profilebdd.*?>)?(.+?)(?:</a>)?</td>.*?" +
-									"<td.*?class=\"sujetCase7\".*?>(.+?)</td>.*?" +
-									"</tr>))"
-									, Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
+        Pattern p = Pattern.compile(
+        	"(?:(?:<th\\s*class=\"padding\".*?<a\\s*href=\"/forum1\\.php\\?config=hfr\\.inc&amp;cat=([0-9]+).*?\"\\s*class=\"cHeader\">(.*?)</a></th>)" +
+			"|(?:<tr\\s*class=\"sujet\\s*ligne_booleen.*?(ligne_sticky)?\".*?" +
+			"<td.*?class=\"sujetCase1.*?><img\\s*src=\".*?([A-Za-z0-9]+)\\.gif\".*?" +
+			"<td.*?class=\"sujetCase3\".*?>(<span\\s*class=\"red\"\\s*title=\".*?\">\\[non lu\\]</span>\\s*)?(?:<img\\s*src=\".*?flechesticky\\.gif\".*?/>\\s*)?(?:&nbsp;)?(?:<img\\s*src=\".*?(lock)\\.gif\".*?/>\\s*)?<a.*?class=\"cCatTopic\"\\s*title=\"Sujet n°([0-9]+)\">(.+?)</a></td>.*?" +
+			"<td.*?class=\"sujetCase4\".*?(?:(?:<a.*?class=\"cCatTopic\">(.+?)</a>)|&nbsp;)</td>.*?" +
+			"<td.*?class=\"sujetCase5\".*?(?:(?:<a\\s*href=\".*?#t([0-9]+)\"><img.*?src=\".*?([A-Za-z0-9]+)\\.gif\"\\s*title=\".*?\\(p\\.([0-9]+)\\)\".*?/></a>)|&nbsp;)</td>.*?" +
+			"<td.*?class=\"sujetCase6.*?>(?:<a\\s*rel=\"nofollow\"\\s*href=\"/profilebdd.*?>)?(.+?)(?:</a>)?</td>.*?" +
+			"<td.*?class=\"sujetCase7\".*?>(.+?)</td>.*?" +
+			"</tr>))"
+			, Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
 		Matcher m = p.matcher(content);
 		Category currentCat = cat;
 		while (m.find())
@@ -366,6 +357,8 @@ public class HFRDataRetriever implements MDDataRetriever
 				);
 			}
 		}
+		
+		if (!cat.equals(Category.MPS_CAT)) checkNewMps(content);
 
 		return topics;
 	}
@@ -429,45 +422,48 @@ public class HFRDataRetriever implements MDDataRetriever
 			throw new DataRetrieverException(context.getString(R.string.error_dr_posts), e);
 		}
 
-		Pattern p = Pattern.compile("(<tr.*?class=\"message.*?(caseModoGeneric)?\".*?" + // TODO vérifer ça
-									"<a.*?href=\"#t([0-9]+)\".*?" +
-									"<b.*?class=\"s2\">(?:<a.*?>)?(.*?)(?:</a>)?</b>.*?" +
-									"(?:(?:<div\\s*class=\"avatar_center\".*?><img src=\"(.*?)\"\\s*alt=\".*?\"\\s*/></div>)|</td>).*?" +
-									"<div.*?class=\"left\">Posté le ([0-9]+)-([0-9]+)-([0-9]+).*?([0-9]+):([0-9]+):([0-9]+).*?" +
-									"<div.*?id=\"para[0-9]+\">(.*?)<div style=\"clear: both;\">\\s*</div></p>" +
-									"(?:<div\\s*class=\"edited\">)?(?:<a.*?>Message cité ([0-9]+) fois</a>)?(?:<br\\s*/>Message édité par .*? le ([0-9]+)-([0-9]+)-([0-9]+).*?([0-9]+):([0-9]+):([0-9]+)</div>)?.*?" +
-									"</div></td></tr></table>)"
-									, Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
-		Matcher m = p.matcher(content);
-		while (m.find())
-		{
-			Matcher m2 = Pattern.compile("edit\\-in\\.gif").matcher(m.group(1));
-			boolean isMine = m2.find();
-			boolean isModo = m.group(2) != null;
-			String postContent = m.group(12);
-			posts.add(new Post(Integer.parseInt(m.group(3)),
-								postContent,
-								m.group(4),
-								m.group(5),
-								new GregorianCalendar(Integer.parseInt(m.group(8)), // Year
-										Integer.parseInt(m.group(7)) - 1, // Month
-										Integer.parseInt(m.group(6)), // Day
-										Integer.parseInt(m.group(9)), // Hour
-										Integer.parseInt(m.group(10)), // Minute
-										Integer.parseInt(m.group(11))  // Second
-								).getTime(),
-								m.group(14) != null ? new GregorianCalendar(Integer.parseInt(m.group(16)), // Year
-										Integer.parseInt(m.group(15)) - 1, // Month
-										Integer.parseInt(m.group(14)), // Day
-										Integer.parseInt(m.group(17)), // Hour
-										Integer.parseInt(m.group(18)), // Minute
-										Integer.parseInt(m.group(19))  // Second
-								).getTime() : null,
-								m.group(13) != null ? Integer.parseInt(m.group(13)) : 0,
+        Pattern p = Pattern.compile(
+        	"(<tr.*?class=\"message.*?" +
+			"<a.*?href=\"#t([0-9]+)\".*?" +
+			"<b.*?class=\"s2\">(?:<a.*?>)?(.*?)(?:</a>)?</b>.*?" +
+			"(?:(?:<div\\s*class=\"avatar_center\".*?><img src=\"(.*?)\"\\s*alt=\".*?\"\\s*/></div>)|</td>).*?" +
+			"<div.*?class=\"left\">Posté le ([0-9]+)-([0-9]+)-([0-9]+).*?([0-9]+):([0-9]+):([0-9]+).*?" +
+			"<div.*?id=\"para[0-9]+\">(.*?)<div style=\"clear: both;\">\\s*</div></p>" +
+			"(?:<div\\s*class=\"edited\">)?(?:<a.*?>Message cité ([0-9]+) fois</a>)?(?:<br\\s*/>Message édité par .*? le ([0-9]+)-([0-9]+)-([0-9]+).*?([0-9]+):([0-9]+):([0-9]+)</div>)?.*?" +
+			"</div></td></tr></table>)"
+			, Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
+        Matcher m = p.matcher(content);
+        while (m.find())
+        {
+        	Matcher m2 = Pattern.compile("edit\\-in\\.gif").matcher(m.group(1));
+        	boolean isMine = m2.find();
+        	m2 = Pattern.compile("messageModo").matcher(m.group(1));
+        	boolean isModo = m2.find();
+        	String postContent = m.group(11);
+        	posts.add(new Post(
+        		Integer.parseInt(m.group(2)),
+				postContent,
+				m.group(3),
+				m.group(4),
+				new GregorianCalendar(Integer.parseInt(m.group(7)), // Year
+						Integer.parseInt(m.group(6)) - 1, // Month
+						Integer.parseInt(m.group(5)), // Day
+						Integer.parseInt(m.group(8)), // Hour
+						Integer.parseInt(m.group(9)), // Minute
+						Integer.parseInt(m.group(10))  // Second
+				).getTime(),
+				m.group(13) != null ? new GregorianCalendar(Integer.parseInt(m.group(15)), // Year
+						Integer.parseInt(m.group(14)) - 1, // Month
+						Integer.parseInt(m.group(13)), // Day
+						Integer.parseInt(m.group(16)), // Hour
+						Integer.parseInt(m.group(17)), // Minute
+						Integer.parseInt(m.group(18))  // Second
+						).getTime() : null,
+						m.group(12) != null ? Integer.parseInt(m.group(12)) : 0,
 								isMine,
 								isModo,
 								topic
-								)
+				)
 			);
 		}
 
@@ -485,6 +481,8 @@ public class HFRDataRetriever implements MDDataRetriever
 			topic.setStatus(getSingleElement("(repondre\\.gif)", content) != null ? TopicStatus.NONE : TopicStatus.LOCKED);
 		}
 
+		if (!topic.getCategory().equals(Category.MPS_CAT)) checkNewMps(content);
+
 		return posts;
 	}
 
@@ -493,40 +491,56 @@ public class HFRDataRetriever implements MDDataRetriever
 	 */
 	public int countNewMps(Topic topic) throws DataRetrieverException
 	{
-		String url = TOPICS_URL.replaceFirst("\\{\\$cat\\}", "prive")
-		.replaceFirst("\\{\\$subcat\\}", "")
-		.replaceFirst("\\{\\$page\\}", "1")
-		.replaceFirst("\\{\\$type\\}", String.valueOf(TopicType.ALL.getValue()));
 		String content = null;
 		try
 		{
-			content = getAsString(url);
+			content = getAsString(MPS_URL);
 		}
 		catch (Exception e)
 		{
 			throw new DataRetrieverException(context.getString(R.string.error_dr_mps), e);
 		}
+		return innterCountNewMps(content, topic);
+	}
 
-		Pattern p = Pattern.compile("closedbp\\.gif\".*?" +
-									"<td.*?class=\"sujetCase3\".*?<a.*?class=\"cCatTopic\"\\s*title=\"Sujet n°([0-9]+)\">(.+?)</a></td>.*?" +
-									"<td.*?class=\"sujetCase4\".*?(?:(?:<a.*?class=\"cCatTopic\">(.+?)</a>)|&nbsp;)</td>.*?" +
-									"<td.*?class=\"sujetCase7\".*?>(.+?)</td>.*?" +
-									"</tr>"
-									, Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
-		Matcher m = p.matcher(content);
+	private int innterCountNewMps(String content, Topic topic) throws DataRetrieverException
+	{
 		int count = 0;
-		while (m.find())
+		Pattern p = Pattern.compile("<a\\s*href=\"(.*?)\"\\s*class=\"red\">Vous avez ([0-9]+) nouveaux? messages? privés?</a>"
+			, Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
+		Matcher m = p.matcher(content);
+		if (m.find())
 		{
-			if (count++ == 0 && topic != null)
+			count = Integer.parseInt(m.group(2));
+			Matcher m2 = Pattern.compile("forum2.php.*?post=([0-9]+).*?page=([0-9]+)").matcher(m.group(1));
+			if (m2.find())
 			{
-				topic.setId(Long.parseLong(m.group(1)));
-				topic.setName(m.group(2));
+				topic.setId(Long.parseLong(m2.group(1)));
 				topic.setStatus(TopicStatus.NEW_MP);
-				topic.setNbPages(m.group(3) != null ? Integer.parseInt(m.group(3)) : 1);
+				topic.setNbPages(Integer.parseInt(m2.group(2)));
 				topic.setCategory(Category.MPS_CAT);		
 			}
 		}
 		return count;
+	}
+	
+	private void checkNewMps(String content) throws DataRetrieverException
+	{
+		if (isCheckMpsEnable())
+		{
+			Topic mp = new Topic(-1, null);
+			int nbMps = innterCountNewMps(content, mp);
+			Intent intent = new Intent(context, MpNotifyService.class);
+			intent.putExtra("nbMps", nbMps);
+			intent.putExtra("mp", mp);
+			context.startService(intent);
+		}
+	}
+	
+	private boolean isCheckMpsEnable()
+	{
+		SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(context);
+		return settings.getBoolean(HFR4droidActivity.PREF_CHECK_MPS_ENABLE, Boolean.parseBoolean(context.getString(R.string.pref_check_mps_enable_default)));
 	}
 
 	/**

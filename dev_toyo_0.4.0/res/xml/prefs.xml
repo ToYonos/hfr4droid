@@ -10,10 +10,10 @@
 			android:entries="@array/welcome_screen_values"
             android:entryValues="@array/welcome_screen_keys" />
 		<CheckBoxPreference
-			android:key="PrefCheckMpsCatsScreenEnable"
-			android:summary="@string/pref_check_mps_cats_screen_enable_summary"
-			android:title="@string/pref_check_mps_cats_screen_enable_title"
-			android:defaultValue="@string/pref_check_mps_cats_screen_enable_default" />            
+			android:key="PrefCheckMpsEnable"
+			android:summary="@string/pref_check_mps_enable_summary"
+			android:title="@string/pref_check_mps_enable_title"
+			android:defaultValue="@string/pref_check_mps_enable_default" />          
 		<ListPreference
 			android:key="PrefTypeDrapeau"
 			android:summary="@string/pref_type_drapeau_summary"

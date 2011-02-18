@@ -54,6 +54,7 @@
 			</intent-filter>
 		</activity>
 
+		<service android:name=".service.MpNotifyService" />
 		<service android:name=".service.MpCheckService" />
 		<service android:name=".service.MpTimerCheckService" />
 	</application>

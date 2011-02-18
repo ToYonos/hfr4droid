@@ -1,22 +1,19 @@
 package info.toyonos.hfr4droid.service;
 
-import info.toyonos.hfr4droid.HFR4droidApplication;
 import info.toyonos.hfr4droid.R;
 import info.toyonos.hfr4droid.activity.HFR4droidActivity;
-import info.toyonos.hfr4droid.core.bean.Topic;
-import info.toyonos.hfr4droid.core.data.DataRetrieverException;
 
 import java.util.Timer;
 import java.util.TimerTask;
 
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
-import android.util.Log;
 
 /**
- * <p>Service qui va vérifier les mps de l'utilisateur.</p>
+ * <p>Service qui va vérifier automatiquement les mps de l'utilisateur et lui notifier.</p>
  * <p>Si au moins un nouveau mp est détecté, une notification est envoyée au système.</p>
- * <p>La fréquence de vérification est paramétrable.</p>
+ * <p>Le service met en place une vérification automatique suivant une fréquence, paramétrable dans l'application.</p>
  * 
  * @author ToYonos
  * @see android.app.Service
@@ -36,27 +33,13 @@ public class MpTimerCheckService extends MpCheckService
 		{
 			public void run()
 			{
-				Topic mp = new Topic(-1, null);
-				int nbMps = 0;
-				try
-				{
-					nbMps = getDataRetriever().countNewMps(mp);
-				}
-				catch (DataRetrieverException e)
-				{
-					Log.e(HFR4droidApplication.TAG, HFR4droidActivity.getMessage(e, null), e);
-				}
-
-				if (nbMps > 0)
-				{
-					notifyNewMps(nbMps, mp);
-				}
+				checkNewMps();
 			} 
 		}, 0, period);
 	}
 	
 	@Override
-	protected void startService()
+	protected void doService(Intent intent)
 	{
 		// Rien ici
 	}

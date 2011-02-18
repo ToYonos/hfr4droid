@@ -34,19 +34,11 @@ public interface MDDataRetriever
 	public String getBaseUrl();
 
 	/**
-	 * Récupère les catégories (et vérifie le nombre de nouveaux messages)
+	 * Récupère les catégories
 	 * @return Une <code>List</code> de <code>Category</code>
 	 * @throws DataRetrieverException Si un problème survient
 	 */
 	public List<Category> getCats() throws DataRetrieverException;
-
-	/**
-	 * Récupère les catégories
-	 * @param checkMps Vérifier ou non le nombre de nouveaux messages
-	 * @return Une <code>List</code> de <code>Category</code>
-	 * @throws DataRetrieverException Si un problème survient
-	 */
-	public List<Category> getCats(boolean checkMps) throws DataRetrieverException;
 	
 	/**
 	 * Récupère une <code>Category</code> par son code

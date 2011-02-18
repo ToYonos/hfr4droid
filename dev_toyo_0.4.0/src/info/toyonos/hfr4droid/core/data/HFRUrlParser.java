@@ -122,7 +122,7 @@ public class HFRUrlParser implements MDUrlParser
 			if (m.find())
 			{
 				Category cat = dataRetriever.getCatByCode(urlElements[4]);
-				element = new Topic(Long.parseLong(m.group(1)));
+				element = new Topic(Long.parseLong(m.group(1)), null);
 				((Topic) element).setCategory(cat);
 				((Topic) element).setLastReadPost(handlePostId(m.group(3) != null ? m.group(3) : m.group(4)));
 				page = Integer.parseInt(m.group(2));

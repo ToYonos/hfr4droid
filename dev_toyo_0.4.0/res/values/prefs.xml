@@ -6,9 +6,9 @@
 	<string name="pref_welcome_screen_summary">La page qui s\'affiche lorsque vous lancez l\'application</string>
 	<string name="pref_welcome_screen_default">-1</string>
 
-	<string name="pref_check_mps_cats_screen_enable_title">Vérifier les MPs sur la page d\'accueil</string>
-	<string name="pref_check_mps_cats_screen_enable_summary">Active la vérification des MPs sur la page des catégories (empêche la mise en cache totale des catégories)</string>
-	<string name="pref_check_mps_cats_screen_enable_default">1</string>	
+	<string name="pref_check_mps_enable_title">Vérifier les MPs</string>
+	<string name="pref_check_mps_enable_summary">Active la vérification des MPs (différent du service permanant, cf. documention)</string>
+	<string name="pref_check_mps_enable_default">1</string>	
 	
 	<string name="pref_type_drapeau_title">Type de drapeau</string>
 	<string name="pref_type_drapeau_summary">Le type de drapeau qui s\'affiche par défaut dans l\'application</string>
@@ -52,14 +52,14 @@
 	<string name="pref_imgs_enable_summary">Afficher les images dans les posts</string>
 	<string name="pref_imgs_enable_default">true</string>
 
-	<string name="pref_srv_mps_title">Service de notification des MPs</string>
+	<string name="pref_srv_mps_title">Service permanent de vérification des MPs</string>
 	
 	<string name="pref_srv_mps_enable_title">Activer le service</string>
-	<string name="pref_srv_mps_enable_summary">Activer le service de vérification des messages privés</string>
+	<string name="pref_srv_mps_enable_summary">Activer le service de vérification des MPs (tourne en permanence)</string>
 	<string name="pref_srv_mps_enable_default">false</string>
 	
 	<string name="pref_srv_mps_freq_title">Fréquence de vérification (en min)</string>
-	<string name="pref_srv_mps_freq_summary">Fréquence de vérification des messages privés</string>
+	<string name="pref_srv_mps_freq_summary">Fréquence de vérification des MPs</string>
 	<string name="pref_srv_mps_freq_default">60</string>
 	
 	<string name="pref_debug_title">Debug</string>

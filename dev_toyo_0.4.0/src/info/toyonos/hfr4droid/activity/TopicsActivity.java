@@ -485,10 +485,7 @@ public class TopicsActivity extends HFR4droidListActivity<Topic>
 			{
 				if (adapter.getItem(i).getStatus() == TopicStatus.NEW_MP) newMps++;
 			}
-			cat.setName(newMps == 0 ? 
-								Category.MPS_CAT.getName() :
-								getResources().getQuantityString(R.plurals.mp_notification_content, newMps, newMps));
-			title = newMps == 0 ? "P." + currentPageNumber + " - " + cat.toString() : cat.toString();
+			title = newMps == 0 ? "P." + currentPageNumber + " - " + cat.toString() : getResources().getQuantityString(R.plurals.mp_notification_content, newMps, newMps);
 		}
 		else
 		{

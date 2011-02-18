@@ -118,6 +118,7 @@ public class CategoriesActivity extends HFR4droidListActivity<Category>
 			}
 		});
 
+		startMpTimerCheckService();
 		startMpCheckService();
 	}
 
