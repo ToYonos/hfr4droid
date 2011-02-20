@@ -39,9 +39,9 @@ public class MpTimerCheckService extends MpCheckService
 	}
 	
 	@Override
-	protected void doService(Intent intent)
+	protected Runnable doService(Intent intent)
 	{
-		// Rien ici
+		return null;
 	}
 	
 	@Override

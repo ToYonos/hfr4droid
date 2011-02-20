@@ -38,21 +38,23 @@ public class MpNotifyService extends Service
 	public void onStart(final Intent intent, int startId)
 	{
 		super.onStart(intent, startId);
-		new Thread()
-		{
-			public void run()
-			{
-				doService(intent);
-			}
-		}.start();
+		Runnable run = doService(intent);
+		if (run != null) new Thread(run).start();
 	}
 	
-	protected void doService(Intent intent)
+	protected Runnable doService(final Intent intent)
 	{
-		int nbMps = intent.getIntExtra("nbMps", 0);
-		Topic mp = (Topic) intent.getSerializableExtra("mp");
-		notifyNewMps(nbMps, mp);
-		stopSelf();
+		return new Runnable()
+		{	
+			@Override
+			public void run()
+			{
+				int nbMps = intent.getIntExtra("nbMps", 0);
+				Topic mp = (Topic) intent.getSerializableExtra("mp");
+				notifyNewMps(nbMps, mp);
+				stopSelf();
+			}
+		};
 	}
 
 	protected void notifyNewMps(int nbMps, Topic mp)

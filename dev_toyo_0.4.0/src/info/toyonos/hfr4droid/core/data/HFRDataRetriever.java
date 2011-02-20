@@ -506,6 +506,7 @@ public class HFRDataRetriever implements MDDataRetriever
 	private int innterCountNewMps(String content, Topic topic) throws DataRetrieverException
 	{
 		int count = 0;
+		//Pattern p = Pattern.compile("<div\\s*class=\"left\"><div\\s*class=\"left\"><img\\s*src=\".*?newmp\\.gif\"\\s*alt=\"\"\\s*/>&nbsp;<a\\s*href=\"(.*?)\"\\s*class=\"red\">Vous avez ([0-9]+) nouveaux? messages? privés?</a>"
 		Pattern p = Pattern.compile("<a\\s*href=\"(.*?)\"\\s*class=\"red\">Vous avez ([0-9]+) nouveaux? messages? privés?</a>"
 			, Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
 		Matcher m = p.matcher(content);

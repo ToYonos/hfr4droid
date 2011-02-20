@@ -18,10 +18,18 @@ import android.util.Log;
  */
 public class MpCheckService extends MpNotifyService
 {	
-	protected void doService(Intent intent)
+	@Override
+	protected Runnable doService(Intent intent)
 	{
-		checkNewMps();
-		stopSelf();
+		return new Runnable()
+		{	
+			@Override
+			public void run()
+			{
+				checkNewMps();
+				stopSelf();
+			}
+		};
 	}
 	
 	protected void checkNewMps()
