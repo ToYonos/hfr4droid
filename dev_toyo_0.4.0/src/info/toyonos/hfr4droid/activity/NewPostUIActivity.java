@@ -249,11 +249,12 @@ public abstract class NewPostUIActivity extends HFR4droidActivity
 	
 	protected void hideWikiSmiliesResults(ViewGroup layout)
 	{
-		WebView webView = (WebView) layout.getChildAt(0);
-		if (webView != null)
+		if (layout == null) return;
+		View webView = layout.getChildAt(0);
+		if (webView != null && webView instanceof WebView)
 		{
 			layout.removeView(webView);
-			webView.destroy();
+			((WebView) webView).destroy();
 		}
 	}
 	

@@ -13,6 +13,7 @@ import info.toyonos.hfr4droid.core.data.HFRUrlParser;
 import info.toyonos.hfr4droid.core.data.MDUrlParser;
 import info.toyonos.hfr4droid.core.message.MessageSenderException;
 import info.toyonos.hfr4droid.core.message.HFRMessageSender.ResponseCode;
+import info.toyonos.hfr4droid.service.MpNotifyService;
 
 import java.text.SimpleDateFormat;
 import java.util.Collections;
@@ -157,7 +158,11 @@ public class PostsActivity extends NewPostUIActivity
 		{
 			setTitle();
 			updateButtonsStates();
-			if (topic.getCategory().equals(Category.MPS_CAT)) clearNotifications();
+			if (topic.getCategory().equals(Category.MPS_CAT))
+			{
+				clearNotifications();
+				if (MpNotifyService.currentNewMps > 0 && topic.getStatus() == TopicStatus.NEW_MP) MpNotifyService.currentNewMps--;
+			}
 		}
 
 		gestureDetector = new GestureDetector(new SimpleNavOnGestureListener()
@@ -206,6 +211,7 @@ public class PostsActivity extends NewPostUIActivity
 		if (postsWV != null) postsWV.destroy();
 		((WebView) findViewById(R.id.loading)).destroy();
 		if (posts != null) posts.clear();
+		super.hideWikiSmiliesResults(getSmiliesLayout());
 	}
 
 	@Override
@@ -1090,7 +1096,6 @@ public class PostsActivity extends NewPostUIActivity
 			{
 				public void onDismiss(DialogInterface dialog)
 				{
-					// TODO Gérer tous les cas de fermeture de popup (webview ?)
 					if (type == PostCallBackType.EDIT)
 					{
 						EditText postContent = (EditText) postDialog.findViewById(R.id.InputPostContent);
@@ -1112,7 +1117,7 @@ public class PostsActivity extends NewPostUIActivity
 	
 	protected ViewGroup getSmiliesLayout()
 	{
-		return (ViewGroup) postDialog.findViewById(R.id.PostContainer).getParent();
+		return postDialog != null ? (ViewGroup) postDialog.findViewById(R.id.PostContainer).getParent() : null;
 	}
 	
 	protected void showWikiSmiliesResults(ViewGroup layout)

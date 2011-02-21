@@ -756,12 +756,20 @@ public class TopicsActivity extends HFR4droidListActivity<Topic>
 				{
 					author.setTextColor(ColorStateList.createFromXml(getResources(), getResources().getXml(R.color.item)));
 				} catch (Exception e) {}
+				ll.removeView(ll.findViewById(R.id.ItemRemainingPages));
 
 			}
 			else
 			{
 				ll.removeView(ll.findViewById(R.id.ItemUnread));
 				ll.removeView(ll.findViewById(R.id.ItemAuthor));
+				TextView remainingPages = (TextView) ll.findViewById(R.id.ItemRemainingPages);
+				remainingPages.setVisibility(t.getLastReadPage() != -1 && (t.getNbPages() - t.getLastReadPage()) > 0 ? View.VISIBLE : View.GONE);
+				remainingPages.setText("(" + (t.getNbPages() - t.getLastReadPage()) + ")");
+				try
+				{
+					remainingPages.setTextColor(ColorStateList.createFromXml(getResources(), getResources().getXml(R.color.item2)));
+				} catch (Exception e) {}
 			}
 
 			text1.setText(isDummyTopic ? t.getCategory().toString() : t.toString());
@@ -811,7 +819,6 @@ public class TopicsActivity extends HFR4droidListActivity<Topic>
 						break;
 				}
 			}
-
 			return v;
 		}
 	}

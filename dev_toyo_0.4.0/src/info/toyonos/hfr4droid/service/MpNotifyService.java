@@ -45,8 +45,7 @@ public class MpNotifyService extends Service
 	protected Runnable doService(final Intent intent)
 	{
 		return new Runnable()
-		{	
-			@Override
+		{
 			public void run()
 			{
 				int nbMps = intent.getIntExtra("nbMps", 0);

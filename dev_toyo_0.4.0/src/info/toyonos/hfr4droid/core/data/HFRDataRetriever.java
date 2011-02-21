@@ -323,6 +323,8 @@ public class HFRDataRetriever implements MDDataRetriever
 			"<td.*?class=\"sujetCase7\".*?>(.+?)</td>.*?" +
 			"</tr>))"
 			, Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
+        
+        Log.d(HFR4droidApplication.TAG, "Matching topics of " + cat.getName());
 		Matcher m = p.matcher(content);
 		Category currentCat = cat;
 		while (m.find())
@@ -357,6 +359,7 @@ public class HFRDataRetriever implements MDDataRetriever
 				);
 			}
 		}
+		Log.d(HFR4droidApplication.TAG, "Match OK, " + topics.size() + " topics retrieved");
 		
 		if (!cat.equals(Category.MPS_CAT)) checkNewMps(content);
 
@@ -432,6 +435,8 @@ public class HFRDataRetriever implements MDDataRetriever
 			"(?:<div\\s*class=\"edited\">)?(?:<a.*?>Message cité ([0-9]+) fois</a>)?(?:<br\\s*/>Message édité par .*? le ([0-9]+)-([0-9]+)-([0-9]+).*?([0-9]+):([0-9]+):([0-9]+)</div>)?.*?" +
 			"</div></td></tr></table>)"
 			, Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
+
+        Log.d(HFR4droidApplication.TAG,  topic.getName() != null ? "Matching posts of " + topic.getName() : "Matching posts");
         Matcher m = p.matcher(content);
         while (m.find())
         {
@@ -466,6 +471,7 @@ public class HFRDataRetriever implements MDDataRetriever
 				)
 			);
 		}
+        Log.d(HFR4droidApplication.TAG, "Match OK, " + posts.size() + " posts retrieved");
 
 		String nbPages = getSingleElement("([0-9]+)</(?:a|b)></div><div\\s*class=\"pagepresuiv\"", content);
 		if (nbPages != null) topic.setNbPages(Integer.parseInt(nbPages));
@@ -478,7 +484,7 @@ public class HFRDataRetriever implements MDDataRetriever
 			//String topicTitle = getSingleElement("<input\\s*type=\"hidden\"\\s*name=\"sujet\"\\s*value=\"(.+?)\"\\s*/>", content);
 			String topicTitle =  HFRDataRetriever.getSingleElement("(?:&nbsp;)*(.*)", HFRDataRetriever.getSingleElement("([^>]+)(?:</a>)?</h1>", content));
 			if (topicTitle != null) topic.setName(topicTitle);
-			topic.setStatus(getSingleElement("(repondre\\.gif)", content) != null ? TopicStatus.NONE : TopicStatus.LOCKED);
+			if (getSingleElement("(repondre\\.gif)", content) == null) topic.setStatus(TopicStatus.LOCKED);
 		}
 
 		if (!topic.getCategory().equals(Category.MPS_CAT)) checkNewMps(content);
@@ -506,9 +512,10 @@ public class HFRDataRetriever implements MDDataRetriever
 	private int innterCountNewMps(String content, Topic topic) throws DataRetrieverException
 	{
 		int count = 0;
-		//Pattern p = Pattern.compile("<div\\s*class=\"left\"><div\\s*class=\"left\"><img\\s*src=\".*?newmp\\.gif\"\\s*alt=\"\"\\s*/>&nbsp;<a\\s*href=\"(.*?)\"\\s*class=\"red\">Vous avez ([0-9]+) nouveaux? messages? privés?</a>"
-		Pattern p = Pattern.compile("<a\\s*href=\"(.*?)\"\\s*class=\"red\">Vous avez ([0-9]+) nouveaux? messages? privés?</a>"
+		Pattern p = Pattern.compile("<div\\s*class=\"left\"><div\\s*class=\"left\"><img\\s*src=\".*?newmp\\.gif\"\\s*alt=\"\"\\s*/>&nbsp;<a\\s*href=\"(.*?)\"\\s*class=\"red\">Vous avez ([0-9]+) nouveaux? messages? privés?</a>"
 			, Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
+
+		Log.d(HFR4droidApplication.TAG, "Matching new mps");
 		Matcher m = p.matcher(content);
 		if (m.find())
 		{
@@ -522,9 +529,10 @@ public class HFRDataRetriever implements MDDataRetriever
 				topic.setCategory(Category.MPS_CAT);		
 			}
 		}
+		Log.d(HFR4droidApplication.TAG, "User have " + count + " new mp(s)");
 		return count;
 	}
-	
+
 	private void checkNewMps(String content) throws DataRetrieverException
 	{
 		if (isCheckMpsEnable())
@@ -537,7 +545,7 @@ public class HFRDataRetriever implements MDDataRetriever
 			context.startService(intent);
 		}
 	}
-	
+
 	private boolean isCheckMpsEnable()
 	{
 		SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(context);
@@ -671,6 +679,7 @@ public class HFRDataRetriever implements MDDataRetriever
 	 */
 	private String getAsString(String url, boolean cr) throws IOException, URISyntaxException, ServerMaintenanceException
 	{
+		Log.d(HFR4droidApplication.TAG, "Retrieving " + url);
 		DefaultHttpClient client = new DefaultHttpClient();
 		InputStream data = null;
 		URI uri = new URI(url);
@@ -713,6 +722,7 @@ public class HFRDataRetriever implements MDDataRetriever
 		}
 
 		if  (content.matches(MAINTENANCE)) throw new ServerMaintenanceException(context.getString(R.string.server_maintenance));
+		Log.d(HFR4droidApplication.TAG, "GET OK for " + url);
 		return content;
 	}
 

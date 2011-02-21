@@ -17,13 +17,12 @@ import android.util.Log;
  *
  */
 public class MpCheckService extends MpNotifyService
-{	
+{
 	@Override
 	protected Runnable doService(Intent intent)
 	{
 		return new Runnable()
-		{	
-			@Override
+		{
 			public void run()
 			{
 				checkNewMps();
@@ -31,7 +30,7 @@ public class MpCheckService extends MpNotifyService
 			}
 		};
 	}
-	
+
 	protected void checkNewMps()
 	{
 		Topic mp = new Topic(-1, null);
@@ -46,7 +45,7 @@ public class MpCheckService extends MpNotifyService
 		}
 		notifyNewMps(nbMps, mp);
 	}
-	
+
 	private MDDataRetriever getDataRetriever()
 	{
 		return ((HFR4droidApplication)getApplication()).getDataRetriever();
