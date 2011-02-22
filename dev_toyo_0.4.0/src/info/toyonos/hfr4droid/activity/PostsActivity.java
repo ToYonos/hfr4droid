@@ -51,7 +51,6 @@ import android.view.ViewGroup;
 import android.view.Window;
 import android.view.WindowManager;
 import android.view.View.OnClickListener;
-import android.view.View.OnTouchListener;
 import android.view.ViewGroup.LayoutParams;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
@@ -538,17 +537,30 @@ public class PostsActivity extends NewPostUIActivity
 		final LinearLayout parent = ((LinearLayout) findViewById(R.id.PostsLayout));
 		WebView oldWebView = getWebView();
 
-		final WebView webView = new WebView(this);
+	    final WebView webView = new WebView(this)
+        {
+            @Override
+            public boolean onTouchEvent(MotionEvent ev)
+            {
+                boolean result = false;
+                try
+                {
+                	result = ev != null ? gestureDetector.onTouchEvent(ev) : false;
+                	if (!result)
+                	{
+                		result = super.onTouchEvent(ev);
+                	}
+                }
+                catch (NullPointerException e)
+                {
+                	error(e);
+                }
+                return result;
+            }
+        };
 		webView.setFocusable(true);
 		webView.setFocusableInTouchMode(false); 
 		webView.setLayoutParams(new LayoutParams(LayoutParams.FILL_PARENT, LayoutParams.WRAP_CONTENT));
-		webView.setOnTouchListener(new OnTouchListener()
-		{
-			public boolean onTouch(View v, MotionEvent event)
-			{
-				return event != null ? gestureDetector.onTouchEvent(event) : false;
-			}
-		});
 		webView.addJavascriptInterface(new Object()
 		{
 			@SuppressWarnings("unused")
