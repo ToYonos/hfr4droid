@@ -7,7 +7,7 @@
 	<string name="pref_welcome_screen_default">-1</string>
 
 	<string name="pref_check_mps_enable_title">Vérifier les MPs</string>
-	<string name="pref_check_mps_enable_summary">Active la vérification des MPs (différent du service permanant, cf. documention)</string>
+	<string name="pref_check_mps_enable_summary">Active la vérification des MPs (différent du service permanent, cf. documention)</string>
 	<string name="pref_check_mps_enable_default">1</string>	
 	
 	<string name="pref_type_drapeau_title">Type de drapeau</string>
@@ -19,7 +19,7 @@
 	<string name="pref_signature_enable_default">true</string>
 	
 	<string name="pref_dbltap_enable_title">Activer le refresh sur double tap</string>
-	<string name="pref_dbltap_enable_summary">Permettre de rafraîchir la page d\'un topic en double tappant sur l\'écran</string>
+	<string name="pref_dbltap_enable_summary">Permettre de rafraîchir la page d\'un topic en double tapant sur l\'écran</string>
 	<string name="pref_dbltap_enable_default">true</string>	
 	
 	<string name="pref_swipe_title">Sensibilité du swipe</string>

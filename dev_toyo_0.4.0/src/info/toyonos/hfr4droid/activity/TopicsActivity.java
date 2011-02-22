@@ -34,6 +34,7 @@ import android.view.SubMenu;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ContextMenu.ContextMenuInfo;
+import android.view.GestureDetector.SimpleOnGestureListener;
 import android.view.View.OnClickListener;
 import android.view.View.OnCreateContextMenuListener;
 import android.view.View.OnTouchListener;
@@ -630,13 +631,29 @@ public class TopicsActivity extends HFR4droidListActivity<Topic>
 
 	private void attachEvents()
 	{
-		final TextView catTitle = (TextView) findViewById(R.id.CatTitle);
-		catTitle.setOnClickListener(new OnClickListener()
-		{	
-			public void onClick(View v)
+		final TextView catTitle = (TextView) findViewById(R.id.CatTitle);		
+		catTitle.setOnTouchListener(new OnTouchListener()
+		{
+			private GestureDetector gd = new GestureDetector(new SimpleOnGestureListener()
 			{
-				 TextView catTitle = (TextView) v;
-				 catTitle.setEllipsize(catTitle.getEllipsize() == TruncateAt.MARQUEE ? TruncateAt.END : TruncateAt.MARQUEE);
+				public boolean onDoubleTap(MotionEvent e)
+				{
+					reloadPage();
+					return true;
+				}
+
+				@Override
+				public boolean onSingleTapConfirmed(MotionEvent e)
+				{
+					catTitle.setEllipsize(catTitle.getEllipsize() == TruncateAt.MARQUEE ? TruncateAt.END : TruncateAt.MARQUEE);
+					return true;
+				}
+			});
+
+			public boolean onTouch(View v, MotionEvent event)
+			{
+				if (event != null) return gd.onTouchEvent(event);
+				return false;
 			}
 		});
 		
