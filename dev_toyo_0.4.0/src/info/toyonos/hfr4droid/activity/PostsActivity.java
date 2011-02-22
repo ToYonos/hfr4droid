@@ -566,7 +566,7 @@ public class PostsActivity extends NewPostUIActivity
 			@SuppressWarnings("unused")
 			public void openQuickActionWindow(final long postId, final boolean isMine, final int yOffset)
 			{
-				if (yOffset >= 0 && !lockQuickAction && topic.getStatus() != TopicStatus.LOCKED)
+				if (yOffset >= 0 && !lockQuickAction)
 				{
 					runOnUiThread(new Runnable()
 					{
@@ -587,117 +587,120 @@ public class PostsActivity extends NewPostUIActivity
 							postLink.append("&page=").append(currentPageNumber);
 							postLink.append("#t").append(postId);
 							
-							if (isMine)
+							if (topic.getStatus() != TopicStatus.LOCKED)
 							{
-								QuickActionWindow.Item edit = new QuickActionWindow.Item(PostsActivity.this, "", android.R.drawable.ic_menu_edit, new PostCallBack(PostCallBackType.EDIT, postId, true) 
+								if (isMine)
 								{
-									@Override
-									protected String doActionInBackground(Post p) throws DataRetrieverException, MessageSenderException
+									QuickActionWindow.Item edit = new QuickActionWindow.Item(PostsActivity.this, "", android.R.drawable.ic_menu_edit, new PostCallBack(PostCallBackType.EDIT, postId, true) 
 									{
-										String content = getDataRetriever().getPostContent(p);
-										return content.substring(0, content.length() - 1);
-									}
+										@Override
+										protected String doActionInBackground(Post p) throws DataRetrieverException, MessageSenderException
+										{
+											String content = getDataRetriever().getPostContent(p);
+											return content.substring(0, content.length() - 1);
+										}
+	
+										@Override
+										protected void onActionExecute(String data)
+										{
+											showAddPostDialog(PostCallBackType.EDIT, data, postId);	
+										}
+									});
+									window.addItem(edit);	
+	
+									QuickActionWindow.Item delete = new QuickActionWindow.Item(PostsActivity.this, "", android.R.drawable.ic_menu_delete, new PostCallBack(PostCallBackType.DELETE, postId, true, true)
+									{									
+										@Override
+										protected String doActionInBackground(Post p) throws DataRetrieverException, MessageSenderException
+										{
+											return getMessageSender().deleteMessage(p, getDataRetriever().getHashCheck()) ? "1" : "0";
+										}
+	
+										@Override
+										protected void onActionExecute(String data)
+										{
+											if (data.equals("1"))
+											{
+												WebView webView = getWebView();
+												webView.loadUrl("javascript:removePost(" + postId + ")");
+											}
+											else
+											{
+												Toast.makeText(PostsActivity.this, getString(R.string.delete_failed), Toast.LENGTH_SHORT).show();
+											}
+										}
+									});
+									window.addItem(delete);
+								}
 
-									@Override
-									protected void onActionExecute(String data)
-									{
-										showAddPostDialog(PostCallBackType.EDIT, data, postId);	
-									}
-								});
-								window.addItem(edit);	
-
-								QuickActionWindow.Item delete = new QuickActionWindow.Item(PostsActivity.this, "", android.R.drawable.ic_menu_delete, new PostCallBack(PostCallBackType.DELETE, postId, true, true)
+								QuickActionWindow.Item quote = new QuickActionWindow.Item(PostsActivity.this, "", R.drawable.ic_menu_quote, new PostCallBack(PostCallBackType.QUOTE, postId, true)
 								{									
 									@Override
 									protected String doActionInBackground(Post p) throws DataRetrieverException, MessageSenderException
 									{
-										return getMessageSender().deleteMessage(p, getDataRetriever().getHashCheck()) ? "1" : "0";
+										return getDataRetriever().getQuote(p);
 									}
-
+	
 									@Override
 									protected void onActionExecute(String data)
 									{
-										if (data.equals("1"))
-										{
-											WebView webView = getWebView();
-											webView.loadUrl("javascript:removePost(" + postId + ")");
-										}
-										else
-										{
-											Toast.makeText(PostsActivity.this, getString(R.string.delete_failed), Toast.LENGTH_SHORT).show();
-										}
+										showAddPostDialog(PostCallBackType.QUOTE, data);
 									}
+								});							
+								window.addItem(quote);
+	
+								boolean quoteExists = quotes.get(postId) != null;
+								QuickActionWindow.Item multiQuote = new QuickActionWindow.Item(PostsActivity.this, "",
+										quoteExists ? R.drawable.ic_menu_multi_quote_moins : R.drawable.ic_menu_multi_quote_plus,
+												new PostCallBack(quoteExists ? PostCallBackType.MULTIQUOTE_REMOVE : PostCallBackType.MULTIQUOTE_ADD, postId, false)
+								{								
+									@Override
+									protected String doActionInBackground(Post p) throws DataRetrieverException, MessageSenderException
+									{
+										String data = "";
+										switch (type)
+										{
+											case MULTIQUOTE_ADD:
+												quotes.put(postId, POST_LOADING);
+												data = getDataRetriever().getQuote(p);
+												break;
+		
+											case MULTIQUOTE_REMOVE:
+												if (!POST_LOADING.equals(quotes.get(postId)))
+												{
+													quotes.remove(p.getId());
+												}
+												break;
+		
+											default:
+												break;
+										}
+										return data;
+									}
+	
+									@Override
+									protected void onActionExecute(String data)
+									{
+										switch (type)
+										{
+											case MULTIQUOTE_ADD:
+												if (data.equals(""))
+												{
+													quotes.remove(postId);
+												}
+												else
+												{
+													quotes.put(postId, data);
+												}
+												break;
+		
+											default:
+												break;
+										}
+									}								
 								});
-								window.addItem(delete);
+								window.addItem(multiQuote);
 							}
-
-							QuickActionWindow.Item quote = new QuickActionWindow.Item(PostsActivity.this, "", R.drawable.ic_menu_quote, new PostCallBack(PostCallBackType.QUOTE, postId, true)
-							{									
-								@Override
-								protected String doActionInBackground(Post p) throws DataRetrieverException, MessageSenderException
-								{
-									return getDataRetriever().getQuote(p);
-								}
-
-								@Override
-								protected void onActionExecute(String data)
-								{
-									showAddPostDialog(PostCallBackType.QUOTE, data);
-								}
-							});							
-							window.addItem(quote);
-
-							boolean quoteExists = quotes.get(postId) != null;
-							QuickActionWindow.Item multiQuote = new QuickActionWindow.Item(PostsActivity.this, "",
-									quoteExists ? R.drawable.ic_menu_multi_quote_moins : R.drawable.ic_menu_multi_quote_plus,
-											new PostCallBack(quoteExists ? PostCallBackType.MULTIQUOTE_REMOVE : PostCallBackType.MULTIQUOTE_ADD, postId, false)
-							{								
-								@Override
-								protected String doActionInBackground(Post p) throws DataRetrieverException, MessageSenderException
-								{
-									String data = "";
-									switch (type)
-									{
-										case MULTIQUOTE_ADD:
-											quotes.put(postId, POST_LOADING);
-											data = getDataRetriever().getQuote(p);
-											break;
-	
-										case MULTIQUOTE_REMOVE:
-											if (!POST_LOADING.equals(quotes.get(postId)))
-											{
-												quotes.remove(p.getId());
-											}
-											break;
-	
-										default:
-											break;
-									}
-									return data;
-								}
-
-								@Override
-								protected void onActionExecute(String data)
-								{
-									switch (type)
-									{
-										case MULTIQUOTE_ADD:
-											if (data.equals(""))
-											{
-												quotes.remove(postId);
-											}
-											else
-											{
-												quotes.put(postId, data);
-											}
-											break;
-	
-										default:
-											break;
-									}
-								}								
-							});
-							window.addItem(multiQuote);
 							
 							QuickActionWindow.Item addFavorite = new QuickActionWindow.Item(PostsActivity.this, "", R.drawable.ic_menu_star, new PostCallBack(PostCallBackType.FAVORITE, postId, true)
 							{									
