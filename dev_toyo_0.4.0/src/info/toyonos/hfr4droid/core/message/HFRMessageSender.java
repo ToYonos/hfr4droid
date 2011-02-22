@@ -232,7 +232,7 @@ public class HFRMessageSender
 	 * @return Le message indiquant si l'opération s'est bien passée
 	 * @throws MessageSenderException Si un problème survient
 	 */
-	public String setUnread(Topic t) throws MessageSenderException
+	public boolean setUnread(Topic t) throws MessageSenderException
 	{
 		String url = UNREAD_URI.replaceFirst("\\{\\$cat\\}", t.getCategory().getRealId())
 		.replaceFirst("\\{\\$topic\\}", String.valueOf(t.getId()));
@@ -246,7 +246,7 @@ public class HFRMessageSender
 		{
 			throw new MessageSenderException(context.getString(R.string.unread_failed), e);
 		}
-		return HFRDataRetriever.getSingleElement("<div\\s*class=\"hop\">\\s*(.*?)\\s*</div>", response);
+		return response.matches(".*Le message a été marqué comme non lu avec succès.*");
 	}
 
 	private String innerGetResponse(String url, List<NameValuePair> params) throws UnsupportedEncodingException, IOException

@@ -280,7 +280,7 @@ public class TopicsActivity extends HFR4droidListActivity<Topic>
 				final ProgressDialog progressDialog = new ProgressDialog(TopicsActivity.this);
 				progressDialog.setMessage(getString(R.string.unread_loading));
 				progressDialog.setIndeterminate(true);
-				new AsyncTask<Void, Void, String>()
+				new AsyncTask<Void, Void, Boolean>()
 				{
 					@Override
 					protected void onPreExecute() 
@@ -289,29 +289,33 @@ public class TopicsActivity extends HFR4droidListActivity<Topic>
 					}
 
 					@Override
-					protected String doInBackground(Void... params)
+					protected Boolean doInBackground(Void... params)
 					{
-						String strResponse = null;
+						boolean response = false;
 						try
 						{
-							strResponse = getMessageSender().setUnread(currentTopic);
+							response = getMessageSender().setUnread(currentTopic);
 						} 
 						catch (MessageSenderException e)
 						{
 							error(e, true, true);
 						}
-						return strResponse;
+						return response;
 					}
 
 					@Override
-					protected void onPostExecute(String strResponse)
+					protected void onPostExecute(Boolean response)
 					{
 						progressDialog.dismiss();
-						if (strResponse != null)
+						if (response)
 						{
-							Toast.makeText(TopicsActivity.this, strResponse, Toast.LENGTH_SHORT).show();
+							currentTopic.setStatus(TopicStatus.NEW_MP);
+							redrawPage();
 						}
-						reloadPage();
+						else
+						{
+							Toast.makeText(TopicsActivity.this, R.string.unread_failed, Toast.LENGTH_SHORT).show();
+						}
 					}
 				}.execute();
 				return true;
