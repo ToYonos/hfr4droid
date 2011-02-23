@@ -1,5 +1,6 @@
 package info.toyonos.hfr4droid;
 
+import info.toyonos.hfr4droid.core.auth.AuthenticationException;
 import info.toyonos.hfr4droid.core.auth.HFRAuthentication;
 import info.toyonos.hfr4droid.core.data.HFRDataRetriever;
 import info.toyonos.hfr4droid.core.data.MDDataRetriever;
@@ -22,7 +23,9 @@ import android.preference.PreferenceManager;
  *
  */
 public class HFR4droidApplication extends CrashReportingApplication
-{	
+{
+	public static final String TAG = "HFR4droid";
+	
 	private MDDataRetriever dataRetriever;
 	private HFRAuthentication auth;
 	private HFRMessageSender msgSender;
@@ -31,7 +34,7 @@ public class HFR4droidApplication extends CrashReportingApplication
 	public void onCreate()
 	{
 		super.onCreate();
-		dataRetriever = new HFRDataRetriever();
+		dataRetriever = new HFRDataRetriever(this);
 		SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(this);
 		if (!settings.contains(CrashReportingApplication.PREF_DISABLE_ACRA))
 		{
@@ -59,17 +62,16 @@ public class HFR4droidApplication extends CrashReportingApplication
 	 * @throws ClassNotFoundException 
 	 * @throws IOException
 	 */
-	public boolean login(String user, String password) throws IOException, ClassNotFoundException
+	public boolean login(String user, String password) throws AuthenticationException
 	{
-		auth = user != null && password != null ?
-				new HFRAuthentication(this, user, password) :
-				new HFRAuthentication(this);
+		boolean fromCache = user == null && password == null;
+		auth = fromCache ? new HFRAuthentication(this) : new HFRAuthentication(this, user, password);
 
 		boolean isLoggedIn = auth.getCookies() != null;
 		if (isLoggedIn)
 		{
-			msgSender = new HFRMessageSender(auth);
-			dataRetriever = new HFRDataRetriever(auth);
+			msgSender = new HFRMessageSender(this, auth);
+			dataRetriever = new HFRDataRetriever(this, auth, !fromCache);
 		}
 		return isLoggedIn;
 	}
@@ -80,7 +82,7 @@ public class HFR4droidApplication extends CrashReportingApplication
 	 * @throws ClassNotFoundException 
 	 * @throws IOException 
 	 */
-	public boolean login() throws IOException, ClassNotFoundException
+	public boolean login() throws AuthenticationException
 	{
 		return login(null, null);
 	}
@@ -95,7 +97,7 @@ public class HFR4droidApplication extends CrashReportingApplication
 			auth.clearCache();
 			auth = null;
 			msgSender = null;
-			dataRetriever = new HFRDataRetriever();
+			dataRetriever = new HFRDataRetriever(this, true);
 		}
 	}
 

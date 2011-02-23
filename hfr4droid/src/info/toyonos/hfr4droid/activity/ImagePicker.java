@@ -51,6 +51,7 @@ public class ImagePicker extends Activity implements Runnable{
 	//request code
 	public static final int CHOOSE_PICTURE = 1;
 	public static final String ACTION_HFRUPLOADER = "ACTION_HFRUPLOADER";
+	public static final String ACTION_HFRUPLOADER_MP = "ACTION_HFRUPLOADER_MP";
 	
 	public static final String FINAL_URL = "finalUrl";
 	private static final String UPLOAD_URL = "http://hfr-rehost.net/upload";
@@ -81,6 +82,13 @@ public class ImagePicker extends Activity implements Runnable{
         	intent.setAction(Intent.ACTION_GET_CONTENT);
         	startActivityForResult(Intent.createChooser(intent, getString(R.string.file_hfr_rehost)), CHOOSE_PICTURE);
         }
+        // Cas HFR4DROID 2: on appelle l'activity pour uploader une photo avant de l'envoyer par mp
+        if(ACTION_TYPE.equals(ACTION_HFRUPLOADER_MP)) {
+        	Uri uri = Uri.parse(intentAppel.getStringExtra(Intent.EXTRA_STREAM));
+        	Intent intentSortie = new Intent();
+        	intentSortie.setData(uri);
+        	onActivityResult(CHOOSE_PICTURE, RESULT_OK, intentSortie);
+        }      
         // Cas SEND : l'uri de l'image est déjà connue.
         if(ACTION_TYPE.equals(Intent.ACTION_SEND)) {
         	Bundle extras = intentAppel.getExtras();
@@ -151,7 +159,7 @@ public class ImagePicker extends Activity implements Runnable{
 			if(msg.what == DATA_READ_OK) {
 				
 				// si appelé depuis l'appli, renvoi d'un intent avec l'url dans les extras
-				if(ACTION_TYPE.equals(ACTION_HFRUPLOADER)) {
+				if(ACTION_TYPE.equals(ACTION_HFRUPLOADER) || ACTION_TYPE.equals(ACTION_HFRUPLOADER_MP)) {
 					getIntent().putExtra(FINAL_URL, url);
 					setResult(RESULT_OK, getIntent());
 				}

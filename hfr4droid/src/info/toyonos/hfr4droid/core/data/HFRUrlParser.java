@@ -70,7 +70,7 @@ public class HFRUrlParser implements MDUrlParser
 	/**
 	 * {@inheritDoc}
 	 */
-	public boolean parseUrl(String url) throws Exception
+	public boolean parseUrl(String url) throws DataRetrieverException
 	{
 		element = null;
 		page = -1;
@@ -93,9 +93,10 @@ public class HFRUrlParser implements MDUrlParser
 
 	/**
 	 * Parse une url rewrittée
+	 * @throws DataRetrieverException 
 	 * @see #parseUrl
 	 */
-	private boolean parseRewrittenUrl(String url) throws Exception
+	private boolean parseRewrittenUrl(String url) throws DataRetrieverException 
 	{
 		if (url.matches(BASE_URL_REGEXP + "hfr/.*?/liste_sujet.*?"))
 		{
@@ -121,7 +122,7 @@ public class HFRUrlParser implements MDUrlParser
 			if (m.find())
 			{
 				Category cat = dataRetriever.getCatByCode(urlElements[4]);
-				element = new Topic(Long.parseLong(m.group(1)));
+				element = new Topic(Long.parseLong(m.group(1)), null);
 				((Topic) element).setCategory(cat);
 				((Topic) element).setLastReadPost(handlePostId(m.group(3) != null ? m.group(3) : m.group(4)));
 				page = Integer.parseInt(m.group(2));
@@ -133,9 +134,10 @@ public class HFRUrlParser implements MDUrlParser
 
 	/**
 	 * Parse une url standard
+	 * @throws DataRetrieverException
 	 * @see #parseUrl
 	 */
-	private boolean parseStandardUrl(String url) throws Exception
+	private boolean parseStandardUrl(String url) throws DataRetrieverException 
 	{	
 		if (url.matches(BASE_URL_REGEXP + "forum1f.*"))
 		{
@@ -177,7 +179,7 @@ public class HFRUrlParser implements MDUrlParser
 		return false;
 	}
 	
-	private Category getCat(String url) throws Exception
+	private Category getCat(String url) throws DataRetrieverException
 	{
 		String catId = HFRDataRetriever.getSingleElement("(?:&|\\?)cat=(prive|[0-9]+)", url);
 		try

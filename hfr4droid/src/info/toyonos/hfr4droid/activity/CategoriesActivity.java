@@ -32,6 +32,7 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
+import android.widget.Toast;
 import android.widget.AdapterView.AdapterContextMenuInfo;
 import android.widget.AdapterView.OnItemClickListener;
 
@@ -82,11 +83,19 @@ public class CategoriesActivity extends HFR4droidListActivity<Category>
 		lv.setOnItemClickListener(new OnItemClickListener()
 		{
 			public void onItemClick(AdapterView<?> a, View v, int position, long id)
-			{	
+			{
 				Category cat = (Category) lv.getItemAtPosition(position);
 				if (isLoggedIn() && !isMpsCat(cat))
 				{
-					loadTopics(cat, TopicType.fromInt(getTypeDrapeau()), false);
+					TopicType type = TopicType.fromInt(getTypeDrapeau());
+					if (isAllCatsCat(cat) && type == TopicType.ALL)
+					{
+						Toast.makeText(CategoriesActivity.this, R.string.warning_allcats_topicall, Toast.LENGTH_LONG).show();
+					}
+					else
+					{
+						loadTopics(cat, type, false);
+					}
 				}
 				else
 				{
@@ -109,6 +118,7 @@ public class CategoriesActivity extends HFR4droidListActivity<Category>
 			}
 		});
 
+		startMpTimerCheckService();
 		startMpCheckService();
 	}
 

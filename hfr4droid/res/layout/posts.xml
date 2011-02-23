@@ -22,8 +22,8 @@
 		    	android:paddingLeft="5dip"
 		    	android:textStyle="bold"
 		    	android:textColor="#1A3A60"
-		    	android:layout_width="wrap_content" 
-		    	android:layout_height="wrap_content" />	    	 	
+		    	android:layout_width="wrap_content"
+		    	android:layout_height="wrap_content" />
 	    	<TextView
 		    	android:id="@+id/TopicTitle"
 		    	android:gravity="left"
@@ -43,8 +43,9 @@
 	  		android:max="100"
 	  		android:indeterminateOnly="false"
 	  		style="@android:style/Widget.ProgressBar.Horizontal"
+	  		android:visibility="gone"
 	  		android:layout_width="fill_parent"
-	  		android:layout_height="10dip" />	    	
+	  		android:layout_height="10dip" />
 		<WebView
 			android:id="@+id/loading"
 	        android:layout_width="fill_parent"

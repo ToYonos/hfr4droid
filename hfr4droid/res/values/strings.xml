@@ -4,13 +4,21 @@
     <string name="upload_hfr_rehost">Upload sur hfr-rehost.net</string>
 	
 	<string name="nav_go_to">Aller à...</string>
+	<string name="topic_nav_last_read_page">Allez à la dernière page lue</string>
+	<string name="topic_nav_first_page">Allez à la première page</string>
+	<string name="topic_nav_previous_page">Allez à la page précèdente</string>
+	<string name="topic_nav_next_page">Allez à la page suivante</string>
+	<string name="topic_nav_last_page">Allez à la dernière page</string>
+	<string name="topic_nav_user_page">Allez à la page...</string>
 	<string name="nav_last_read_page">La dernière page lue</string>
 	<string name="nav_first_page">La première page</string>
 	<string name="nav_previous_page">La page précèdente</string>
 	<string name="nav_next_page">La page suivante</string>
 	<string name="nav_last_page">La dernière page</string>
-	<string name="nav_user_page">La page...</string>
+	<string name="nav_user_page">La page...</string>	
 	<string name="nav_page_number">Numéro de page ?</string>
+	<string name="topic_new_post">Poster un message</string>
+	<string name="topic_set_unread">Marquer comme non lu</string>
 	
 	<string name="menu_drapeaux">Mes drapeaux</string>
 	<string name="menu_drapeaux_all">Tous les topics</string>
@@ -26,6 +34,10 @@
 	<string name="menu_quit">Quitter</string>
 	<string name="menu_refresh">Rafraîchir</string>
 	<string name="menu_back">Retour</string>
+	<string name="menu_add_topic">Nouveau topic</string>
+	<string name="menu_subcats">Une sous-catégorie</string>
+	<string name="menu_subcat_filter">Filter par sous-catégorie</string>
+	<string name="menu_subcat_none">Aucune</string>
 	
 	<string name="login_title">Connexion au forum</string>
 	<string name="login_pseudo">Pseudo :</string>
@@ -62,7 +74,15 @@
 	<string name="delete_title">Supprimer ce post</string>
 	<string name="delete_message">Êtes-vous sûr ?</string>
 
-<string name="keywords_title">Edition des mots clés du smiley %s</string>
+	<string name="mp_unread">[Non lu]</string>
+	<string name="new_mp">Nouveau message privé</string>
+	<string name="new_topic">Nouveau topic dans "%s"</string>
+	<string name="new_post">Nouveau post dans "%s"</string>
+	<string name="mp_to_hint">Pseudo du dest.</string>
+	<string name="topic_subject_hint">Sujet du message</string>
+	<string name="send_mp">Envoyer par MP</string>
+
+	<string name="keywords_title">Edition des mots clés du smiley %s</string>
 
 	<string name="button_ok">Ok</string>
 	<string name="button_cancel">Annuler</string>

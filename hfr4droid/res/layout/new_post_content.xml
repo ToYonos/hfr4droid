@@ -5,12 +5,6 @@
    	android:orientation="vertical"
    	android:layout_width="wrap_content"
    	android:layout_height="fill_parent">
-   	<LinearLayout
-    	android:id="@+id/SmiliesContainer"
-    	android:orientation="vertical"
-    	android:visibility="gone"
-    	android:layout_width="fill_parent"
-    	android:layout_height="fill_parent" />
 	<TableLayout
 		android:padding="5dip"
 		android:id="@+id/PostContainer"
@@ -39,8 +33,7 @@
 	        	android:hint="@string/smiley_tag_hint"
 	        	android:lines="1"
 	        	android:inputType="text"
-	        	android:textSize="14dip"
-	            android:padding="3dip" />
+	        	android:textSize="14dip" />
 			<Button
 				android:id="@+id/ButtonWikiSmilies"
 			 	android:layout_width="50dip"
@@ -51,6 +44,7 @@
 	    </TableRow>	
 	    <TableRow>
 	        <ScrollView
+	        	android:id="@+id/SVPostContent"
 			    android:layout_width="fill_parent"
 			    android:layout_height="fill_parent"
 			    android:layout_span="3"
@@ -62,12 +56,11 @@
 			        <EditText
 			        	android:layout_width="fill_parent"
 				   	 	android:layout_height="wrap_content"
-			        	android:id="@+id/inputPostContent"
+			        	android:id="@+id/InputPostContent"
 			        	android:inputType="textMultiLine|textCapSentences"
 			        	android:textSize="14dip"
 			        	android:gravity="top"
 			        	android:minLines="10"
-			        	android:layout_span="3"
 			            android:padding="10dip" />
 			    	<LinearLayout
 			    		android:orientation="horizontal"
@@ -88,12 +81,4 @@
 			</ScrollView>
 	    </TableRow>
 	</TableLayout>
-    <TextView
-    	android:id="@+id/SmiliesLoading"
-    	android:visibility="gone"
-    	android:textColor="#000000"
-	    android:padding="20dip"
-    	android:text="@string/smilies_loading" 
-    	android:layout_width="fill_parent"
-    	android:layout_height="fill_parent" />	
 </LinearLayout>

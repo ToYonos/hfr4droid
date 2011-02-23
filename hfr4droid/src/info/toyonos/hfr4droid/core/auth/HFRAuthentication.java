@@ -1,5 +1,7 @@
 package info.toyonos.hfr4droid.core.auth;
 
+import info.toyonos.hfr4droid.R;
+
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
@@ -63,20 +65,36 @@ public class HFRAuthentication
 	 * 			Le mot de passe
 	 * 
 	 */
-	public HFRAuthentication(Context context, String user, String password) throws IOException, ClassNotFoundException
+	public HFRAuthentication(Context context, String user, String password) throws AuthenticationException
 	{
 		this.context = context;
 		userName = user;
 		userPassword = password;
-		cookieStore = login();
-		retrieveCookiesInfos(cookieStore);
+		
+		try
+		{
+			cookieStore = login();
+			retrieveCookiesInfos(cookieStore);
+		}
+		catch (Exception e)
+		{
+			throw new AuthenticationException(context.getString(R.string.error_login), e);
+		}
 	}
 
-	public HFRAuthentication(Context context) throws IOException, ClassNotFoundException
+	public HFRAuthentication(Context context) throws AuthenticationException
 	{        
 		this.context = context;
-		cookieStore = deserializeCookies();
-		retrieveCookiesInfos(cookieStore);
+		
+		try
+		{
+			cookieStore = deserializeCookies();
+			retrieveCookiesInfos(cookieStore);
+		}
+		catch (Exception e)
+		{
+			throw new AuthenticationException(context.getString(R.string.error_login_from_cache), e);
+		}
 	}
 
 	/**
@@ -121,7 +139,7 @@ public class HFRAuthentication
 				if (cookie.getName().equals("md_id"))
 					userId = cookie.getValue();
 				if (cookie.getName().equals("md_user") && userName == null)
-					userName = URLDecoder.decode(cookie.getValue());    			
+					userName = URLDecoder.decode(cookie.getValue());
 			}
 		}
 	}
