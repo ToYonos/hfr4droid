@@ -314,9 +314,9 @@ public class HFRDataRetriever implements MDDataRetriever
 
         Pattern p = Pattern.compile(
         	"(?:(?:<th\\s*class=\"padding\".*?<a\\s*href=\"/forum1\\.php\\?config=hfr\\.inc&amp;cat=([0-9]+).*?\"\\s*class=\"cHeader\">(.*?)</a></th>)" +
-			"|(?:<tr\\s*class=\"sujet\\s*ligne_booleen.*?(ligne_sticky)?\".*?" +
+			"|(<tr\\s*class=\"sujet\\s*ligne_booleen.*?(ligne_sticky)?\".*?" +
 			"<td.*?class=\"sujetCase1.*?><img\\s*src=\".*?([A-Za-z0-9]+)\\.gif\".*?" +
-			"<td.*?class=\"sujetCase3\".*?>(<span\\s*class=\"red\"\\s*title=\".*?\">\\[non lu\\]</span>\\s*)?.*?(?:<img\\s*src=\".*?(lock)\\.gif\".*?/>\\s*)?<a.*?class=\"cCatTopic\"\\s*title=\"Sujet n°([0-9]+)\">(.+?)</a></td>.*?" +
+			"<td.*?class=\"sujetCase3\".*?>(<span\\s*class=\"red\"\\s*title=\".*?\">\\[non lu\\]</span>\\s*)?.*?<a.*?class=\"cCatTopic\"\\s*title=\"Sujet n°([0-9]+)\">(.+?)</a></td>.*?" +
 			"<td.*?class=\"sujetCase4\".*?(?:(?:<a.*?class=\"cCatTopic\">(.+?)</a>)|&nbsp;)</td>.*?" +
 			"<td.*?class=\"sujetCase5\".*?(?:(?:<a\\s*href=\".*?#t([0-9]+)\"><img.*?src=\".*?([A-Za-z0-9]+)\\.gif\"\\s*title=\".*?\\(p\\.([0-9]+)\\)\".*?/></a>)|&nbsp;)</td>.*?" +
 			"<td.*?class=\"sujetCase6.*?>(?:<a\\s*rel=\"nofollow\"\\s*href=\"/profilebdd.*?>)?(.+?)(?:</a>)?</td>.*?" +
@@ -341,7 +341,9 @@ public class HFRDataRetriever implements MDDataRetriever
 			}
 			else
 			{
-				TopicStatus status = getStatusFromImgName(m.group(6) != null ? m.group(6) : (m.group(11) != null ? m.group(11) : m.group(4)));
+	        	Matcher m2 = Pattern.compile("lock\\.gif").matcher(m.group(3));
+	        	boolean isLocked = m2.find();
+				TopicStatus status = isLocked ? TopicStatus.LOCKED : getStatusFromImgName(m.group(11) != null ? m.group(11) : m.group(5));
 				int nbPages = m.group(9) != null ? Integer.parseInt(m.group(9)) : 1;
 				int lastReadPage = status == TopicStatus.NEW_MP ? nbPages : (m.group(12) != null ? Integer.parseInt(m.group(12)) : -1);
 				topics.add(new Topic(Integer.parseInt(m.group(7)),
@@ -352,8 +354,8 @@ public class HFRDataRetriever implements MDDataRetriever
 									m.group(10) != null ? Long.parseLong(m.group(10)) : -1,
 									Integer.parseInt(m.group(14)),
 									nbPages,
-									m.group(3) != null,
-									m.group(5) != null,
+									m.group(4) != null,
+									m.group(6) != null,
 									currentCat
 									)
 				);
@@ -395,10 +397,6 @@ public class HFRDataRetriever implements MDDataRetriever
 		else if (imgName.equals("closedp"))
 		{
 			return TopicStatus.NO_NEW_MP;
-		}
-		else if (imgName.equals("lock"))
-		{
-			return TopicStatus.LOCKED;
 		}		
 		else
 		{
