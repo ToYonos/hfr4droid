@@ -189,7 +189,6 @@ public class TopicsActivity extends HFR4droidListActivity<Topic>
 		if (!isMpsCat() && !isAllCatsCat())
 		{
 			TextView catTitle = (TextView) findViewById(R.id.CatTitle);
-			registerForContextMenu(catTitle);
 			catTitle.setOnCreateContextMenuListener(new OnCreateContextMenuListener()
 			{
 				public void onCreateContextMenu(ContextMenu menu, View v, ContextMenuInfo menuInfo)
@@ -631,7 +630,8 @@ public class TopicsActivity extends HFR4droidListActivity<Topic>
 
 	private void attachEvents()
 	{
-		final TextView catTitle = (TextView) findViewById(R.id.CatTitle);		
+		final TextView catTitle = (TextView) findViewById(R.id.CatTitle);
+		registerForContextMenu(catTitle);
 		catTitle.setOnTouchListener(new OnTouchListener()
 		{
 			private GestureDetector gd = new GestureDetector(new SimpleOnGestureListener()
