@@ -160,7 +160,10 @@ public class PostsActivity extends NewPostUIActivity
 			if (topic.getCategory().equals(Category.MPS_CAT))
 			{
 				clearNotifications();
-				if (MpNotifyService.currentNewMps > 0 && topic.getStatus() == TopicStatus.NEW_MP) MpNotifyService.currentNewMps--;
+				synchronized (MpNotifyService.class)
+				{
+					if (MpNotifyService.currentNewMps > 0 && topic.getStatus() == TopicStatus.NEW_MP) MpNotifyService.currentNewMps--;	
+				}
 			}
 		}
 

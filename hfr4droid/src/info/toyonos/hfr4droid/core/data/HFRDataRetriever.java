@@ -180,7 +180,7 @@ public class HFRDataRetriever implements MDDataRetriever
 		tmpCats.addAll(this.cats.keySet());
 		
 		// Cat représentant "toutes les cats"
-		tmpCats.add(tmpCats.get(1).equals(Category.MODO_CAT) ? 2 : 1, Category.ALL_CATS);
+		tmpCats.add(tmpCats.size() > 1 && tmpCats.get(1).equals(Category.MODO_CAT) ? 2 : 1, Category.ALL_CATS);
 
 		return tmpCats;
 	}

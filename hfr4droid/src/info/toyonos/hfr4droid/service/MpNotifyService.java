@@ -59,18 +59,22 @@ public class MpNotifyService extends Service
 	protected void notifyNewMps(int nbMps, Topic mp)
 	{
 		NotificationManager notificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
-		if (nbMps < 1) // Pas de nouveau mp, on annule une éventuelle notification en cours
+
+		synchronized (MpNotifyService.class)
 		{
-			currentNewMps = 0;
-			notificationManager.cancel(MpNotifyService.NOTIFICATION_ID);
-			return;
-		}
-		if (currentNewMps >= nbMps) // Pas de nouvelle notification, le nombre de mps n'a pas changé
-		{
+			if (nbMps < 1) // Pas de nouveau mp, on annule une éventuelle notification en cours
+			{
+				currentNewMps = 0;
+				notificationManager.cancel(MpNotifyService.NOTIFICATION_ID);
+				return;
+			}
+			if (currentNewMps >= nbMps) // Pas de nouvelle notification, le nombre de mps n'a pas changé
+			{
+				currentNewMps = nbMps;
+				return;
+			}
 			currentNewMps = nbMps;
-			return;
 		}
-		currentNewMps = nbMps;
 
 		String notificationMessage = getResources().getQuantityString(R.plurals.mp_notification_content, nbMps, nbMps);
 		PendingIntent pendingIntent = null;
