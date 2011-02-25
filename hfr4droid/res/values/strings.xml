@@ -4,12 +4,12 @@
     <string name="upload_hfr_rehost">Upload sur hfr-rehost.net</string>
 	
 	<string name="nav_go_to">Aller à...</string>
-	<string name="topic_nav_last_read_page">Allez à la dernière page lue</string>
-	<string name="topic_nav_first_page">Allez à la première page</string>
-	<string name="topic_nav_previous_page">Allez à la page précèdente</string>
-	<string name="topic_nav_next_page">Allez à la page suivante</string>
-	<string name="topic_nav_last_page">Allez à la dernière page</string>
-	<string name="topic_nav_user_page">Allez à la page...</string>
+	<string name="topic_nav_last_read_page">Aller à la dernière page lue</string>
+	<string name="topic_nav_first_page">Aller à la première page</string>
+	<string name="topic_nav_previous_page">Aller à la page précèdente</string>
+	<string name="topic_nav_next_page">Aller à la page suivante</string>
+	<string name="topic_nav_last_page">Aller à la dernière page</string>
+	<string name="topic_nav_user_page">Aller à la page...</string>
 	<string name="nav_last_read_page">La dernière page lue</string>
 	<string name="nav_first_page">La première page</string>
 	<string name="nav_previous_page">La page précèdente</string>

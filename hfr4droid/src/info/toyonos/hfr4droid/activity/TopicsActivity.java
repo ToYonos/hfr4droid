@@ -185,35 +185,6 @@ public class TopicsActivity extends HFR4droidListActivity<Topic>
 				return gestureDetector.onTouchEvent(event);
 			}
 		});
-		
-		if (!isMpsCat() && !isAllCatsCat())
-		{
-			TextView catTitle = (TextView) findViewById(R.id.CatTitle);
-			catTitle.setOnCreateContextMenuListener(new OnCreateContextMenuListener()
-			{
-				public void onCreateContextMenu(ContextMenu menu, View v, ContextMenuInfo menuInfo)
-				{
-					// Gestion des sous-cats
-					menu.setHeaderTitle(R.string.menu_subcat_filter);
-					try
-					{
-						MenuItem itemNone = menu.add(Menu.NONE, -1, Menu.NONE, R.string.menu_subcat_none);
-						itemNone.setCheckable(cat.getSubCatId() == -1);
-						itemNone.setChecked(cat.getSubCatId() == -1);
-						for (SubCategory subCat : getDataRetriever().getSubCats(cat))
-						{
-							MenuItem item = menu.add(Menu.NONE, (int) subCat.getSubCatId(), Menu.NONE, subCat.toString(ToStringType.SUBCAT));
-							item.setCheckable(cat.equals(subCat));
-							item.setChecked(cat.equals(subCat));
-						}
-					}
-					catch (DataRetrieverException e)
-					{
-						error(e, true);
-					}
-				}
-			});
-		}
 	}
 
 	@Override
@@ -632,6 +603,34 @@ public class TopicsActivity extends HFR4droidListActivity<Topic>
 	{
 		final TextView catTitle = (TextView) findViewById(R.id.CatTitle);
 		registerForContextMenu(catTitle);
+
+		catTitle.setOnCreateContextMenuListener(new OnCreateContextMenuListener()
+		{
+			public void onCreateContextMenu(ContextMenu menu, View v, ContextMenuInfo menuInfo)
+			{
+				if (isMpsCat() || isAllCatsCat()) return;
+
+				// Gestion des sous-cats
+				menu.setHeaderTitle(R.string.menu_subcat_filter);
+				try
+				{
+					MenuItem itemNone = menu.add(Menu.NONE, -1, Menu.NONE, R.string.menu_subcat_none);
+					itemNone.setCheckable(cat.getSubCatId() == -1);
+					itemNone.setChecked(cat.getSubCatId() == -1);
+					for (SubCategory subCat : getDataRetriever().getSubCats(cat))
+					{
+						MenuItem item = menu.add(Menu.NONE, (int) subCat.getSubCatId(), Menu.NONE, subCat.toString(ToStringType.SUBCAT));
+						item.setCheckable(cat.equals(subCat));
+						item.setChecked(cat.equals(subCat));
+					}
+				}
+				catch (DataRetrieverException e)
+				{
+					error(e, true);
+				}
+			}
+		});
+		
 		catTitle.setOnTouchListener(new OnTouchListener()
 		{
 			private GestureDetector gd = new GestureDetector(new SimpleOnGestureListener()
