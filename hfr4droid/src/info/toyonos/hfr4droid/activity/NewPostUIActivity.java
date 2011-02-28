@@ -256,6 +256,11 @@ public abstract class NewPostUIActivity extends HFR4droidActivity
 			layout.removeView(webView);
 			((WebView) webView).destroy();
 		}
+		View lastChild = layout.getChildAt(layout.getChildCount() - 1);
+		if (lastChild instanceof TextView)
+		{
+			layout.removeView(lastChild);
+		}
 	}
 	
 	protected abstract void setOkButtonClickListener(Button okButton);
