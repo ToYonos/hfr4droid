@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    android:background="#F7F7F7">
+    <LinearLayout
+    	android:id="@+id/PostsLayout"
+    	android:orientation="vertical"
+    	android:layout_width="fill_parent"
+    	android:layout_height="fill_parent">
+	    <LinearLayout
+	    	android:orientation="horizontal"
+	    	android:background="@drawable/degrad_plus"
+	    	android:gravity="center"
+	    	android:layout_width="fill_parent"
+	    	android:layout_height="40dip">
+	    	<TextView
+		    	android:id="@+id/TopicPageNumber"
+		    	android:gravity="left"
+		    	android:textSize="15dip"
+			   	android:lines="1"
+		    	android:paddingLeft="5dip"
+		    	android:textStyle="bold"
+		    	android:textColor="#1A3A60"
+		    	android:layout_width="wrap_content"
+		    	android:layout_height="wrap_content" />
+	    	<TextView
+		    	android:id="@+id/TopicTitle"
+		    	android:gravity="left"
+		    	android:textSize="15dip"
+			   	android:lines="1"
+				android:ellipsize="end"
+				android:marqueeRepeatLimit="marquee_forever"
+				android:scrollHorizontally="true"
+		    	android:paddingRight="55dip"
+		    	android:textStyle="bold"
+		    	android:textColor="#1A3A60"
+		    	android:layout_width="wrap_content" 
+		    	android:layout_height="wrap_content" />
+		</LinearLayout>	    	
+	   	<ProgressBar
+	  		android:id="@+id/PostsProgressBar"
+	  		android:max="100"
+	  		android:indeterminateOnly="false"
+	  		style="@android:style/Widget.ProgressBar.Horizontal"
+	  		android:visibility="gone"
+	  		android:layout_width="fill_parent"
+	  		android:layout_height="10dip" />
+		<WebView
+			android:id="@+id/loading"
+	        android:layout_width="fill_parent"
+    		android:layout_height="fill_parent" />
+	</LinearLayout>
+	<include layout="@layout/nav_drawer" />
+</FrameLayout>
