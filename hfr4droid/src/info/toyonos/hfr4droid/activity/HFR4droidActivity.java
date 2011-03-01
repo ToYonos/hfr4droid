@@ -133,7 +133,8 @@ public abstract class HFR4droidActivity extends Activity
 		StringBuilder logMsg = new StringBuilder("");
 		if (msg != null)
 		{
-			logMsg.append(", ")
+			logMsg.append(msg)
+			.append(", ")
 			.append(e.getMessage().substring(0, 1).toLowerCase())
 			.append(e.getMessage().substring(1));
 		}
