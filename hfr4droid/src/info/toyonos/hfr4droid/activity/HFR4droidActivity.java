@@ -107,7 +107,7 @@ public abstract class HFR4droidActivity extends Activity
 	protected void error(String msg, Exception e, boolean toast, boolean onUiThread)
 	{
 		final String logMsg = getMessage(e, msg);
-		Log.e(HFR4droidApplication.TAG, logMsg.toString(), e);
+		Log.e(HFR4droidApplication.TAG, logMsg, e);
 
 		if (toast)
 		{
@@ -117,13 +117,13 @@ public abstract class HFR4droidActivity extends Activity
 				{
 					public void run()
 					{
-						Toast.makeText(HFR4droidActivity.this, logMsg.toString(), Toast.LENGTH_LONG).show();
+						Toast.makeText(HFR4droidActivity.this, logMsg, Toast.LENGTH_LONG).show();
 					}
 				});
 			}
 			else
 			{
-				Toast.makeText(HFR4droidActivity.this, logMsg.toString(), Toast.LENGTH_LONG).show();
+				Toast.makeText(HFR4droidActivity.this, logMsg, Toast.LENGTH_LONG).show();
 			}
 		}
 	}
