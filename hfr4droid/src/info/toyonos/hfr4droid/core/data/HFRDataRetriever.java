@@ -61,6 +61,7 @@ public class HFRDataRetriever implements MDDataRetriever
 	private static final String CATS_CACHE_FILE_NAME = "hfr4droid_cats.dat";
 	
 	public static final String BASE_URL			= "http://forum.hardware.fr";
+	//public static final String BASE_URL		= "http://192.168.0.2/hfr-dev";
 	public static final String CATS_URL			= BASE_URL + "/";
 	public static final String SUBCATS_URL		= BASE_URL + "/message.php?&config=hfr.inc&cat={$cat}";
 	public static final String TOPICS_URL		= BASE_URL + "/forum1.php?config=hfr.inc&cat={$cat}&subcat={$subcat}&page={$page}&owntopic={$type}";

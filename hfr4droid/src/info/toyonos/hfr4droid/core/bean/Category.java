@@ -75,7 +75,7 @@ public class Category extends BasicElement
 			Category otherCat = (Category) o;
 			long realId1 = getSubCatId() == -1 ? id : getSubCatId();
 			long realId2 = otherCat.getSubCatId() == -1 ? otherCat.id : otherCat.getSubCatId();
-			return realId1 == realId2;
+			return realId1 == realId2 && this.getClass().equals(o.getClass());
 		}
 		return false;
 	}
