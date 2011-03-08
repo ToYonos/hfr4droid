@@ -3,7 +3,7 @@ package info.toyonos.hfr4droid.activity;
 import info.toyonos.hfr4droid.R;
 import info.toyonos.hfr4droid.core.bean.Category;
 import info.toyonos.hfr4droid.core.bean.Topic.TopicType;
-import info.toyonos.hfr4droid.core.data.HFRDataRetriever;
+import info.toyonos.hfr4droid.core.data.HFRRawHtmlDataRetriever;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -219,7 +219,7 @@ public class CategoriesActivity extends HFR4droidListActivity<Category>
 		try
 		{
 			is = getResources().openRawResource(R.raw.about);
-			infoContent = HFRDataRetriever.streamToString(is, true);
+			infoContent = HFRRawHtmlDataRetriever.streamToString(is, true);
 		}
 		catch (IOException e)
 		{

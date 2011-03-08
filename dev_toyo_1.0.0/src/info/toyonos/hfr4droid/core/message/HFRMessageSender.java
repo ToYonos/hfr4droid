@@ -5,7 +5,7 @@ import info.toyonos.hfr4droid.core.auth.HFRAuthentication;
 import info.toyonos.hfr4droid.core.bean.Category;
 import info.toyonos.hfr4droid.core.bean.Post;
 import info.toyonos.hfr4droid.core.bean.Topic;
-import info.toyonos.hfr4droid.core.data.HFRDataRetriever;
+import info.toyonos.hfr4droid.core.data.HFRRawHtmlDataRetriever;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -199,7 +199,7 @@ public class HFRMessageSender
 		{
 			throw new MessageSenderException(context.getString(R.string.keywords_failed), e);
 		}
-		return HFRDataRetriever.getSingleElement("<div\\s*class=\"hop\">\\s*(.*?)\\s*</div>", response);
+		return HFRRawHtmlDataRetriever.getSingleElement("<div\\s*class=\"hop\">\\s*(.*?)\\s*</div>", response);
 	}
 	
 	/**
@@ -223,7 +223,7 @@ public class HFRMessageSender
 		{
 			throw new MessageSenderException(context.getString(R.string.favorite_failed), e);
 		}
-		return HFRDataRetriever.getSingleElement("<div\\s*class=\"hop\">\\s*(.*?)\\s*</div>", response);
+		return HFRRawHtmlDataRetriever.getSingleElement("<div\\s*class=\"hop\">\\s*(.*?)\\s*</div>", response);
 	}
 	
 	/**

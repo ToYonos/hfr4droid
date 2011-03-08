@@ -2,7 +2,7 @@ package info.toyonos.hfr4droid;
 
 import info.toyonos.hfr4droid.core.auth.AuthenticationException;
 import info.toyonos.hfr4droid.core.auth.HFRAuthentication;
-import info.toyonos.hfr4droid.core.data.HFRDataRetriever;
+import info.toyonos.hfr4droid.core.data.HFRRawHtmlDataRetriever;
 import info.toyonos.hfr4droid.core.data.MDDataRetriever;
 import info.toyonos.hfr4droid.core.message.HFRMessageSender;
 
@@ -34,7 +34,7 @@ public class HFR4droidApplication extends CrashReportingApplication
 	public void onCreate()
 	{
 		super.onCreate();
-		dataRetriever = new HFRDataRetriever(this);
+		dataRetriever = new HFRRawHtmlDataRetriever(this);
 		SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(this);
 		if (!settings.contains(CrashReportingApplication.PREF_DISABLE_ACRA))
 		{
@@ -71,7 +71,7 @@ public class HFR4droidApplication extends CrashReportingApplication
 		if (isLoggedIn)
 		{
 			msgSender = new HFRMessageSender(this, auth);
-			dataRetriever = new HFRDataRetriever(this, auth, !fromCache);
+			dataRetriever = new HFRRawHtmlDataRetriever(this, auth, !fromCache);
 		}
 		return isLoggedIn;
 	}
@@ -97,7 +97,7 @@ public class HFR4droidApplication extends CrashReportingApplication
 			auth.clearCache();
 			auth = null;
 			msgSender = null;
-			dataRetriever = new HFRDataRetriever(this, true);
+			dataRetriever = new HFRRawHtmlDataRetriever(this, true);
 		}
 	}
 
