@@ -2,6 +2,7 @@ package info.toyonos.hfr4droid.core.data;
 
 import info.toyonos.hfr4droid.HFR4droidApplication;
 import info.toyonos.hfr4droid.R;
+import info.toyonos.hfr4droid.Utils;
 import info.toyonos.hfr4droid.activity.HFR4droidActivity;
 import info.toyonos.hfr4droid.core.auth.HFRAuthentication;
 import info.toyonos.hfr4droid.core.bean.Category;
@@ -84,7 +85,7 @@ public class HFRRawHtmlDataRetriever extends HFRDataRetriever
 			{
 				throw new DataRetrieverException(context.getString(R.string.error_dr_hash_check), e);
 			}
-			hashCheck = getSingleElement("<input\\s*type=\"hidden\"\\s*name=\"hash_check\"\\s*value=\"(.+?)\" />", content);
+			hashCheck = Utils.getSingleElement("<input\\s*type=\"hidden\"\\s*name=\"hash_check\"\\s*value=\"(.+?)\" />", content);
 		}
 		return hashCheck;
 	}
@@ -145,34 +146,6 @@ public class HFRRawHtmlDataRetriever extends HFRDataRetriever
 
 		return tmpCats;
 	}
-	
-	/**
-	 * {@inheritDoc}
-	 */
-	public Category getCatByCode(String code) throws DataRetrieverException
-	{
-		if (code == null) return null;
-		
-		if (cats == null) getCats();
-		for (Category cat : cats.keySet())
-		{
-			if (code.equals(cat.getCode())) return cat;
-		}
-		return null;
-	}
-	
-	/**
-	 * {@inheritDoc}
-	 */
-	public Category getCatById(long id) throws DataRetrieverException
-	{		
-		if (cats == null) getCats();
-		for (Category cat : cats.keySet())
-		{
-			if (id == cat.getId()) return cat;
-		}
-		return null;
-	}
 
 	/**
 	 * {@inheritDoc}
@@ -212,31 +185,6 @@ public class HFRRawHtmlDataRetriever extends HFRDataRetriever
 			return currentSubCats;
 		}
 		return null;
-	}
-	
-	/**
-	 * {@inheritDoc}
-	 */
-	public SubCategory getSubCatById(Category cat, long id) throws DataRetrieverException
-	{		
-		if (cats == null) throw new DataRetrieverException(context.getString(R.string.no_cats_cache));
-
-		Category keyCat = getCatById(cat.getId());
-		if (cats.get(keyCat) == null) throw new DataRetrieverException(context.getString(R.string.no_subcat_cache, keyCat.toString()));
-		for (SubCategory subCat : cats.get(keyCat))
-		{
-			if (subCat.getSubCatId() == id) return subCat;
-		}
-		return null;
-	}
-
-	
-	/**
-	 * {@inheritDoc}
-	 */
-	public List<Topic> getTopics(Category cat, TopicType type) throws DataRetrieverException
-	{
-		return getTopics(cat, type, 1);
 	}
 
 	/**
@@ -432,18 +380,18 @@ public class HFRRawHtmlDataRetriever extends HFRDataRetriever
 		}
         Log.d(HFR4droidApplication.TAG, "Match OK, " + posts.size() + " posts retrieved");
 
-		String nbPages = getSingleElement("([0-9]+)</(?:a|b)></div><div\\s*class=\"pagepresuiv\"", content);
+		String nbPages = Utils.getSingleElement("([0-9]+)</(?:a|b)></div><div\\s*class=\"pagepresuiv\"", content);
 		if (nbPages != null) topic.setNbPages(Integer.parseInt(nbPages));
 
-		hashCheck = getSingleElement("<input\\s*type=\"hidden\"\\s*name=\"hash_check\"\\s*value=\"(.+?)\" />", content);
+		hashCheck = Utils.getSingleElement("<input\\s*type=\"hidden\"\\s*name=\"hash_check\"\\s*value=\"(.+?)\" />", content);
 		
 		// Pour HFRUrlParser, récupération d'informations complémentaires
 		if (topic.getName() == null)
 		{
 			//String topicTitle = getSingleElement("<input\\s*type=\"hidden\"\\s*name=\"sujet\"\\s*value=\"(.+?)\"\\s*/>", content);
-			String topicTitle =  HFRRawHtmlDataRetriever.getSingleElement("(?:&nbsp;)*(.*)", HFRRawHtmlDataRetriever.getSingleElement("([^>]+)(?:</a>)?</h1>", content));
+			String topicTitle =  Utils.getSingleElement("(?:&nbsp;)*(.*)", Utils.getSingleElement("([^>]+)(?:</a>)?</h1>", content));
 			if (topicTitle != null) topic.setName(topicTitle);
-			if (getSingleElement("(repondre\\.gif)", content) == null) topic.setStatus(TopicStatus.LOCKED);
+			if (Utils.getSingleElement("(repondre\\.gif)", content) == null) topic.setStatus(TopicStatus.LOCKED);
 		}
 
 		if (!topic.getCategory().equals(Category.MPS_CAT)) checkNewMps(content);
@@ -492,7 +440,7 @@ public class HFRRawHtmlDataRetriever extends HFRDataRetriever
 		return count;
 	}
 
-	private void checkNewMps(String content) throws DataRetrieverException
+	protected void checkNewMps(String content) throws DataRetrieverException
 	{
 		if (isCheckMpsEnable())
 		{
@@ -572,7 +520,7 @@ public class HFRRawHtmlDataRetriever extends HFRDataRetriever
 			throw new DataRetrieverException(context.getString(R.string.error_dr_bbcode), e);
 		}
 		
-		String BBCode = getSingleElement("<textarea.*?name=\"content_form\".*?>(.*?)</textarea>", content);
+		String BBCode = Utils.getSingleElement("<textarea.*?name=\"content_form\".*?>(.*?)</textarea>", content);
 		if (BBCode != null)
 		{
 			for (String line : BBCode.split("\n"))
@@ -610,20 +558,8 @@ public class HFRRawHtmlDataRetriever extends HFRDataRetriever
 			throw new DataRetrieverException(context.getString(R.string.error_dr_keywords), e);
 		}
 		
-		String keywords = getSingleElement("name=\"keywords0\"\\s*value=\"(.*?)\"\\s*onkeyup", content);
+		String keywords = Utils.getSingleElement("name=\"keywords0\"\\s*value=\"(.*?)\"\\s*onkeyup", content);
 		return keywords;
-	}
-
-	/**
-	 * Renvoie le premier match ou le second si le premier est null, du premier groupe trouvé dans une chaine donnée.
-	 * @param pattern La regexp à appliquer
-	 * @param content Le contenu à analyser
-	 * @return La chaine trouvée, null sinon
-	 */
-	public static String getSingleElement(String pattern, String content)
-	{
-		Matcher m = Pattern.compile(pattern, Pattern.CASE_INSENSITIVE | Pattern.DOTALL).matcher(content);
-		return m.find() ? (m.group(1) != null ? m.group(1) : m.group(2)) : null;
 	}
 	
 	protected boolean isOnMaintenance(String content)

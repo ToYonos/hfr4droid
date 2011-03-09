@@ -1,11 +1,11 @@
 package info.toyonos.hfr4droid.core.message;
 
 import info.toyonos.hfr4droid.R;
+import info.toyonos.hfr4droid.Utils;
 import info.toyonos.hfr4droid.core.auth.HFRAuthentication;
 import info.toyonos.hfr4droid.core.bean.Category;
 import info.toyonos.hfr4droid.core.bean.Post;
 import info.toyonos.hfr4droid.core.bean.Topic;
-import info.toyonos.hfr4droid.core.data.HFRRawHtmlDataRetriever;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -139,6 +139,7 @@ public class HFRMessageSender
 		params.add(new BasicNameValuePair("content_form", message));
 		params.add(new BasicNameValuePair("sujet", p.getTopic().getName()));
 		params.add(new BasicNameValuePair("signature", signature ? "1" : "0"));
+		// TODO ajouter la sous cat
 
 		String response = null;
 		try
@@ -199,7 +200,7 @@ public class HFRMessageSender
 		{
 			throw new MessageSenderException(context.getString(R.string.keywords_failed), e);
 		}
-		return HFRRawHtmlDataRetriever.getSingleElement("<div\\s*class=\"hop\">\\s*(.*?)\\s*</div>", response);
+		return Utils.getSingleElement("<div\\s*class=\"hop\">\\s*(.*?)\\s*</div>", response);
 	}
 	
 	/**
@@ -223,7 +224,7 @@ public class HFRMessageSender
 		{
 			throw new MessageSenderException(context.getString(R.string.favorite_failed), e);
 		}
-		return HFRRawHtmlDataRetriever.getSingleElement("<div\\s*class=\"hop\">\\s*(.*?)\\s*</div>", response);
+		return Utils.getSingleElement("<div\\s*class=\"hop\">\\s*(.*?)\\s*</div>", response);
 	}
 	
 	/**

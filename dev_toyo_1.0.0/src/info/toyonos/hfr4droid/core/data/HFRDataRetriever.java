@@ -2,18 +2,19 @@ package info.toyonos.hfr4droid.core.data;
 
 import info.toyonos.hfr4droid.HFR4droidApplication;
 import info.toyonos.hfr4droid.R;
+import info.toyonos.hfr4droid.Utils;
 import info.toyonos.hfr4droid.core.auth.HFRAuthentication;
 import info.toyonos.hfr4droid.core.bean.Category;
 import info.toyonos.hfr4droid.core.bean.SubCategory;
+import info.toyonos.hfr4droid.core.bean.Topic;
+import info.toyonos.hfr4droid.core.bean.Topic.TopicType;
 
-import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.URI;
@@ -43,7 +44,8 @@ public abstract class HFRDataRetriever implements MDDataRetriever
 {
 	private static final String CATS_CACHE_FILE_NAME = "hfr4droid_cats.dat";
 	
-	public static final String BASE_URL = "http://forum.hardware.fr";
+	public static final String BASE_URL 		= "http://forum.hardware.fr";
+	public static final String BASE_IMAGE_URL	= "http://forum-images.hardware.fr/images/";
 	
 	protected Context context;
 	private HFRAuthentication auth;
@@ -73,6 +75,58 @@ public abstract class HFRDataRetriever implements MDDataRetriever
 	public String getBaseUrl()
 	{
 		return BASE_URL;
+	}
+	
+	/**
+	 * {@inheritDoc}
+	 */
+	public Category getCatByCode(String code) throws DataRetrieverException
+	{
+		if (code == null) return null;
+		
+		if (cats == null) getCats();
+		for (Category cat : cats.keySet())
+		{
+			if (code.equals(cat.getCode())) return cat;
+		}
+		return null;
+	}
+	
+	/**
+	 * {@inheritDoc}
+	 */
+	public Category getCatById(long id) throws DataRetrieverException
+	{		
+		if (cats == null) getCats();
+		for (Category cat : cats.keySet())
+		{
+			if (id == cat.getId()) return cat;
+		}
+		return null;
+	}
+	
+	/**
+	 * {@inheritDoc}
+	 */
+	public SubCategory getSubCatById(Category cat, long id) throws DataRetrieverException
+	{		
+		if (cats == null) throw new DataRetrieverException(context.getString(R.string.no_cats_cache));
+
+		Category keyCat = getCatById(cat.getId());
+		if (cats.get(keyCat) == null) throw new DataRetrieverException(context.getString(R.string.no_subcat_cache, keyCat.toString()));
+		for (SubCategory subCat : cats.get(keyCat))
+		{
+			if (subCat.getSubCatId() == id) return subCat;
+		}
+		return null;
+	}
+	
+	/**
+	 * {@inheritDoc}
+	 */
+	public List<Topic> getTopics(Category cat, TopicType type) throws DataRetrieverException
+	{
+		return getTopics(cat, type, 1);
 	}
 
 	/**
@@ -123,7 +177,7 @@ public abstract class HFRDataRetriever implements MDDataRetriever
 			try
 			{
 				data = entity.getContent();
-				content = streamToString(data, cr);
+				content = Utils.streamToString(data, cr);
 			}
 			catch (IOException e)
 			{
@@ -147,40 +201,6 @@ public abstract class HFRDataRetriever implements MDDataRetriever
 	}
 	
 	abstract protected boolean isOnMaintenance(String content);
-
-	/**
-	 * Convertit un <code>InputStream</code> en <code>String</code>
-	 * @param is Le flux d'entrée
-	 * @param cr Conserver les retours charriot
-	 * @return La chaine ainsi obtenu
-	 * @throws IOException Si un problème d'entrée/sortie intervient
-	 */
-	public static String streamToString(InputStream is, boolean cr) throws IOException
-	{
-		if (is != null)
-		{
-			StringBuilder sb = new StringBuilder();
-			String line;
-			try
-			{
-				BufferedReader reader = new BufferedReader(new InputStreamReader(is, "UTF-8"));
-				while ((line = reader.readLine()) != null)
-				{
-					sb.append(line);
-					if (cr) sb.append("\n");
-				}
-			}
-			finally
-			{
-				is.close();
-			}
-			return sb.toString();
-		}
-		else
-		{        
-			return "";
-		}
-	}
 	
 	protected void serializeCats() throws DataRetrieverException
 	{

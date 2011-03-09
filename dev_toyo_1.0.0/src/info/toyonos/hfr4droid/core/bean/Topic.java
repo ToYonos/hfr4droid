@@ -16,18 +16,20 @@ public class Topic extends BasicElement
 	 */
 	public static enum TopicType
 	{
-		ALL(0, "all"),
-		CYAN(1, "cyan"),
-		ROUGE(2, "rouge"),
-		FAVORI(3, "favori");
+		ALL(0, "all", "last"),
+		CYAN(1, "cyan", "participated"),
+		ROUGE(2, "rouge", "read"),
+		FAVORI(3, "favori", "favorites");
 
 		private final int value;
 		private final String key;
+		private final String jsonKey;
 
-		private TopicType(int value, String key)
+		private TopicType(int value, String key, String jsonKey)
 		{
 			this.value = value;
 			this.key = key;
+			this.jsonKey = jsonKey;
 		}
 
 		public int getValue()
@@ -40,6 +42,11 @@ public class Topic extends BasicElement
 			return this.key;
 		}
 
+		public String getJsonKey()
+		{
+			return this.jsonKey;
+		}
+		
 		public static TopicType fromInt(int anInt) 
 		{
 			for (TopicType type : TopicType.values())

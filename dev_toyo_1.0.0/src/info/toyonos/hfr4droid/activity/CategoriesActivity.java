@@ -1,9 +1,9 @@
 package info.toyonos.hfr4droid.activity;
 
 import info.toyonos.hfr4droid.R;
+import info.toyonos.hfr4droid.Utils;
 import info.toyonos.hfr4droid.core.bean.Category;
 import info.toyonos.hfr4droid.core.bean.Topic.TopicType;
-import info.toyonos.hfr4droid.core.data.HFRRawHtmlDataRetriever;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -44,7 +44,7 @@ import android.widget.AdapterView.OnItemClickListener;
  */
 public class CategoriesActivity extends HFR4droidListActivity<Category>
 {
-	private AlertDialog infoDialog;
+	private AlertDialog infoDialog = null;
 	protected boolean isCatsLoaded;
 
 	@SuppressWarnings("unchecked")
@@ -53,7 +53,7 @@ public class CategoriesActivity extends HFR4droidListActivity<Category>
 	{
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.categories);
-		infoDialog = getInfoDialog();
+		generateInfoDialog();
 		isCatsLoaded = true;
 
 		List<Category> cats  = new ArrayList<Category>();
@@ -202,49 +202,51 @@ public class CategoriesActivity extends HFR4droidListActivity<Category>
 		return isCatsLoaded;
 	}
 
-	private AlertDialog getInfoDialog()
+	private void generateInfoDialog()
 	{
-		String title = getString(R.string.app_name);
-
-		PackageInfo packageInfo;
-		try
+		if (infoDialog == null)
 		{
-			packageInfo = getPackageManager().getPackageInfo(getPackageName(), 0);
-			title += " - V." + packageInfo.versionName;
+			String title = getString(R.string.app_name);
+	
+			PackageInfo packageInfo;
+			try
+			{
+				packageInfo = getPackageManager().getPackageInfo(getPackageName(), 0);
+				title += " - V." + packageInfo.versionName;
+			}
+			catch (NameNotFoundException e) {}
+	
+			String infoContent = null;
+			InputStream is = null;
+			try
+			{
+				is = getResources().openRawResource(R.raw.about);
+				infoContent = Utils.streamToString(is, true);
+			}
+			catch (IOException e)
+			{
+				infoContent = getString(R.string.error_about);
+			}
+	
+			AlertDialog.Builder info = new AlertDialog.Builder(this);
+			info.setIcon(R.drawable.icon);
+			info.setTitle(title); 
+			WebView webView = new WebView(this);
+			WebSettings settings = webView.getSettings();
+			settings.setDefaultTextEncodingName("UTF-8");
+			webView.setScrollBarStyle(WebView.SCROLLBARS_OUTSIDE_OVERLAY);
+			webView.loadData(infoContent, "text/html", "UTF-8");
+			info.setView(webView);
+			info.setNeutralButton(R.string.button_ok, new OnClickListener()
+			{
+				public void onClick(DialogInterface dialog, int which){}
+			}); 
+	
+			infoDialog = info.create();
+			// Sorte de pre-rendering pour éviter l'affichage en 2 temps
+			infoDialog.show();
+			infoDialog.hide();
 		}
-		catch (NameNotFoundException e) {}
-
-		String infoContent = null;
-		InputStream is = null;
-		try
-		{
-			is = getResources().openRawResource(R.raw.about);
-			infoContent = HFRRawHtmlDataRetriever.streamToString(is, true);
-		}
-		catch (IOException e)
-		{
-			infoContent = getString(R.string.error_about);
-		}
-
-		AlertDialog.Builder info = new AlertDialog.Builder(this);
-		info.setIcon(R.drawable.icon);
-		info.setTitle(title); 
-		WebView webView = new WebView(this);
-		WebSettings settings = webView.getSettings();
-		settings.setDefaultTextEncodingName("UTF-8");
-		webView.setScrollBarStyle(WebView.SCROLLBARS_OUTSIDE_OVERLAY);
-		webView.loadData(infoContent, "text/html", "UTF-8");
-		info.setView(webView);
-		info.setNeutralButton(R.string.button_ok, new OnClickListener()
-		{
-			public void onClick(DialogInterface dialog, int which){}
-		}); 
-
-		AlertDialog infoDialog = info.create();
-		// Sorte de pre-rendering pour éviter l'affichage en 2 temps
-		infoDialog.show();
-		infoDialog.hide();
-		return infoDialog;
 	}
 
 	@Override

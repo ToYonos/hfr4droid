@@ -1,5 +1,6 @@
 package info.toyonos.hfr4droid.core.data;
 
+import info.toyonos.hfr4droid.Utils;
 import info.toyonos.hfr4droid.activity.PostsActivity;
 import info.toyonos.hfr4droid.core.bean.BasicElement;
 import info.toyonos.hfr4droid.core.bean.Category;
@@ -143,21 +144,21 @@ public class HFRUrlParser implements MDUrlParser
 		{
 			// C'est une liste de topics toutes cats confondues
 			element = Category.ALL_CATS;
-			type = TopicType.fromInt(Integer.parseInt(HFRRawHtmlDataRetriever.getSingleElement("(?:&|\\?)owntopic=([0-9])", url)));
+			type = TopicType.fromInt(Integer.parseInt(Utils.getSingleElement("(?:&|\\?)owntopic=([0-9])", url)));
 			return true;		
 		}
 		else if (url.matches("http://forum\\.hardware\\.fr/forum1.*"))
 		{
 			// C'est une liste de topics pour une cat
 			element = getCat(url);
-			page = Integer.parseInt(HFRRawHtmlDataRetriever.getSingleElement("(?:&|\\?)page=([0-9]+)", url));
-			type = TopicType.fromInt(Integer.parseInt(HFRRawHtmlDataRetriever.getSingleElement("(?:&|\\?)owntopic=([0-9])", url)));
+			page = Integer.parseInt(Utils.getSingleElement("(?:&|\\?)page=([0-9]+)", url));
+			type = TopicType.fromInt(Integer.parseInt(Utils.getSingleElement("(?:&|\\?)owntopic=([0-9])", url)));
 			return true;
 		}
 		else if (url.matches(BASE_URL_REGEXP + "forum2.*"))
 		{
 			// C'est un topic
-			String numReponse = HFRRawHtmlDataRetriever.getSingleElement("(?:&|\\?)numreponse=([0-9]+)", url);
+			String numReponse = Utils.getSingleElement("(?:&|\\?)numreponse=([0-9]+)", url);
 			if (numReponse != null && !numReponse.equals("0"))
 			{
 				// Cas spécifique, on récupère la vraie url
@@ -167,11 +168,11 @@ public class HFRUrlParser implements MDUrlParser
 			else
 			{
 				Category cat = getCat(url);
-				element = new Topic(Long.parseLong(HFRRawHtmlDataRetriever.getSingleElement("(?:&|\\?)post=([0-9]+)", url)));
+				element = new Topic(Long.parseLong(Utils.getSingleElement("(?:&|\\?)post=([0-9]+)", url)), null);
 				((Topic) element).setCategory(cat);
-				((Topic) element).setLastReadPost(handlePostId(HFRRawHtmlDataRetriever.getSingleElement(POST_REGEXP, url)));
-				page = Integer.parseInt(HFRRawHtmlDataRetriever.getSingleElement("(?:&|\\?)page=([0-9]+)", url));
-				String intType = HFRRawHtmlDataRetriever.getSingleElement("(?:&|\\?)owntopic=([0-9])", url);
+				((Topic) element).setLastReadPost(handlePostId(Utils.getSingleElement(POST_REGEXP, url)));
+				page = Integer.parseInt(Utils.getSingleElement("(?:&|\\?)page=([0-9]+)", url));
+				String intType = Utils.getSingleElement("(?:&|\\?)owntopic=([0-9])", url);
 				type = intType != null ? TopicType.fromInt(Integer.parseInt(intType)) : TopicType.ALL;
 				return true;
 			}
@@ -181,7 +182,7 @@ public class HFRUrlParser implements MDUrlParser
 	
 	private Category getCat(String url) throws DataRetrieverException
 	{
-		String catId = HFRRawHtmlDataRetriever.getSingleElement("(?:&|\\?)cat=(prive|[0-9]+)", url);
+		String catId = Utils.getSingleElement("(?:&|\\?)cat=(prive|[0-9]+)", url);
 		try
 		{
 			return dataRetriever.getCatById(Long.parseLong(catId));
@@ -214,7 +215,7 @@ public class HFRUrlParser implements MDUrlParser
 		{
 			if (e.getCause() instanceof CircularRedirectException)
 			{
-				return HFRRawHtmlDataRetriever.getSingleElement("(http://.*?)'$", ((CircularRedirectException) e.getCause()).getMessage());
+				return Utils.getSingleElement("(http://.*?)'$", ((CircularRedirectException) e.getCause()).getMessage());
 			}
 		}
 		catch (IOException e) {}

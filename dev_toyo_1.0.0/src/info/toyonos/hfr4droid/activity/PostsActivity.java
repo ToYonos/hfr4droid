@@ -288,6 +288,10 @@ public class PostsActivity extends NewPostUIActivity
 			MenuItem menuNavRefresh =  menuNav.getSubMenu().findItem(R.id.MenuNavRefresh);
 			menuNavRefresh.setVisible(isLoggedIn() && topic.getStatus() != TopicStatus.LOCKED);
 			menuNavRefresh.setEnabled(isLoggedIn() && topic.getStatus() != TopicStatus.LOCKED);
+			
+			MenuItem menuNavSubCats =  menuNav.getSubMenu().findItem(R.id.MenuNavSubCats);
+			menuNavSubCats.setVisible(false);
+			menuNavSubCats.setEnabled(false);
 
 			MenuItem refresh = menu.findItem(R.id.MenuRefresh);
 			refresh.setVisible(!isLoggedIn() || topic.getStatus() == TopicStatus.LOCKED);
