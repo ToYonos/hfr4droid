@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<resources>
+	<style name="Animation.QuickActionWindow" parent="@android:style/Animation">
+		<item name="android:windowEnterAnimation">@anim/quick_action_window_enter</item>
+		<item name="android:windowExitAnimation">@anim/quick_action_window_exit</item>
+	</style>
+</resources>
