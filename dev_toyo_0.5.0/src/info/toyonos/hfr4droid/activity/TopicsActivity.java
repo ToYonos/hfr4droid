@@ -219,22 +219,27 @@ public class TopicsActivity extends HFR4droidListActivity<Topic>
 				
 			case R.id.MenuDrapeauxAll:
 				cat = currentTopic.getCategory();
-				loadTopics(currentTopic.getCategory(), TopicType.ALL, 1);
+				type = TopicType.ALL;
+				if (currentPageNumber < 1) currentPageNumber = 1;
+				reloadPage();
 				return true;
 	
 			case R.id.MenuDrapeauxCyan:
 				cat = currentTopic.getCategory();
-				loadTopics(currentTopic.getCategory(), TopicType.CYAN);
+				type = TopicType.CYAN;
+				reloadPage();
 				return true;
 	
 			case R.id.MenuDrapeauxRouges:
 				cat = currentTopic.getCategory();
-				loadTopics(currentTopic.getCategory(), TopicType.ROUGE);
+				type = TopicType.ROUGE;
+				reloadPage();
 				return true;
 	
 			case R.id.MenuDrapeauxFavoris:
 				cat = currentTopic.getCategory();
-				loadTopics(currentTopic.getCategory(), TopicType.FAVORI);
+				type = TopicType.FAVORI;
+				reloadPage();
 				return true;    				
 	
 			case R.id.MenuNavNewPost:
