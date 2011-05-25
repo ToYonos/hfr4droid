@@ -5,6 +5,7 @@ import info.toyonos.hfr4droid.R;
 import info.toyonos.hfr4droid.core.bean.BasicElement;
 import info.toyonos.hfr4droid.core.bean.Category;
 import info.toyonos.hfr4droid.core.bean.Post;
+import info.toyonos.hfr4droid.core.bean.Theme;
 import info.toyonos.hfr4droid.core.bean.Topic;
 import info.toyonos.hfr4droid.core.bean.Topic.TopicStatus;
 import info.toyonos.hfr4droid.core.bean.Topic.TopicType;
@@ -31,6 +32,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.DialogInterface.OnDismissListener;
 import android.content.res.Configuration;
+import android.graphics.Color;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.text.ClipboardManager;
@@ -60,6 +62,7 @@ import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
@@ -125,6 +128,7 @@ public class PostsActivity extends NewPostUIActivity
 	{
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.posts);
+		applyTheme(Theme.getThemeById(getThemeId()));
 		attachEvents();
 		currentScrollY = -1;
 		postDialog = null;
@@ -411,6 +415,7 @@ public class PostsActivity extends NewPostUIActivity
 	@Override
 	protected void redrawPage()
 	{
+		applyTheme(Theme.getThemeById(getThemeId()));
 		reloadPage(true);
 	}
 	
@@ -543,6 +548,7 @@ public class PostsActivity extends NewPostUIActivity
 	{
 		final LinearLayout parent = ((LinearLayout) findViewById(R.id.PostsLayout));
 		WebView oldWebView = getWebView();
+		Theme currentTheme = Theme.getThemeById(getThemeId());
 
 	    final WebView webView = new WebView(this)
         {
@@ -908,7 +914,7 @@ public class PostsActivity extends NewPostUIActivity
 		loading.setVisibility(View.VISIBLE);
 		if (!refresh)
 		{
-			loading.loadData("<html><body style=\"text-align: center; margin-top: 150px; background-color:#F7F7F7;\"><img src=\"data:image/gif;base64,R0lGODlhKwALAPEAAP%2F%2F%2FwAAAIKCggAAACH%2FC05FVFNDQVBFMi4wAwEAAAAh%2FhpDcmVhdGVkIHdpdGggYWpheGxvYWQuaW5mbwAh%2BQQJCgAAACwAAAAAKwALAAACMoSOCMuW2diD88UKG95W88uF4DaGWFmhZid93pq%2BpwxnLUnXh8ou%2BsSz%2BT64oCAyTBUAACH5BAkKAAAALAAAAAArAAsAAAI9xI4IyyAPYWOxmoTHrHzzmGHe94xkmJifyqFKQ0pwLLgHa82xrekkDrIBZRQab1jyfY7KTtPimixiUsevAAAh%2BQQJCgAAACwAAAAAKwALAAACPYSOCMswD2FjqZpqW9xv4g8KE7d54XmMpNSgqLoOpgvC60xjNonnyc7p%2BVKamKw1zDCMR8rp8pksYlKorgAAIfkECQoAAAAsAAAAACsACwAAAkCEjgjLltnYmJS6Bxt%2Bsfq5ZUyoNJ9HHlEqdCfFrqn7DrE2m7Wdj%2F2y45FkQ13t5itKdshFExC8YCLOEBX6AhQAADsAAAAAAAAAAAA%3D\" alt=\"loading\" /></body></html>", "text/html", "UTF-8");
+			loading.loadData("<html><body style=\"text-align: center; margin-top: 150px; background-color:" + currentTheme.getListBackground() + ";\"><img src=\"data:image/gif;base64,R0lGODlhKwALAPEAAP%2F%2F%2FwAAAIKCggAAACH%2FC05FVFNDQVBFMi4wAwEAAAAh%2FhpDcmVhdGVkIHdpdGggYWpheGxvYWQuaW5mbwAh%2BQQJCgAAACwAAAAAKwALAAACMoSOCMuW2diD88UKG95W88uF4DaGWFmhZid93pq%2BpwxnLUnXh8ou%2BsSz%2BT64oCAyTBUAACH5BAkKAAAALAAAAAArAAsAAAI9xI4IyyAPYWOxmoTHrHzzmGHe94xkmJifyqFKQ0pwLLgHa82xrekkDrIBZRQab1jyfY7KTtPimixiUsevAAAh%2BQQJCgAAACwAAAAAKwALAAACPYSOCMswD2FjqZpqW9xv4g8KE7d54XmMpNSgqLoOpgvC60xjNonnyc7p%2BVKamKw1zDCMR8rp8pksYlKorgAAIfkECQoAAAAsAAAAACsACwAAAkCEjgjLltnYmJS6Bxt%2Bsfq5ZUyoNJ9HHlEqdCfFrqn7DrE2m7Wdj%2F2y45FkQ13t5itKdshFExC8YCLOEBX6AhQAADsAAAAAAAAAAAA%3D\" alt=\"loading\" /></body></html>", "text/html", "UTF-8");
 		}
 
 		StringBuffer js = new StringBuffer("<script type=\"text/javascript\">");
@@ -932,15 +938,15 @@ public class PostsActivity extends NewPostUIActivity
 
 		StringBuffer css = new StringBuffer("<style type=\"text/css\">");
 		css.append(".u { text-decoration:underline; }");
-		css.append("a.cLink { color:#000080; text-decoration:none; }");
-		css.append("a.cLink:hover, a.cLing:active  { color:#000080; text-decoration:underline; }");
+		css.append("a.cLink { color:" + currentTheme.getPostLinkColor() + "; text-decoration:none; }");
+		css.append("a.cLink:hover, a.cLing:active  { color:" + currentTheme.getPostLinkColor() + "; text-decoration:underline; }");
 		css.append(".citation, .oldcitation, .quote, .oldquote, .fixed, .code, .spoiler, .oldspoiler { padding:3px; text-align:left; width:90%; }");
 		css.append(".citation, .oldcitation, .quote, .oldquote, .spoiler, .oldspoiler { margin: 8px auto; }");
-		css.append(".code, .fixed { background-color:#FFF; border:1px solid #000; color:#000; font-family:'Courier New',Courier,monospace; margin:8px 5px; }");
+		css.append(".code, .fixed { background-color:" + currentTheme.getPostBlockBackground() + "; border:1px solid " + currentTheme.getPostColor() + "; color:" + currentTheme.getPostColor() + "; font-family:'Courier New',Courier,monospace; margin:8px 5px; }");
 		css.append(".oldcitation, .oldquote { border:0; }");
 		css.append(".quote, .oldquote { font-style:italic; }");
 		css.append("table { font-size: 1em; }");
-		css.append(".spoiler, .oldspoiler, .citation, .quote { border:1px solid #C0C0C0; background-color:#FFF }");
+		css.append(".spoiler, .oldspoiler, .citation, .quote { border:1px solid " + currentTheme.getListDivider() + "; background-color:" + currentTheme.getPostBlockBackground() + " }");
 		css.append("div.masque { visibility:hidden; }");
 		css.append(".container { text-align:center; width:100%; }");
 		css.append(".s1, .s1Topic { font-size: " + getTextSize(10) + "px; }");
@@ -948,12 +954,12 @@ public class PostsActivity extends NewPostUIActivity
 		css.append("p, ul { font-size: 0.8em; margin-bottom: 0; margin-top: 0; }");
 		css.append("pre { font-size: 0.7em; white-space: pre-wrap }");
 		css.append("ol.olcode { font-size: 0.7em; }");
-		css.append("body { margin:0; padding:0; background-color:#F7F7F7; }");
-		css.append(".HFR4droid_header { width:100%; background: url(\"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAAyCAIAAAASmSbdAAAACXBIWXMAAAsSAAALEgHS3X78AAAAr0lEQVR42i3D61IBYQCA4fc%2B%2FMNiR2qVU7sxzbgFHZaEQU27qG6hf7ElRDmMQ5juilvp%2B%2BKZeQibL5w%2F%2F5J6WpN6XO02liTFs%2FrPf6O%2BwKgt0O05ujXj1JqSkB%2BmxO8nxOS7MVExUh0RqQw5KX9zXP5Ck0sDtGKfo8Inh4UeodseB%2Fmu2CF4I%2BY%2BUHNt1KxovhMw3%2FBfO%2FjkKwflsoVy0cQrZ17x7LszTVxpm8128wedbTsQqibZlwAAAABJRU5ErkJggg%3D%3D\"); height: 50px; text-align: right; }");
+		css.append("body { margin:0; padding:0; background-color:" + currentTheme.getListBackground() + "; }");
+		css.append(".HFR4droid_header { width:100%; background: url(\"" + currentTheme.getPostHeaderData() + "\"); height: 50px; text-align: right; }");
 		css.append(".HFR4droid_header div { position: absolute; margin: 5px 0 0 5px; width:90%; text-align: left; }");
 		css.append(".HFR4droid_header div img { float: left; max-width:60px; max-height:40px; margin-right:5px; }");
-		css.append(".HFR4droid_header span.pseudo { color:#FFF; font-size: " + getTextSize(16) + "px; font-weight:bold; }");
-		css.append(".HFR4droid_header span.date { display: block; font-style:italic; color:#CDCDCD; font-size: " + getTextSize(12) + "px; margin: ");
+		css.append(".HFR4droid_header span.pseudo { color:" + currentTheme.getPostPseudoColor() + "; font-size: " + getTextSize(16) + "px; font-weight:bold; }");
+		css.append(".HFR4droid_header span.date { display: block; font-style:italic; color:" + currentTheme.getPostDateColor() + "; font-size: " + getTextSize(12) + "px; margin: ");
 		switch (getPoliceSize())
 		{
 			case 2:
@@ -969,9 +975,10 @@ public class PostsActivity extends NewPostUIActivity
 				break;
 		}
 		css.append("px; margin-left:0; }");
-		css.append(".HFR4droid_edit_quote { margin-bottom: 5px; padding: 4px; padding-bottom: 3px; background-color: #DEDFDE;  font-style:italic; color:#555; font-size: " + getTextSize(9) + "px; }");
-		css.append(".HFR4droid_content { padding: 10px; padding-top: 5px; font-size: " + getTextSize(16) + "px}");
-		css.append(".modo_post { background-color: #FFEEEE; }");
+		css.append(".HFR4droid_edit_quote { margin-bottom: 5px; padding: 4px; padding-bottom: 3px; background-color: " + currentTheme.getPostEditQuoteBackground() + ";  font-style:italic; color:" + currentTheme.getPostEditQuoteColor() + "; font-size: " + getTextSize(9) + "px; }");
+		css.append(".HFR4droid_content { padding: 10px; padding-top: 5px; font-size: " + getTextSize(16) + "px; }");
+		css.append(".HFR4droid_content p, .HFR4droid_content div, .HFR4droid_content ul, .HFR4droid_content b { color:" + currentTheme.getPostColor() + "}");
+		css.append(".modo_post { background-color: " + currentTheme.getModoPostBackground() + "; }");
 		css.append(".HFR4droid_footer { height: 10px; width:100%; background: url(\"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAA%2FCAMAAAAWu1JmAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAgY0hSTQAAeiYAAICEAAD6AAAAgOgAAHUwAADqYAAAOpgAABdwnLpRPAAAAwBQTFRFhYWFs7SzysrKy8vLyszKzMzMzc3Nzs7Oz8%2FP0NDQ0dHR0dLR0tLS09PT1NTU1dXV1tbW19fX2NjY2dnZ2tna2tra29rb3Nvc3Nzc3dzdAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAWKfi1AAAABh0RVh0U29mdHdhcmUAUGFpbnQuTkVUIHYzLjM2qefiJQAAAEFJREFUGFddwkcOgDAQBMHBhCWDCQb%2B%2F1Fai8TBqlKhSoOiDiVdejK3PgkndrchYsXiZkwY0bsO7c9kalCjdAF6ARIIA4Sqnjr8AAAAAElFTkSuQmCC\"); }");
 		css.append("</style>");
 
@@ -1346,5 +1353,12 @@ public class PostsActivity extends NewPostUIActivity
 			}
 			if (progress) progressDialog.dismiss();
 		}
+	}
+
+	@Override
+	protected void applyTheme(Theme theme)
+	{
+		FrameLayout root = (FrameLayout) findViewById(R.id.PostsLayout).getParent();
+		root.setBackgroundColor(Color.parseColor(theme.getListBackground()));
 	}
 }

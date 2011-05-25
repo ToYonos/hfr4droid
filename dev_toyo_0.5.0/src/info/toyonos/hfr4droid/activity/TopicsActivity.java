@@ -3,6 +3,7 @@ package info.toyonos.hfr4droid.activity;
 import info.toyonos.hfr4droid.R;
 import info.toyonos.hfr4droid.core.bean.Category;
 import info.toyonos.hfr4droid.core.bean.SubCategory;
+import info.toyonos.hfr4droid.core.bean.Theme;
 import info.toyonos.hfr4droid.core.bean.Topic;
 import info.toyonos.hfr4droid.core.bean.SubCategory.ToStringType;
 import info.toyonos.hfr4droid.core.bean.Topic.TopicStatus;
@@ -19,6 +20,7 @@ import android.content.Intent;
 import android.content.res.ColorStateList;
 import android.graphics.Color;
 import android.graphics.Typeface;
+import android.graphics.drawable.ColorDrawable;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.text.Html;
@@ -69,6 +71,7 @@ public class TopicsActivity extends HFR4droidListActivity<Topic>
 	{
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.topics);
+		applyTheme(Theme.getThemeById(getThemeId()));
 		attachEvents();
 
 		Bundle bundle = this.getIntent().getExtras();
@@ -495,6 +498,17 @@ public class TopicsActivity extends HFR4droidListActivity<Topic>
 		catTitle.setText(title);
 		catTitle.setSelected(true);
 	}
+	
+	@Override
+	protected void applyTheme(Theme theme)
+	{
+		ListView mainList = getListView();
+		((LinearLayout) mainList.getParent()).setBackgroundColor(Color.parseColor(theme.getListBackground()));
+		mainList.setDivider(new ColorDrawable(Color.parseColor(theme.getListDivider())));
+		mainList.setDividerHeight(1);
+		mainList.setCacheColorHint(Color.parseColor(theme.getListBackground()));
+		mainList.setSelector(getKeyByTheme(theme, R.drawable.class, "list_selector"));
+	}
 
 	@Override
 	protected void loadFirstPage()
@@ -535,6 +549,7 @@ public class TopicsActivity extends HFR4droidListActivity<Topic>
 	@Override
 	protected void redrawPage()
 	{
+		applyTheme(Theme.getThemeById(getThemeId()));
 		adapter.notifyDataSetChanged();
 	}
 	
@@ -756,6 +771,7 @@ public class TopicsActivity extends HFR4droidListActivity<Topic>
 		{
 			View v = super.getView(position, convertView, parent);
 			Topic t = topics.get(position);
+			Theme currentTheme = Theme.getThemeById(getThemeId());
 
 			TextView text1 = (TextView) v.findViewById(R.id.ItemContent);
 			text1.setTextSize(getTextSize(14));
@@ -763,10 +779,15 @@ public class TopicsActivity extends HFR4droidListActivity<Topic>
 			boolean isDummyTopic = t.getId() == -1;
 
 			try
+			{				
+				text1.setTextColor(isDummyTopic ?
+				ColorStateList.createFromXml(getResources(), getResources().getXml(getKeyByTheme(currentTheme, R.color.class, "item_cat_header"))) :
+				ColorStateList.createFromXml(getResources(), getResources().getXml(getKeyByTheme(currentTheme, R.color.class, "item"))));
+			}
+			catch (Exception e)
 			{
-				text1.setTextColor(isDummyTopic ? ColorStateList.createFromXml(getResources(), getResources().getXml(R.color.item_cat_header))
-						: ColorStateList.createFromXml(getResources(), getResources().getXml(R.color.item)));
-			} catch (Exception e) {}
+				error(e);
+			}
 
 			LinearLayout ll = (LinearLayout) text1.getParent();
 			if (isMpsCat())
@@ -779,10 +800,13 @@ public class TopicsActivity extends HFR4droidListActivity<Topic>
 				author.setText(Html.fromHtml("<b>@" + t.getAuthor() + "</b> : "));
 				try
 				{
-					author.setTextColor(ColorStateList.createFromXml(getResources(), getResources().getXml(R.color.item)));
-				} catch (Exception e) {}
+					author.setTextColor(ColorStateList.createFromXml(getResources(), getResources().getXml(getKeyByTheme(currentTheme, R.color.class, "item"))));
+				}
+				catch (Exception e)
+				{
+					error(e);
+				}
 				ll.removeView(ll.findViewById(R.id.ItemRemainingPages));
-
 			}
 			else
 			{
@@ -793,14 +817,23 @@ public class TopicsActivity extends HFR4droidListActivity<Topic>
 				remainingPages.setText("(" + (t.getNbPages() - t.getLastReadPage()) + ")");
 				try
 				{
-					remainingPages.setTextColor(ColorStateList.createFromXml(getResources(), getResources().getXml(R.color.item2)));
-				} catch (Exception e) {}
+					remainingPages.setTextColor(ColorStateList.createFromXml(getResources(), getResources().getXml(getKeyByTheme(currentTheme, R.color.class, "item2"))));
+				}
+				catch (Exception e)
+				{
+					error(e);
+				}
 			}
 
 			text1.setText(isDummyTopic ? t.getCategory().toString() : t.toString());
 			text1.setTypeface(null, isDummyTopic || t.isSticky() ? Typeface.BOLD : Typeface.NORMAL);
 			text1.setGravity(isDummyTopic ? Gravity.CENTER : Gravity.LEFT);
-			ll.setBackgroundColor(isDummyTopic ? Color.parseColor("#336699") : Color.TRANSPARENT);			
+			ll.setBackgroundResource(isDummyTopic ? getKeyByTheme(currentTheme, R.drawable.class, "selector") : 0);
+			int left, right, top, bottom;
+			float scale = getResources().getDisplayMetrics().density;
+			left = right = (int) (7 * scale + 0.5f);
+			top = bottom = (int) (12 * scale + 0.5f);
+			ll.setPadding(left, top, right, bottom);
 
 			if (isDummyTopic)
 			{

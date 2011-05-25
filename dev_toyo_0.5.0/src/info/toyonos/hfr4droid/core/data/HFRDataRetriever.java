@@ -477,6 +477,9 @@ public class HFRDataRetriever implements MDDataRetriever
 
 		hashCheck = getSingleElement("<input\\s*type=\"hidden\"\\s*name=\"hash_check\"\\s*value=\"(.+?)\" />", content);
 		
+		String subCat = getSingleElement("<input\\s*type=\"hidden\"\\s*name=\"subcat\"\\s*value=\"([0-9]+)\"\\s*/>", content);
+		if (subCat != null) topic.setSubCategory(new SubCategory(topic.getCategory(), Integer.parseInt(subCat)));
+		
 		// Pour HFRUrlParser, récupération d'informations complémentaires
 		if (topic.getName() == null)
 		{

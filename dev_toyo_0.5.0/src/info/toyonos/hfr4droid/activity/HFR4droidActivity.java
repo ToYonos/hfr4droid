@@ -7,6 +7,7 @@ import info.toyonos.hfr4droid.core.auth.HFRAuthentication;
 import info.toyonos.hfr4droid.core.bean.Category;
 import info.toyonos.hfr4droid.core.bean.Post;
 import info.toyonos.hfr4droid.core.bean.SubCategory;
+import info.toyonos.hfr4droid.core.bean.Theme;
 import info.toyonos.hfr4droid.core.bean.Topic;
 import info.toyonos.hfr4droid.core.bean.Topic.TopicType;
 import info.toyonos.hfr4droid.core.data.DataRetrieverException;
@@ -71,6 +72,7 @@ public abstract class HFR4droidActivity extends Activity
 	public static final String PREF_PRELOADING_ENABLE	= "PrefPreloadingEnable";
 	public static final String PREF_SWIPE				= "PrefSwipe";
 	public static final String PREF_FULLSCREEN_ENABLE	= "PrefFullscreenEnable";
+	public static final String PREF_THEME				= "PrefTheme";
 	public static final String PREF_POLICE_SIZE			= "PrefPoliceSize";
 	public static final String PREF_AVATARS_ENABLE		= "PrefAvatarsEnable";
 	public static final String PREF_SMILEYS_ENABLE		= "PrefSmileysEnable";
@@ -151,6 +153,22 @@ public abstract class HFR4droidActivity extends Activity
 			.append(")");
 		}
 		return logMsg.toString();
+	}
+	
+	protected abstract void applyTheme(Theme theme);
+	
+	@SuppressWarnings("unchecked")
+	protected int getKeyByTheme(Theme theme, Class type, String key)
+	{
+		try
+		{
+			return type.getField(theme.getThemeKey() + "_" + key).getInt(null);
+		}
+		catch (Exception e)
+		{
+			error(e);
+			return -1;
+		}
 	}
 	
 	@Override
@@ -813,6 +831,12 @@ public abstract class HFR4droidActivity extends Activity
 	{
 		SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(this);
 		return settings.getBoolean(PREF_FULLSCREEN_ENABLE, Boolean.parseBoolean(getString(R.string.pref_fullscreen_enable_default)));
+	}
+	
+	protected int getThemeId()
+	{
+		SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(this);
+		return Integer.parseInt(settings.getString(PREF_THEME, getString(R.string.pref_theme_default)));
 	}
 	
 	protected int getPoliceSize()

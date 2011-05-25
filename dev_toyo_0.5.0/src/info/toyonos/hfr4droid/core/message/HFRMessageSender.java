@@ -139,6 +139,7 @@ public class HFRMessageSender
 		params.add(new BasicNameValuePair("content_form", message));
 		params.add(new BasicNameValuePair("sujet", p.getTopic().getName()));
 		params.add(new BasicNameValuePair("signature", signature ? "1" : "0"));
+		params.add(new BasicNameValuePair("subcat", String.valueOf(p.getTopic().getSubCategory().getSubCatId()))); // TODO tester
 
 		String response = null;
 		try

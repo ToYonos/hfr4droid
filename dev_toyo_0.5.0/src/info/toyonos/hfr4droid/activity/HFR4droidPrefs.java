@@ -43,6 +43,16 @@ public class HFR4droidPrefs extends PreferenceActivity
 			}
 		});
 		
+		Preference theme = findPreference(HFR4droidActivity.PREF_THEME);
+		theme.setOnPreferenceChangeListener(new OnPreferenceChangeListener()
+		{
+			public boolean onPreferenceChange(Preference preference, Object newValue)
+			{
+				HFR4droidActivity.forceRedraw = true;
+				return true;
+			}
+		});
+		
 		Preference policeSize = findPreference(HFR4droidActivity.PREF_POLICE_SIZE);
 		policeSize.setOnPreferenceChangeListener(new OnPreferenceChangeListener()
 		{
@@ -103,7 +113,7 @@ public class HFR4droidPrefs extends PreferenceActivity
 				}
 				return true;
 			}
-		});	
+		});
 	}
 	
 	public void switchFullscreen(boolean fullscreen)

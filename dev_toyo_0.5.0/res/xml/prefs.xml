@@ -53,6 +53,13 @@
 			android:title="@string/pref_fullscreen_enable_title"
 			android:defaultValue="@string/pref_fullscreen_enable_default" />
 		<ListPreference
+			android:key="PrefTheme"
+			android:summary="@string/pref_theme_summary"
+			android:title="@string/pref_theme_title"
+			android:defaultValue="@string/pref_theme_default" 
+			android:entries="@array/theme_values"
+            android:entryValues="@array/theme_keys" /> 
+		<ListPreference
 			android:key="PrefPoliceSize"
 			android:summary="@string/pref_police_size_summary"
 			android:title="@string/pref_police_size_title"

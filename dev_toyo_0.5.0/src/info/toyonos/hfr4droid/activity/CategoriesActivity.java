@@ -2,6 +2,7 @@ package info.toyonos.hfr4droid.activity;
 
 import info.toyonos.hfr4droid.R;
 import info.toyonos.hfr4droid.core.bean.Category;
+import info.toyonos.hfr4droid.core.bean.Theme;
 import info.toyonos.hfr4droid.core.bean.Topic.TopicType;
 import info.toyonos.hfr4droid.core.data.HFRDataRetriever;
 
@@ -16,6 +17,9 @@ import android.content.DialogInterface;
 import android.content.DialogInterface.OnClickListener;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager.NameNotFoundException;
+import android.content.res.ColorStateList;
+import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
 import android.text.Html;
 import android.view.ContextMenu;
@@ -30,6 +34,7 @@ import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -53,6 +58,7 @@ public class CategoriesActivity extends HFR4droidListActivity<Category>
 	{
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.categories);
+		applyTheme(Theme.getThemeById(getThemeId()));
 		infoDialog = getInfoDialog();
 		isCatsLoaded = true;
 
@@ -251,6 +257,17 @@ public class CategoriesActivity extends HFR4droidListActivity<Category>
 	protected void setTitle(){}
 
 	@Override
+	protected void applyTheme(Theme theme)
+	{
+		ListView mainList = getListView();
+		((LinearLayout) mainList.getParent()).setBackgroundColor(Color.parseColor(theme.getListBackground()));
+		mainList.setDivider(new ColorDrawable(Color.parseColor(theme.getListDivider())));
+		mainList.setDividerHeight(1);
+		mainList.setCacheColorHint(Color.parseColor(theme.getListBackground()));
+		mainList.setSelector(getKeyByTheme(theme, R.drawable.class, "list_selector"));
+	}
+
+	@Override
 	protected void reloadPage()
 	{
 		loadCats();
@@ -259,6 +276,7 @@ public class CategoriesActivity extends HFR4droidListActivity<Category>
 	@Override
 	protected void redrawPage()
 	{
+		applyTheme(Theme.getThemeById(getThemeId()));
 		adapter.notifyDataSetChanged();
 	}
 
@@ -295,9 +313,20 @@ public class CategoriesActivity extends HFR4droidListActivity<Category>
 		{
 			View v = super.getView(position, convertView, parent);
 			Category c = cats.get(position);
+			Theme currentTheme = Theme.getThemeById(getThemeId());
 
 			TextView text1 = (TextView) v.findViewById(R.id.ItemContent);
 			text1.setTextSize(getTextSize(15));
+			try
+			{
+				text1.setTextColor(ColorStateList.createFromXml(getResources(), getResources().getXml(getKeyByTheme(currentTheme, R.color.class, "item"))));
+				((TextView) v.findViewById(R.id.ItemArrow)).setTextColor(ColorStateList.createFromXml(getResources(), getResources().getXml(getKeyByTheme(currentTheme, R.color.class, "item"))));
+			}
+			catch (Exception e)
+			{
+				error(e);
+			}
+			
 			String newName = isMpsCat(c) || isAllCatsCat(c) || isModoCat(c) ? "<b>" + c.getName() + "</b>" : c.toString();
 			newName = isMpsCat(c) && c.getName().matches(".*?nouveaux? messages?.*?") ? "<font color=\"red\">" + newName + "</font>" : newName;
 			text1.setText(Html.fromHtml(newName));
