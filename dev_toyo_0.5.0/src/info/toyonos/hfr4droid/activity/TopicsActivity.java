@@ -18,7 +18,6 @@ import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.content.res.ColorStateList;
-import android.graphics.Color;
 import android.graphics.Typeface;
 import android.graphics.drawable.ColorDrawable;
 import android.os.AsyncTask;
@@ -71,7 +70,7 @@ public class TopicsActivity extends HFR4droidListActivity<Topic>
 	{
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.topics);
-		applyTheme(Theme.getThemeById(getThemeId()));
+		applyTheme(currentTheme);
 		attachEvents();
 
 		Bundle bundle = this.getIntent().getExtras();
@@ -503,11 +502,11 @@ public class TopicsActivity extends HFR4droidListActivity<Topic>
 	protected void applyTheme(Theme theme)
 	{
 		ListView mainList = getListView();
-		((LinearLayout) mainList.getParent()).setBackgroundColor(Color.parseColor(theme.getListBackground()));
-		mainList.setDivider(new ColorDrawable(Color.parseColor(theme.getListDivider())));
+		((LinearLayout) mainList.getParent()).setBackgroundColor(theme.getListBackgroundColor());
+		mainList.setDivider(new ColorDrawable(theme.getListDividerColor()));
 		mainList.setDividerHeight(1);
-		mainList.setCacheColorHint(Color.parseColor(theme.getListBackground()));
-		mainList.setSelector(getKeyByTheme(theme, R.drawable.class, "list_selector"));
+		mainList.setCacheColorHint(theme.getListBackgroundColor());
+		mainList.setSelector(getKeyByTheme(getThemeKey(), R.drawable.class, "list_selector"));
 	}
 
 	@Override
@@ -549,7 +548,7 @@ public class TopicsActivity extends HFR4droidListActivity<Topic>
 	@Override
 	protected void redrawPage()
 	{
-		applyTheme(Theme.getThemeById(getThemeId()));
+		applyTheme(currentTheme);
 		adapter.notifyDataSetChanged();
 	}
 	
@@ -771,7 +770,6 @@ public class TopicsActivity extends HFR4droidListActivity<Topic>
 		{
 			View v = super.getView(position, convertView, parent);
 			Topic t = topics.get(position);
-			Theme currentTheme = Theme.getThemeById(getThemeId());
 
 			TextView text1 = (TextView) v.findViewById(R.id.ItemContent);
 			text1.setTextSize(getTextSize(14));
@@ -781,8 +779,8 @@ public class TopicsActivity extends HFR4droidListActivity<Topic>
 			try
 			{				
 				text1.setTextColor(isDummyTopic ?
-				ColorStateList.createFromXml(getResources(), getResources().getXml(getKeyByTheme(currentTheme, R.color.class, "item_cat_header"))) :
-				ColorStateList.createFromXml(getResources(), getResources().getXml(getKeyByTheme(currentTheme, R.color.class, "item"))));
+				ColorStateList.createFromXml(getResources(), getResources().getXml(getKeyByTheme(getThemeKey(), R.color.class, "item_cat_header"))) :
+				ColorStateList.createFromXml(getResources(), getResources().getXml(getKeyByTheme(getThemeKey(), R.color.class, "item"))));
 			}
 			catch (Exception e)
 			{
@@ -800,7 +798,7 @@ public class TopicsActivity extends HFR4droidListActivity<Topic>
 				author.setText(Html.fromHtml("<b>@" + t.getAuthor() + "</b> : "));
 				try
 				{
-					author.setTextColor(ColorStateList.createFromXml(getResources(), getResources().getXml(getKeyByTheme(currentTheme, R.color.class, "item"))));
+					author.setTextColor(ColorStateList.createFromXml(getResources(), getResources().getXml(getKeyByTheme(getThemeKey(), R.color.class, "item"))));
 				}
 				catch (Exception e)
 				{
@@ -817,7 +815,7 @@ public class TopicsActivity extends HFR4droidListActivity<Topic>
 				remainingPages.setText("(" + (t.getNbPages() - t.getLastReadPage()) + ")");
 				try
 				{
-					remainingPages.setTextColor(ColorStateList.createFromXml(getResources(), getResources().getXml(getKeyByTheme(currentTheme, R.color.class, "item2"))));
+					remainingPages.setTextColor(ColorStateList.createFromXml(getResources(), getResources().getXml(getKeyByTheme(getThemeKey(), R.color.class, "item2"))));
 				}
 				catch (Exception e)
 				{
@@ -828,7 +826,7 @@ public class TopicsActivity extends HFR4droidListActivity<Topic>
 			text1.setText(isDummyTopic ? t.getCategory().toString() : t.toString());
 			text1.setTypeface(null, isDummyTopic || t.isSticky() ? Typeface.BOLD : Typeface.NORMAL);
 			text1.setGravity(isDummyTopic ? Gravity.CENTER : Gravity.LEFT);
-			ll.setBackgroundResource(isDummyTopic ? getKeyByTheme(currentTheme, R.drawable.class, "selector") : 0);
+			ll.setBackgroundResource(isDummyTopic ? getKeyByTheme(getThemeKey(), R.drawable.class, "selector") : 0);
 			int left, right, top, bottom;
 			float scale = getResources().getDisplayMetrics().density;
 			left = right = (int) (7 * scale + 0.5f);

@@ -1,7 +1,6 @@
 package info.toyonos.hfr4droid.core.bean;
 
-import java.util.HashMap;
-import java.util.Map;
+
 
 /**
  * La classe qui gère les thèmes de l'application
@@ -10,127 +9,42 @@ import java.util.Map;
  *
  */
 public class Theme
-{ 
-	public static final Map<Integer, Theme> themes = new HashMap<Integer, Theme>();
-
-	static
-	{
-		themes.put(1, new Theme(1, "default", "#F7F7F7", "#C0C0C0", "#336699", "-1", "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAAyCAIAAAASmSbdAAAACXBIWXMAAAsSAAALEgHS3X78AAAAr0lEQVR42i3D61IBYQCA4fc%2B%2FMNiR2qVU7sxzbgFHZaEQU27qG6hf7ElRDmMQ5juilvp%2B%2BKZeQibL5w%2F%2F5J6WpN6XO02liTFs%2FrPf6O%2BwKgt0O05ujXj1JqSkB%2BmxO8nxOS7MVExUh0RqQw5KX9zXP5Ck0sDtGKfo8Inh4UeodseB%2Fmu2CF4I%2BY%2BUHNt1KxovhMw3%2FBfO%2FjkKwflsoVy0cQrZ17x7LszTVxpm8128wedbTsQqibZlwAAAABJRU5ErkJggg%3D%3D", "#FFFFFF", "#CDCDCD", "#000000", "#000080", "#DEDFDE", "#555555", "#FFFFFF", "#FFEEEE"));
-		themes.put(2, new Theme(2, "dark", "#303030", "#676767", "#999999", "-1", "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAAyCAIAAAASmSbdAAAACXBIWXMAAAsSAAALEgHS3X78AAAAoElEQVR42h3NwapEAABA0fvRVoQQIoQQGkKIEBPi86b3Fmd9KIqC933%2FPc%2FDfd9c18V5nny%2FX47jYN93tm1jXVeWZWGeZ6ZpYhxHhmGg73u6rqNtW5qmoa5rqqri8%2FlQliV%2FR57nZFlGmqYkSUIcx0RRRBiGBEGA7%2Ft4nofrujiOg23bWJaFaZoYhoGu62iahqqqKIqCLMtIkoQoigiC8ANwt1mVLwpzywAAAABJRU5ErkJggg%3D%3D", "#000000", "#323232", "#F7F7F7", "#B0B0FF", "#454545", "#DADADA", "#606060", "#FFEEEE"));
-	}
-	
-	public static Theme getThemeById(int themeId)
-	{
-		return themes.get(themeId);
-	}
-	
-	private int themeId;
-	private String themeKey;
-	
-	private String listBackground;
-	private String listDivider;
-	
-	private String headerBackground;
-	private String headerColor;
-	
+{
+	private int listBackgroundColor;
+	private int listDividerColor;
 	private String postHeaderData;
-	private String postPseudoColor;
-	private String postDateColor;
-	private String postColor;
-	private String postLinkColor;
-	private String postEditQuoteBackground;
-	private String postEditQuoteColor;
-	private String postBlockBackground;
-	private String modoPostBackground;
+	private int postPseudoColor;
+	private int postDateColor;
+	private int postTextColor;
+	private int postLinkColor;
+	private int postEditQuoteBackgroundColor;
+	private int postEditQuoteTextColor;
+	private int postBlockBackgroundColor;
+	private int modoPostBackgroundColor;
 
-	public Theme(int themeId, String themeKey, String listBackground,
-			String listDivider, String headerBackground, String headerColor,
-			String postHeaderData, String postPseudoColor,
-			String postDateColor, String postColor, String postLinkColor,
-			String postEditQuoteBackground, String postEditQuoteColor,
-			String postBlockBackground, String modoPostBackground)
+	public Theme()
 	{
-		super();
-		this.themeId = themeId;
-		this.themeKey = themeKey;
-		this.listBackground = listBackground;
-		this.listDivider = listDivider;
-		this.headerBackground = headerBackground;
-		this.headerColor = headerColor;
-		this.postHeaderData = postHeaderData;
-		this.postPseudoColor = postPseudoColor;
-		this.postDateColor = postDateColor;
-		this.postColor = postColor;
-		this.postLinkColor = postLinkColor;
-		this.postEditQuoteBackground = postEditQuoteBackground;
-		this.postEditQuoteColor = postEditQuoteColor;
-		this.postBlockBackground = postBlockBackground;
-		this.modoPostBackground = modoPostBackground;
+		this.listBackgroundColor = -1;
+		this.listDividerColor = -1;
+		this.postHeaderData = null;
+		this.postPseudoColor = -1;
+		this.postDateColor = -1;
+		this.postTextColor = -1;
+		this.postLinkColor = -1;
+		this.postEditQuoteBackgroundColor = -1;
+		this.postEditQuoteTextColor = -1;
+		this.postBlockBackgroundColor = -1;
+		this.modoPostBackgroundColor = -1;
 	}
 
-	public int getThemeId()
+	public void setListBackgroundColor(int listBackgroundColor)
 	{
-		return themeId;
+		this.listBackgroundColor = listBackgroundColor;
 	}
 
-	public void setThemeId(int themeId)
+	public void setListDividerColor(int listDividerColor)
 	{
-		this.themeId = themeId;
-	}
-
-	public String getThemeKey()
-	{
-		return themeKey;
-	}
-
-	public void setThemeKey(String themeKey)
-	{
-		this.themeKey = themeKey;
-	}
-
-	public String getListBackground()
-	{
-		return listBackground;
-	}
-
-	public void setListBackground(String listBackground)
-	{
-		this.listBackground = listBackground;
-	}
-
-	public String getListDivider()
-	{
-		return listDivider;
-	}
-
-	public void setListDivider(String listDivider)
-	{
-		this.listDivider = listDivider;
-	}
-
-	public String getHeaderBackground()
-	{
-		return headerBackground;
-	}
-
-	public void setHeaderBackground(String headerBackground)
-	{
-		this.headerBackground = headerBackground;
-	}
-
-	public String getHeaderColor()
-	{
-		return headerColor;
-	}
-
-	public void setHeaderColor(String headerColor)
-	{
-		this.headerColor = headerColor;
-	}
-
-	public String getPostHeaderData()
-	{
-		return postHeaderData;
+		this.listDividerColor = listDividerColor;
 	}
 
 	public void setPostHeaderData(String postHeaderData)
@@ -138,83 +52,148 @@ public class Theme
 		this.postHeaderData = postHeaderData;
 	}
 
-	public String getPostPseudoColor()
-	{
-		return postPseudoColor;
-	}
-
-	public void setPostPseudoColor(String postPseudoColor)
+	public void setPostPseudoColor(int postPseudoColor)
 	{
 		this.postPseudoColor = postPseudoColor;
 	}
 
-	public String getPostDateColor()
-	{
-		return postDateColor;
-	}
-
-	public void setPostDateColor(String postDateColor)
+	public void setPostDateColor(int postDateColor)
 	{
 		this.postDateColor = postDateColor;
 	}
 
-	public String getPostColor()
+	public void setPostTextColor(int postTextColor)
 	{
-		return postColor;
+		this.postTextColor = postTextColor;
 	}
 
-	public void setPostColor(String postColor)
-	{
-		this.postColor = postColor;
-	}
-
-	public String getPostLinkColor()
-	{
-		return postLinkColor;
-	}
-
-	public void setPostLinkColor(String postLinkColor)
+	public void setPostLinkColor(int postLinkColor)
 	{
 		this.postLinkColor = postLinkColor;
 	}
 
-	public String getPostEditQuoteBackground()
+	public void setPostEditQuoteBackgroundColor(int postEditQuoteBackgroundColor)
 	{
-		return postEditQuoteBackground;
+		this.postEditQuoteBackgroundColor = postEditQuoteBackgroundColor;
 	}
 
-	public void setPostEditQuoteBackground(String postEditQuoteBackground)
+	public void setPostEditQuoteTextColor(int postEditQuoteTextColor)
 	{
-		this.postEditQuoteBackground = postEditQuoteBackground;
+		this.postEditQuoteTextColor = postEditQuoteTextColor;
 	}
 
-	public String getPostEditQuoteColor()
+	public void setPostBlockBackgroundColor(int postBlockBackgroundColor)
 	{
-		return postEditQuoteColor;
+		this.postBlockBackgroundColor = postBlockBackgroundColor;
 	}
 
-	public void setPostEditQuoteColor(String postEditQuoteColor)
+	public void setModoPostBackgroundColor(int modoPostBackgroundColor)
 	{
-		this.postEditQuoteColor = postEditQuoteColor;
+		this.modoPostBackgroundColor = modoPostBackgroundColor;
 	}
 
-	public String getPostBlockBackground()
+	public int getListBackgroundColor()
 	{
-		return postBlockBackground;
+		return listBackgroundColor;
 	}
 
-	public void setPostBlockBackground(String postBlockBackground)
+	public int getListDividerColor()
 	{
-		this.postBlockBackground = postBlockBackground;
+		return listDividerColor;
 	}
 
-	public String getModoPostBackground()
+	public String getPostHeaderData()
 	{
-		return modoPostBackground;
+		return postHeaderData;
 	}
 
-	public void setModoPostBackground(String modoPostBackground)
+	public int getPostPseudoColor()
 	{
-		this.modoPostBackground = modoPostBackground;
+		return postPseudoColor;
+	}
+
+	public int getPostDateColor()
+	{
+		return postDateColor;
+	}
+
+	public int getPostTextColor()
+	{
+		return postTextColor;
+	}
+
+	public int getPostLinkColor()
+	{
+		return postLinkColor;
+	}
+
+	public int getPostEditQuoteBackgroundColor()
+	{
+		return postEditQuoteBackgroundColor;
+	}
+
+	public int getPostEditQuoteTextColor()
+	{
+		return postEditQuoteTextColor;
+	}
+
+	public int getPostBlockBackgroundColor()
+	{
+		return postBlockBackgroundColor;
+	}
+
+	public int getModoPostBackgroundColor()
+	{
+		return modoPostBackgroundColor;
+	}
+	
+	public String getListBackgroundColorAsString()
+	{
+		return "#" + Integer.toHexString(listBackgroundColor).substring(2);
+	}
+
+	public String getListDividerColorAsString()
+	{
+		return "#" + Integer.toHexString(listDividerColor).substring(2);
+	}
+
+	public String getPostPseudoColorAsString()
+	{
+		return "#" + Integer.toHexString(postPseudoColor).substring(2);
+	}
+
+	public String getPostDateColorAsString()
+	{
+		return "#" + Integer.toHexString(postDateColor).substring(2);
+	}
+
+	public String getPostTextColorAsString()
+	{
+		return "#" + Integer.toHexString(postTextColor).substring(2);
+	}
+
+	public String getPostLinkColorAsString()
+	{
+		return "#" + Integer.toHexString(postLinkColor).substring(2);
+	}
+
+	public String getPostEditQuoteBackgroundColorAsString()
+	{
+		return "#" + Integer.toHexString(postEditQuoteBackgroundColor).substring(2);
+	}
+
+	public String getPostEditQuoteTextColorAsString()
+	{
+		return "#" + Integer.toHexString(postEditQuoteTextColor).substring(2);
+	}
+
+	public String getPostBlockBackgroundColorAsString()
+	{
+		return "#" + Integer.toHexString(postBlockBackgroundColor).substring(2);
+	}
+
+	public String getModoPostBackgroundColorAsString()
+	{
+		return "#" + Integer.toHexString(modoPostBackgroundColor).substring(2);
 	}
 }

@@ -38,7 +38,7 @@
 	
 	<string name="pref_theme_title">Thème</string>
 	<string name="pref_theme_summary">Le thème de l\'application pour la personnaliser</string>
-	<string name="pref_theme_default">1</string>
+	<string name="pref_theme_default">default</string>
 	
 	<string name="pref_police_size_title">Taille de la police</string>
 	<string name="pref_police_size_summary">Taille des polices dans les écrans de l\'application</string>

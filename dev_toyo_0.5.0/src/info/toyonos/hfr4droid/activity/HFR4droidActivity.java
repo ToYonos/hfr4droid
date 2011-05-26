@@ -84,6 +84,7 @@ public abstract class HFR4droidActivity extends Activity
 	
 	protected AlertDialog loginDialog;
 	protected int currentPageNumber;
+	protected Theme currentTheme;
 
 	private PreLoadingPostsAsyncTask preLoadingPostsAsyncTask;
 	private Map<Integer, List<Post>> preLoadedPosts;
@@ -155,27 +156,13 @@ public abstract class HFR4droidActivity extends Activity
 		return logMsg.toString();
 	}
 	
-	protected abstract void applyTheme(Theme theme);
-	
-	@SuppressWarnings("unchecked")
-	protected int getKeyByTheme(Theme theme, Class type, String key)
-	{
-		try
-		{
-			return type.getField(theme.getThemeKey() + "_" + key).getInt(null);
-		}
-		catch (Exception e)
-		{
-			error(e);
-			return -1;
-		}
-	}
-	
 	@Override
 	protected void onCreate(Bundle savedInstanceState)
 	{
 		super.onCreate(savedInstanceState);
 		requestWindowFeature(Window.FEATURE_NO_TITLE);
+		loadTheme(getThemeKey());
+		
 		Bundle bundle = this.getIntent().getExtras();
 		loginDialog = null;
 		currentPageNumber = bundle != null ? bundle.getInt("pageNumber") : -1;
@@ -208,7 +195,9 @@ public abstract class HFR4droidActivity extends Activity
 		super.onRestart();	
 		if (forceRedraw)
 		{
+			// TODO gérer la touche back
 			forceRedraw = false;
+			loadTheme(getThemeKey());
 			redrawPage();
 		}
 	}
@@ -319,6 +308,44 @@ public abstract class HFR4droidActivity extends Activity
 			default:
 				return super.onOptionsItemSelected(item);
 		}		    	
+	}
+
+	protected abstract void applyTheme(Theme theme);
+	
+	@SuppressWarnings("unchecked")
+	protected int getKeyByTheme(String themeKey, Class type, String key)
+	{
+		try
+		{
+			return type.getField(themeKey + "_" + key).getInt(null);
+		}
+		catch (Exception e)
+		{
+			error(e);
+			return -1;
+		}
+	}
+
+	private int getColorByKey(String themeKey, String key)
+	{
+		int colorKey = getKeyByTheme(themeKey, R.color.class, key);
+		return getResources().getColor(colorKey);
+	}
+	
+	private void loadTheme(String themeKey)
+	{
+		currentTheme = new Theme();
+		currentTheme.setListBackgroundColor(getColorByKey(themeKey, "list_background"));
+		currentTheme.setListDividerColor(getColorByKey(themeKey, "list_divider"));
+		currentTheme.setPostHeaderData(getString(getKeyByTheme(themeKey, R.string.class, "post_header_data"))); 
+		currentTheme.setPostPseudoColor(getColorByKey(themeKey, "post_pseudo"));
+		currentTheme.setPostDateColor(getColorByKey(themeKey, "post_date"));
+		currentTheme.setPostTextColor(getColorByKey(themeKey, "text1"));
+		currentTheme.setPostLinkColor(getColorByKey(themeKey, "post_link"));
+		currentTheme.setPostEditQuoteBackgroundColor(getColorByKey(themeKey, "post_edit_quote_background"));
+		currentTheme.setPostEditQuoteTextColor(getColorByKey(themeKey, "post_edit_quote_text"));
+		currentTheme.setPostBlockBackgroundColor(getColorByKey(themeKey, "post_block_background"));
+		currentTheme.setModoPostBackgroundColor(getColorByKey(themeKey, "post_modo_background"));
 	}
 
 	protected HFR4droidApplication getHFR4droidApplication()
@@ -833,10 +860,10 @@ public abstract class HFR4droidActivity extends Activity
 		return settings.getBoolean(PREF_FULLSCREEN_ENABLE, Boolean.parseBoolean(getString(R.string.pref_fullscreen_enable_default)));
 	}
 	
-	protected int getThemeId()
+	protected String getThemeKey()
 	{
 		SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(this);
-		return Integer.parseInt(settings.getString(PREF_THEME, getString(R.string.pref_theme_default)));
+		return settings.getString(PREF_THEME, getString(R.string.pref_theme_default));
 	}
 	
 	protected int getPoliceSize()

@@ -133,11 +133,13 @@
 	<string-array name="theme_values">
     	<item>Défaut</item>
     	<item>Dark</item>
+    	<item>Gris (HFR 2011)</item>
 	</string-array>
 	
 	<string-array name="theme_keys">
-		<item>1</item>
-		<item>2</item>
+		<item>default</item>
+		<item>dark</item>
+		<item>gray</item>
 	</string-array>
 	
 	<string-array name="police_size_values">
