@@ -13,7 +13,14 @@
 			android:key="PrefCheckMpsEnable"
 			android:summary="@string/pref_check_mps_enable_summary"
 			android:title="@string/pref_check_mps_enable_title"
-			android:defaultValue="@string/pref_check_mps_enable_default" />          
+			android:defaultValue="@string/pref_check_mps_enable_default" />
+		<ListPreference
+			android:key="PrefNotificationType"
+			android:summary="@string/pref_notification_type_summary"
+			android:title="@string/pref_notification_type_title"
+			android:defaultValue="@string/pref_notification_type_default" 
+			android:entries="@array/notification_type_values"
+            android:entryValues="@array/notification_type_keys" /> 
 		<ListPreference
 			android:key="PrefTypeDrapeau"
 			android:summary="@string/pref_type_drapeau_summary"

@@ -8,7 +8,11 @@
 
 	<string name="pref_check_mps_enable_title">Vérifier les MPs</string>
 	<string name="pref_check_mps_enable_summary">Active la vérification des MPs (différent du service permanent, cf. documention)</string>
-	<string name="pref_check_mps_enable_default">1</string>	
+	<string name="pref_check_mps_enable_default">1</string>
+	
+	<string name="pref_notification_type_title">Type de notification des MPs</string>
+	<string name="pref_notification_type_summary">La façon dont vous serez notifié des nouveaux MPs</string>
+	<string name="pref_notification_type_default">1</string>	
 	
 	<string name="pref_type_drapeau_title">Type de drapeau</string>
 	<string name="pref_type_drapeau_summary">Le type de drapeau qui s\'affiche par défaut dans l\'application</string>

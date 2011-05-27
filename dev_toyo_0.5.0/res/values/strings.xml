@@ -105,6 +105,16 @@
 		<item>3</item>
 	</string-array>
 	
+	<string-array name="notification_type_values">
+    	<item>Barre de statut</item>
+    	<item>Toast</item>
+	</string-array>
+	
+	<string-array name="notification_type_keys">
+		<item>1</item>
+		<item>2</item>
+	</string-array>
+	
 	<string-array name="type_drapeau_values">
     	<item>Tous les drapeaux</item>
     	<item>Les drapeaux cyan</item>

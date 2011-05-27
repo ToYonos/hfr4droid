@@ -1,6 +1,7 @@
 package info.toyonos.hfr4droid.service;
 
 import info.toyonos.hfr4droid.R;
+import info.toyonos.hfr4droid.activity.HFR4droidActivity;
 import info.toyonos.hfr4droid.activity.PostsActivity;
 import info.toyonos.hfr4droid.activity.TopicsActivity;
 import info.toyonos.hfr4droid.core.bean.Category;
@@ -10,9 +11,11 @@ import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.os.IBinder;
+import android.preference.PreferenceManager;
 
 /**
  * <p>Service qui va notifier les nouveaux mps à l'utilisateur.</p>
@@ -27,6 +30,33 @@ public class MpNotifyService extends Service
 	public static final int NOTIFICATION_ID = 42;
 
 	public static int currentNewMps = 0;
+	
+	public static enum NotificationType
+	{
+		STATUS_BAR(1),
+		TOAST(2);
+		
+		private final int value;
+
+		private NotificationType(int value)
+		{
+			this.value = value;
+		}
+
+		public int getValue()
+		{
+			return this.value;
+		}
+		
+		public static NotificationType fromInt(int anInt) 
+		{
+			for (NotificationType type : NotificationType.values())
+			{
+				if (anInt == type.getValue()) return type;
+			}
+			return null;
+		}
+	};
 
 	@Override
 	public IBinder onBind(Intent intent)
@@ -50,13 +80,13 @@ public class MpNotifyService extends Service
 			{
 				int nbMps = intent.getIntExtra("nbMps", 0);
 				Topic mp = (Topic) intent.getSerializableExtra("mp");
-				notifyNewMps(nbMps, mp);
+				notifyNewMps(nbMps, mp, getNotificationType());
 				stopSelf();
 			}
 		};
 	}
 
-	protected void notifyNewMps(int nbMps, Topic mp)
+	protected void notifyNewMps(int nbMps, Topic mp, NotificationType type)
 	{
 		NotificationManager notificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
 
@@ -77,35 +107,52 @@ public class MpNotifyService extends Service
 		}
 
 		String notificationMessage = getResources().getQuantityString(R.plurals.mp_notification_content, nbMps, nbMps);
-		PendingIntent pendingIntent = null;
-		if (nbMps == 1 && mp != null)
+		switch (type)
 		{
-			Intent intent = new Intent(MpNotifyService.this, PostsActivity.class);
-			Bundle bundle = new Bundle();
-			bundle.putSerializable("topic", mp);
-			bundle.putInt("pageNumber", mp.getNbPages());
-			intent.setAction("" + Math.random()); // Samed issue as this guy : http://stackoverflow.com/questions/2882459/getextra-from-intent-launched-from-a-pendingintent 
-			intent.putExtras(bundle);
-			pendingIntent = PendingIntent.getActivity(MpNotifyService.this, 0, intent, 0);				
-		}
-		else
-		{
-			Intent intent = new Intent(MpNotifyService.this, TopicsActivity.class);
-			Bundle bundle = new Bundle();
-			bundle.putSerializable("cat", Category.MPS_CAT);
-			bundle.putInt("pageNumber", 1);
-			intent.setAction("" + Math.random()); // Samed issue as this guy : http://stackoverflow.com/questions/2882459/getextra-from-intent-launched-from-a-pendingintent
-			intent.putExtras(bundle);
-			pendingIntent = PendingIntent.getActivity(MpNotifyService.this, 0, intent, 0);			
-		}
+			case STATUS_BAR:
+				PendingIntent pendingIntent = null;
+				if (nbMps == 1 && mp != null)
+				{
+					Intent intent = new Intent(MpNotifyService.this, PostsActivity.class);
+					Bundle bundle = new Bundle();
+					bundle.putSerializable("topic", mp);
+					bundle.putInt("pageNumber", mp.getNbPages());
+					intent.setAction("" + Math.random()); // Samed issue as this guy : http://stackoverflow.com/questions/2882459/getextra-from-intent-launched-from-a-pendingintent 
+					intent.putExtras(bundle);
+					pendingIntent = PendingIntent.getActivity(MpNotifyService.this, 0, intent, 0);				
+				}
+				else
+				{
+					Intent intent = new Intent(MpNotifyService.this, TopicsActivity.class);
+					Bundle bundle = new Bundle();
+					bundle.putSerializable("cat", Category.MPS_CAT);
+					bundle.putInt("pageNumber", 1);
+					intent.setAction("" + Math.random()); // Samed issue as this guy : http://stackoverflow.com/questions/2882459/getextra-from-intent-launched-from-a-pendingintent
+					intent.putExtras(bundle);
+					pendingIntent = PendingIntent.getActivity(MpNotifyService.this, 0, intent, 0);			
+				}
 
-		Notification notification = new Notification(R.drawable.icon, notificationMessage, System.currentTimeMillis());
-		notification.setLatestEventInfo(MpNotifyService.this, getString(R.string.app_name), notificationMessage, pendingIntent);
-		notification.vibrate = new long[] { 0, 250, 200, 250};
-		notification.ledOnMS = 100;
-		notification.ledOffMS = 100;
-		notification.ledARGB = Color.GREEN;
-		notification.flags = Notification.FLAG_AUTO_CANCEL | Notification.FLAG_SHOW_LIGHTS;
-		notificationManager.notify(NOTIFICATION_ID, notification);
+				Notification notification = new Notification(R.drawable.icon, notificationMessage, System.currentTimeMillis());
+				notification.setLatestEventInfo(MpNotifyService.this, getString(R.string.app_name), notificationMessage, pendingIntent);
+				notification.vibrate = new long[] { 0, 250, 200, 250};
+				notification.ledOnMS = 100;
+				notification.ledOffMS = 100;
+				notification.ledARGB = Color.GREEN;
+				notification.flags = Notification.FLAG_AUTO_CANCEL | Notification.FLAG_SHOW_LIGHTS;
+				notificationManager.notify(NOTIFICATION_ID, notification);
+				break;
+			
+			case TOAST:
+				//Toast.makeText(this, notificationMessage, Toast.LENGTH_LONG);
+				//TODO handler ?
+				break;
+		}
+	}
+	
+	protected NotificationType getNotificationType()
+	{
+		SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(this);
+		String value = settings.getString(HFR4droidActivity.PREF_NOTIFICATION_TYPE, getString(R.string.pref_notification_type_default));
+		return NotificationType.fromInt(Integer.parseInt(value));
 	}
 }

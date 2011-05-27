@@ -66,6 +66,7 @@ public abstract class HFR4droidActivity extends Activity
 {
 	public static final String PREF_WELCOME_SCREEN		= "PrefWelcomeScreen";
 	public static final String PREF_CHECK_MPS_ENABLE	= "PrefCheckMpsEnable";
+	public static final String PREF_NOTIFICATION_TYPE	= "PrefNotificationType";
 	public static final String PREF_TYPE_DRAPEAU		= "PrefTypeDrapeau";
 	public static final String PREF_SIGNATURE_ENABLE	= "PrefSignatureEnable";
 	public static final String PREF_DBLTAP_ENABLE		= "PrefDblTapEnable";
@@ -273,7 +274,7 @@ public abstract class HFR4droidActivity extends Activity
 				else
 				{
 					logout();
-					stopMpCheckService();
+					stopMpTimerCheckService();
 					onLogout();
 				}
 				return true;
@@ -419,7 +420,7 @@ public abstract class HFR4droidActivity extends Activity
 		}
 	}
 
-	protected void stopMpCheckService()
+	protected void stopMpTimerCheckService()
 	{
 		Intent intent = new Intent(this, MpTimerCheckService.class); 
 		stopService(intent);
