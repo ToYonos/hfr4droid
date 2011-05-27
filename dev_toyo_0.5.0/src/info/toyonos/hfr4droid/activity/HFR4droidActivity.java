@@ -79,12 +79,12 @@ public abstract class HFR4droidActivity extends Activity
 	public static final String PREF_IMGS_ENABLE			= "PrefImgsEnable";
 	public static final String PREF_SRV_MPS_ENABLE		= "PrefSrvMpsEnable";
 	public static final String PREF_SRV_MPS_FREQ		= "PrefSrvMpsFreq";
-
-	public static boolean forceRedraw = false;
 	
 	protected AlertDialog loginDialog;
 	protected int currentPageNumber;
-	protected Theme currentTheme;
+
+	protected Theme currentTheme = null;
+	private int currentPoliceSize = -1;
 
 	private PreLoadingPostsAsyncTask preLoadingPostsAsyncTask;
 	private Map<Integer, List<Post>> preLoadedPosts;
@@ -162,6 +162,7 @@ public abstract class HFR4droidActivity extends Activity
 		super.onCreate(savedInstanceState);
 		requestWindowFeature(Window.FEATURE_NO_TITLE);
 		loadTheme(getThemeKey());
+		currentPoliceSize = getPoliceSize();
 		
 		Bundle bundle = this.getIntent().getExtras();
 		loginDialog = null;
@@ -193,11 +194,15 @@ public abstract class HFR4droidActivity extends Activity
 	protected void onRestart()
 	{
 		super.onRestart();	
-		if (forceRedraw)
+		if (currentTheme.getKey() != getThemeKey())
 		{
-			// TODO gérer la touche back
-			forceRedraw = false;
 			loadTheme(getThemeKey());
+			redrawPage();
+		}
+		
+		if (currentPoliceSize != getPoliceSize())
+		{
+			currentPoliceSize = getPoliceSize();
 			redrawPage();
 		}
 	}
@@ -334,7 +339,7 @@ public abstract class HFR4droidActivity extends Activity
 	
 	private void loadTheme(String themeKey)
 	{
-		currentTheme = new Theme();
+		currentTheme = new Theme(themeKey);
 		currentTheme.setListBackgroundColor(getColorByKey(themeKey, "list_background"));
 		currentTheme.setListDividerColor(getColorByKey(themeKey, "list_divider"));
 		currentTheme.setPostHeaderData(getString(getKeyByTheme(themeKey, R.string.class, "post_header_data"))); 

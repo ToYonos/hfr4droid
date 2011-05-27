@@ -395,27 +395,16 @@ public class PostsActivity extends NewPostUIActivity
 	@Override
 	protected void reloadPage()
 	{
-		reloadPage(false);
-	}
-	
-	protected void reloadPage(boolean fromCache)
-	{
 		currentScrollY = getWebView().getScrollY();
-		if (!fromCache)
-		{
-			loadPosts(topic, currentPageNumber);
-		}
-		else
-		{
-			refreshPosts(posts);
-		}
+		loadPosts(topic, currentPageNumber);
 	}
 	
 	@Override
 	protected void redrawPage()
 	{
 		applyTheme(currentTheme);
-		reloadPage(true);
+		currentScrollY = getWebView().getScrollY();
+		displayPosts(posts);
 	}
 	
 	@Override
@@ -911,10 +900,7 @@ public class PostsActivity extends NewPostUIActivity
 		final WebView loading = (WebView) findViewById(R.id.loading);
 		loading.setBackgroundColor(currentTheme.getListBackgroundColor());
 		loading.setVisibility(View.VISIBLE);
-		if (!refresh)
-		{
-			loading.loadData("<html><body style=\"text-align: center; margin-top: 150px; background-color:" + currentTheme.getListBackgroundColorAsString() + ";\"><img src=\"data:image/gif;base64,R0lGODlhKwALAPEAAP%2F%2F%2FwAAAIKCggAAACH%2FC05FVFNDQVBFMi4wAwEAAAAh%2FhpDcmVhdGVkIHdpdGggYWpheGxvYWQuaW5mbwAh%2BQQJCgAAACwAAAAAKwALAAACMoSOCMuW2diD88UKG95W88uF4DaGWFmhZid93pq%2BpwxnLUnXh8ou%2BsSz%2BT64oCAyTBUAACH5BAkKAAAALAAAAAArAAsAAAI9xI4IyyAPYWOxmoTHrHzzmGHe94xkmJifyqFKQ0pwLLgHa82xrekkDrIBZRQab1jyfY7KTtPimixiUsevAAAh%2BQQJCgAAACwAAAAAKwALAAACPYSOCMswD2FjqZpqW9xv4g8KE7d54XmMpNSgqLoOpgvC60xjNonnyc7p%2BVKamKw1zDCMR8rp8pksYlKorgAAIfkECQoAAAAsAAAAACsACwAAAkCEjgjLltnYmJS6Bxt%2Bsfq5ZUyoNJ9HHlEqdCfFrqn7DrE2m7Wdj%2F2y45FkQ13t5itKdshFExC8YCLOEBX6AhQAADsAAAAAAAAAAAA%3D\" alt=\"loading\" /></body></html>", "text/html", "UTF-8");
-		}
+		if (!refresh) loadLoadingWebView(loading);
 
 		StringBuffer js = new StringBuffer("<script type=\"text/javascript\">");
 		js.append("function swap_spoiler_states(obj){var div=obj.getElementsByTagName('div');if(div[0]){if(div[0].style.visibility==\"visible\"){div[0].style.visibility='hidden';}else if(div[0].style.visibility==\"hidden\"||!div[0].style.visibility){div[0].style.visibility='visible';}}}");
@@ -1084,6 +1070,11 @@ public class PostsActivity extends NewPostUIActivity
 			parent.removeView(oldWebView);
 		}
 		if (refresh) updateButtonsStates();
+	}
+	
+	private void loadLoadingWebView(WebView loading)
+	{
+		loading.loadData("<html><body style=\"text-align: center; margin-top: 150px; background-color:" + currentTheme.getListBackgroundColorAsString() + ";\"><img src=\"data:image/gif;base64,R0lGODlhKwALAPEAAP%2F%2F%2FwAAAIKCggAAACH%2FC05FVFNDQVBFMi4wAwEAAAAh%2FhpDcmVhdGVkIHdpdGggYWpheGxvYWQuaW5mbwAh%2BQQJCgAAACwAAAAAKwALAAACMoSOCMuW2diD88UKG95W88uF4DaGWFmhZid93pq%2BpwxnLUnXh8ou%2BsSz%2BT64oCAyTBUAACH5BAkKAAAALAAAAAArAAsAAAI9xI4IyyAPYWOxmoTHrHzzmGHe94xkmJifyqFKQ0pwLLgHa82xrekkDrIBZRQab1jyfY7KTtPimixiUsevAAAh%2BQQJCgAAACwAAAAAKwALAAACPYSOCMswD2FjqZpqW9xv4g8KE7d54XmMpNSgqLoOpgvC60xjNonnyc7p%2BVKamKw1zDCMR8rp8pksYlKorgAAIfkECQoAAAAsAAAAACsACwAAAkCEjgjLltnYmJS6Bxt%2Bsfq5ZUyoNJ9HHlEqdCfFrqn7DrE2m7Wdj%2F2y45FkQ13t5itKdshFExC8YCLOEBX6AhQAADsAAAAAAAAAAAA%3D\" alt=\"loading\" /></body></html>", "text/html", "UTF-8");
 	}
 
 	private void showAddPostDialog(PostCallBackType type, String data)
@@ -1359,5 +1350,16 @@ public class PostsActivity extends NewPostUIActivity
 	{
 		FrameLayout root = (FrameLayout) findViewById(R.id.PostsLayout).getParent();
 		root.setBackgroundColor(theme.getListBackgroundColor());
+		
+		WebView loading = (WebView) findViewById(R.id.loading);
+		LinearLayout parent = ((LinearLayout) loading.getParent());
+		loading.destroy();
+		parent.removeView(loading);
+		loading = new WebView(this);
+		loading.setId(R.id.loading);
+		loading.setLayoutParams(new LayoutParams(LayoutParams.FILL_PARENT, LayoutParams.FILL_PARENT));
+		loading.setBackgroundColor(currentTheme.getListBackgroundColor());
+		loading.setVisibility(View.VISIBLE);
+		parent.addView(loading, 2);
 	}
 }

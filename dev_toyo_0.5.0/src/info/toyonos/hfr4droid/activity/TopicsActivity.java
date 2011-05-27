@@ -1,5 +1,6 @@
 package info.toyonos.hfr4droid.activity;
 
+import info.toyonos.hfr4droid.HFR4droidException;
 import info.toyonos.hfr4droid.R;
 import info.toyonos.hfr4droid.core.bean.Category;
 import info.toyonos.hfr4droid.core.bean.SubCategory;
@@ -141,6 +142,7 @@ public class TopicsActivity extends HFR4droidListActivity<Topic>
 					menu.setHeaderTitle(currentTopic.getName());
 					if (!isLoggedIn() || currentTopic.getLastReadPage() == -1) menu.removeItem(R.id.MenuNavLastReadPage);
 					if (!isLoggedIn() || !isMpsCat()) menu.removeItem(R.id.MenuNavSetUnread);
+					if (!isLoggedIn() || isMpsCat()) menu.removeItem(R.id.MenuNavUnflag);
 					if (!isLoggedIn() || currentTopic.getStatus() == TopicStatus.LOCKED) menu.removeItem(R.id.MenuNavNewPost);
 				}
 				else
@@ -194,7 +196,8 @@ public class TopicsActivity extends HFR4droidListActivity<Topic>
 	{
 		AdapterContextMenuInfo menuInfo = (AdapterContextMenuInfo) aItem.getMenuInfo();
 		final Topic currentTopic = menuInfo != null ? (Topic) getListView().getAdapter().getItem(menuInfo.position) : null;
-
+		final ProgressDialog progressDialog = new ProgressDialog(TopicsActivity.this);
+		
 		switch (aItem.getItemId())
 		{    	
 			case R.id.MenuNavLastReadPage:
@@ -255,7 +258,6 @@ public class TopicsActivity extends HFR4droidListActivity<Topic>
 				return true;
 				
 			case R.id.MenuNavSetUnread:
-				final ProgressDialog progressDialog = new ProgressDialog(TopicsActivity.this);
 				progressDialog.setMessage(getString(R.string.unread_loading));
 				progressDialog.setIndeterminate(true);
 				new AsyncTask<Void, Void, Boolean>()
@@ -288,11 +290,51 @@ public class TopicsActivity extends HFR4droidListActivity<Topic>
 						if (response)
 						{
 							currentTopic.setStatus(TopicStatus.NEW_MP);
-							redrawPage();
+							adapter.notifyDataSetChanged();
 						}
 						else
 						{
 							Toast.makeText(TopicsActivity.this, R.string.unread_failed, Toast.LENGTH_SHORT).show();
+						}
+					}
+				}.execute();
+				return true;
+				
+			case R.id.MenuNavUnflag:
+				progressDialog.setMessage(getString(R.string.unflag_loading));
+				progressDialog.setIndeterminate(true);
+				new AsyncTask<Void, Void, String>()
+				{
+					@Override
+					protected void onPreExecute() 
+					{
+						progressDialog.show();
+					}
+
+					@Override
+					protected String doInBackground(Void... params)
+					{
+						String response = null;
+						try
+						{
+							response = getMessageSender().unflag(currentTopic, type, getDataRetriever().getHashCheck());
+						} 
+						catch (HFR4droidException e)
+						{
+							error(e, true, true);
+						}
+						return response;
+					}
+
+					@Override
+					protected void onPostExecute(String response)
+					{
+						progressDialog.dismiss();
+						if (response != null)
+						{
+							Toast.makeText(TopicsActivity.this, response, Toast.LENGTH_SHORT).show();
+							adapter.remove(currentTopic);
+							adapter.notifyDataSetChanged();
 						}
 					}
 				}.execute();

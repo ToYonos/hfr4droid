@@ -19,6 +19,7 @@
 	<string name="nav_page_number">Numéro de page ?</string>
 	<string name="topic_new_post">Poster un message</string>
 	<string name="topic_set_unread">Marquer comme non lu</string>
+	<string name="topic_unflag">Effacer le drapeau</string>
 	
 	<string name="menu_drapeaux">Mes drapeaux</string>
 	<string name="menu_drapeaux_all">Tous les topics</string>

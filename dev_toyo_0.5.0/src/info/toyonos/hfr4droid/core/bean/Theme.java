@@ -10,6 +10,8 @@ package info.toyonos.hfr4droid.core.bean;
  */
 public class Theme
 {
+	private String key;
+	
 	private int listBackgroundColor;
 	private int listDividerColor;
 	private String postHeaderData;
@@ -22,8 +24,9 @@ public class Theme
 	private int postBlockBackgroundColor;
 	private int modoPostBackgroundColor;
 
-	public Theme()
+	public Theme(String key)
 	{
+		this.key = key;
 		this.listBackgroundColor = -1;
 		this.listDividerColor = -1;
 		this.postHeaderData = null;
@@ -35,6 +38,16 @@ public class Theme
 		this.postEditQuoteTextColor = -1;
 		this.postBlockBackgroundColor = -1;
 		this.modoPostBackgroundColor = -1;
+	}
+
+	public String getKey()
+	{
+		return key;
+	}
+
+	public void setKey(String key)
+	{
+		this.key = key;
 	}
 
 	public void setListBackgroundColor(int listBackgroundColor)
