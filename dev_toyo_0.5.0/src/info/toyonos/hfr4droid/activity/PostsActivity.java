@@ -30,6 +30,7 @@ import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.DialogInterface.OnCancelListener;
 import android.content.DialogInterface.OnDismissListener;
 import android.content.res.Configuration;
 import android.os.AsyncTask;
@@ -173,7 +174,7 @@ public class PostsActivity extends NewPostUIActivity
 		gestureDetector = new GestureDetector(new SimpleNavOnGestureListener()
 		{
 			@Override
-			protected void onLeftToRight()
+			protected void onLeftToRight(MotionEvent e1, MotionEvent e2)
 			{
 				if (currentPageNumber != 1)
 				{
@@ -186,7 +187,7 @@ public class PostsActivity extends NewPostUIActivity
 			}
 
 			@Override
-			protected void onRightToLeft()
+			protected void onRightToLeft(MotionEvent e1, MotionEvent e2)
 			{
 				if (currentPageNumber != topic.getNbPages())
 				{
@@ -806,6 +807,14 @@ public class PostsActivity extends NewPostUIActivity
 					@Override
 					protected void onPreExecute() 
 					{
+						progressDialog.setCancelable(true);
+						progressDialog.setOnCancelListener(new OnCancelListener()
+						{
+							public void onCancel(DialogInterface dialog)
+							{
+								cancel(true);
+							}
+						});
 						progressDialog.show();
 					}
 
@@ -855,6 +864,14 @@ public class PostsActivity extends NewPostUIActivity
 									@Override
 									protected void onPreExecute() 
 									{
+										progressDialog.setCancelable(true);
+										progressDialog.setOnCancelListener(new OnCancelListener()
+										{
+											public void onCancel(DialogInterface dialog)
+											{
+												cancel(true);
+											}
+										});
 										progressDialog.show();
 									}
 
@@ -889,7 +906,7 @@ public class PostsActivity extends NewPostUIActivity
 						{
 							public void onClick(DialogInterface dialog, int which){}
 						});
-						
+
 						progressDialog.dismiss();
 						builder.create().show();
 					}
@@ -1092,6 +1109,7 @@ public class PostsActivity extends NewPostUIActivity
 			LayoutInflater inflater = (LayoutInflater) getApplicationContext().getSystemService(LAYOUT_INFLATER_SERVICE);
 			final ViewGroup layout = (ViewGroup) inflater.inflate(R.layout.new_post_content, null);
 			postDialog.setContentView(layout);
+			applyTheme(currentTheme, (ViewGroup) postDialog.findViewById(R.id.PostContainer).getParent());
 			addPostButtons(layout);
 			((EditText) postDialog.findViewById(R.id.InputPostContent)).setTextSize(getTextSize(14));
 
@@ -1129,7 +1147,7 @@ public class PostsActivity extends NewPostUIActivity
 		if (data != null) postContent.setText(data);
 		postContent.requestFocus();
 		Selection.setSelection(postContent.getText(), postContent.length());
-		EditText smileyTag = (EditText) postDialog.findViewById(R.id.inputSmileyTag);
+		EditText smileyTag = (EditText) postDialog.findViewById(R.id.InputSmileyTag);
 		smileyTag.setText("");
 		postDialog.show();		
 	}
@@ -1306,13 +1324,24 @@ public class PostsActivity extends NewPostUIActivity
 				execute();
 			}
 		}
-
+		
 		@Override
 		protected void onPreExecute()
 		{
 			if (progress)
 			{
-				progressDialog = ProgressDialog.show(PostsActivity.this, null, getString(type.getKey() + "_loading"), true);
+				ProgressDialog progressDialog = new ProgressDialog(PostsActivity.this);
+				progressDialog.setMessage(getString(type.getKey() + "_loading"));
+				progressDialog.setIndeterminate(true);
+				progressDialog.setCancelable(true);
+				progressDialog.setOnCancelListener(new OnCancelListener()
+				{
+					public void onCancel(DialogInterface dialog)
+					{
+						cancel(true);
+					}
+				});
+				progressDialog.show();
 			}
 		}
 
@@ -1348,18 +1377,26 @@ public class PostsActivity extends NewPostUIActivity
 	@Override
 	protected void applyTheme(Theme theme)
 	{
-		FrameLayout root = (FrameLayout) findViewById(R.id.PostsLayout).getParent();
+		LinearLayout postLayout = (LinearLayout) findViewById(R.id.PostsLayout);
+		FrameLayout root = (FrameLayout) postLayout.getParent();
 		root.setBackgroundColor(theme.getListBackgroundColor());
 		
 		WebView loading = (WebView) findViewById(R.id.loading);
-		LinearLayout parent = ((LinearLayout) loading.getParent());
-		loading.destroy();
-		parent.removeView(loading);
+		if (loading != null)
+		{
+			loading.destroy();
+			postLayout.removeView(loading);
+		}
 		loading = new WebView(this);
 		loading.setId(R.id.loading);
 		loading.setLayoutParams(new LayoutParams(LayoutParams.FILL_PARENT, LayoutParams.FILL_PARENT));
 		loading.setBackgroundColor(currentTheme.getListBackgroundColor());
 		loading.setVisibility(View.VISIBLE);
-		parent.addView(loading, 2);
+		postLayout.addView(loading, 2);
+		
+		if (postDialog != null)
+		{
+			applyTheme(theme, (ViewGroup) postDialog.findViewById(R.id.PostContainer).getParent());
+		}
 	}
 }

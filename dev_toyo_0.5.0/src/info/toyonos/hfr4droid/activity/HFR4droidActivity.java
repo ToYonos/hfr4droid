@@ -1175,9 +1175,9 @@ public abstract class HFR4droidActivity extends Activity
 			return widthPercent;
 		}
 		
-		protected abstract void onLeftToRight();
+		protected abstract void onLeftToRight(MotionEvent e1, MotionEvent e2);
 
-		protected abstract void onRightToLeft();
+		protected abstract void onRightToLeft(MotionEvent e1, MotionEvent e2);
 		
 		public abstract boolean onDoubleTap(MotionEvent e);
 
@@ -1190,11 +1190,11 @@ public abstract class HFR4droidActivity extends Activity
 			{
 				if (e1.getX() < e2.getX())
 				{
-					onLeftToRight();
+					onLeftToRight(e1, e2);
 				} 
 				else if (e1.getX() > e2.getX())
 				{
-					onRightToLeft();
+					onRightToLeft(e1, e2);
 				}
 				return true;
 			}

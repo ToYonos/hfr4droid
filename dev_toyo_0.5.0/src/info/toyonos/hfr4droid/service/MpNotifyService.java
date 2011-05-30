@@ -14,8 +14,11 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.os.Bundle;
+import android.os.Handler;
 import android.os.IBinder;
+import android.os.Looper;
 import android.preference.PreferenceManager;
+import android.widget.Toast;
 
 /**
  * <p>Service qui va notifier les nouveaux mps à l'utilisateur.</p>
@@ -58,6 +61,8 @@ public class MpNotifyService extends Service
 		}
 	};
 
+	private Handler handler = null;
+	
 	@Override
 	public IBinder onBind(Intent intent)
 	{
@@ -69,6 +74,7 @@ public class MpNotifyService extends Service
 	{
 		super.onStart(intent, startId);
 		Runnable run = doService(intent);
+		handler = new Handler(Looper.getMainLooper());
 		if (run != null) new Thread(run).start();
 	}
 	
@@ -106,7 +112,7 @@ public class MpNotifyService extends Service
 			currentNewMps = nbMps;
 		}
 
-		String notificationMessage = getResources().getQuantityString(R.plurals.mp_notification_content, nbMps, nbMps);
+		final String notificationMessage = getResources().getQuantityString(R.plurals.mp_notification_content, nbMps, nbMps);
 		switch (type)
 		{
 			case STATUS_BAR:
@@ -141,10 +147,15 @@ public class MpNotifyService extends Service
 				notification.flags = Notification.FLAG_AUTO_CANCEL | Notification.FLAG_SHOW_LIGHTS;
 				notificationManager.notify(NOTIFICATION_ID, notification);
 				break;
-			
+
 			case TOAST:
-				//Toast.makeText(this, notificationMessage, Toast.LENGTH_LONG);
-				//TODO handler ?
+				handler.post(new Runnable()
+				{
+					public void run()
+					{
+						Toast.makeText(getApplicationContext(), notificationMessage, Toast.LENGTH_LONG).show();
+					}
+				});
 				break;
 		}
 	}

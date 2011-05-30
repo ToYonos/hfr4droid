@@ -45,10 +45,6 @@
 	  		android:visibility="gone"
 	  		android:layout_width="fill_parent"
 	  		android:layout_height="10dip" />
-		<WebView
-			android:id="@+id/loading"
-	        android:layout_width="fill_parent"
-    		android:layout_height="fill_parent" />
 	</LinearLayout>
 	<include layout="@layout/nav_drawer" />
 </FrameLayout>

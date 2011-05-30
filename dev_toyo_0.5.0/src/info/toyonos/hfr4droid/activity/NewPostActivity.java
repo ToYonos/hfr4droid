@@ -1,7 +1,6 @@
 package info.toyonos.hfr4droid.activity;
 
 import info.toyonos.hfr4droid.R;
-import info.toyonos.hfr4droid.core.bean.Theme;
 import info.toyonos.hfr4droid.core.bean.Topic;
 import info.toyonos.hfr4droid.core.bean.Topic.TopicType;
 import info.toyonos.hfr4droid.core.data.DataRetrieverException;
@@ -39,6 +38,7 @@ public class NewPostActivity extends NewPostGenericActivity
 		LayoutInflater inflater = (LayoutInflater) getApplicationContext().getSystemService(LAYOUT_INFLATER_SERVICE);
 		ViewGroup layout = (ViewGroup) inflater.inflate(R.layout.new_post, null);
 		setContentView(layout);
+		applyTheme(currentTheme);
 		
 		Intent intent = getIntent();
 		Bundle bundle = intent.getExtras();
@@ -142,11 +142,5 @@ public class NewPostActivity extends NewPostGenericActivity
 	protected boolean isFromAllCats()
 	{
 		return fromAllCats;
-	}
-
-	@Override
-	protected void applyTheme(Theme theme)
-	{
-		// TODO Auto-generated method stub
 	}
 }

@@ -2,6 +2,7 @@ package info.toyonos.hfr4droid.activity;
 
 import info.toyonos.hfr4droid.HFR4droidException;
 import info.toyonos.hfr4droid.R;
+import info.toyonos.hfr4droid.core.bean.Theme;
 import info.toyonos.hfr4droid.core.data.DataRetrieverException;
 import info.toyonos.hfr4droid.core.message.MessageSenderException;
 import info.toyonos.hfr4droid.core.message.HFRMessageSender.ResponseCode;
@@ -123,11 +124,11 @@ public abstract class NewPostUIActivity extends HFR4droidActivity
 		{
 			public void onClick(View v)
 			{
-				final EditText smileyTag = (EditText) layout.findViewById(R.id.inputSmileyTag);
+				final EditText smileyTag = (EditText) layout.findViewById(R.id.InputSmileyTag);
 				if (smileyTag.getText().length() == 0) return;
 
 				InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
-				imm.hideSoftInputFromWindow(((EditText) layout.findViewById(R.id.inputSmileyTag)).getWindowToken(), 0);
+				imm.hideSoftInputFromWindow(((EditText) layout.findViewById(R.id.InputSmileyTag)).getWindowToken(), 0);
 
 				final ProgressDialog progressDialog = new ProgressDialog(NewPostUIActivity.this);
 				progressDialog.setMessage(getString(R.string.getting_smilies));
@@ -392,5 +393,13 @@ public abstract class NewPostUIActivity extends HFR4droidActivity
 				}
 			});	
 		}
+	}
+	
+	protected void applyTheme(Theme theme, ViewGroup rootLayout)
+	{
+		rootLayout.setBackgroundColor(currentTheme.getListBackgroundColor());
+		
+		TextView labelSmileyTag = (TextView) rootLayout.findViewById(R.id.LabelSmileyTag);
+		labelSmileyTag.setTextColor(currentTheme.getPostTextColor());
 	}
 }

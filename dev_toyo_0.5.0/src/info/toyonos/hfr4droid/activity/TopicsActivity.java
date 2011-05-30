@@ -156,7 +156,7 @@ public class TopicsActivity extends HFR4droidListActivity<Topic>
 		gestureDetector = new GestureDetector(new SimpleNavOnGestureListener()
 		{
 			@Override
-			protected void onLeftToRight()
+			protected void onLeftToRight(MotionEvent e1, MotionEvent e2)
 			{
 				if (type != TopicType.ALL) return;
 				if (currentPageNumber != 1)
@@ -170,7 +170,7 @@ public class TopicsActivity extends HFR4droidListActivity<Topic>
 			}
 
 			@Override
-			protected void onRightToLeft()
+			protected void onRightToLeft(MotionEvent e1, MotionEvent e2)
 			{
 				if (type == TopicType.ALL) loadNextPage();
 			}
