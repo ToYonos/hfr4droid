@@ -6,6 +6,7 @@ import android.app.Dialog;
 import android.content.DialogInterface;
 import android.content.DialogInterface.OnDismissListener;
 import android.os.Bundle;
+import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -48,6 +49,21 @@ public abstract class NewPostGenericActivity extends NewPostUIActivity
 	}
 
 	@Override
+	public boolean onKeyDown(int keyCode, KeyEvent event) 
+	{
+		if (keyCode == KeyEvent.KEYCODE_BACK)
+		{
+			ViewGroup layout = (ViewGroup) findViewById(R.id.PostContainer);
+			if (layout.findViewById(R.id.SmileySearch).getVisibility() == View.VISIBLE)
+			{
+				hideWikiSmiliesSearch(layout);
+				return true;
+			}
+		}
+		return super.onKeyDown(keyCode, event);
+	}
+	
+	@Override
 	protected void goBack()
 	{
 		finish();
@@ -57,12 +73,6 @@ public abstract class NewPostGenericActivity extends NewPostUIActivity
 	protected void onLogout()
 	{
 		loadCats(false);
-	}
-	
-	@Override
-	protected void redrawPage()
-	{
-		applyTheme(currentTheme);
 	}
 
 	@Override

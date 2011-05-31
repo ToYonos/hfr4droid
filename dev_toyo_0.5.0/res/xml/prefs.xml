@@ -72,22 +72,28 @@
 			android:title="@string/pref_police_size_title"
 			android:defaultValue="@string/pref_police_size_default" 
 			android:entries="@array/police_size_values"
-            android:entryValues="@array/police_size_keys" />			
-		<CheckBoxPreference
-			android:key="PrefAvatarsEnable"
-			android:summary="@string/pref_avatars_enable_summary"
-			android:title="@string/pref_avatars_enable_title"
-			android:defaultValue="@string/pref_avatars_enable_default" />
-		<CheckBoxPreference
-			android:key="PrefSmileysEnable"
-			android:summary="@string/pref_smileys_enable_summary"
-			android:title="@string/pref_smileys_enable_title"
-			android:defaultValue="@string/pref_smileys_enable_default" />
-		<CheckBoxPreference
-			android:key="PrefImgsEnable"
-			android:summary="@string/pref_imgs_enable_summary"
-			android:title="@string/pref_imgs_enable_title"
-			android:defaultValue="@string/pref_imgs_enable_default" />
+            android:entryValues="@array/police_size_keys" />
+		<ListPreference
+			android:key="PrefAvatarsDisplayType"
+			android:summary="@string/pref_avatars_display_type_summary"
+			android:title="@string/pref_avatars_display_type_title"
+			android:defaultValue="@string/pref_avatars_display_type_default"
+			android:entries="@array/drawable_values"
+            android:entryValues="@array/drawable_keys" />
+		<ListPreference
+			android:key="PrefSmileysDisplayType"
+			android:summary="@string/pref_smileys_display_type_summary"
+			android:title="@string/pref_smileys_display_type_title"
+			android:defaultValue="@string/pref_smileys_display_type_default"
+			android:entries="@array/drawable_values"
+            android:entryValues="@array/drawable_keys" />
+		<ListPreference
+			android:key="PrefImgsDisplayType"
+			android:summary="@string/pref_imgs_display_type_summary"
+			android:title="@string/pref_imgs_display_type_title"
+			android:defaultValue="@string/pref_imgs_display_type_default"
+			android:entries="@array/drawable_values"
+            android:entryValues="@array/drawable_keys" />
 	</PreferenceCategory>	
 
 	<PreferenceCategory

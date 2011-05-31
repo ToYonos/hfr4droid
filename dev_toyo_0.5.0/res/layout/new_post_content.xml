@@ -10,7 +10,8 @@
 		android:layout_width="wrap_content"
 		android:layout_height="wrap_content"
 		android:stretchColumns="1">
-		<TableRow>
+		<TableRow
+			android:id="@+id/Toolbar">
 			<HorizontalScrollView
 		   		android:layout_width="fill_parent" 
 		   		android:layout_height="wrap_content"
@@ -22,7 +23,9 @@
 		    		android:layout_height="wrap_content" />
 			</HorizontalScrollView>
 		</TableRow>
-	    <TableRow>
+	    <TableRow
+	    	android:id="@+id/SmileySearch"
+	    	android:visibility="gone">
 	        <TextView
 	        	android:id="@+id/LabelSmileyTag"
 	            android:text="@string/smiley_tag"
@@ -48,8 +51,7 @@
 			    android:layout_height="fill_parent"
 			    android:layout_span="3"
 			    android:scrollbarStyle="outsideOverlay">
-			    <LinearLayout
-		    		android:orientation="vertical"
+			    <FrameLayout
 		    	    android:layout_width="fill_parent"
 	    			android:layout_height="wrap_content">
 			        <EditText
@@ -60,23 +62,18 @@
 			        	android:textSize="14dip"
 			        	android:gravity="top"
 			        	android:minLines="10"
-			            android:padding="10dip" />
-			    	<LinearLayout
-			    		android:orientation="horizontal"
-			    	    android:layout_width="wrap_content"
-		    			android:layout_height="wrap_content">
-		    			<Button
-		    				android:id="@+id/ButtonOkAddPost"
-							android:layout_width="wrap_content"
-		    				android:layout_height="wrap_content"
-		    				android:text="@string/button_validate_post" />
-		    			<Button
-		    				android:id="@+id/ButtonCancelAddPost"
-							android:layout_width="wrap_content"
-		    				android:layout_height="wrap_content"
-		    				android:text="@string/button_cancel" />    				
-		    		</LinearLayout>
-		    	</LinearLayout>		            
+			            android:paddingLeft="10dip"
+			            android:paddingRight="10dip"
+			            android:paddingTop="10dip"
+			            android:paddingBottom="55dip" />
+	    			<Button
+	    				android:id="@+id/ButtonOkAddPost"
+	    				android:layout_gravity="bottom|right"
+	    				android:layout_margin="8dip"
+						android:layout_width="wrap_content"
+	    				android:layout_height="45dip"
+	    				android:text="@string/button_validate_post" />
+		    	</FrameLayout>
 			</ScrollView>
 	    </TableRow>
 	</TableLayout>

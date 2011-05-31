@@ -590,7 +590,6 @@ public class TopicsActivity extends HFR4droidListActivity<Topic>
 	@Override
 	protected void redrawPage()
 	{
-		applyTheme(currentTheme);
 		adapter.notifyDataSetChanged();
 	}
 	

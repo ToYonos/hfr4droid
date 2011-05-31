@@ -23,6 +23,7 @@ import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -102,10 +103,28 @@ public abstract class NewPostUIActivity extends HFR4droidActivity
 
 		return hfrRehost;
 	}
+	
+	protected ImageButton getSmileyButton(final ViewGroup layout)
+	{
+		ImageButton smiley = new ImageButton(NewPostUIActivity.this);
+		smiley.setLayoutParams(new LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.FILL_PARENT));
+		smiley.setImageResource(R.drawable.redface);
+		smiley.setOnClickListener(new OnClickListener()
+		{
+			public void onClick(View v)
+			{
+				layout.findViewById(R.id.Toolbar).setVisibility(View.GONE);
+				layout.findViewById(R.id.SmileySearch).setVisibility(View.VISIBLE);
+			}
+		});
+
+		return smiley;
+	}
 
 	protected void addPostButtons(final ViewGroup layout)
 	{
 		LinearLayout ll = (LinearLayout) layout.findViewById(R.id.FormatButtons);
+		ll.addView(getSmileyButton(layout));
 		ll.addView(new FormatButton(layout, SMILEY_KEY));
 		ll.addView(new FormatButton(layout, BOLD_KEY));
 		ll.addView(new FormatButton(layout, ITALIC_KEY));
@@ -155,6 +174,7 @@ public abstract class NewPostUIActivity extends HFR4droidActivity
 									{
 										insertBBCode((EditText) layout.findViewById(R.id.InputPostContent), " " + smiley + " ", "");
 										hideWikiSmiliesResults(smiliesLayout);
+										hideWikiSmiliesSearch(layout);
 									}
 								});
 							}
@@ -240,8 +260,9 @@ public abstract class NewPostUIActivity extends HFR4droidActivity
 		Button okButton = (Button) layout.findViewById(R.id.ButtonOkAddPost);
 		setOkButtonClickListener(okButton);
 
-		Button cancelButton = (Button) layout.findViewById(R.id.ButtonCancelAddPost);
-		setCancelButtonClickListener(cancelButton);
+		//Button cancelButton = (Button) layout.findViewById(R.id.ButtonCancelAddPost);
+		//setCancelButtonClickListener(cancelButton);
+		// TODO
 	}
 	
 	protected abstract ViewGroup getSmiliesLayout();
@@ -263,7 +284,13 @@ public abstract class NewPostUIActivity extends HFR4droidActivity
 			layout.removeView(lastChild);
 		}
 	}
-	
+
+	protected void hideWikiSmiliesSearch(ViewGroup layout)
+	{
+		layout.findViewById(R.id.Toolbar).setVisibility(View.VISIBLE);
+		layout.findViewById(R.id.SmileySearch).setVisibility(View.GONE);
+	}
+
 	protected abstract void setOkButtonClickListener(Button okButton);
 
 	protected abstract void setCancelButtonClickListener(Button cancelButton);

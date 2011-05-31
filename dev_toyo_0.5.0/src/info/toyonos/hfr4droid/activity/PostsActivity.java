@@ -33,6 +33,8 @@ import android.content.Intent;
 import android.content.DialogInterface.OnCancelListener;
 import android.content.DialogInterface.OnDismissListener;
 import android.content.res.Configuration;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.text.ClipboardManager;
@@ -122,6 +124,14 @@ public class PostsActivity extends NewPostUIActivity
 	protected Map<Long, String> quotes;
 	protected boolean lockQuickAction;
 	
+	protected DrawableDisplayType currentAvatarsDisplayType = null;
+	protected DrawableDisplayType currentSmileysDisplayType = null;
+	protected DrawableDisplayType currentImgsDisplayType = null;
+	
+	private boolean isAvatarsEnable = true;
+	private boolean isSmileysEnable = true;
+	private boolean isImgsEnable = true;
+	
 	@SuppressWarnings("unchecked")
 	@Override
 	protected void onCreate(Bundle savedInstanceState)
@@ -130,11 +140,16 @@ public class PostsActivity extends NewPostUIActivity
 		setContentView(R.layout.posts);
 		applyTheme(currentTheme);
 		attachEvents();
+
 		currentScrollY = -1;
 		postDialog = null;
 		quotes = Collections.synchronizedMap(new HashMap<Long, String>());
 		lockQuickAction = true;
 
+		currentAvatarsDisplayType = getAvatarsDisplayType();
+		currentSmileysDisplayType = getSmileysDisplayType();
+		currentImgsDisplayType = getImgsDisplayType();
+		
 		Bundle bundle = this.getIntent().getExtras();
 		if (fromType == null) fromType =  bundle != null && bundle.getSerializable("fromTopicType") != null ? (TopicType) bundle.getSerializable("fromTopicType") : TopicType.ALL;
 		fromAllCats = bundle == null ? false : bundle.getBoolean("fromAllCats", false); 
@@ -403,7 +418,6 @@ public class PostsActivity extends NewPostUIActivity
 	@Override
 	protected void redrawPage()
 	{
-		applyTheme(currentTheme);
 		currentScrollY = getWebView().getScrollY();
 		displayPosts(posts);
 	}
@@ -915,7 +929,7 @@ public class PostsActivity extends NewPostUIActivity
 		}, "HFR4Droid");
 
 		final WebView loading = (WebView) findViewById(R.id.loading);
-		loading.setBackgroundColor(currentTheme.getListBackgroundColor());
+		//loading.setBackgroundColor(currentTheme.getListBackgroundColor());
 		loading.setVisibility(View.VISIBLE);
 		if (!refresh) loadLoadingWebView(loading);
 
@@ -990,6 +1004,7 @@ public class PostsActivity extends NewPostUIActivity
 		js2.append("loadDynamicCss(" + width + ");");
 		js2.append("</script>");
 
+		setDrawablesToggles();
 		StringBuffer postsContent = new StringBuffer("");
 		for (Post p : posts)
 		{
@@ -998,7 +1013,7 @@ public class PostsActivity extends NewPostUIActivity
 			SimpleDateFormat check = new SimpleDateFormat("ddMMyyyy");
 			boolean today = check.format(new Date()).equals(check.format(p.getDate()));
 			String date = today ? todaySdf.format(p.getDate()) : "Le " + sdf.format(p.getDate());
-			String avatar = p.getAvatarUrl() != null && isAvatarsEnable() ? "<img alt=\"avatar\" title=\"" + p.getPseudo() + "\" src=\"" + p.getAvatarUrl() + "\" />" : "";
+			String avatar = p.getAvatarUrl() != null && isAvatarsEnable ? "<img alt=\"avatar\" title=\"" + p.getPseudo() + "\" src=\"" + p.getAvatarUrl() + "\" />" : "";
 			String pseudoSpan = "<span class=\"pseudo\">" + p.getPseudo() + "</span>";
 			String dateSpan = "<span class=\"date\">" + date + "</span>";
 			StringBuilder editQuoteDiv = new StringBuilder("");
@@ -1024,9 +1039,9 @@ public class PostsActivity extends NewPostUIActivity
 			content += "\">" + editQuoteDiv + "<div class=\"HFR4droid_content\"";
 			content += ">" + p.getContent() + "</div></div>";
 			content = content.replaceAll("<b\\s*class=\"s1\"><a href=\"(.*?)\".*?>(.*?)</a></b>", "<b onclick=\"window.HFR4Droid.handleQuote('$1');\" class=\"s1\">$2</b>");
+			if (!isSmileysEnable) content = content.replaceAll("<img\\s*src=\"http://forum\\-images\\.hardware\\.fr.*?\"\\s*alt=\"(.*?)\".*?/>", "$1");
 			content = content.replaceAll("<img\\s*src=\"http://forum\\-images\\.hardware\\.fr/images/perso/(.*?)\"\\s*alt=\"(.*?)\"", "<img onclick=\"window.HFR4Droid.editKeywords('$2');\" src=\"http://forum-images.hardware.fr/images/perso/$1\" alt=\"$2\"");
-			if (!isSmileysEnable()) content = content.replaceAll("<img\\s*src=\"http://forum\\-images\\.hardware\\.fr.*?\"\\s*alt=\"(.*?)\".*?/>", "$1");
-			if (!isImgsEnable()) content = content.replaceAll("<img\\s*src=\"http://[^\"]*?\"\\s*alt=\"http://[^\"]*?\"\\s*title=\"(http://.*?)\".*?/>", "<a href=\"$1\" target=\"_blank\" class=\"cLink\">$1</a>");
+			if (!isImgsEnable) content = content.replaceAll("<img\\s*src=\"http://[^\"]*?\"\\s*alt=\"http://[^\"]*?\"\\s*title=\"(http://.*?)\".*?/>", "<a href=\"$1\" target=\"_blank\" class=\"cLink\">$1</a>");
 			content = content.replaceAll("ondblclick=\".*?\"", "");
 			postsContent.append(header);
 			postsContent.append(content);
@@ -1117,18 +1132,27 @@ public class PostsActivity extends NewPostUIActivity
 			{
 				public boolean onKey(DialogInterface dialog, int keyCode, KeyEvent event)
 				{
-					if (keyCode == KeyEvent.KEYCODE_BACK)
+					if (keyCode == KeyEvent.KEYCODE_BACK && event.getAction() == KeyEvent.ACTION_UP)
 					{
 						View firstChild = layout.getChildAt(0);
-						if (postDialog.isShowing() && firstChild instanceof WebView)
+						if (postDialog.isShowing())
 						{
-							hideWikiSmiliesResults(layout);
-							return true;
+							if (firstChild instanceof WebView)
+							{
+								hideWikiSmiliesResults(layout);
+								return true;
+							}
+							else if (postDialog.findViewById(R.id.SmileySearch).getVisibility() == View.VISIBLE)
+							{
+								hideWikiSmiliesSearch(layout);
+								return true;
+							}
 						}
 					}
 					return false;
 				}
 			});
+
 			postDialog.setOnDismissListener(new OnDismissListener()
 			{
 				public void onDismiss(DialogInterface dialog)
@@ -1268,6 +1292,70 @@ public class PostsActivity extends NewPostUIActivity
 			}
 		});
 	}
+	
+	private void setDrawablesToggles()
+	{
+		ConnectivityManager connectivityManager = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+		NetworkInfo info = connectivityManager.getActiveNetworkInfo();
+		boolean isWifiEnable = info != null && (info.getType() == ConnectivityManager.TYPE_WIFI || info.getType() == ConnectivityManager.TYPE_WIMAX);
+		
+		setToggleFromPref("isAvatarsEnable", getAvatarsDisplayType(), isWifiEnable);
+		setToggleFromPref("isSmileysEnable", getSmileysDisplayType(), isWifiEnable);
+		setToggleFromPref("isImgsEnable", getImgsDisplayType(), isWifiEnable);
+	}
+	
+	private void setToggleFromPref(String drawableToggle, DrawableDisplayType type, boolean isWifiEnable)
+	{
+		try
+		{
+			boolean drawMe;
+			switch (type)
+			{
+				case NEVER_SHOW:
+					drawMe = false;
+					break;
+					
+				case SHOW_WHEN_WIFI:
+					drawMe = isWifiEnable;
+					break;
+					
+				default:
+					drawMe = true;
+					break;
+			}
+			PostsActivity.class.getDeclaredField(drawableToggle).setBoolean(this, drawMe);
+		}
+		catch (Exception e)
+		{
+			error(e);
+		}
+	}
+	
+	@Override
+	protected void applyTheme(Theme theme)
+	{
+		LinearLayout postLayout = (LinearLayout) findViewById(R.id.PostsLayout);
+		FrameLayout root = (FrameLayout) postLayout.getParent();
+		root.setBackgroundColor(theme.getListBackgroundColor());
+		
+		WebView loading = (WebView) findViewById(R.id.loading);
+		if (loading != null)
+		{
+			loading.destroy();
+			postLayout.removeView(loading);
+		}
+		loading = new WebView(this);
+		loading.setId(R.id.loading);
+		loading.setLayoutParams(new LayoutParams(LayoutParams.FILL_PARENT, LayoutParams.FILL_PARENT));
+		loading.setBackgroundColor(currentTheme.getListBackgroundColor());
+		loading.setVisibility(View.VISIBLE);
+		postLayout.addView(loading, 2);
+		
+		if (postDialog != null)
+		{
+			applyTheme(theme, (ViewGroup) postDialog.findViewById(R.id.PostContainer).getParent());
+		}
+	}
 
 	/* Classes internes */
 
@@ -1371,32 +1459,6 @@ public class PostsActivity extends NewPostUIActivity
 				onActionExecute(result);
 			}
 			if (progress) progressDialog.dismiss();
-		}
-	}
-
-	@Override
-	protected void applyTheme(Theme theme)
-	{
-		LinearLayout postLayout = (LinearLayout) findViewById(R.id.PostsLayout);
-		FrameLayout root = (FrameLayout) postLayout.getParent();
-		root.setBackgroundColor(theme.getListBackgroundColor());
-		
-		WebView loading = (WebView) findViewById(R.id.loading);
-		if (loading != null)
-		{
-			loading.destroy();
-			postLayout.removeView(loading);
-		}
-		loading = new WebView(this);
-		loading.setId(R.id.loading);
-		loading.setLayoutParams(new LayoutParams(LayoutParams.FILL_PARENT, LayoutParams.FILL_PARENT));
-		loading.setBackgroundColor(currentTheme.getListBackgroundColor());
-		loading.setVisibility(View.VISIBLE);
-		postLayout.addView(loading, 2);
-		
-		if (postDialog != null)
-		{
-			applyTheme(theme, (ViewGroup) postDialog.findViewById(R.id.PostContainer).getParent());
 		}
 	}
 }

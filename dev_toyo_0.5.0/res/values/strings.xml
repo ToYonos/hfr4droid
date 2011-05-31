@@ -89,7 +89,7 @@
 	<string name="button_cancel">Annuler</string>
 	<string name="button_yes">Oui</string>
 	<string name="button_no">Non</string>
-	<string name="button_validate_post">Valider le message</string>
+	<string name="button_validate_post">Valider</string>
 	
 	<string-array name="welcome_screen_values">
     	<item>Les catégories</item>
@@ -160,6 +160,18 @@
 	</string-array>
 	
 	<string-array name="police_size_keys">
+		<item>1</item>
+		<item>2</item>
+		<item>3</item>
+	</string-array>
+	
+	<string-array name="drawable_values">
+    	<item>Afficher toujours</item>
+    	<item>Afficher uniquement en WIFI</item>
+    	<item>Ne jamais afficher</item> 
+	</string-array>
+	
+	<string-array name="drawable_keys">
 		<item>1</item>
 		<item>2</item>
 		<item>3</item>

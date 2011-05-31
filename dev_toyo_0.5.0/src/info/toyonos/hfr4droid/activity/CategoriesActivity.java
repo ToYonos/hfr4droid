@@ -355,7 +355,6 @@ public class CategoriesActivity extends HFR4droidListActivity<Category>
 	@Override
 	protected void redrawPage()
 	{
-		applyTheme(currentTheme);
 		adapter.notifyDataSetChanged();
 	}
 
