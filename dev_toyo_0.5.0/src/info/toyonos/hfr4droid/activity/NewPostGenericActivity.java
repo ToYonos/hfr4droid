@@ -11,8 +11,6 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
-import android.view.View.OnClickListener;
-import android.widget.Button;
 import android.widget.LinearLayout;
 
 /**
@@ -62,7 +60,7 @@ public abstract class NewPostGenericActivity extends NewPostUIActivity
 		}
 		return super.onKeyDown(keyCode, event);
 	}
-	
+
 	@Override
 	protected void goBack()
 	{
@@ -73,18 +71,6 @@ public abstract class NewPostGenericActivity extends NewPostUIActivity
 	protected void onLogout()
 	{
 		loadCats(false);
-	}
-
-	@Override
-	protected void setCancelButtonClickListener(Button cancelButton)
-	{
-		cancelButton.setOnClickListener(new OnClickListener()
-		{
-			public void onClick(View v)
-			{
-				finish();	
-			}
-		});
 	}
 
 	@Override

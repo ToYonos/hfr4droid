@@ -48,6 +48,6 @@ public class MpCheckService extends MpNotifyService
 
 	private MDDataRetriever getDataRetriever()
 	{
-		return ((HFR4droidApplication)getApplication()).getDataRetriever();
+		return ((HFR4droidApplication) getApplication()).getDataRetriever();
 	}
 }

@@ -69,10 +69,4 @@
 	<string name="pref_srv_mps_freq_title">Fréquence de vérification (en min)</string>
 	<string name="pref_srv_mps_freq_summary">Fréquence de vérification des MPs</string>
 	<string name="pref_srv_mps_freq_default">60</string>
-	
-	<string name="pref_debug_title">Debug</string>
-	
-	<string name="pref_disable_acra_title">Désactiver l\'envoi de rapports d\'erreurs</string>
-	<string name="pref_disable_acra_summary">Ne jamais envoyer de rapports d\'erreurs aux développeurs, lors du crash de l\'application</string>
-	<string name="pref_disable_acra_default">true</string>
 </resources>

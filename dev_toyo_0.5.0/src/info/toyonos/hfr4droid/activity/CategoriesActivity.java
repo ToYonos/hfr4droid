@@ -15,13 +15,16 @@ import java.util.ArrayList;
 import java.util.List;
 
 import android.app.AlertDialog;
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.DialogInterface.OnCancelListener;
 import android.content.DialogInterface.OnClickListener;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager.NameNotFoundException;
 import android.content.res.ColorStateList;
 import android.graphics.drawable.ColorDrawable;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.text.Html;
 import android.view.ContextMenu;
@@ -37,14 +40,12 @@ import android.view.View.OnCreateContextMenuListener;
 import android.view.View.OnTouchListener;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
-import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.AdapterView.AdapterContextMenuInfo;
-import android.widget.AdapterView.OnItemClickListener;
 
 /**
  * <p>Activity listant les catégories</p>
@@ -93,10 +94,111 @@ public class CategoriesActivity extends HFR4droidListActivity<Category>
 		adapter = new CategoryAdapter(this, R.layout.category, R.id.ItemContent, cats);
 		lv.setAdapter(adapter);
 
-		lv.setOnItemClickListener(new OnItemClickListener()
+		gestureDetector = new GestureDetector(new SimpleNavOnGestureListener()
 		{
-			public void onItemClick(AdapterView<?> a, View v, int position, long id)
+			@Override
+			protected void onLeftToRight(MotionEvent e1, MotionEvent e2){}
+
+			@Override
+			protected void onRightToLeft(MotionEvent e1, MotionEvent e2){}
+
+			@Override
+			public boolean onDoubleTap(MotionEvent me)
 			{
+				final int position = lv.pointToPosition((int) me.getX(), (int) me.getY());
+				final Category cat = adapter.getItem(position);
+				final boolean isCatExpanded = expandedCats.contains(cat);
+
+				if (!isCatExpanded)
+				{
+					try
+					{
+						final boolean isSubCatsLoaded = CategoriesActivity.this.getDataRetriever().isSubCatsLoaded(cat);
+						final ProgressDialog progressDialog = new ProgressDialog(CategoriesActivity.this);
+						progressDialog.setTitle(cat.toString());
+						progressDialog.setMessage(getString(R.string.getting_subcats));
+						progressDialog.setIndeterminate(true);
+						new AsyncTask<Category, Void, List<SubCategory>>()
+						{
+							@Override
+							protected void onPreExecute() 
+							{
+								if (!isSubCatsLoaded)
+								{
+									progressDialog.setCancelable(true);
+									progressDialog.setOnCancelListener(new OnCancelListener()
+									{
+										public void onCancel(DialogInterface dialog)
+										{
+											cancel(true);
+										}
+									});
+									progressDialog.show();
+								}
+							}
+
+							@Override
+							protected List<SubCategory> doInBackground(Category... cat)
+							{
+								List<SubCategory> subCats = null;
+								try
+								{
+									subCats = CategoriesActivity.this.getDataRetriever().getSubCats(cat[0]);
+								} 
+								catch (DataRetrieverException e)
+								{
+									error(e, true, true);
+								}
+								return subCats;
+							}
+
+							@Override
+							protected void onPostExecute(List<SubCategory> subCats)
+							{
+								if (!isSubCatsLoaded) progressDialog.dismiss();
+								if (subCats != null)
+								{
+									int i = position + 1;
+									for (SubCategory subCat : subCats)
+									{
+										adapter.insert(subCat, i++);				
+									}
+									expandedCats.add(cat);
+									adapter.notifyDataSetChanged();		
+								}
+							}
+						}.execute(cat);
+					}
+					catch (DataRetrieverException e)
+					{
+						error(e, true);
+					}
+				}
+				else
+				{
+					for(int i = position + 1;;)
+					{
+						if (i >= adapter.getCount()) break;
+						Category currentCat = adapter.getItem(i);
+						if (currentCat instanceof SubCategory)
+						{
+							adapter.remove(currentCat);
+						}
+						else
+						{
+							break;
+						}
+					}
+					expandedCats.remove(cat);
+					adapter.notifyDataSetChanged();
+				}
+				return true;
+			}
+
+			@Override
+			public boolean onSingleTapConfirmed(MotionEvent me)
+			{
+				int position = lv.pointToPosition((int) me.getX(), (int) me.getY());
 				Category cat = (Category) lv.getItemAtPosition(position);
 				if (isLoggedIn() && !isMpsCat(cat))
 				{
@@ -114,70 +216,7 @@ public class CategoriesActivity extends HFR4droidListActivity<Category>
 				{
 					loadTopics(cat, TopicType.ALL, 1, false);
 				}
-			}
-		});
-
-		gestureDetector = new GestureDetector(new SimpleNavOnGestureListener()
-		{
-			@Override
-			protected void onLeftToRight(MotionEvent e1, MotionEvent e2)
-			{
-				int position = lv.pointToPosition((int) e1.getX(), (int) e1.getY());
-				Category c = adapter.getItem(position);
-				final boolean isCatExpanded = expandedCats.contains(c);
-
-				if (!isCatExpanded)
-				{
-					try
-					{
-						//TODO loading au cas ou ?
-						List<SubCategory> subCats = CategoriesActivity.this.getDataRetriever().getSubCats(c);
-						int i = position + 1;
-						for (SubCategory subCat : subCats)
-						{
-							adapter.insert(subCat, i++);				
-						}
-						expandedCats.add(c);
-						adapter.notifyDataSetChanged();
-					}
-					catch (DataRetrieverException e)
-					{
-						error(e, true);
-					}
-				}
-			}
-
-			@Override
-			protected void onRightToLeft(MotionEvent e1, MotionEvent e2)
-			{
-				int position = lv.pointToPosition((int) e1.getX(), (int) e1.getY());
-				Category c = adapter.getItem(position);
-				final boolean isCatExpanded = expandedCats.contains(c);
-
-				if (isCatExpanded)
-				{
-					for(int i = position + 1;;)
-					{
-						if (i >= adapter.getCount()) break;
-						Category currentCat = adapter.getItem(i);
-						if (currentCat instanceof SubCategory)
-						{
-							adapter.remove(currentCat);
-						}
-						else
-						{
-							break;
-						}
-					}
-					expandedCats.remove(c);
-					adapter.notifyDataSetChanged();
-				}
-			}
-
-			@Override
-			public boolean onDoubleTap(MotionEvent e)
-			{
-				return false;
+				return true;
 			}
 		});
 

@@ -253,7 +253,16 @@ public class HFRDataRetriever implements MDDataRetriever
 		}
 		return null;
 	}
-	
+
+	/**
+	 * {@inheritDoc}
+	 */
+	public boolean isSubCatsLoaded(Category cat) throws DataRetrieverException
+	{
+		Category keyCat = getCatById(cat.getId());
+		return keyCat != null && cats.get(keyCat) != null;
+	}
+
 	/**
 	 * {@inheritDoc}
 	 */
@@ -270,7 +279,6 @@ public class HFRDataRetriever implements MDDataRetriever
 		return null;
 	}
 
-	
 	/**
 	 * {@inheritDoc}
 	 */

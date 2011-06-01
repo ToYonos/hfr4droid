@@ -259,10 +259,6 @@ public abstract class NewPostUIActivity extends HFR4droidActivity
 
 		Button okButton = (Button) layout.findViewById(R.id.ButtonOkAddPost);
 		setOkButtonClickListener(okButton);
-
-		//Button cancelButton = (Button) layout.findViewById(R.id.ButtonCancelAddPost);
-		//setCancelButtonClickListener(cancelButton);
-		// TODO
 	}
 	
 	protected abstract ViewGroup getSmiliesLayout();
@@ -292,8 +288,6 @@ public abstract class NewPostUIActivity extends HFR4droidActivity
 	}
 
 	protected abstract void setOkButtonClickListener(Button okButton);
-
-	protected abstract void setCancelButtonClickListener(Button cancelButton);
 
 	protected void insertBBCode(EditText editText, String left, String right)
 	{

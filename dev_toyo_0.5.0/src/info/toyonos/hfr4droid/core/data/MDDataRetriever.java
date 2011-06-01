@@ -65,6 +65,13 @@ public interface MDDataRetriever
 	public List<SubCategory> getSubCats(Category cat) throws DataRetrieverException;
 	
 	/**
+	 * Indique si les <code>SubCategory</code> d'une catégorie donnée sont chargés
+	 * @param cat La catégorie ciblée
+	 * @return true les sous catégories sont chargées, false sinon
+	 */
+	public boolean isSubCatsLoaded(Category cat) throws DataRetrieverException;
+	
+	/**
 	 * Récupère une <code>SubCategory</code> par son id
 	 * @param cat La catégorie ciblée
 	 * @param id L'id de la sous-catégorie

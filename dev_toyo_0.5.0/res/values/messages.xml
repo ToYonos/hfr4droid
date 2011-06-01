@@ -33,6 +33,7 @@
 	
 	<string name="loading">Chargement en cours</string>
 	<string name="getting_cats">Récupération des catégories</string>
+	<string name="getting_subcats">Récupération des sous-catégories</string>
 	<string name="getting_topics">Topics de la page %d...</string>
 	<string name="getting_topics_cyans">Drapeaux cyan...</string>
 	<string name="getting_topics_rouges">Drapeaux rouges...</string>

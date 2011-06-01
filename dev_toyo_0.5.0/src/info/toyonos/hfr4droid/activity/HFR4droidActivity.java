@@ -406,7 +406,7 @@ public abstract class HFR4droidActivity extends Activity
 
 	protected HFR4droidApplication getHFR4droidApplication()
 	{
-		return (HFR4droidApplication)getApplication();
+		return (HFR4droidApplication) getApplication();
 	}
 
 	protected MDDataRetriever getDataRetriever()

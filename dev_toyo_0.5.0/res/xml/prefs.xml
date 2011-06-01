@@ -109,13 +109,4 @@
 			android:title="@string/pref_srv_mps_freq_title"
 			android:defaultValue="@string/pref_srv_mps_freq_default" />
 	</PreferenceCategory>
-	
-	<PreferenceCategory
-		android:title="@string/pref_debug_title">
-		<CheckBoxPreference
-			android:key="acra.disable"
-			android:summary="@string/pref_disable_acra_summary"
-			android:title="@string/pref_disable_acra_title"
-			android:defaultValue="@string/pref_disable_acra_default" />
-	</PreferenceCategory>	
 </PreferenceScreen>

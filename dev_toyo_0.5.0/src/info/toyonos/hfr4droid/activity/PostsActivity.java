@@ -1280,18 +1280,6 @@ public class PostsActivity extends NewPostUIActivity
 			}
 		});
 	}
-
-	@Override
-	protected void setCancelButtonClickListener(Button cancelButton)
-	{
-		cancelButton.setOnClickListener(new OnClickListener()
-		{
-			public void onClick(View v)
-			{
-				postDialog.dismiss();	
-			}
-		});
-	}
 	
 	private void setDrawablesToggles()
 	{
@@ -1418,7 +1406,7 @@ public class PostsActivity extends NewPostUIActivity
 		{
 			if (progress)
 			{
-				ProgressDialog progressDialog = new ProgressDialog(PostsActivity.this);
+				progressDialog = new ProgressDialog(PostsActivity.this);
 				progressDialog.setMessage(getString(type.getKey() + "_loading"));
 				progressDialog.setIndeterminate(true);
 				progressDialog.setCancelable(true);
