@@ -290,6 +290,7 @@ public class HFRMessageSender
 		HttpClient client = new DefaultHttpClient();
 		HttpProtocolParams.setUseExpectContinue(client.getParams(), false);
 		HttpPost post = new HttpPost(url);
+		post.setHeader("User-Agent", "Mozilla/5.0 (Windows; U; Windows NT 6.1; fr; rv:1.9.2) Gecko/20100101 Firefox/4.0.1");
 		post.setEntity(new UrlEncodedFormEntity(params, HTTP.UTF_8));
 		StringBuilder sb = new StringBuilder("");
 		HttpResponse rep = client.execute(post, ctx);
@@ -313,6 +314,7 @@ public class HFRMessageSender
 		HttpClient client = new DefaultHttpClient();
 		HttpProtocolParams.setUseExpectContinue(client.getParams(), false);
 		HttpGet get = new HttpGet(url);
+		get.setHeader("User-Agent", "Mozilla/5.0 (Windows; U; Windows NT 6.1; fr; rv:1.9.2) Gecko/20100101 Firefox/4.0.1");
 		StringBuilder sb = new StringBuilder("");
 		HttpResponse rep = client.execute(get, ctx);
 		InputStream is = rep.getEntity().getContent();

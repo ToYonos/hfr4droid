@@ -83,6 +83,11 @@
 	<string name="topic_subject_hint">Sujet du message</string>
 	<string name="send_mp">Envoyer par MP</string>
 
+	<string name="save_image_item">Sauvegarder l\'image</string>
+	<string name="share_image_item">Partager l\'image</string>
+	<string name="open_image_item">Ouvrir l\'image en taille réelle</string>
+	<string name="share_image">Partager via :</string>
+
 	<string name="keywords_title">Edition des mots clés du smiley %s</string>
 
 	<string name="button_ok">Ok</string>

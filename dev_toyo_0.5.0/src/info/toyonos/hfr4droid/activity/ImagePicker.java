@@ -106,20 +106,29 @@ public class ImagePicker extends Activity implements Runnable{
     		switch (resultCode) {
 			case RESULT_OK:
 
-				try {
+				try
+				{
 					Uri imageUri = data.getData();
-					Cursor c = extractEntityCursor(imageUri);
-					fichierLocal = extractValue(c, MediaStore.Images.Media.DATA);
-					contentType = extractValue(c, MediaStore.Images.Media.MIME_TYPE);
-					Log.d(LOG_TAG, "Fichier local is " + fichierLocal);
-					Log.d(LOG_TAG, "Mime type is " + contentType);
-					nomFichier = getName(fichierLocal);
+					if (imageUri.getScheme().equals("content"))
+					{
+						Cursor c = extractEntityCursor(imageUri);
+						fichierLocal = extractValue(c, MediaStore.Images.Media.DATA);
+						contentType = extractValue(c, MediaStore.Images.Media.MIME_TYPE);
+						Log.d(LOG_TAG, "Fichier local is " + fichierLocal);
+						Log.d(LOG_TAG, "Mime type is " + contentType);
+						nomFichier = getName(fichierLocal);
+					}
+					else
+					{
+						fichierLocal = imageUri.getPath();
+					}
 					
-				} catch (Exception e) {
-					Log.d(LOG_TAG, e.getMessage());
+				} catch (Exception e)
+				{
+					Log.d(LOG_TAG, e.getClass().getSimpleName() + (e.getMessage() != null ? " : " + e.getMessage() : ""), e);
 					setResult(RESULT_CANCELED);
 					finish();
-
+					return;
 				}
 				
 				dialog = ProgressDialog.show(ImagePicker.this, "", getString(R.string.loading_hfr_rehost), true);
@@ -243,6 +252,7 @@ public class ImagePicker extends Activity implements Runnable{
 		try {
 			httpClient.getParams().setParameter("http.socket.timeout", new Integer(90000)); // 90 second
 			post = new HttpPost(new URI(UPLOAD_URL));
+			post.setHeader("User-Agent", "Mozilla/5.0 (Windows; U; Windows NT 6.1; fr; rv:1.9.2) Gecko/20100101 Firefox/4.0.1");
 			File file = new File(filepath);
 			
 			MultipartEntity multipart = new MultipartEntity();

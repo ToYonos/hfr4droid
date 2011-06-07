@@ -22,7 +22,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
 
-import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.NotificationManager;
 import android.app.ProgressDialog;
@@ -51,6 +50,8 @@ import android.widget.EditText;
 import android.widget.SlidingDrawer;
 import android.widget.Toast;
 
+import com.ubikod.capptain.android.sdk.activity.CapptainActivity;
+
 /**
  * <p>Activity générique de l'application. Gère entre autres :
  * <ul>
@@ -62,7 +63,7 @@ import android.widget.Toast;
  * @author ToYonos
  *
  */
-public abstract class HFR4droidActivity extends Activity
+public abstract class HFR4droidActivity extends CapptainActivity
 {
 	public static final String PREF_WELCOME_SCREEN			= "PrefWelcomeScreen";
 	public static final String PREF_CHECK_MPS_ENABLE		= "PrefCheckMpsEnable";

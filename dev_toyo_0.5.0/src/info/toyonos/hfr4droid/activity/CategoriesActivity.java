@@ -390,7 +390,7 @@ public class CategoriesActivity extends HFR4droidListActivity<Category>
 	{
 		loadCats();
 	}
-	
+
 	@Override
 	protected void redrawPage()
 	{

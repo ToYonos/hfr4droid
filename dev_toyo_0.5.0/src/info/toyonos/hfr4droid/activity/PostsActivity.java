@@ -14,8 +14,15 @@ import info.toyonos.hfr4droid.core.data.HFRUrlParser;
 import info.toyonos.hfr4droid.core.data.MDUrlParser;
 import info.toyonos.hfr4droid.core.message.MessageSenderException;
 import info.toyonos.hfr4droid.core.message.HFRMessageSender.ResponseCode;
+import info.toyonos.hfr4droid.core.utils.HttpClient;
+import info.toyonos.hfr4droid.core.utils.PatchInputStream;
 import info.toyonos.hfr4droid.service.MpNotifyService;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.text.SimpleDateFormat;
 import java.util.Collections;
 import java.util.Date;
@@ -33,14 +40,20 @@ import android.content.Intent;
 import android.content.DialogInterface.OnCancelListener;
 import android.content.DialogInterface.OnDismissListener;
 import android.content.res.Configuration;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.Bitmap.CompressFormat;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.Environment;
 import android.text.ClipboardManager;
 import android.text.Selection;
 import android.text.TextUtils.TruncateAt;
 import android.util.SparseIntArray;
+import android.view.ContextMenu;
 import android.view.Display;
 import android.view.GestureDetector;
 import android.view.KeyEvent;
@@ -54,7 +67,9 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
 import android.view.WindowManager;
+import android.view.ContextMenu.ContextMenuInfo;
 import android.view.View.OnClickListener;
+import android.view.View.OnCreateContextMenuListener;
 import android.view.ViewGroup.LayoutParams;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
@@ -62,6 +77,7 @@ import android.view.animation.Animation.AnimationListener;
 import android.webkit.WebChromeClient;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
+import android.webkit.WebView.HitTestResult;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.FrameLayout;
@@ -87,6 +103,7 @@ import com.naholyr.android.ui.QuickActionWindow.Item;
 public class PostsActivity extends NewPostUIActivity
 {
 	private static final String POST_LOADING 	= ">¤>¤>¤>¤>¤...post_loading...<¤<¤<¤<¤<¤";
+	private static final String DOWNLOAD_DIR 	= "/HFR4droid/";
 
 	public static enum PostCallBackType
 	{
@@ -132,6 +149,15 @@ public class PostsActivity extends NewPostUIActivity
 	private boolean isSmileysEnable = true;
 	private boolean isImgsEnable = true;
 	
+	private final HttpClient<Bitmap> imgHttpClient = new HttpClient<Bitmap>()
+	{		
+		@Override
+		protected Bitmap transformStream(InputStream is) throws IOException
+		{
+			return BitmapFactory.decodeStream(new PatchInputStream(is));
+		}
+	};	
+
 	@SuppressWarnings("unchecked")
 	@Override
 	protected void onCreate(Bundle savedInstanceState)
@@ -375,7 +401,7 @@ public class PostsActivity extends NewPostUIActivity
 	@Override
 	protected void loadFirstPage()
 	{
-		loadPosts(topic, 1);	
+		loadPosts(topic, 1);
 	}
 
 	@Override
@@ -573,6 +599,138 @@ public class PostsActivity extends NewPostUIActivity
                 return result;
             }
         };
+
+        registerForContextMenu(webView);
+        webView.setOnCreateContextMenuListener(new OnCreateContextMenuListener()
+		{
+        	abstract class ImageCallback implements Runnable
+        	{
+        		protected File image = null;  		
+        			
+				public void run(File image)
+				{
+					this.image = image;
+					run();
+				} 
+        	}
+        	
+			public void onCreateContextMenu(ContextMenu menu, View v, ContextMenuInfo menuInfo)
+			{
+                HitTestResult result = ((WebView) v).getHitTestResult();
+                if (result.getType() == HitTestResult.IMAGE_TYPE)
+                {
+                	final String url = result.getExtra();
+                	if (url.indexOf("http://forum-images.hardware.fr") != -1) return;
+
+                	MenuItem.OnMenuItemClickListener handler = new MenuItem.OnMenuItemClickListener()
+                    {
+                		private void saveImage(final String url, final ImageCallback callback)
+                		{                    		
+    						final ProgressDialog progressDialog = new ProgressDialog(PostsActivity.this);
+    						progressDialog.setMessage(getString(R.string.save_image));
+    						progressDialog.setIndeterminate(true);
+    						new AsyncTask<String, Void, File>()
+    						{
+    							@Override
+    							protected void onPreExecute() 
+    							{
+									progressDialog.setCancelable(true);
+									progressDialog.setOnCancelListener(new OnCancelListener()
+									{
+										public void onCancel(DialogInterface dialog)
+										{
+											cancel(true);
+										}
+									});
+									progressDialog.show();
+    							}
+
+    							@Override
+    							protected File doInBackground(String... url)
+    							{
+    								try
+									{
+										Bitmap imgBitmap = imgHttpClient.getResponse(url[0]);
+	                        			File dir = new File(Environment.getExternalStorageDirectory() + DOWNLOAD_DIR);
+	                        			if (!dir.exists()) dir.mkdirs();
+	                        			String originalFileName = url[0].substring(url[0].lastIndexOf('/') + 1, url[0].length());
+	                        			String newFileName = originalFileName.substring(0, originalFileName.lastIndexOf('.')) + ".png";
+
+	                        			File f = new File(Environment.getExternalStorageDirectory() + DOWNLOAD_DIR, newFileName);
+	                        	        OutputStream os = new FileOutputStream(f);
+	                        	        imgBitmap.compress(CompressFormat.PNG, 90, os);
+	                        	        os.close();
+	                        	        
+	                        	        return f;
+									}
+									catch (Exception e)
+									{
+										error(getString(R.string.save_image_failed), e, true, false);
+										return null;
+									}
+    							}
+
+    							@Override
+    							protected void onPostExecute(File imageFile)
+    							{
+    								progressDialog.dismiss();
+                        	        if (callback != null) callback.run(imageFile);
+    							}
+    						}.execute(url);
+                		}
+                		
+                        public boolean onMenuItemClick(MenuItem item)
+                        {
+                			switch (item.getItemId())
+                			{
+                				case R.id.SaveImage:
+                					saveImage(url, new ImageCallback()
+									{
+										public void run()
+										{
+											if (image != null)
+											{
+												Toast.makeText(PostsActivity.this, getString(R.string.save_image_ok, image.getParent()), Toast.LENGTH_LONG).show();
+											}
+										}
+									});
+                					break;
+
+                				case R.id.ShareImage:
+                					saveImage(url, new ImageCallback()
+									{
+										public void run()
+										{
+											if (image != null)
+											{
+			                        	        Intent share = new Intent(Intent.ACTION_SEND);
+			                        	        share.setType("image/*");
+			                        	        Uri uri = Uri.fromFile(image);
+			                        	        share.putExtra(Intent.EXTRA_STREAM, uri);
+			                        	        startActivity(Intent.createChooser(share, getString(R.string.share_image)));
+											}
+										}
+									});
+                					break;
+                					
+                				case R.id.OpenImage:
+                					Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
+                					startActivity(intent);
+                					break;
+                			}
+                			return true;
+                        }
+                    };
+
+                	menu.setHeaderTitle(url);
+                    menu.add(0, R.id.SaveImage, 0, R.string.save_image_item).setOnMenuItemClickListener(handler);
+                    menu.add(0, R.id.ShareImage, 0, R.string.share_image_item).setOnMenuItemClickListener(handler);
+                    menu.add(0, R.id.OpenImage, 0, R.string.open_image_item).setOnMenuItemClickListener(handler);
+                }
+			}
+		});
+        
+
 		webView.setFocusable(true);
 		webView.setFocusableInTouchMode(false); 
 		webView.setLayoutParams(new LayoutParams(LayoutParams.FILL_PARENT, LayoutParams.WRAP_CONTENT));
@@ -1038,6 +1196,7 @@ public class PostsActivity extends NewPostUIActivity
 			if (p.isModo()) content += " modo_post";
 			content += "\">" + editQuoteDiv + "<div class=\"HFR4droid_content\"";
 			content += ">" + p.getContent() + "</div></div>";
+			content = content.replaceAll("onload=\"md_verif_size\\(this,'Cliquez pour agrandir','[0-9]+','[0-9]+'\\)\"", "onclick=\"return false;\"");
 			content = content.replaceAll("<b\\s*class=\"s1\"><a href=\"(.*?)\".*?>(.*?)</a></b>", "<b onclick=\"window.HFR4Droid.handleQuote('$1');\" class=\"s1\">$2</b>");
 			if (!isSmileysEnable) content = content.replaceAll("<img\\s*src=\"http://forum\\-images\\.hardware\\.fr.*?\"\\s*alt=\"(.*?)\".*?/>", "$1");
 			content = content.replaceAll("<img\\s*src=\"http://forum\\-images\\.hardware\\.fr/images/perso/(.*?)\"\\s*alt=\"(.*?)\"", "<img onclick=\"window.HFR4Droid.editKeywords('$2');\" src=\"http://forum-images.hardware.fr/images/perso/$1\" alt=\"$2\"");

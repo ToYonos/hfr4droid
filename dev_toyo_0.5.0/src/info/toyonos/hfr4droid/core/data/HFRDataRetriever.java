@@ -694,6 +694,7 @@ public class HFRDataRetriever implements MDDataRetriever
 		InputStream data = null;
 		URI uri = new URI(url);
 		HttpGet method = new HttpGet(uri);
+		method.setHeader("User-Agent", "Mozilla/5.0 (Windows; U; Windows NT 6.1; fr; rv:1.9.2) Gecko/20100101 Firefox/4.0.1");
 		HttpContext httpContext = new BasicHttpContext();
 		if (auth != null && auth.getCookies() != null)
 		{
