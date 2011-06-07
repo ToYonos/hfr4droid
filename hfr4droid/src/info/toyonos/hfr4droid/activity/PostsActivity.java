@@ -5,6 +5,7 @@ import info.toyonos.hfr4droid.R;
 import info.toyonos.hfr4droid.core.bean.BasicElement;
 import info.toyonos.hfr4droid.core.bean.Category;
 import info.toyonos.hfr4droid.core.bean.Post;
+import info.toyonos.hfr4droid.core.bean.Theme;
 import info.toyonos.hfr4droid.core.bean.Topic;
 import info.toyonos.hfr4droid.core.bean.Topic.TopicStatus;
 import info.toyonos.hfr4droid.core.bean.Topic.TopicType;
@@ -13,8 +14,15 @@ import info.toyonos.hfr4droid.core.data.HFRUrlParser;
 import info.toyonos.hfr4droid.core.data.MDUrlParser;
 import info.toyonos.hfr4droid.core.message.MessageSenderException;
 import info.toyonos.hfr4droid.core.message.HFRMessageSender.ResponseCode;
+import info.toyonos.hfr4droid.core.utils.HttpClient;
+import info.toyonos.hfr4droid.core.utils.PatchInputStream;
 import info.toyonos.hfr4droid.service.MpNotifyService;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.text.SimpleDateFormat;
 import java.util.Collections;
 import java.util.Date;
@@ -29,14 +37,23 @@ import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.DialogInterface.OnCancelListener;
 import android.content.DialogInterface.OnDismissListener;
 import android.content.res.Configuration;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.Bitmap.CompressFormat;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.Environment;
 import android.text.ClipboardManager;
 import android.text.Selection;
 import android.text.TextUtils.TruncateAt;
 import android.util.SparseIntArray;
+import android.view.ContextMenu;
 import android.view.Display;
 import android.view.GestureDetector;
 import android.view.KeyEvent;
@@ -50,7 +67,9 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
 import android.view.WindowManager;
+import android.view.ContextMenu.ContextMenuInfo;
 import android.view.View.OnClickListener;
+import android.view.View.OnCreateContextMenuListener;
 import android.view.ViewGroup.LayoutParams;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
@@ -58,8 +77,10 @@ import android.view.animation.Animation.AnimationListener;
 import android.webkit.WebChromeClient;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
+import android.webkit.WebView.HitTestResult;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
@@ -82,6 +103,7 @@ import com.naholyr.android.ui.QuickActionWindow.Item;
 public class PostsActivity extends NewPostUIActivity
 {
 	private static final String POST_LOADING 	= ">¤>¤>¤>¤>¤...post_loading...<¤<¤<¤<¤<¤";
+	private static final String DOWNLOAD_DIR 	= "/HFR4droid/";
 
 	public static enum PostCallBackType
 	{
@@ -119,18 +141,41 @@ public class PostsActivity extends NewPostUIActivity
 	protected Map<Long, String> quotes;
 	protected boolean lockQuickAction;
 	
+	protected DrawableDisplayType currentAvatarsDisplayType = null;
+	protected DrawableDisplayType currentSmileysDisplayType = null;
+	protected DrawableDisplayType currentImgsDisplayType = null;
+	
+	private boolean isAvatarsEnable = true;
+	private boolean isSmileysEnable = true;
+	private boolean isImgsEnable = true;
+	
+	private final HttpClient<Bitmap> imgHttpClient = new HttpClient<Bitmap>()
+	{		
+		@Override
+		protected Bitmap transformStream(InputStream is) throws IOException
+		{
+			return BitmapFactory.decodeStream(new PatchInputStream(is));
+		}
+	};	
+
 	@SuppressWarnings("unchecked")
 	@Override
 	protected void onCreate(Bundle savedInstanceState)
 	{
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.posts);
+		applyTheme(currentTheme);
 		attachEvents();
+
 		currentScrollY = -1;
 		postDialog = null;
 		quotes = Collections.synchronizedMap(new HashMap<Long, String>());
 		lockQuickAction = true;
 
+		currentAvatarsDisplayType = getAvatarsDisplayType();
+		currentSmileysDisplayType = getSmileysDisplayType();
+		currentImgsDisplayType = getImgsDisplayType();
+		
 		Bundle bundle = this.getIntent().getExtras();
 		if (fromType == null) fromType =  bundle != null && bundle.getSerializable("fromTopicType") != null ? (TopicType) bundle.getSerializable("fromTopicType") : TopicType.ALL;
 		fromAllCats = bundle == null ? false : bundle.getBoolean("fromAllCats", false); 
@@ -170,7 +215,7 @@ public class PostsActivity extends NewPostUIActivity
 		gestureDetector = new GestureDetector(new SimpleNavOnGestureListener()
 		{
 			@Override
-			protected void onLeftToRight()
+			protected void onLeftToRight(MotionEvent e1, MotionEvent e2)
 			{
 				if (currentPageNumber != 1)
 				{
@@ -183,7 +228,7 @@ public class PostsActivity extends NewPostUIActivity
 			}
 
 			@Override
-			protected void onRightToLeft()
+			protected void onRightToLeft(MotionEvent e1, MotionEvent e2)
 			{
 				if (currentPageNumber != topic.getNbPages())
 				{
@@ -288,6 +333,10 @@ public class PostsActivity extends NewPostUIActivity
 			MenuItem menuNavRefresh =  menuNav.getSubMenu().findItem(R.id.MenuNavRefresh);
 			menuNavRefresh.setVisible(isLoggedIn() && topic.getStatus() != TopicStatus.LOCKED);
 			menuNavRefresh.setEnabled(isLoggedIn() && topic.getStatus() != TopicStatus.LOCKED);
+			
+            MenuItem menuNavSubCats =  menuNav.getSubMenu().findItem(R.id.MenuNavSubCats);
+            menuNavSubCats.setVisible(false);
+            menuNavSubCats.setEnabled(false);
 
 			MenuItem refresh = menu.findItem(R.id.MenuRefresh);
 			refresh.setVisible(!isLoggedIn() || topic.getStatus() == TopicStatus.LOCKED);
@@ -352,7 +401,7 @@ public class PostsActivity extends NewPostUIActivity
 	@Override
 	protected void loadFirstPage()
 	{
-		loadPosts(topic, 1);	
+		loadPosts(topic, 1);
 	}
 
 	@Override
@@ -388,26 +437,15 @@ public class PostsActivity extends NewPostUIActivity
 	@Override
 	protected void reloadPage()
 	{
-		reloadPage(false);
-	}
-	
-	protected void reloadPage(boolean fromCache)
-	{
 		currentScrollY = getWebView().getScrollY();
-		if (!fromCache)
-		{
-			loadPosts(topic, currentPageNumber);
-		}
-		else
-		{
-			refreshPosts(posts);
-		}
+		loadPosts(topic, currentPageNumber);
 	}
 	
 	@Override
 	protected void redrawPage()
 	{
-		reloadPage(true);
+		currentScrollY = getWebView().getScrollY();
+		displayPosts(posts);
 	}
 	
 	@Override
@@ -561,6 +599,138 @@ public class PostsActivity extends NewPostUIActivity
                 return result;
             }
         };
+
+        registerForContextMenu(webView);
+        webView.setOnCreateContextMenuListener(new OnCreateContextMenuListener()
+		{
+        	abstract class ImageCallback implements Runnable
+        	{
+        		protected File image = null;  		
+        			
+				public void run(File image)
+				{
+					this.image = image;
+					run();
+				} 
+        	}
+        	
+			public void onCreateContextMenu(ContextMenu menu, View v, ContextMenuInfo menuInfo)
+			{
+                HitTestResult result = ((WebView) v).getHitTestResult();
+                if (result.getType() == HitTestResult.IMAGE_TYPE)
+                {
+                	final String url = result.getExtra();
+                	if (url.indexOf("http://forum-images.hardware.fr") != -1) return;
+
+                	MenuItem.OnMenuItemClickListener handler = new MenuItem.OnMenuItemClickListener()
+                    {
+                		private void saveImage(final String url, final ImageCallback callback)
+                		{                    		
+    						final ProgressDialog progressDialog = new ProgressDialog(PostsActivity.this);
+    						progressDialog.setMessage(getString(R.string.save_image));
+    						progressDialog.setIndeterminate(true);
+    						new AsyncTask<String, Void, File>()
+    						{
+    							@Override
+    							protected void onPreExecute() 
+    							{
+									progressDialog.setCancelable(true);
+									progressDialog.setOnCancelListener(new OnCancelListener()
+									{
+										public void onCancel(DialogInterface dialog)
+										{
+											cancel(true);
+										}
+									});
+									progressDialog.show();
+    							}
+
+    							@Override
+    							protected File doInBackground(String... url)
+    							{
+    								try
+									{
+										Bitmap imgBitmap = imgHttpClient.getResponse(url[0]);
+	                        			File dir = new File(Environment.getExternalStorageDirectory() + DOWNLOAD_DIR);
+	                        			if (!dir.exists()) dir.mkdirs();
+	                        			String originalFileName = url[0].substring(url[0].lastIndexOf('/') + 1, url[0].length());
+	                        			String newFileName = originalFileName.substring(0, originalFileName.lastIndexOf('.')) + ".png";
+
+	                        			File f = new File(Environment.getExternalStorageDirectory() + DOWNLOAD_DIR, newFileName);
+	                        	        OutputStream os = new FileOutputStream(f);
+	                        	        imgBitmap.compress(CompressFormat.PNG, 90, os);
+	                        	        os.close();
+	                        	        
+	                        	        return f;
+									}
+									catch (Exception e)
+									{
+										error(getString(R.string.save_image_failed), e, true, false);
+										return null;
+									}
+    							}
+
+    							@Override
+    							protected void onPostExecute(File imageFile)
+    							{
+    								progressDialog.dismiss();
+                        	        if (callback != null) callback.run(imageFile);
+    							}
+    						}.execute(url);
+                		}
+                		
+                        public boolean onMenuItemClick(MenuItem item)
+                        {
+                			switch (item.getItemId())
+                			{
+                				case R.id.SaveImage:
+                					saveImage(url, new ImageCallback()
+									{
+										public void run()
+										{
+											if (image != null)
+											{
+												Toast.makeText(PostsActivity.this, getString(R.string.save_image_ok, image.getParent()), Toast.LENGTH_LONG).show();
+											}
+										}
+									});
+                					break;
+
+                				case R.id.ShareImage:
+                					saveImage(url, new ImageCallback()
+									{
+										public void run()
+										{
+											if (image != null)
+											{
+			                        	        Intent share = new Intent(Intent.ACTION_SEND);
+			                        	        share.setType("image/*");
+			                        	        Uri uri = Uri.fromFile(image);
+			                        	        share.putExtra(Intent.EXTRA_STREAM, uri);
+			                        	        startActivity(Intent.createChooser(share, getString(R.string.share_image)));
+											}
+										}
+									});
+                					break;
+                					
+                				case R.id.OpenImage:
+                					Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
+                					startActivity(intent);
+                					break;
+                			}
+                			return true;
+                        }
+                    };
+
+                	menu.setHeaderTitle(url);
+                    menu.add(0, R.id.SaveImage, 0, R.string.save_image_item).setOnMenuItemClickListener(handler);
+                    menu.add(0, R.id.ShareImage, 0, R.string.share_image_item).setOnMenuItemClickListener(handler);
+                    menu.add(0, R.id.OpenImage, 0, R.string.open_image_item).setOnMenuItemClickListener(handler);
+                }
+			}
+		});
+        
+
 		webView.setFocusable(true);
 		webView.setFocusableInTouchMode(false); 
 		webView.setLayoutParams(new LayoutParams(LayoutParams.FILL_PARENT, LayoutParams.WRAP_CONTENT));
@@ -809,6 +979,14 @@ public class PostsActivity extends NewPostUIActivity
 					@Override
 					protected void onPreExecute() 
 					{
+						progressDialog.setCancelable(true);
+						progressDialog.setOnCancelListener(new OnCancelListener()
+						{
+							public void onCancel(DialogInterface dialog)
+							{
+								cancel(true);
+							}
+						});
 						progressDialog.show();
 					}
 
@@ -858,6 +1036,14 @@ public class PostsActivity extends NewPostUIActivity
 									@Override
 									protected void onPreExecute() 
 									{
+										progressDialog.setCancelable(true);
+										progressDialog.setOnCancelListener(new OnCancelListener()
+										{
+											public void onCancel(DialogInterface dialog)
+											{
+												cancel(true);
+											}
+										});
 										progressDialog.show();
 									}
 
@@ -892,7 +1078,7 @@ public class PostsActivity extends NewPostUIActivity
 						{
 							public void onClick(DialogInterface dialog, int which){}
 						});
-						
+
 						progressDialog.dismiss();
 						builder.create().show();
 					}
@@ -901,11 +1087,9 @@ public class PostsActivity extends NewPostUIActivity
 		}, "HFR4Droid");
 
 		final WebView loading = (WebView) findViewById(R.id.loading);
+		//loading.setBackgroundColor(currentTheme.getListBackgroundColor());
 		loading.setVisibility(View.VISIBLE);
-		if (!refresh)
-		{
-			loading.loadData("<html><body style=\"text-align: center; margin-top: 150px; background-color:#F7F7F7;\"><img src=\"data:image/gif;base64,R0lGODlhKwALAPEAAP%2F%2F%2FwAAAIKCggAAACH%2FC05FVFNDQVBFMi4wAwEAAAAh%2FhpDcmVhdGVkIHdpdGggYWpheGxvYWQuaW5mbwAh%2BQQJCgAAACwAAAAAKwALAAACMoSOCMuW2diD88UKG95W88uF4DaGWFmhZid93pq%2BpwxnLUnXh8ou%2BsSz%2BT64oCAyTBUAACH5BAkKAAAALAAAAAArAAsAAAI9xI4IyyAPYWOxmoTHrHzzmGHe94xkmJifyqFKQ0pwLLgHa82xrekkDrIBZRQab1jyfY7KTtPimixiUsevAAAh%2BQQJCgAAACwAAAAAKwALAAACPYSOCMswD2FjqZpqW9xv4g8KE7d54XmMpNSgqLoOpgvC60xjNonnyc7p%2BVKamKw1zDCMR8rp8pksYlKorgAAIfkECQoAAAAsAAAAACsACwAAAkCEjgjLltnYmJS6Bxt%2Bsfq5ZUyoNJ9HHlEqdCfFrqn7DrE2m7Wdj%2F2y45FkQ13t5itKdshFExC8YCLOEBX6AhQAADsAAAAAAAAAAAA%3D\" alt=\"loading\" /></body></html>", "text/html", "UTF-8");
-		}
+		if (!refresh) loadLoadingWebView(loading);
 
 		StringBuffer js = new StringBuffer("<script type=\"text/javascript\">");
 		js.append("function swap_spoiler_states(obj){var div=obj.getElementsByTagName('div');if(div[0]){if(div[0].style.visibility==\"visible\"){div[0].style.visibility='hidden';}else if(div[0].style.visibility==\"hidden\"||!div[0].style.visibility){div[0].style.visibility='visible';}}}");
@@ -928,15 +1112,15 @@ public class PostsActivity extends NewPostUIActivity
 
 		StringBuffer css = new StringBuffer("<style type=\"text/css\">");
 		css.append(".u { text-decoration:underline; }");
-		css.append("a.cLink { color:#000080; text-decoration:none; }");
-		css.append("a.cLink:hover, a.cLing:active  { color:#000080; text-decoration:underline; }");
+		css.append("a.cLink { color:" + currentTheme.getPostLinkColorAsString() + "; text-decoration:none; }");
+		css.append("a.cLink:hover, a.cLing:active  { color:" + currentTheme.getPostLinkColorAsString() + "; text-decoration:underline; }");
 		css.append(".citation, .oldcitation, .quote, .oldquote, .fixed, .code, .spoiler, .oldspoiler { padding:3px; text-align:left; width:90%; }");
 		css.append(".citation, .oldcitation, .quote, .oldquote, .spoiler, .oldspoiler { margin: 8px auto; }");
-		css.append(".code, .fixed { background-color:#FFF; border:1px solid #000; color:#000; font-family:'Courier New',Courier,monospace; margin:8px 5px; }");
+		css.append(".code, .fixed { background-color:" + currentTheme.getPostBlockBackgroundColorAsString() + "; border:1px solid " + currentTheme.getPostTextColorAsString() + "; color:" + currentTheme.getPostTextColorAsString() + "; font-family:'Courier New',Courier,monospace; margin:8px 5px; }");
 		css.append(".oldcitation, .oldquote { border:0; }");
 		css.append(".quote, .oldquote { font-style:italic; }");
 		css.append("table { font-size: 1em; }");
-		css.append(".spoiler, .oldspoiler, .citation, .quote { border:1px solid #C0C0C0; background-color:#FFF }");
+		css.append(".spoiler, .oldspoiler, .citation, .quote { border:1px solid " + currentTheme.getListDividerColorAsString() + "; background-color:" + currentTheme.getPostBlockBackgroundColorAsString() + " }");
 		css.append("div.masque { visibility:hidden; }");
 		css.append(".container { text-align:center; width:100%; }");
 		css.append(".s1, .s1Topic { font-size: " + getTextSize(10) + "px; }");
@@ -944,12 +1128,12 @@ public class PostsActivity extends NewPostUIActivity
 		css.append("p, ul { font-size: 0.8em; margin-bottom: 0; margin-top: 0; }");
 		css.append("pre { font-size: 0.7em; white-space: pre-wrap }");
 		css.append("ol.olcode { font-size: 0.7em; }");
-		css.append("body { margin:0; padding:0; background-color:#F7F7F7; }");
-		css.append(".HFR4droid_header { width:100%; background: url(\"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAAyCAIAAAASmSbdAAAACXBIWXMAAAsSAAALEgHS3X78AAAAr0lEQVR42i3D61IBYQCA4fc%2B%2FMNiR2qVU7sxzbgFHZaEQU27qG6hf7ElRDmMQ5juilvp%2B%2BKZeQibL5w%2F%2F5J6WpN6XO02liTFs%2FrPf6O%2BwKgt0O05ujXj1JqSkB%2BmxO8nxOS7MVExUh0RqQw5KX9zXP5Ck0sDtGKfo8Inh4UeodseB%2Fmu2CF4I%2BY%2BUHNt1KxovhMw3%2FBfO%2FjkKwflsoVy0cQrZ17x7LszTVxpm8128wedbTsQqibZlwAAAABJRU5ErkJggg%3D%3D\"); height: 50px; text-align: right; }");
+		css.append("body { margin:0; padding:0; background-color:" + currentTheme.getListBackgroundColorAsString() + "; }");
+		css.append(".HFR4droid_header { width:100%; background: url(\"" + currentTheme.getPostHeaderData() + "\"); height: 50px; text-align: right; }");
 		css.append(".HFR4droid_header div { position: absolute; margin: 5px 0 0 5px; width:90%; text-align: left; }");
 		css.append(".HFR4droid_header div img { float: left; max-width:60px; max-height:40px; margin-right:5px; }");
-		css.append(".HFR4droid_header span.pseudo { color:#FFF; font-size: " + getTextSize(16) + "px; font-weight:bold; }");
-		css.append(".HFR4droid_header span.date { display: block; font-style:italic; color:#CDCDCD; font-size: " + getTextSize(12) + "px; margin: ");
+		css.append(".HFR4droid_header span.pseudo { color:" + currentTheme.getPostPseudoColorAsString() + "; font-size: " + getTextSize(16) + "px; font-weight:bold; }");
+		css.append(".HFR4droid_header span.date { display: block; font-style:italic; color:" + currentTheme.getPostDateColorAsString() + "; font-size: " + getTextSize(12) + "px; margin: ");
 		switch (getPoliceSize())
 		{
 			case 2:
@@ -965,9 +1149,10 @@ public class PostsActivity extends NewPostUIActivity
 				break;
 		}
 		css.append("px; margin-left:0; }");
-		css.append(".HFR4droid_edit_quote { margin-bottom: 5px; padding: 4px; padding-bottom: 3px; background-color: #DEDFDE;  font-style:italic; color:#555; font-size: " + getTextSize(9) + "px; }");
-		css.append(".HFR4droid_content { padding: 10px; padding-top: 5px; font-size: " + getTextSize(16) + "px}");
-		css.append(".modo_post { background-color: #FFEEEE; }");
+		css.append(".HFR4droid_edit_quote { margin-bottom: 5px; padding: 4px; padding-bottom: 3px; background-color: " + currentTheme.getPostEditQuoteBackgroundColorAsString() + ";  font-style:italic; color:" + currentTheme.getPostEditQuoteTextColorAsString() + "; font-size: " + getTextSize(9) + "px; }");
+		css.append(".HFR4droid_content { padding: 10px; padding-top: 5px; font-size: " + getTextSize(16) + "px; }");
+		css.append(".HFR4droid_content p, .HFR4droid_content div, .HFR4droid_content ul, .HFR4droid_content b { color:" + currentTheme.getPostTextColorAsString() + "}");
+		css.append(".modo_post { background-color: " + currentTheme.getModoPostBackgroundColorAsString() + "; }");
 		css.append(".HFR4droid_footer { height: 10px; width:100%; background: url(\"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAA%2FCAMAAAAWu1JmAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAgY0hSTQAAeiYAAICEAAD6AAAAgOgAAHUwAADqYAAAOpgAABdwnLpRPAAAAwBQTFRFhYWFs7SzysrKy8vLyszKzMzMzc3Nzs7Oz8%2FP0NDQ0dHR0dLR0tLS09PT1NTU1dXV1tbW19fX2NjY2dnZ2tna2tra29rb3Nvc3Nzc3dzdAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAWKfi1AAAABh0RVh0U29mdHdhcmUAUGFpbnQuTkVUIHYzLjM2qefiJQAAAEFJREFUGFddwkcOgDAQBMHBhCWDCQb%2B%2F1Fai8TBqlKhSoOiDiVdejK3PgkndrchYsXiZkwY0bsO7c9kalCjdAF6ARIIA4Sqnjr8AAAAAElFTkSuQmCC\"); }");
 		css.append("</style>");
 
@@ -977,6 +1162,7 @@ public class PostsActivity extends NewPostUIActivity
 		js2.append("loadDynamicCss(" + width + ");");
 		js2.append("</script>");
 
+		setDrawablesToggles();
 		StringBuffer postsContent = new StringBuffer("");
 		for (Post p : posts)
 		{
@@ -985,7 +1171,7 @@ public class PostsActivity extends NewPostUIActivity
 			SimpleDateFormat check = new SimpleDateFormat("ddMMyyyy");
 			boolean today = check.format(new Date()).equals(check.format(p.getDate()));
 			String date = today ? todaySdf.format(p.getDate()) : "Le " + sdf.format(p.getDate());
-			String avatar = p.getAvatarUrl() != null && isAvatarsEnable() ? "<img alt=\"avatar\" title=\"" + p.getPseudo() + "\" src=\"" + p.getAvatarUrl() + "\" />" : "";
+			String avatar = p.getAvatarUrl() != null && isAvatarsEnable ? "<img alt=\"avatar\" title=\"" + p.getPseudo() + "\" src=\"" + p.getAvatarUrl() + "\" />" : "";
 			String pseudoSpan = "<span class=\"pseudo\">" + p.getPseudo() + "</span>";
 			String dateSpan = "<span class=\"date\">" + date + "</span>";
 			StringBuilder editQuoteDiv = new StringBuilder("");
@@ -1010,10 +1196,11 @@ public class PostsActivity extends NewPostUIActivity
 			if (p.isModo()) content += " modo_post";
 			content += "\">" + editQuoteDiv + "<div class=\"HFR4droid_content\"";
 			content += ">" + p.getContent() + "</div></div>";
+			content = content.replaceAll("onload=\"md_verif_size\\(this,'Cliquez pour agrandir','[0-9]+','[0-9]+'\\)\"", "onclick=\"return false;\"");
 			content = content.replaceAll("<b\\s*class=\"s1\"><a href=\"(.*?)\".*?>(.*?)</a></b>", "<b onclick=\"window.HFR4Droid.handleQuote('$1');\" class=\"s1\">$2</b>");
+			if (!isSmileysEnable) content = content.replaceAll("<img\\s*src=\"http://forum\\-images\\.hardware\\.fr.*?\"\\s*alt=\"(.*?)\".*?/>", "$1");
 			content = content.replaceAll("<img\\s*src=\"http://forum\\-images\\.hardware\\.fr/images/perso/(.*?)\"\\s*alt=\"(.*?)\"", "<img onclick=\"window.HFR4Droid.editKeywords('$2');\" src=\"http://forum-images.hardware.fr/images/perso/$1\" alt=\"$2\"");
-			if (!isSmileysEnable()) content = content.replaceAll("<img\\s*src=\"http://forum\\-images\\.hardware\\.fr.*?\"\\s*alt=\"(.*?)\".*?/>", "$1");
-			if (!isImgsEnable()) content = content.replaceAll("<img\\s*src=\"http://[^\"]*?\"\\s*alt=\"http://[^\"]*?\"\\s*title=\"(http://.*?)\".*?/>", "<a href=\"$1\" target=\"_blank\" class=\"cLink\">$1</a>");
+			if (!isImgsEnable) content = content.replaceAll("<img\\s*src=\"http://[^\"]*?\"\\s*alt=\"http://[^\"]*?\"\\s*title=\"(http://.*?)\".*?/>", "<a href=\"$1\" target=\"_blank\" class=\"cLink\">$1</a>");
 			content = content.replaceAll("ondblclick=\".*?\"", "");
 			postsContent.append(header);
 			postsContent.append(content);
@@ -1075,6 +1262,11 @@ public class PostsActivity extends NewPostUIActivity
 		}
 		if (refresh) updateButtonsStates();
 	}
+	
+	private void loadLoadingWebView(WebView loading)
+	{
+		loading.loadData("<html><body style=\"text-align: center; margin-top: 150px; background-color:" + currentTheme.getListBackgroundColorAsString() + ";\"><img src=\"data:image/gif;base64,R0lGODlhKwALAPEAAP%2F%2F%2FwAAAIKCggAAACH%2FC05FVFNDQVBFMi4wAwEAAAAh%2FhpDcmVhdGVkIHdpdGggYWpheGxvYWQuaW5mbwAh%2BQQJCgAAACwAAAAAKwALAAACMoSOCMuW2diD88UKG95W88uF4DaGWFmhZid93pq%2BpwxnLUnXh8ou%2BsSz%2BT64oCAyTBUAACH5BAkKAAAALAAAAAArAAsAAAI9xI4IyyAPYWOxmoTHrHzzmGHe94xkmJifyqFKQ0pwLLgHa82xrekkDrIBZRQab1jyfY7KTtPimixiUsevAAAh%2BQQJCgAAACwAAAAAKwALAAACPYSOCMswD2FjqZpqW9xv4g8KE7d54XmMpNSgqLoOpgvC60xjNonnyc7p%2BVKamKw1zDCMR8rp8pksYlKorgAAIfkECQoAAAAsAAAAACsACwAAAkCEjgjLltnYmJS6Bxt%2Bsfq5ZUyoNJ9HHlEqdCfFrqn7DrE2m7Wdj%2F2y45FkQ13t5itKdshFExC8YCLOEBX6AhQAADsAAAAAAAAAAAA%3D\" alt=\"loading\" /></body></html>", "text/html", "UTF-8");
+	}
 
 	private void showAddPostDialog(PostCallBackType type, String data)
 	{
@@ -1091,6 +1283,7 @@ public class PostsActivity extends NewPostUIActivity
 			LayoutInflater inflater = (LayoutInflater) getApplicationContext().getSystemService(LAYOUT_INFLATER_SERVICE);
 			final ViewGroup layout = (ViewGroup) inflater.inflate(R.layout.new_post_content, null);
 			postDialog.setContentView(layout);
+			applyTheme(currentTheme, (ViewGroup) postDialog.findViewById(R.id.PostContainer).getParent());
 			addPostButtons(layout);
 			((EditText) postDialog.findViewById(R.id.InputPostContent)).setTextSize(getTextSize(14));
 
@@ -1098,18 +1291,27 @@ public class PostsActivity extends NewPostUIActivity
 			{
 				public boolean onKey(DialogInterface dialog, int keyCode, KeyEvent event)
 				{
-					if (keyCode == KeyEvent.KEYCODE_BACK)
+					if (keyCode == KeyEvent.KEYCODE_BACK && event.getAction() == KeyEvent.ACTION_UP)
 					{
 						View firstChild = layout.getChildAt(0);
-						if (postDialog.isShowing() && firstChild instanceof WebView)
+						if (postDialog.isShowing())
 						{
-							hideWikiSmiliesResults(layout);
-							return true;
+							if (firstChild instanceof WebView)
+							{
+								hideWikiSmiliesResults(layout);
+								return true;
+							}
+							else if (postDialog.findViewById(R.id.SmileySearch).getVisibility() == View.VISIBLE)
+							{
+								hideWikiSmiliesSearch(layout);
+								return true;
+							}
 						}
 					}
 					return false;
 				}
 			});
+
 			postDialog.setOnDismissListener(new OnDismissListener()
 			{
 				public void onDismiss(DialogInterface dialog)
@@ -1128,7 +1330,7 @@ public class PostsActivity extends NewPostUIActivity
 		if (data != null) postContent.setText(data);
 		postContent.requestFocus();
 		Selection.setSelection(postContent.getText(), postContent.length());
-		EditText smileyTag = (EditText) postDialog.findViewById(R.id.inputSmileyTag);
+		EditText smileyTag = (EditText) postDialog.findViewById(R.id.InputSmileyTag);
 		smileyTag.setText("");
 		postDialog.show();		
 	}
@@ -1237,17 +1439,69 @@ public class PostsActivity extends NewPostUIActivity
 			}
 		});
 	}
-
-	@Override
-	protected void setCancelButtonClickListener(Button cancelButton)
+	
+	private void setDrawablesToggles()
 	{
-		cancelButton.setOnClickListener(new OnClickListener()
+		ConnectivityManager connectivityManager = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+		NetworkInfo info = connectivityManager.getActiveNetworkInfo();
+		boolean isWifiEnable = info != null && (info.getType() == ConnectivityManager.TYPE_WIFI || info.getType() == ConnectivityManager.TYPE_WIMAX);
+		
+		setToggleFromPref("isAvatarsEnable", getAvatarsDisplayType(), isWifiEnable);
+		setToggleFromPref("isSmileysEnable", getSmileysDisplayType(), isWifiEnable);
+		setToggleFromPref("isImgsEnable", getImgsDisplayType(), isWifiEnable);
+	}
+	
+	private void setToggleFromPref(String drawableToggle, DrawableDisplayType type, boolean isWifiEnable)
+	{
+		try
 		{
-			public void onClick(View v)
+			boolean drawMe;
+			switch (type)
 			{
-				postDialog.dismiss();	
+				case NEVER_SHOW:
+					drawMe = false;
+					break;
+					
+				case SHOW_WHEN_WIFI:
+					drawMe = isWifiEnable;
+					break;
+					
+				default:
+					drawMe = true;
+					break;
 			}
-		});
+			PostsActivity.class.getDeclaredField(drawableToggle).setBoolean(this, drawMe);
+		}
+		catch (Exception e)
+		{
+			error(e);
+		}
+	}
+	
+	@Override
+	protected void applyTheme(Theme theme)
+	{
+		LinearLayout postLayout = (LinearLayout) findViewById(R.id.PostsLayout);
+		FrameLayout root = (FrameLayout) postLayout.getParent();
+		root.setBackgroundColor(theme.getListBackgroundColor());
+		
+		WebView loading = (WebView) findViewById(R.id.loading);
+		if (loading != null)
+		{
+			loading.destroy();
+			postLayout.removeView(loading);
+		}
+		loading = new WebView(this);
+		loading.setId(R.id.loading);
+		loading.setLayoutParams(new LayoutParams(LayoutParams.FILL_PARENT, LayoutParams.FILL_PARENT));
+		loading.setBackgroundColor(currentTheme.getListBackgroundColor());
+		loading.setVisibility(View.VISIBLE);
+		postLayout.addView(loading, 2);
+		
+		if (postDialog != null)
+		{
+			applyTheme(theme, (ViewGroup) postDialog.findViewById(R.id.PostContainer).getParent());
+		}
 	}
 
 	/* Classes internes */
@@ -1305,13 +1559,24 @@ public class PostsActivity extends NewPostUIActivity
 				execute();
 			}
 		}
-
+		
 		@Override
 		protected void onPreExecute()
 		{
 			if (progress)
 			{
-				progressDialog = ProgressDialog.show(PostsActivity.this, null, getString(type.getKey() + "_loading"), true);
+				progressDialog = new ProgressDialog(PostsActivity.this);
+				progressDialog.setMessage(getString(type.getKey() + "_loading"));
+				progressDialog.setIndeterminate(true);
+				progressDialog.setCancelable(true);
+				progressDialog.setOnCancelListener(new OnCancelListener()
+				{
+					public void onCancel(DialogInterface dialog)
+					{
+						cancel(true);
+					}
+				});
+				progressDialog.show();
 			}
 		}
 

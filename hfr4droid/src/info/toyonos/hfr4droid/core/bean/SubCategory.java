@@ -42,17 +42,17 @@ public class SubCategory extends Category
 
 	public String toString(ToStringType type)
 	{
-		String SCname = subCat.name != null ? Html.fromHtml(subCat.name).toString() : "";
+		String subCatName = subCat.name != null ? Html.fromHtml(subCat.name).toString() : "";
 		switch (type)
 		{
 			case CAT:
 				return super.toString();
 
 			case SUBCAT:
-				return SCname;
+				return subCatName;
 				
 			default:
-				StringBuilder sb = new StringBuilder(SCname);
+				StringBuilder sb = new StringBuilder(subCatName);
 				if (subCat.name != null) sb.append(" - ");
 				sb.append(super.toString());
 				return sb.toString();

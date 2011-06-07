@@ -5,6 +5,7 @@ import info.toyonos.hfr4droid.core.auth.HFRAuthentication;
 import info.toyonos.hfr4droid.core.bean.Category;
 import info.toyonos.hfr4droid.core.bean.Post;
 import info.toyonos.hfr4droid.core.bean.Topic;
+import info.toyonos.hfr4droid.core.bean.Topic.TopicType;
 import info.toyonos.hfr4droid.core.data.HFRDataRetriever;
 
 import java.io.BufferedReader;
@@ -40,6 +41,7 @@ public class HFRMessageSender
 	private static final String FORM_EDIT_KEYWORDS_URI = "http://forum.hardware.fr/wikismilies.php?config=hfr.inc&option_wiki=0&withouttag=0";
 	private static final String FAVORITE_URI = "http://forum.hardware.fr/user/addflag.php?config=hfr.inc&cat={$cat}&post={$topic}&numreponse={$post}";
 	private static final String UNREAD_URI = "http://forum.hardware.fr/user/nonlu.php?config=hfr.inc&cat={$cat}&post={$topic}";
+	private static final String UNFLAG_URI = "http://forum.hardware.fr//modo/manageaction.php?config=hfr.inc&cat={$cat}&type_page=forum1&moderation=0";
 
 	/**
 	 * Les codes des réponses
@@ -139,6 +141,7 @@ public class HFRMessageSender
 		params.add(new BasicNameValuePair("content_form", message));
 		params.add(new BasicNameValuePair("sujet", p.getTopic().getName()));
 		params.add(new BasicNameValuePair("signature", signature ? "1" : "0"));
+		params.add(new BasicNameValuePair("subcat", String.valueOf(p.getTopic().getSubCategory().getSubCatId())));
 
 		String response = null;
 		try
@@ -229,7 +232,7 @@ public class HFRMessageSender
 	/**
 	 * Met un mp en non lu
 	 * @param t le topic concerné
-	 * @return Le message indiquant si l'opération s'est bien passée
+	 * @return true ou false suivant si l'opération s'est bien passé
 	 * @throws MessageSenderException Si un problème survient
 	 */
 	public boolean setUnread(Topic t) throws MessageSenderException
@@ -248,6 +251,37 @@ public class HFRMessageSender
 		}
 		return response.matches(".*Le message a été marqué comme non lu avec succès.*");
 	}
+	
+	/**
+	 * Déflag un topic
+	 * @param t le topic concerné
+	 * @return Le message indiquant si l'opération s'est bien passée
+	 * @throws MessageSenderException Si un problème survient
+	 */
+	public String unflag(Topic t, TopicType type, String hashCheck) throws MessageSenderException
+	{
+		List<NameValuePair> params = new ArrayList<NameValuePair>();
+		params.add(new BasicNameValuePair("action_reaction", "message_forum_delflags"));
+		params.add(new BasicNameValuePair("topic0", String.valueOf(t.getId())));
+		params.add(new BasicNameValuePair("valuecat0", t.getCategory().getRealId()));
+		params.add(new BasicNameValuePair("valueforum0", "hardwarefr"));
+		params.add(new BasicNameValuePair("type_page", "forum1"));
+		params.add(new BasicNameValuePair("owntopic", String.valueOf(type.getValue())));
+		params.add(new BasicNameValuePair("topic1", "-1"));
+		params.add(new BasicNameValuePair("topic_statusno1", "-1"));
+		params.add(new BasicNameValuePair("hash_check", hashCheck));
+
+		String response = null;
+		try
+		{
+			response = innerGetResponse(UNFLAG_URI.replaceFirst("\\{\\$cat\\}", t.getCategory().getRealId()), params);
+		}
+		catch (Exception e)
+		{
+			throw new MessageSenderException(context.getString(R.string.keywords_failed), e);
+		}
+		return HFRDataRetriever.getSingleElement("<div\\s*class=\"hop\">\\s*(.*?)\\s*</div>", response);
+	}
 
 	private String innerGetResponse(String url, List<NameValuePair> params) throws UnsupportedEncodingException, IOException
 	{
@@ -256,6 +290,7 @@ public class HFRMessageSender
 		HttpClient client = new DefaultHttpClient();
 		HttpProtocolParams.setUseExpectContinue(client.getParams(), false);
 		HttpPost post = new HttpPost(url);
+		post.setHeader("User-Agent", "Mozilla/5.0 (Windows; U; Windows NT 6.1; fr; rv:1.9.2) Gecko/20100101 Firefox/4.0.1");
 		post.setEntity(new UrlEncodedFormEntity(params, HTTP.UTF_8));
 		StringBuilder sb = new StringBuilder("");
 		HttpResponse rep = client.execute(post, ctx);
@@ -279,6 +314,7 @@ public class HFRMessageSender
 		HttpClient client = new DefaultHttpClient();
 		HttpProtocolParams.setUseExpectContinue(client.getParams(), false);
 		HttpGet get = new HttpGet(url);
+		get.setHeader("User-Agent", "Mozilla/5.0 (Windows; U; Windows NT 6.1; fr; rv:1.9.2) Gecko/20100101 Firefox/4.0.1");
 		StringBuilder sb = new StringBuilder("");
 		HttpResponse rep = client.execute(get, ctx);
 		InputStream is = rep.getEntity().getContent();

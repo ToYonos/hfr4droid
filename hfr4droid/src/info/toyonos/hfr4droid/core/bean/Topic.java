@@ -74,6 +74,7 @@ public class Topic extends BasicElement
 	private boolean sticky;
 	private boolean unread;
 	private Category category;
+	private SubCategory subCategory; // Uniquement pour l'édition d'un premier post
 
 	public Topic(long id)
 	{
@@ -87,6 +88,7 @@ public class Topic extends BasicElement
 		this.sticky = false;
 		this.unread = false;
 		this.category = null;
+		this.subCategory = null;
 	}
 
 	public Topic(long id, String name)
@@ -196,5 +198,20 @@ public class Topic extends BasicElement
 	public void setUnread(boolean unread)
 	{
 		this.unread = unread;
+	}
+
+	public SubCategory getSubCategory()
+	{
+		return subCategory;
+	}
+
+	public void setSubCategory(SubCategory subCategory)
+	{
+		this.subCategory = subCategory;
+	}
+
+	public static long getSerialversionuid()
+	{
+		return serialVersionUID;
 	}
 }

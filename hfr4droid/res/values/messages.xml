@@ -33,6 +33,7 @@
 	
 	<string name="loading">Chargement en cours</string>
 	<string name="getting_cats">Récupération des catégories</string>
+	<string name="getting_subcats">Récupération des sous-catégories</string>
 	<string name="getting_topics">Topics de la page %d...</string>
 	<string name="getting_topics_cyans">Drapeaux cyan...</string>
 	<string name="getting_topics_rouges">Drapeaux rouges...</string>
@@ -67,10 +68,15 @@
 	<string name="favorite_failed">Impossible de poser le favori !</string>
 	<string name="unread_loading">Marquage en non lu...</string>
 	<string name="unread_failed">Impossible de mettre ce mp en non lu !</string>
+	<string name="unflag_loading">Suppression du drapeau...</string>
 
 	<string name="file_hfr_rehost">Sélectionnez le fichier à uploader</string>
 	<string name="loading_hfr_rehost">Upload en cours...</string>
 	<string name="copy_hfr_rehost">Le BBCode de l\'image a été copié dans le presse-papier.</string>
+
+	<string name="save_image">Sauvegarde de l\'image en cours...</string>
+	<string name="save_image_ok">Image sauvegardée avec succès dans %s</string>
+	<string name="save_image_failed">Impossible de sauvegarder cette image</string>
 
 	<plurals name="mp_notification_content">
         <item quantity="one">Vous avez 1 nouveau message privé.</item>

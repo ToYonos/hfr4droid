@@ -8,7 +8,11 @@
 
 	<string name="pref_check_mps_enable_title">Vérifier les MPs</string>
 	<string name="pref_check_mps_enable_summary">Active la vérification des MPs (différent du service permanent, cf. documention)</string>
-	<string name="pref_check_mps_enable_default">1</string>	
+	<string name="pref_check_mps_enable_default">1</string>
+	
+	<string name="pref_notification_type_title">Type de notification des MPs</string>
+	<string name="pref_notification_type_summary">La façon dont vous serez notifié des nouveaux MPs</string>
+	<string name="pref_notification_type_default">1</string>	
 	
 	<string name="pref_type_drapeau_title">Type de drapeau</string>
 	<string name="pref_type_drapeau_summary">Le type de drapeau qui s\'affiche par défaut dans l\'application</string>
@@ -36,21 +40,25 @@
 	<string name="pref_fullscreen_enable_summary">Afficher l\'application en plein écran (plus de barre de notification)</string>
 	<string name="pref_fullscreen_enable_default">false</string>
 	
+	<string name="pref_theme_title">Thème</string>
+	<string name="pref_theme_summary">Le thème de l\'application pour la personnaliser</string>
+	<string name="pref_theme_default">default</string>
+	
 	<string name="pref_police_size_title">Taille de la police</string>
 	<string name="pref_police_size_summary">Taille des polices dans les écrans de l\'application</string>
 	<string name="pref_police_size_default">1</string>
 
-	<string name="pref_avatars_enable_title">Activer les avatars</string>
-	<string name="pref_avatars_enable_summary">Afficher les avatars dans les posts</string>
-	<string name="pref_avatars_enable_default">true</string>
+	<string name="pref_avatars_display_type_title">Affichage des avatars</string>
+	<string name="pref_avatars_display_type_summary">Type d\'affichage des avatars dans les posts</string>
+	<string name="pref_avatars_display_type_default">1</string>
 
-	<string name="pref_smileys_enable_title">Activer les smileys</string>
-	<string name="pref_smileys_enable_summary">Afficher les smileys dans les posts</string>
-	<string name="pref_smileys_enable_default">true</string>
+	<string name="pref_smileys_display_type_title">Affichage des smileys</string>
+	<string name="pref_smileys_display_type_summary">Type d\'affichage des smileys dans les posts</string>
+	<string name="pref_smileys_display_type_default">1</string>
 	
-	<string name="pref_imgs_enable_title">Activer les images</string>
-	<string name="pref_imgs_enable_summary">Afficher les images dans les posts</string>
-	<string name="pref_imgs_enable_default">true</string>
+	<string name="pref_imgs_display_type_title">Affichage des images</string>
+	<string name="pref_imgs_display_type_summary">Type d\'affichage des images dans les posts</string>
+	<string name="pref_imgs_display_type_default">1</string>
 
 	<string name="pref_srv_mps_title">Service permanent de vérification des MPs</string>
 	
@@ -61,10 +69,4 @@
 	<string name="pref_srv_mps_freq_title">Fréquence de vérification (en min)</string>
 	<string name="pref_srv_mps_freq_summary">Fréquence de vérification des MPs</string>
 	<string name="pref_srv_mps_freq_default">60</string>
-	
-	<string name="pref_debug_title">Debug</string>
-	
-	<string name="pref_disable_acra_title">Désactiver l\'envoi de rapports d\'erreurs</string>
-	<string name="pref_disable_acra_summary">Ne jamais envoyer de rapports d\'erreurs aux développeurs, lors du crash de l\'application</string>
-	<string name="pref_disable_acra_default">true</string>
 </resources>

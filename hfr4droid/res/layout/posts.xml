@@ -1,8 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="fill_parent"
-    android:layout_height="fill_parent"
-    android:background="#F7F7F7">
+    android:layout_height="fill_parent">
     <LinearLayout
     	android:id="@+id/PostsLayout"
     	android:orientation="vertical"
@@ -46,10 +45,6 @@
 	  		android:visibility="gone"
 	  		android:layout_width="fill_parent"
 	  		android:layout_height="10dip" />
-		<WebView
-			android:id="@+id/loading"
-	        android:layout_width="fill_parent"
-    		android:layout_height="fill_parent" />
 	</LinearLayout>
 	<include layout="@layout/nav_drawer" />
 </FrameLayout>

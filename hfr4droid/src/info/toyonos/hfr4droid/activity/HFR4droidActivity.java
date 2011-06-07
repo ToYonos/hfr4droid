@@ -7,6 +7,7 @@ import info.toyonos.hfr4droid.core.auth.HFRAuthentication;
 import info.toyonos.hfr4droid.core.bean.Category;
 import info.toyonos.hfr4droid.core.bean.Post;
 import info.toyonos.hfr4droid.core.bean.SubCategory;
+import info.toyonos.hfr4droid.core.bean.Theme;
 import info.toyonos.hfr4droid.core.bean.Topic;
 import info.toyonos.hfr4droid.core.bean.Topic.TopicType;
 import info.toyonos.hfr4droid.core.data.DataRetrieverException;
@@ -21,7 +22,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
 
-import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.NotificationManager;
 import android.app.ProgressDialog;
@@ -50,6 +50,8 @@ import android.widget.EditText;
 import android.widget.SlidingDrawer;
 import android.widget.Toast;
 
+import com.ubikod.capptain.android.sdk.activity.CapptainActivity;
+
 /**
  * <p>Activity générique de l'application. Gère entre autres :
  * <ul>
@@ -61,27 +63,58 @@ import android.widget.Toast;
  * @author ToYonos
  *
  */
-public abstract class HFR4droidActivity extends Activity
+public abstract class HFR4droidActivity extends CapptainActivity
 {
-	public static final String PREF_WELCOME_SCREEN		= "PrefWelcomeScreen";
-	public static final String PREF_CHECK_MPS_ENABLE	= "PrefCheckMpsEnable";
-	public static final String PREF_TYPE_DRAPEAU		= "PrefTypeDrapeau";
-	public static final String PREF_SIGNATURE_ENABLE	= "PrefSignatureEnable";
-	public static final String PREF_DBLTAP_ENABLE		= "PrefDblTapEnable";
-	public static final String PREF_PRELOADING_ENABLE	= "PrefPreloadingEnable";
-	public static final String PREF_SWIPE				= "PrefSwipe";
-	public static final String PREF_FULLSCREEN_ENABLE	= "PrefFullscreenEnable";
-	public static final String PREF_POLICE_SIZE			= "PrefPoliceSize";
-	public static final String PREF_AVATARS_ENABLE		= "PrefAvatarsEnable";
-	public static final String PREF_SMILEYS_ENABLE		= "PrefSmileysEnable";
-	public static final String PREF_IMGS_ENABLE			= "PrefImgsEnable";
-	public static final String PREF_SRV_MPS_ENABLE		= "PrefSrvMpsEnable";
-	public static final String PREF_SRV_MPS_FREQ		= "PrefSrvMpsFreq";
+	public static final String PREF_WELCOME_SCREEN			= "PrefWelcomeScreen";
+	public static final String PREF_CHECK_MPS_ENABLE		= "PrefCheckMpsEnable";
+	public static final String PREF_NOTIFICATION_TYPE		= "PrefNotificationType";
+	public static final String PREF_TYPE_DRAPEAU			= "PrefTypeDrapeau";
+	public static final String PREF_SIGNATURE_ENABLE		= "PrefSignatureEnable";
+	public static final String PREF_DBLTAP_ENABLE			= "PrefDblTapEnable";
+	public static final String PREF_PRELOADING_ENABLE		= "PrefPreloadingEnable";
+	public static final String PREF_SWIPE					= "PrefSwipe";
+	public static final String PREF_FULLSCREEN_ENABLE		= "PrefFullscreenEnable";
+	public static final String PREF_THEME					= "PrefTheme";
+	public static final String PREF_POLICE_SIZE				= "PrefPoliceSize";
+	public static final String PREF_AVATARS_DISPLAY_TYPE	= "PrefAvatarsDisplayType";
+	public static final String PREF_SMILEYS_DISPLAY_TYPE	= "PrefSmileysDisplayType";
+	public static final String PREF_IMGS_DISPLAY_TYPE		= "PrefImgsDisplayType";
+	public static final String PREF_SRV_MPS_ENABLE			= "PrefSrvMpsEnable";
+	public static final String PREF_SRV_MPS_FREQ			= "PrefSrvMpsFreq";
+	
+	public static enum DrawableDisplayType
+	{
+		ALWAYS_SHOW(1),
+		SHOW_WHEN_WIFI(2),
+		NEVER_SHOW(3);
+		
+		private final int value;
 
-	public static boolean forceRedraw = false;
+		private DrawableDisplayType(int value)
+		{
+			this.value = value;
+		}
+
+		public int getValue()
+		{
+			return this.value;
+		}
+		
+		public static DrawableDisplayType fromInt(int anInt) 
+		{
+			for (DrawableDisplayType type : DrawableDisplayType.values())
+			{
+				if (anInt == type.getValue()) return type;
+			}
+			return null;
+		}
+	};
 	
 	protected AlertDialog loginDialog;
 	protected int currentPageNumber;
+
+	protected Theme currentTheme = null;
+	private int currentPoliceSize = -1;
 
 	private PreLoadingPostsAsyncTask preLoadingPostsAsyncTask;
 	private Map<Integer, List<Post>> preLoadedPosts;
@@ -131,17 +164,12 @@ public abstract class HFR4droidActivity extends Activity
 	public static String getMessage(Exception e, String msg)
 	{
 		StringBuilder logMsg = new StringBuilder("");
-		if (msg != null)
-		{
-			logMsg.append(msg)
-			.append(", ")
-			.append(e.getMessage().substring(0, 1).toLowerCase())
-			.append(e.getMessage().substring(1));
-		}
-		else
-		{
-			logMsg.append(e.getMessage());
-		}
+
+		if (msg != null) logMsg.append(msg).append(", ");
+		logMsg.append(e.getClass().getSimpleName())
+		.append(" : ")
+		.append(e.getMessage());
+
 		if (e.getCause() != null)
 		{
 			logMsg.append(" (")
@@ -152,19 +180,22 @@ public abstract class HFR4droidActivity extends Activity
 		}
 		return logMsg.toString();
 	}
-	
+
 	@Override
 	protected void onCreate(Bundle savedInstanceState)
 	{
 		super.onCreate(savedInstanceState);
 		requestWindowFeature(Window.FEATURE_NO_TITLE);
+		loadTheme(getThemeKey());
+		currentPoliceSize = getPoliceSize();
+		
 		Bundle bundle = this.getIntent().getExtras();
 		loginDialog = null;
 		currentPageNumber = bundle != null ? bundle.getInt("pageNumber") : -1;
 		preLoadingPostsAsyncTask = null;
 		preLoadedPosts = new HashMap<Integer, List<Post>>();
 		navForward = true;
-		loginFromCache();
+		loginFromCache();		
 	}
 
 	@Override
@@ -187,12 +218,45 @@ public abstract class HFR4droidActivity extends Activity
 	@Override
 	protected void onRestart()
 	{
-		super.onRestart();	
-		if (forceRedraw)
+		super.onRestart();
+		boolean redrawPage = false;
+		
+		if (currentTheme.getKey() != getThemeKey())
 		{
-			forceRedraw = false;
-			redrawPage();
+			loadTheme(getThemeKey());
+			applyTheme(currentTheme);
+			redrawPage = true;
 		}
+		
+		if (currentPoliceSize != getPoliceSize())
+		{
+			currentPoliceSize = getPoliceSize();
+			redrawPage = true;
+		}
+		
+		if (this instanceof PostsActivity)
+		{
+			PostsActivity pa = (PostsActivity) this;
+			if (pa.currentAvatarsDisplayType != getAvatarsDisplayType())
+			{
+				pa.currentAvatarsDisplayType = getAvatarsDisplayType();
+				redrawPage = true;
+			}
+			
+			if (pa.currentSmileysDisplayType != getSmileysDisplayType())
+			{
+				pa.currentSmileysDisplayType = getSmileysDisplayType();
+				redrawPage = true;
+			}
+			
+			if (pa.currentImgsDisplayType != getImgsDisplayType())
+			{
+				pa.currentImgsDisplayType = getImgsDisplayType();
+				redrawPage = true;
+			}
+		}
+		
+		if (redrawPage) redrawPage();
 	}
 
 
@@ -261,7 +325,7 @@ public abstract class HFR4droidActivity extends Activity
 				else
 				{
 					logout();
-					stopMpCheckService();
+					stopMpTimerCheckService();
 					onLogout();
 				}
 				return true;
@@ -303,9 +367,47 @@ public abstract class HFR4droidActivity extends Activity
 		}		    	
 	}
 
+	protected abstract void applyTheme(Theme theme);
+	
+	@SuppressWarnings("unchecked")
+	protected int getKeyByTheme(String themeKey, Class type, String key)
+	{
+		try
+		{
+			return type.getField(themeKey + "_" + key).getInt(null);
+		}
+		catch (Exception e)
+		{
+			error(e);
+			return -1;
+		}
+	}
+
+	private int getColorByKey(String themeKey, String key)
+	{
+		int colorKey = getKeyByTheme(themeKey, R.color.class, key);
+		return getResources().getColor(colorKey);
+	}
+	
+	private void loadTheme(String themeKey)
+	{
+		currentTheme = new Theme(themeKey);
+		currentTheme.setListBackgroundColor(getColorByKey(themeKey, "list_background"));
+		currentTheme.setListDividerColor(getColorByKey(themeKey, "list_divider"));
+		currentTheme.setPostHeaderData(getString(getKeyByTheme(themeKey, R.string.class, "post_header_data"))); 
+		currentTheme.setPostPseudoColor(getColorByKey(themeKey, "post_pseudo"));
+		currentTheme.setPostDateColor(getColorByKey(themeKey, "post_date"));
+		currentTheme.setPostTextColor(getColorByKey(themeKey, "text1"));
+		currentTheme.setPostLinkColor(getColorByKey(themeKey, "post_link"));
+		currentTheme.setPostEditQuoteBackgroundColor(getColorByKey(themeKey, "post_edit_quote_background"));
+		currentTheme.setPostEditQuoteTextColor(getColorByKey(themeKey, "post_edit_quote_text"));
+		currentTheme.setPostBlockBackgroundColor(getColorByKey(themeKey, "post_block_background"));
+		currentTheme.setModoPostBackgroundColor(getColorByKey(themeKey, "post_modo_background"));
+	}
+
 	protected HFR4droidApplication getHFR4droidApplication()
 	{
-		return (HFR4droidApplication)getApplication();
+		return (HFR4droidApplication) getApplication();
 	}
 
 	protected MDDataRetriever getDataRetriever()
@@ -369,7 +471,7 @@ public abstract class HFR4droidActivity extends Activity
 		}
 	}
 
-	protected void stopMpCheckService()
+	protected void stopMpTimerCheckService()
 	{
 		Intent intent = new Intent(this, MpTimerCheckService.class); 
 		stopService(intent);
@@ -488,7 +590,7 @@ public abstract class HFR4droidActivity extends Activity
 				{
 					public boolean onKey(DialogInterface dialog, int keyCode, KeyEvent event)
 					{
-						if (keyCode == KeyEvent.KEYCODE_BACK)
+						if (keyCode == KeyEvent.KEYCODE_BACK && event.getAction() == KeyEvent.ACTION_UP)
 						{
 							return true;
 						}
@@ -815,28 +917,37 @@ public abstract class HFR4droidActivity extends Activity
 		return settings.getBoolean(PREF_FULLSCREEN_ENABLE, Boolean.parseBoolean(getString(R.string.pref_fullscreen_enable_default)));
 	}
 	
+	protected String getThemeKey()
+	{
+		SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(this);
+		return settings.getString(PREF_THEME, getString(R.string.pref_theme_default));
+	}
+	
 	protected int getPoliceSize()
 	{
 		SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(this);
 		return Integer.parseInt(settings.getString(PREF_POLICE_SIZE, getString(R.string.pref_police_size_default)));
 	}
 
-	protected boolean isAvatarsEnable()
+	protected DrawableDisplayType getAvatarsDisplayType()
 	{
 		SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(this);
-		return settings.getBoolean(PREF_AVATARS_ENABLE, Boolean.parseBoolean(getString(R.string.pref_avatars_enable_default)));
+		String value = settings.getString(HFR4droidActivity.PREF_AVATARS_DISPLAY_TYPE, getString(R.string.pref_avatars_display_type_default));
+		return DrawableDisplayType.fromInt(Integer.parseInt(value));
 	}
 
-	protected boolean isSmileysEnable()
+	protected DrawableDisplayType getSmileysDisplayType()
 	{
 		SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(this);
-		return settings.getBoolean(PREF_SMILEYS_ENABLE, Boolean.parseBoolean(getString(R.string.pref_smileys_enable_default)));
+		String value = settings.getString(HFR4droidActivity.PREF_SMILEYS_DISPLAY_TYPE, getString(R.string.pref_smileys_display_type_default));
+		return DrawableDisplayType.fromInt(Integer.parseInt(value));
 	}
 
-	protected boolean isImgsEnable()
+	protected DrawableDisplayType getImgsDisplayType()
 	{
 		SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(this);
-		return settings.getBoolean(PREF_IMGS_ENABLE, Boolean.parseBoolean(getString(R.string.pref_imgs_enable_default)));
+		String value = settings.getString(HFR4droidActivity.PREF_IMGS_DISPLAY_TYPE, getString(R.string.pref_imgs_display_type_default));
+		return DrawableDisplayType.fromInt(Integer.parseInt(value));
 	}
 
 	protected boolean isSrvMpEnable()
@@ -1118,9 +1229,9 @@ public abstract class HFR4droidActivity extends Activity
 			return widthPercent;
 		}
 		
-		protected abstract void onLeftToRight();
+		protected abstract void onLeftToRight(MotionEvent e1, MotionEvent e2);
 
-		protected abstract void onRightToLeft();
+		protected abstract void onRightToLeft(MotionEvent e1, MotionEvent e2);
 		
 		public abstract boolean onDoubleTap(MotionEvent e);
 
@@ -1133,11 +1244,11 @@ public abstract class HFR4droidActivity extends Activity
 			{
 				if (e1.getX() < e2.getX())
 				{
-					onLeftToRight();
+					onLeftToRight(e1, e2);
 				} 
 				else if (e1.getX() > e2.getX())
 				{
-					onRightToLeft();
+					onRightToLeft(e1, e2);
 				}
 				return true;
 			}

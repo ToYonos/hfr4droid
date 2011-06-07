@@ -2,6 +2,7 @@ package info.toyonos.hfr4droid.activity;
 
 import info.toyonos.hfr4droid.HFR4droidException;
 import info.toyonos.hfr4droid.R;
+import info.toyonos.hfr4droid.core.bean.Theme;
 import info.toyonos.hfr4droid.core.data.DataRetrieverException;
 import info.toyonos.hfr4droid.core.message.MessageSenderException;
 import info.toyonos.hfr4droid.core.message.HFRMessageSender.ResponseCode;
@@ -22,6 +23,7 @@ import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -101,10 +103,28 @@ public abstract class NewPostUIActivity extends HFR4droidActivity
 
 		return hfrRehost;
 	}
+	
+	protected ImageButton getSmileyButton(final ViewGroup layout)
+	{
+		ImageButton smiley = new ImageButton(NewPostUIActivity.this);
+		smiley.setLayoutParams(new LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.FILL_PARENT));
+		smiley.setImageResource(R.drawable.redface);
+		smiley.setOnClickListener(new OnClickListener()
+		{
+			public void onClick(View v)
+			{
+				layout.findViewById(R.id.Toolbar).setVisibility(View.GONE);
+				layout.findViewById(R.id.SmileySearch).setVisibility(View.VISIBLE);
+			}
+		});
+
+		return smiley;
+	}
 
 	protected void addPostButtons(final ViewGroup layout)
 	{
 		LinearLayout ll = (LinearLayout) layout.findViewById(R.id.FormatButtons);
+		ll.addView(getSmileyButton(layout));
 		ll.addView(new FormatButton(layout, SMILEY_KEY));
 		ll.addView(new FormatButton(layout, BOLD_KEY));
 		ll.addView(new FormatButton(layout, ITALIC_KEY));
@@ -123,11 +143,11 @@ public abstract class NewPostUIActivity extends HFR4droidActivity
 		{
 			public void onClick(View v)
 			{
-				final EditText smileyTag = (EditText) layout.findViewById(R.id.inputSmileyTag);
+				final EditText smileyTag = (EditText) layout.findViewById(R.id.InputSmileyTag);
 				if (smileyTag.getText().length() == 0) return;
 
 				InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
-				imm.hideSoftInputFromWindow(((EditText) layout.findViewById(R.id.inputSmileyTag)).getWindowToken(), 0);
+				imm.hideSoftInputFromWindow(((EditText) layout.findViewById(R.id.InputSmileyTag)).getWindowToken(), 0);
 
 				final ProgressDialog progressDialog = new ProgressDialog(NewPostUIActivity.this);
 				progressDialog.setMessage(getString(R.string.getting_smilies));
@@ -154,6 +174,7 @@ public abstract class NewPostUIActivity extends HFR4droidActivity
 									{
 										insertBBCode((EditText) layout.findViewById(R.id.InputPostContent), " " + smiley + " ", "");
 										hideWikiSmiliesResults(smiliesLayout);
+										hideWikiSmiliesSearch(layout);
 									}
 								});
 							}
@@ -238,9 +259,6 @@ public abstract class NewPostUIActivity extends HFR4droidActivity
 
 		Button okButton = (Button) layout.findViewById(R.id.ButtonOkAddPost);
 		setOkButtonClickListener(okButton);
-
-		Button cancelButton = (Button) layout.findViewById(R.id.ButtonCancelAddPost);
-		setCancelButtonClickListener(cancelButton);
 	}
 	
 	protected abstract ViewGroup getSmiliesLayout();
@@ -262,10 +280,14 @@ public abstract class NewPostUIActivity extends HFR4droidActivity
 			layout.removeView(lastChild);
 		}
 	}
-	
-	protected abstract void setOkButtonClickListener(Button okButton);
 
-	protected abstract void setCancelButtonClickListener(Button cancelButton);
+	protected void hideWikiSmiliesSearch(ViewGroup layout)
+	{
+		layout.findViewById(R.id.Toolbar).setVisibility(View.VISIBLE);
+		layout.findViewById(R.id.SmileySearch).setVisibility(View.GONE);
+	}
+
+	protected abstract void setOkButtonClickListener(Button okButton);
 
 	protected void insertBBCode(EditText editText, String left, String right)
 	{
@@ -392,5 +414,13 @@ public abstract class NewPostUIActivity extends HFR4droidActivity
 				}
 			});	
 		}
+	}
+	
+	protected void applyTheme(Theme theme, ViewGroup rootLayout)
+	{
+		rootLayout.setBackgroundColor(currentTheme.getListBackgroundColor());
+		
+		TextView labelSmileyTag = (TextView) rootLayout.findViewById(R.id.LabelSmileyTag);
+		labelSmileyTag.setTextColor(currentTheme.getPostTextColor());
 	}
 }

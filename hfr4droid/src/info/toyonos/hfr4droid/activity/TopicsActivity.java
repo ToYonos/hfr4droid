@@ -1,8 +1,10 @@
 package info.toyonos.hfr4droid.activity;
 
+import info.toyonos.hfr4droid.HFR4droidException;
 import info.toyonos.hfr4droid.R;
 import info.toyonos.hfr4droid.core.bean.Category;
 import info.toyonos.hfr4droid.core.bean.SubCategory;
+import info.toyonos.hfr4droid.core.bean.Theme;
 import info.toyonos.hfr4droid.core.bean.Topic;
 import info.toyonos.hfr4droid.core.bean.SubCategory.ToStringType;
 import info.toyonos.hfr4droid.core.bean.Topic.TopicStatus;
@@ -17,8 +19,8 @@ import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.content.res.ColorStateList;
-import android.graphics.Color;
 import android.graphics.Typeface;
+import android.graphics.drawable.ColorDrawable;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.text.Html;
@@ -69,6 +71,7 @@ public class TopicsActivity extends HFR4droidListActivity<Topic>
 	{
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.topics);
+		applyTheme(currentTheme);
 		attachEvents();
 
 		Bundle bundle = this.getIntent().getExtras();
@@ -139,6 +142,7 @@ public class TopicsActivity extends HFR4droidListActivity<Topic>
 					menu.setHeaderTitle(currentTopic.getName());
 					if (!isLoggedIn() || currentTopic.getLastReadPage() == -1) menu.removeItem(R.id.MenuNavLastReadPage);
 					if (!isLoggedIn() || !isMpsCat()) menu.removeItem(R.id.MenuNavSetUnread);
+					if (!isLoggedIn() || isMpsCat()) menu.removeItem(R.id.MenuNavUnflag);
 					if (!isLoggedIn() || currentTopic.getStatus() == TopicStatus.LOCKED) menu.removeItem(R.id.MenuNavNewPost);
 				}
 				else
@@ -152,7 +156,7 @@ public class TopicsActivity extends HFR4droidListActivity<Topic>
 		gestureDetector = new GestureDetector(new SimpleNavOnGestureListener()
 		{
 			@Override
-			protected void onLeftToRight()
+			protected void onLeftToRight(MotionEvent e1, MotionEvent e2)
 			{
 				if (type != TopicType.ALL) return;
 				if (currentPageNumber != 1)
@@ -166,7 +170,7 @@ public class TopicsActivity extends HFR4droidListActivity<Topic>
 			}
 
 			@Override
-			protected void onRightToLeft()
+			protected void onRightToLeft(MotionEvent e1, MotionEvent e2)
 			{
 				if (type == TopicType.ALL) loadNextPage();
 			}
@@ -192,7 +196,8 @@ public class TopicsActivity extends HFR4droidListActivity<Topic>
 	{
 		AdapterContextMenuInfo menuInfo = (AdapterContextMenuInfo) aItem.getMenuInfo();
 		final Topic currentTopic = menuInfo != null ? (Topic) getListView().getAdapter().getItem(menuInfo.position) : null;
-
+		final ProgressDialog progressDialog = new ProgressDialog(TopicsActivity.this);
+		
 		switch (aItem.getItemId())
 		{    	
 			case R.id.MenuNavLastReadPage:
@@ -219,22 +224,27 @@ public class TopicsActivity extends HFR4droidListActivity<Topic>
 				
 			case R.id.MenuDrapeauxAll:
 				cat = currentTopic.getCategory();
-				loadTopics(currentTopic.getCategory(), TopicType.ALL, 1);
+				type = TopicType.ALL;
+				if (currentPageNumber < 1) currentPageNumber = 1;
+				reloadPage();
 				return true;
 	
 			case R.id.MenuDrapeauxCyan:
 				cat = currentTopic.getCategory();
-				loadTopics(currentTopic.getCategory(), TopicType.CYAN);
+				type = TopicType.CYAN;
+				reloadPage();
 				return true;
 	
 			case R.id.MenuDrapeauxRouges:
 				cat = currentTopic.getCategory();
-				loadTopics(currentTopic.getCategory(), TopicType.ROUGE);
+				type = TopicType.ROUGE;
+				reloadPage();
 				return true;
 	
 			case R.id.MenuDrapeauxFavoris:
 				cat = currentTopic.getCategory();
-				loadTopics(currentTopic.getCategory(), TopicType.FAVORI);
+				type = TopicType.FAVORI;
+				reloadPage();
 				return true;    				
 	
 			case R.id.MenuNavNewPost:
@@ -248,7 +258,6 @@ public class TopicsActivity extends HFR4droidListActivity<Topic>
 				return true;
 				
 			case R.id.MenuNavSetUnread:
-				final ProgressDialog progressDialog = new ProgressDialog(TopicsActivity.this);
 				progressDialog.setMessage(getString(R.string.unread_loading));
 				progressDialog.setIndeterminate(true);
 				new AsyncTask<Void, Void, Boolean>()
@@ -281,11 +290,51 @@ public class TopicsActivity extends HFR4droidListActivity<Topic>
 						if (response)
 						{
 							currentTopic.setStatus(TopicStatus.NEW_MP);
-							redrawPage();
+							adapter.notifyDataSetChanged();
 						}
 						else
 						{
 							Toast.makeText(TopicsActivity.this, R.string.unread_failed, Toast.LENGTH_SHORT).show();
+						}
+					}
+				}.execute();
+				return true;
+				
+			case R.id.MenuNavUnflag:
+				progressDialog.setMessage(getString(R.string.unflag_loading));
+				progressDialog.setIndeterminate(true);
+				new AsyncTask<Void, Void, String>()
+				{
+					@Override
+					protected void onPreExecute() 
+					{
+						progressDialog.show();
+					}
+
+					@Override
+					protected String doInBackground(Void... params)
+					{
+						String response = null;
+						try
+						{
+							response = getMessageSender().unflag(currentTopic, type, getDataRetriever().getHashCheck());
+						} 
+						catch (HFR4droidException e)
+						{
+							error(e, true, true);
+						}
+						return response;
+					}
+
+					@Override
+					protected void onPostExecute(String response)
+					{
+						progressDialog.dismiss();
+						if (response != null)
+						{
+							Toast.makeText(TopicsActivity.this, response, Toast.LENGTH_SHORT).show();
+							adapter.remove(currentTopic);
+							adapter.notifyDataSetChanged();
 						}
 					}
 				}.execute();
@@ -489,6 +538,17 @@ public class TopicsActivity extends HFR4droidListActivity<Topic>
 		}
 		catTitle.setText(title);
 		catTitle.setSelected(true);
+	}
+	
+	@Override
+	protected void applyTheme(Theme theme)
+	{
+		ListView mainList = getListView();
+		((LinearLayout) mainList.getParent()).setBackgroundColor(theme.getListBackgroundColor());
+		mainList.setDivider(new ColorDrawable(theme.getListDividerColor()));
+		mainList.setDividerHeight(1);
+		mainList.setCacheColorHint(theme.getListBackgroundColor());
+		mainList.setSelector(getKeyByTheme(getThemeKey(), R.drawable.class, "list_selector"));
 	}
 
 	@Override
@@ -758,10 +818,15 @@ public class TopicsActivity extends HFR4droidListActivity<Topic>
 			boolean isDummyTopic = t.getId() == -1;
 
 			try
+			{				
+				text1.setTextColor(isDummyTopic ?
+				ColorStateList.createFromXml(getResources(), getResources().getXml(getKeyByTheme(getThemeKey(), R.color.class, "item_cat_header"))) :
+				ColorStateList.createFromXml(getResources(), getResources().getXml(getKeyByTheme(getThemeKey(), R.color.class, "item"))));
+			}
+			catch (Exception e)
 			{
-				text1.setTextColor(isDummyTopic ? ColorStateList.createFromXml(getResources(), getResources().getXml(R.color.item_cat_header))
-						: ColorStateList.createFromXml(getResources(), getResources().getXml(R.color.item)));
-			} catch (Exception e) {}
+				error(e);
+			}
 
 			LinearLayout ll = (LinearLayout) text1.getParent();
 			if (isMpsCat())
@@ -774,10 +839,13 @@ public class TopicsActivity extends HFR4droidListActivity<Topic>
 				author.setText(Html.fromHtml("<b>@" + t.getAuthor() + "</b> : "));
 				try
 				{
-					author.setTextColor(ColorStateList.createFromXml(getResources(), getResources().getXml(R.color.item)));
-				} catch (Exception e) {}
+					author.setTextColor(ColorStateList.createFromXml(getResources(), getResources().getXml(getKeyByTheme(getThemeKey(), R.color.class, "item"))));
+				}
+				catch (Exception e)
+				{
+					error(e);
+				}
 				ll.removeView(ll.findViewById(R.id.ItemRemainingPages));
-
 			}
 			else
 			{
@@ -788,14 +856,23 @@ public class TopicsActivity extends HFR4droidListActivity<Topic>
 				remainingPages.setText("(" + (t.getNbPages() - t.getLastReadPage()) + ")");
 				try
 				{
-					remainingPages.setTextColor(ColorStateList.createFromXml(getResources(), getResources().getXml(R.color.item2)));
-				} catch (Exception e) {}
+					remainingPages.setTextColor(ColorStateList.createFromXml(getResources(), getResources().getXml(getKeyByTheme(getThemeKey(), R.color.class, "item2"))));
+				}
+				catch (Exception e)
+				{
+					error(e);
+				}
 			}
 
 			text1.setText(isDummyTopic ? t.getCategory().toString() : t.toString());
 			text1.setTypeface(null, isDummyTopic || t.isSticky() ? Typeface.BOLD : Typeface.NORMAL);
 			text1.setGravity(isDummyTopic ? Gravity.CENTER : Gravity.LEFT);
-			ll.setBackgroundColor(isDummyTopic ? Color.parseColor("#336699") : Color.TRANSPARENT);			
+			ll.setBackgroundResource(isDummyTopic ? getKeyByTheme(getThemeKey(), R.drawable.class, "selector") : 0);
+			int left, right, top, bottom;
+			float scale = getResources().getDisplayMetrics().density;
+			left = right = (int) (7 * scale + 0.5f);
+			top = bottom = (int) (12 * scale + 0.5f);
+			ll.setPadding(left, top, right, bottom);
 
 			if (isDummyTopic)
 			{

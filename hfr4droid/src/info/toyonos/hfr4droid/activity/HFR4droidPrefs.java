@@ -32,6 +32,22 @@ public class HFR4droidPrefs extends PreferenceActivity
 		
 		addPreferencesFromResource(R.xml.prefs);
 		final PreferenceScreen preferenceScreen = getPreferenceScreen();
+		
+		Preference checkMpsEnable = findPreference(HFR4droidActivity.PREF_CHECK_MPS_ENABLE);
+		checkMpsEnable.setOnPreferenceChangeListener(new OnPreferenceChangeListener()
+		{
+			public boolean onPreferenceChange(Preference preference, Object newValue)
+			{ 
+				preferenceScreen.findPreference(HFR4droidActivity.PREF_NOTIFICATION_TYPE).setEnabled((Boolean) newValue);
+				return true;
+			}
+		});
+		
+		Preference notificationTypePref = findPreference(HFR4droidActivity.PREF_NOTIFICATION_TYPE);
+		notificationTypePref.setEnabled(
+				preferenceScreen.getSharedPreferences().getBoolean(
+						HFR4droidActivity.PREF_CHECK_MPS_ENABLE,
+						Boolean.parseBoolean(getString(R.string.pref_check_mps_enable_default))));
 
 		Preference fullscreenEnable = findPreference(HFR4droidActivity.PREF_FULLSCREEN_ENABLE);
 		fullscreenEnable.setOnPreferenceChangeListener(new OnPreferenceChangeListener()
@@ -39,16 +55,6 @@ public class HFR4droidPrefs extends PreferenceActivity
 			public boolean onPreferenceChange(Preference preference, Object newValue)
 			{
 				switchFullscreen((Boolean) newValue);
-				return true;
-			}
-		});
-		
-		Preference policeSize = findPreference(HFR4droidActivity.PREF_POLICE_SIZE);
-		policeSize.setOnPreferenceChangeListener(new OnPreferenceChangeListener()
-		{
-			public boolean onPreferenceChange(Preference preference, Object newValue)
-			{
-				HFR4droidActivity.forceRedraw = true;
 				return true;
 			}
 		});
@@ -103,7 +109,7 @@ public class HFR4droidPrefs extends PreferenceActivity
 				}
 				return true;
 			}
-		});	
+		});
 	}
 	
 	public void switchFullscreen(boolean fullscreen)

@@ -19,6 +19,7 @@
 	<string name="nav_page_number">Numéro de page ?</string>
 	<string name="topic_new_post">Poster un message</string>
 	<string name="topic_set_unread">Marquer comme non lu</string>
+	<string name="topic_unflag">Effacer le drapeau</string>
 	
 	<string name="menu_drapeaux">Mes drapeaux</string>
 	<string name="menu_drapeaux_all">Tous les topics</string>
@@ -82,13 +83,18 @@
 	<string name="topic_subject_hint">Sujet du message</string>
 	<string name="send_mp">Envoyer par MP</string>
 
+	<string name="save_image_item">Sauvegarder l\'image</string>
+	<string name="share_image_item">Partager l\'image</string>
+	<string name="open_image_item">Ouvrir l\'image en taille réelle</string>
+	<string name="share_image">Partager via :</string>
+
 	<string name="keywords_title">Edition des mots clés du smiley %s</string>
 
 	<string name="button_ok">Ok</string>
 	<string name="button_cancel">Annuler</string>
 	<string name="button_yes">Oui</string>
 	<string name="button_no">Non</string>
-	<string name="button_validate_post">Valider le message</string>
+	<string name="button_validate_post">Valider</string>
 	
 	<string-array name="welcome_screen_values">
     	<item>Les catégories</item>
@@ -102,6 +108,16 @@
 		<item>1</item>
 		<item>2</item>
 		<item>3</item>
+	</string-array>
+	
+	<string-array name="notification_type_values">
+    	<item>Barre de statut</item>
+    	<item>Toast</item>
+	</string-array>
+	
+	<string-array name="notification_type_keys">
+		<item>1</item>
+		<item>2</item>
 	</string-array>
 	
 	<string-array name="type_drapeau_values">
@@ -130,6 +146,18 @@
 		<item>3</item>
 	</string-array>
 	
+	<string-array name="theme_values">
+    	<item>Défaut</item>
+    	<item>Dark</item>
+    	<item>Gris (HFR 2011)</item>
+	</string-array>
+	
+	<string-array name="theme_keys">
+		<item>default</item>
+		<item>dark</item>
+		<item>gray</item>
+	</string-array>
+	
 	<string-array name="police_size_values">
     	<item>Normal</item>
     	<item>Plus grand</item>
@@ -137,6 +165,18 @@
 	</string-array>
 	
 	<string-array name="police_size_keys">
+		<item>1</item>
+		<item>2</item>
+		<item>3</item>
+	</string-array>
+	
+	<string-array name="drawable_values">
+    	<item>Afficher toujours</item>
+    	<item>Afficher uniquement en WIFI</item>
+    	<item>Ne jamais afficher</item> 
+	</string-array>
+	
+	<string-array name="drawable_keys">
 		<item>1</item>
 		<item>2</item>
 		<item>3</item>

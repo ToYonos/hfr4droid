@@ -253,7 +253,16 @@ public class HFRDataRetriever implements MDDataRetriever
 		}
 		return null;
 	}
-	
+
+	/**
+	 * {@inheritDoc}
+	 */
+	public boolean isSubCatsLoaded(Category cat) throws DataRetrieverException
+	{
+		Category keyCat = getCatById(cat.getId());
+		return keyCat != null && cats.get(keyCat) != null;
+	}
+
 	/**
 	 * {@inheritDoc}
 	 */
@@ -270,7 +279,6 @@ public class HFRDataRetriever implements MDDataRetriever
 		return null;
 	}
 
-	
 	/**
 	 * {@inheritDoc}
 	 */
@@ -476,6 +484,9 @@ public class HFRDataRetriever implements MDDataRetriever
 		if (nbPages != null) topic.setNbPages(Integer.parseInt(nbPages));
 
 		hashCheck = getSingleElement("<input\\s*type=\"hidden\"\\s*name=\"hash_check\"\\s*value=\"(.+?)\" />", content);
+		
+		String subCat = getSingleElement("<input\\s*type=\"hidden\"\\s*name=\"subcat\"\\s*value=\"([0-9]+)\"\\s*/>", content);
+		if (subCat != null) topic.setSubCategory(new SubCategory(topic.getCategory(), Integer.parseInt(subCat)));
 		
 		// Pour HFRUrlParser, récupération d'informations complémentaires
 		if (topic.getName() == null)
@@ -683,6 +694,7 @@ public class HFRDataRetriever implements MDDataRetriever
 		InputStream data = null;
 		URI uri = new URI(url);
 		HttpGet method = new HttpGet(uri);
+		method.setHeader("User-Agent", "Mozilla/5.0 (Windows; U; Windows NT 6.1; fr; rv:1.9.2) Gecko/20100101 Firefox/4.0.1");
 		HttpContext httpContext = new BasicHttpContext();
 		if (auth != null && auth.getCookies() != null)
 		{

@@ -1,13 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
 	package="info.toyonos.hfr4droid"
-	android:versionCode="041"
-	android:versionName="0.4.1"
+	android:versionCode="050"
+	android:versionName="0.5.0"
 	android:installLocation="auto">
 
 	<uses-permission android:name="android.permission.INTERNET" />
 	<uses-permission android:name="android.permission.VIBRATE" />
 	<uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+	<uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
 
 	<uses-sdk android:minSdkVersion="3" android:targetSdkVersion="8" />
 	<supports-screens android:smallScreens="true" android:anyDensity="true"/>
@@ -57,5 +58,19 @@
 		<service android:name=".service.MpNotifyService" />
 		<service android:name=".service.MpCheckService" />
 		<service android:name=".service.MpTimerCheckService" />
+
+		<service
+			android:name="com.ubikod.capptain.android.service.CapptainService"
+			android:label="HFR4droidService"
+			android:process=":Capptain">
+			<intent-filter>
+				<category android:name="android.intent.category.DEFAULT"/>
+				<action android:name="com.ubikod.capptain.ICapptainService"/>
+				<data android:scheme="capptain"/>
+			</intent-filter>
+			<meta-data android:name="capptain:log:test" android:value="true" />
+			<meta-data android:name="capptain:api:level" android:value="6"/>
+			<meta-data android:name="capptain:api:id" android:value="b6a5b1113175bf391e442a8653876b84"/>
+		</service>
 	</application>
 </manifest>

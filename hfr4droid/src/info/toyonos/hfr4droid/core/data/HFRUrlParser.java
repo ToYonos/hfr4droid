@@ -167,7 +167,7 @@ public class HFRUrlParser implements MDUrlParser
 			else
 			{
 				Category cat = getCat(url);
-				element = new Topic(Long.parseLong(HFRDataRetriever.getSingleElement("(?:&|\\?)post=([0-9]+)", url)));
+				element = new Topic(Long.parseLong(HFRDataRetriever.getSingleElement("(?:&|\\?)post=([0-9]+)", url)), null);
 				((Topic) element).setCategory(cat);
 				((Topic) element).setLastReadPost(handlePostId(HFRDataRetriever.getSingleElement(POST_REGEXP, url)));
 				page = Integer.parseInt(HFRDataRetriever.getSingleElement("(?:&|\\?)page=([0-9]+)", url));
@@ -208,6 +208,7 @@ public class HFRUrlParser implements MDUrlParser
 		{
 			URI uri = new URI(url);
 			HttpHead method = new HttpHead(uri);
+			method.setHeader("User-Agent", "Mozilla/5.0 (Windows; U; Windows NT 6.1; fr; rv:1.9.2) Gecko/20100101 Firefox/4.0.1");
 			client.execute(method);
 		}
 		catch (ClientProtocolException e)

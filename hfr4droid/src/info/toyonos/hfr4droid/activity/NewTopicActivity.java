@@ -37,6 +37,7 @@ public class NewTopicActivity extends NewPostGenericActivity
 		LayoutInflater inflater = (LayoutInflater) getApplicationContext().getSystemService(LAYOUT_INFLATER_SERVICE);
 		ViewGroup layout = (ViewGroup) inflater.inflate(R.layout.new_topic, null);
 		setContentView(layout);
+		applyTheme(currentTheme);
 		
 		Intent intent = getIntent();
 		Bundle bundle = intent.getExtras();

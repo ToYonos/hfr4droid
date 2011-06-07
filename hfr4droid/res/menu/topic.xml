@@ -17,5 +17,8 @@
 		android:id="@+id/MenuNavNewPost" />
 	<item
 		android:title="@string/topic_set_unread"
-		android:id="@+id/MenuNavSetUnread" />		
+		android:id="@+id/MenuNavSetUnread" />
+	<item
+		android:title="@string/topic_unflag"
+		android:id="@+id/MenuNavUnflag" />
 </menu>

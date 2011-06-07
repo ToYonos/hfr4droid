@@ -25,13 +25,13 @@ public class MpCheckService extends MpNotifyService
 		{
 			public void run()
 			{
-				checkNewMps();
+				checkNewMps(getNotificationType());
 				stopSelf();
 			}
 		};
 	}
 
-	protected void checkNewMps()
+	protected void checkNewMps(NotificationType type)
 	{
 		Topic mp = new Topic(-1, null);
 		int nbMps = 0;
@@ -43,11 +43,11 @@ public class MpCheckService extends MpNotifyService
 		{
 			Log.e(HFR4droidApplication.TAG, HFR4droidActivity.getMessage(e, null), e);
 		}
-		notifyNewMps(nbMps, mp);
+		notifyNewMps(nbMps, mp, type);
 	}
 
 	private MDDataRetriever getDataRetriever()
 	{
-		return ((HFR4droidApplication)getApplication()).getDataRetriever();
+		return ((HFR4droidApplication) getApplication()).getDataRetriever();
 	}
 }

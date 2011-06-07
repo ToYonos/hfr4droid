@@ -3,6 +3,7 @@ package info.toyonos.hfr4droid.activity;
 import info.toyonos.hfr4droid.R;
 import info.toyonos.hfr4droid.core.bean.BasicElement;
 import info.toyonos.hfr4droid.core.bean.Category;
+import info.toyonos.hfr4droid.core.bean.Theme;
 import info.toyonos.hfr4droid.core.bean.Topic;
 import info.toyonos.hfr4droid.core.data.DataRetrieverException;
 import info.toyonos.hfr4droid.core.data.HFRUrlParser;
@@ -66,4 +67,7 @@ public class HFR4droidDispatcher extends HFR4droidActivity
 
 	@Override
 	protected void setTitle() {}
+
+	@Override
+	protected void applyTheme(Theme theme) {}
 }

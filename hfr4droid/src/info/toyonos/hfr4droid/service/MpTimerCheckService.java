@@ -33,7 +33,7 @@ public class MpTimerCheckService extends MpCheckService
 		{
 			public void run()
 			{
-				checkNewMps();
+				checkNewMps(NotificationType.STATUS_BAR);
 			} 
 		}, 0, period);
 	}

@@ -1,16 +1,17 @@
 package info.toyonos.hfr4droid.activity;
 
 import info.toyonos.hfr4droid.R;
+import info.toyonos.hfr4droid.core.bean.Theme;
 import android.app.Dialog;
 import android.content.DialogInterface;
 import android.content.DialogInterface.OnDismissListener;
 import android.os.Bundle;
+import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
-import android.view.View.OnClickListener;
-import android.widget.Button;
+import android.widget.LinearLayout;
 
 /**
  * <p>Activity abstraite permettant d'ajouter un topic ou un post</p>
@@ -46,6 +47,21 @@ public abstract class NewPostGenericActivity extends NewPostUIActivity
 	}
 
 	@Override
+	public boolean onKeyDown(int keyCode, KeyEvent event) 
+	{
+		if (keyCode == KeyEvent.KEYCODE_BACK)
+		{
+			ViewGroup layout = (ViewGroup) findViewById(R.id.PostContainer);
+			if (layout.findViewById(R.id.SmileySearch).getVisibility() == View.VISIBLE)
+			{
+				hideWikiSmiliesSearch(layout);
+				return true;
+			}
+		}
+		return super.onKeyDown(keyCode, event);
+	}
+
+	@Override
 	protected void goBack()
 	{
 		finish();
@@ -58,18 +74,6 @@ public abstract class NewPostGenericActivity extends NewPostUIActivity
 	}
 
 	@Override
-	protected void setCancelButtonClickListener(Button cancelButton)
-	{
-		cancelButton.setOnClickListener(new OnClickListener()
-		{
-			public void onClick(View v)
-			{
-				finish();	
-			}
-		});
-	}
-
-	@Override
 	protected ViewGroup getSmiliesLayout()
 	{
 		if (smiliesDialog == null)
@@ -79,7 +83,8 @@ public abstract class NewPostGenericActivity extends NewPostUIActivity
 			LayoutInflater inflater = (LayoutInflater) getApplicationContext().getSystemService(LAYOUT_INFLATER_SERVICE);
 			final ViewGroup layout = (ViewGroup) inflater.inflate(R.layout.smilies, null);
 			smiliesDialog.setContentView(layout);
-
+			applyThemeForSmilies(currentTheme);
+			
 			smiliesDialog.setOnDismissListener(new OnDismissListener()
 			{
 				public void onDismiss(DialogInterface dialog)
@@ -107,5 +112,22 @@ public abstract class NewPostGenericActivity extends NewPostUIActivity
 	{
 		smiliesDialog.dismiss();
 		super.hideWikiSmiliesResults(layout);
+	}
+	
+	@Override
+	protected void applyTheme(Theme theme)
+	{
+		LinearLayout root = (LinearLayout) findViewById(R.id.NewPostGenericRoot);
+		root.setBackgroundColor(theme.getListBackgroundColor());
+		
+		applyTheme(theme, (ViewGroup) findViewById(R.id.PostContainer).getParent());
+		
+		if (smiliesDialog != null) applyThemeForSmilies(theme);
+	}
+	
+	private void applyThemeForSmilies(Theme theme)
+	{
+		LinearLayout smilies = (LinearLayout) smiliesDialog.findViewById(R.id.SmiliesContainer);
+		smilies.setBackgroundColor(theme.getListBackgroundColor());
 	}
 }

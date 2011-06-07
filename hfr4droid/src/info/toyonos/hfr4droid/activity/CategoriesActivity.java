@@ -2,7 +2,11 @@ package info.toyonos.hfr4droid.activity;
 
 import info.toyonos.hfr4droid.R;
 import info.toyonos.hfr4droid.core.bean.Category;
+import info.toyonos.hfr4droid.core.bean.SubCategory;
+import info.toyonos.hfr4droid.core.bean.Theme;
+import info.toyonos.hfr4droid.core.bean.SubCategory.ToStringType;
 import info.toyonos.hfr4droid.core.bean.Topic.TopicType;
+import info.toyonos.hfr4droid.core.data.DataRetrieverException;
 import info.toyonos.hfr4droid.core.data.HFRDataRetriever;
 
 import java.io.IOException;
@@ -11,30 +15,37 @@ import java.util.ArrayList;
 import java.util.List;
 
 import android.app.AlertDialog;
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.DialogInterface.OnCancelListener;
 import android.content.DialogInterface.OnClickListener;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager.NameNotFoundException;
+import android.content.res.ColorStateList;
+import android.graphics.drawable.ColorDrawable;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.text.Html;
 import android.view.ContextMenu;
+import android.view.GestureDetector;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ContextMenu.ContextMenuInfo;
 import android.view.View.OnCreateContextMenuListener;
+import android.view.View.OnTouchListener;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
-import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.AdapterView.AdapterContextMenuInfo;
-import android.widget.AdapterView.OnItemClickListener;
 
 /**
  * <p>Activity listant les catégories</p>
@@ -46,6 +57,8 @@ public class CategoriesActivity extends HFR4droidListActivity<Category>
 {
 	private AlertDialog infoDialog;
 	protected boolean isCatsLoaded;
+	private GestureDetector gestureDetector;
+	protected List<Category> expandedCats  = new ArrayList<Category>();
 
 	@SuppressWarnings("unchecked")
 	@Override
@@ -53,6 +66,7 @@ public class CategoriesActivity extends HFR4droidListActivity<Category>
 	{
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.categories);
+		applyTheme(currentTheme);
 		infoDialog = getInfoDialog();
 		isCatsLoaded = true;
 
@@ -80,10 +94,111 @@ public class CategoriesActivity extends HFR4droidListActivity<Category>
 		adapter = new CategoryAdapter(this, R.layout.category, R.id.ItemContent, cats);
 		lv.setAdapter(adapter);
 
-		lv.setOnItemClickListener(new OnItemClickListener()
+		gestureDetector = new GestureDetector(new SimpleNavOnGestureListener()
 		{
-			public void onItemClick(AdapterView<?> a, View v, int position, long id)
+			@Override
+			protected void onLeftToRight(MotionEvent e1, MotionEvent e2){}
+
+			@Override
+			protected void onRightToLeft(MotionEvent e1, MotionEvent e2){}
+
+			@Override
+			public boolean onDoubleTap(MotionEvent me)
 			{
+				final int position = lv.pointToPosition((int) me.getX(), (int) me.getY());
+				final Category cat = adapter.getItem(position);
+				final boolean isCatExpanded = expandedCats.contains(cat);
+
+				if (!isCatExpanded)
+				{
+					try
+					{
+						final boolean isSubCatsLoaded = CategoriesActivity.this.getDataRetriever().isSubCatsLoaded(cat);
+						final ProgressDialog progressDialog = new ProgressDialog(CategoriesActivity.this);
+						progressDialog.setTitle(cat.toString());
+						progressDialog.setMessage(getString(R.string.getting_subcats));
+						progressDialog.setIndeterminate(true);
+						new AsyncTask<Category, Void, List<SubCategory>>()
+						{
+							@Override
+							protected void onPreExecute() 
+							{
+								if (!isSubCatsLoaded)
+								{
+									progressDialog.setCancelable(true);
+									progressDialog.setOnCancelListener(new OnCancelListener()
+									{
+										public void onCancel(DialogInterface dialog)
+										{
+											cancel(true);
+										}
+									});
+									progressDialog.show();
+								}
+							}
+
+							@Override
+							protected List<SubCategory> doInBackground(Category... cat)
+							{
+								List<SubCategory> subCats = null;
+								try
+								{
+									subCats = CategoriesActivity.this.getDataRetriever().getSubCats(cat[0]);
+								} 
+								catch (DataRetrieverException e)
+								{
+									error(e, true, true);
+								}
+								return subCats;
+							}
+
+							@Override
+							protected void onPostExecute(List<SubCategory> subCats)
+							{
+								if (!isSubCatsLoaded) progressDialog.dismiss();
+								if (subCats != null)
+								{
+									int i = position + 1;
+									for (SubCategory subCat : subCats)
+									{
+										adapter.insert(subCat, i++);				
+									}
+									expandedCats.add(cat);
+									adapter.notifyDataSetChanged();		
+								}
+							}
+						}.execute(cat);
+					}
+					catch (DataRetrieverException e)
+					{
+						error(e, true);
+					}
+				}
+				else
+				{
+					for(int i = position + 1;;)
+					{
+						if (i >= adapter.getCount()) break;
+						Category currentCat = adapter.getItem(i);
+						if (currentCat instanceof SubCategory)
+						{
+							adapter.remove(currentCat);
+						}
+						else
+						{
+							break;
+						}
+					}
+					expandedCats.remove(cat);
+					adapter.notifyDataSetChanged();
+				}
+				return true;
+			}
+
+			@Override
+			public boolean onSingleTapConfirmed(MotionEvent me)
+			{
+				int position = lv.pointToPosition((int) me.getX(), (int) me.getY());
 				Category cat = (Category) lv.getItemAtPosition(position);
 				if (isLoggedIn() && !isMpsCat(cat))
 				{
@@ -101,6 +216,15 @@ public class CategoriesActivity extends HFR4droidListActivity<Category>
 				{
 					loadTopics(cat, TopicType.ALL, 1, false);
 				}
+				return true;
+			}
+		});
+
+		lv.setOnTouchListener(new OnTouchListener()
+		{
+			public boolean onTouch(View v, MotionEvent event)
+			{
+				return gestureDetector.onTouchEvent(event);
 			}
 		});
 
@@ -251,11 +375,22 @@ public class CategoriesActivity extends HFR4droidListActivity<Category>
 	protected void setTitle(){}
 
 	@Override
+	protected void applyTheme(Theme theme)
+	{
+		ListView mainList = getListView();
+		((LinearLayout) mainList.getParent()).setBackgroundColor(theme.getListBackgroundColor());
+		mainList.setDivider(new ColorDrawable(theme.getListDividerColor()));
+		mainList.setDividerHeight(1);
+		mainList.setCacheColorHint(theme.getListBackgroundColor());
+		mainList.setSelector(getKeyByTheme(getThemeKey(), R.drawable.class, "list_selector"));
+	}
+
+	@Override
 	protected void reloadPage()
 	{
 		loadCats();
 	}
-	
+
 	@Override
 	protected void redrawPage()
 	{
@@ -294,12 +429,27 @@ public class CategoriesActivity extends HFR4droidListActivity<Category>
 		public View getView(int position, View convertView, ViewGroup parent)
 		{
 			View v = super.getView(position, convertView, parent);
-			Category c = cats.get(position);
 
+			final Category c = cats.get(position);
+			boolean isSubCat = c instanceof SubCategory;
+			
 			TextView text1 = (TextView) v.findViewById(R.id.ItemContent);
 			text1.setTextSize(getTextSize(15));
-			String newName = isMpsCat(c) || isAllCatsCat(c) || isModoCat(c) ? "<b>" + c.getName() + "</b>" : c.toString();
-			newName = isMpsCat(c) && c.getName().matches(".*?nouveaux? messages?.*?") ? "<font color=\"red\">" + newName + "</font>" : newName;
+			float scale = getResources().getDisplayMetrics().density;
+			text1.setPadding(isSubCat ? (int) (10 * scale + 0.5f) : 0, 0, 0, 0);
+			try
+			{
+				text1.setTextColor(ColorStateList.createFromXml(getResources(), getResources().getXml(getKeyByTheme(getThemeKey(), R.color.class, isSubCat ? "item2" : "item"))));
+				((TextView) v.findViewById(R.id.ItemArrow)).setTextColor(ColorStateList.createFromXml(getResources(), getResources().getXml(getKeyByTheme(getThemeKey(), R.color.class, isSubCat ? "item2" : "item"))));
+			}
+			catch (Exception e)
+			{
+				error(e);
+			}
+			
+			String newName = isSubCat ?	((SubCategory) c).toString(ToStringType.SUBCAT) :
+			isMpsCat(c) || isAllCatsCat(c) || isModoCat(c) ? "<b>" + c.getName() + "</b>" : c.toString();
+			//newName = isMpsCat(c) && c.getName().matches(".*?nouveaux? messages?.*?") ? "<font color=\"red\">" + newName + "</font>" : newName;
 			text1.setText(Html.fromHtml(newName));
 			return v;
 		}

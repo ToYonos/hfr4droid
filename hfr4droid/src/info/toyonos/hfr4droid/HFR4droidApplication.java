@@ -9,10 +9,7 @@ import info.toyonos.hfr4droid.core.message.HFRMessageSender;
 import java.io.File;
 import java.io.IOException;
 
-import org.acra.CrashReportingApplication;
-
-import android.content.SharedPreferences;
-import android.preference.PreferenceManager;
+import com.ubikod.capptain.android.sdk.CapptainApplication;
 
 /**
  * <p>Classe représentant l'application HFR4droid. Permet de centraliser les instances 
@@ -22,7 +19,7 @@ import android.preference.PreferenceManager;
  * @see android.app.Application
  *
  */
-public class HFR4droidApplication extends CrashReportingApplication
+public class HFR4droidApplication extends CapptainApplication
 {
 	public static final String TAG = "HFR4droid";
 	
@@ -31,16 +28,10 @@ public class HFR4droidApplication extends CrashReportingApplication
 	private HFRMessageSender msgSender;
 
 	@Override
-	public void onCreate()
+	public void onApplicationProcessCreate()
 	{
-		super.onCreate();
+		super.onApplicationProcessCreate();
 		dataRetriever = new HFRDataRetriever(this);
-		SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(this);
-		if (!settings.contains(CrashReportingApplication.PREF_DISABLE_ACRA))
-		{
-			SharedPreferences.Editor editor = settings.edit();
-			editor.putBoolean(CrashReportingApplication.PREF_DISABLE_ACRA, Boolean.parseBoolean(getString(R.string.pref_disable_acra_default)));
-		}
 		if (new File(HFRAuthentication.OLD_COOKIES_FILE_NAME).exists()) new File(HFRAuthentication.OLD_COOKIES_FILE_NAME).delete();
 	}
 
@@ -108,10 +99,4 @@ public class HFR4droidApplication extends CrashReportingApplication
 	{
 		return auth != null && auth.getCookies() != null;
 	}
-
-	@Override
-	public String getFormId()
-	{
-		return "dHRZSC1Kc2dJMVpsanNVQWhDQ3FqX0E6MQ";
-	}	
 }
