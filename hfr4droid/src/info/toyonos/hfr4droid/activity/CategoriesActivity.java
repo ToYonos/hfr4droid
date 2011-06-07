@@ -200,6 +200,8 @@ public class CategoriesActivity extends HFR4droidListActivity<Category>
 			{
 				int position = lv.pointToPosition((int) me.getX(), (int) me.getY());
 				Category cat = (Category) lv.getItemAtPosition(position);
+				if (cat == null) return false;
+
 				if (isLoggedIn() && !isMpsCat(cat))
 				{
 					TopicType type = TopicType.fromInt(getTypeDrapeau());
