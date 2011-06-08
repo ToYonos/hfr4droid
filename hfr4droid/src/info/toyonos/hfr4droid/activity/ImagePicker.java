@@ -252,7 +252,7 @@ public class ImagePicker extends Activity implements Runnable{
 		try {
 			httpClient.getParams().setParameter("http.socket.timeout", new Integer(90000)); // 90 second
 			post = new HttpPost(new URI(UPLOAD_URL));
-			post.setHeader("User-Agent", "Mozilla/5.0 (Windows; U; Windows NT 6.1; fr; rv:1.9.2) Gecko/20100101 Firefox/4.0.1");
+			post.setHeader("User-Agent", "Mozilla /4.0 (compatible; MSIE 6.0; Windows CE; IEMobile 7.6) Vodafone/1.0/SFR_v1615/1.56.163.8.39");
 			File file = new File(filepath);
 			
 			MultipartEntity multipart = new MultipartEntity();
