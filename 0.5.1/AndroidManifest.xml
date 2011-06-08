@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+	package="info.toyonos.hfr4droid"
+	android:versionCode="051"
+	android:versionName="0.5.1"
+	android:installLocation="auto">
+
+	<uses-permission android:name="android.permission.INTERNET" />
+	<uses-permission android:name="android.permission.VIBRATE" />
+	<uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+	<uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+
+	<uses-sdk android:minSdkVersion="3" android:targetSdkVersion="8" />
+	<supports-screens android:smallScreens="true" android:anyDensity="true"/>
+
+	<application android:icon="@drawable/icon" android:label="@string/app_name" android:name="HFR4droidApplication" android:debuggable="true">
+		<activity android:label="@string/app_name" android:name=".activity.CategoriesActivity" android:configChanges="keyboard|keyboardHidden|orientation">
+			<intent-filter>
+				<action android:name="android.intent.action.MAIN" />
+				<category android:name="android.intent.category.LAUNCHER" />
+			</intent-filter>
+		</activity>
+
+		<activity android:name=".activity.TopicsActivity" android:configChanges="keyboard|keyboardHidden|orientation" />
+
+		<activity android:name=".activity.PostsActivity" android:configChanges="keyboard|keyboardHidden|orientation" />
+
+		<activity android:name=".activity.HFR4droidDispatcher" android:noHistory="true">
+			<intent-filter>
+				<action android:name="android.intent.action.VIEW" />
+				<category android:name="android.intent.category.DEFAULT" />
+				<category android:name="android.intent.category.BROWSABLE" />
+				<data android:host="forum.hardware.fr" android:scheme="http" />
+			</intent-filter>
+		</activity>
+
+		<activity android:name=".activity.NewTopicActivity" android:configChanges="keyboard|keyboardHidden|orientation" android:windowSoftInputMode="adjustPan">
+			<intent-filter android:label="@string/send_mp">
+				<action android:name="android.intent.action.SEND" />
+				<category android:name="android.intent.category.DEFAULT" />
+				<data android:mimeType="text/plain" />
+				<data android:mimeType="image/*" />
+			</intent-filter>
+		</activity>
+
+		<activity android:name=".activity.NewPostActivity" android:configChanges="keyboard|keyboardHidden|orientation" android:windowSoftInputMode="adjustPan" />
+
+		<activity android:name=".activity.HFR4droidPrefs"/>
+		
+		<activity android:name=".activity.ImagePicker" android:icon="@drawable/hfrrehostnet" android:theme="@android:style/Theme.Translucent.NoTitleBar">
+			<intent-filter android:label="@string/upload_hfr_rehost">
+				<action android:name="android.intent.action.SEND" />
+				<category android:name="android.intent.category.DEFAULT" />
+				<data android:mimeType="image/*" />
+			</intent-filter>
+		</activity>
+
+		<service android:name=".service.MpNotifyService" />
+		<service android:name=".service.MpCheckService" />
+		<service android:name=".service.MpTimerCheckService" />
+
+		<service
+			android:name="com.ubikod.capptain.android.service.CapptainService"
+			android:label="HFR4droidService"
+			android:process=":Capptain">
+			<intent-filter>
+				<category android:name="android.intent.category.DEFAULT"/>
+				<action android:name="com.ubikod.capptain.ICapptainService"/>
+				<data android:scheme="capptain"/>
+			</intent-filter>
+			<meta-data android:name="capptain:log:test" android:value="true" />
+			<meta-data android:name="capptain:api:level" android:value="6"/>
+			<meta-data android:name="capptain:api:id" android:value="b6a5b1113175bf391e442a8653876b84"/>
+		</service>
+	</application>
+</manifest>
