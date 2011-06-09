@@ -16,6 +16,9 @@ import info.toyonos.hfr4droid.core.message.HFRMessageSender;
 import info.toyonos.hfr4droid.service.MpCheckService;
 import info.toyonos.hfr4droid.service.MpTimerCheckService;
 
+import java.io.PrintWriter;
+import java.io.StringWriter;
+import java.io.Writer;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -141,6 +144,13 @@ public abstract class HFR4droidActivity extends CapptainActivity
 	{
 		final String logMsg = getMessage(e, msg);
 		Log.e(HFR4droidApplication.TAG, logMsg, e);
+		
+		Bundle bundle = new Bundle();
+	    Writer result = new StringWriter();
+	    PrintWriter printWriter = new PrintWriter(result);
+	    e.printStackTrace(printWriter);
+		bundle.putString("Stack trace", result.toString());
+		getCapptainAgent().sendSessionError(logMsg, bundle);
 
 		if (toast)
 		{
