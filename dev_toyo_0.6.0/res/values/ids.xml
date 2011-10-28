@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<resources>
+	<item type="id" name="loading" />
+	<item type="id" name="SaveImage" />
+	<item type="id" name="ShareImage" />
+	<item type="id" name="OpenImage" />
+</resources>

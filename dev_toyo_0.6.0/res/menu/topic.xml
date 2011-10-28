@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+	<item
+		android:title="@string/topic_nav_last_read_page"
+		android:id="@+id/MenuNavLastReadPage" />
+	<item
+		android:title="@string/topic_nav_first_page"
+		android:id="@+id/MenuNavFirstPage" />
+	<item
+		android:title="@string/topic_nav_user_page"
+		android:id="@+id/MenuNavUserPage" />		
+	<item
+		android:title="@string/topic_nav_last_page"
+		android:id="@+id/MenuNavLastPage" />
+	<item
+		android:title="@string/topic_new_post"
+		android:id="@+id/MenuNavNewPost" />
+	<item
+		android:title="@string/topic_set_unread"
+		android:id="@+id/MenuNavSetUnread" />
+	<item
+		android:title="@string/topic_unflag"
+		android:id="@+id/MenuNavUnflag" />
+</menu>
