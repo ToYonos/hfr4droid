@@ -77,21 +77,6 @@ public class NewTopicActivity extends NewPostGenericActivity
 	}
 	
 	@Override
-	protected void onActivityResult(int requestCode, int resultCode, Intent data)
-	{
-		super.onActivityResult(requestCode, resultCode, data);
-		if (requestCode == ImagePicker.CHOOSE_PICTURE && data != null)
-		{
-			Bundle extras = data.getExtras();
-			if (extras != null)
-			{
-				String url = (String) extras.get(ImagePicker.FINAL_URL);
-				insertBBCode((EditText) findViewById(R.id.InputPostContent), url, "");
-			}
-		}
-	}
-	
-	@Override
 	public boolean onCreateOptionsMenu(Menu menu)
 	{
 		MenuInflater inflater = getMenuInflater();

@@ -41,6 +41,7 @@ public abstract class NewPostUIActivity extends HFR4droidActivity
 	private static final String ITALIC_KEY		= "italic";
 	private static final String UNDERLINE_KEY	= "underline";
 	private static final String STRIKE_KEY		= "strike";
+	private static final String QUOTE_KEY		= "quote";
 	private static final String FIXED_KEY		= "fixed";
 	private static final String CODE_KEY		= "code";
 	private static final String URL_KEY			= "url";
@@ -57,6 +58,23 @@ public abstract class NewPostUIActivity extends HFR4droidActivity
 	{
 		super.onCreate(savedInstanceState);
 	}
+	
+	@Override
+	protected void onActivityResult(int requestCode, int resultCode, Intent data)
+	{
+		super.onActivityResult(requestCode, resultCode, data);
+		if (requestCode == ImagePicker.CHOOSE_PICTURE && data != null)
+		{
+			Bundle extras = data.getExtras();
+			if (extras != null)
+			{
+				String url = (String) extras.get(ImagePicker.FINAL_URL);
+				onRehostOk(url);
+			}
+		}
+	}
+	
+	protected abstract void onRehostOk(String url);
 	
 	protected String fixHTML(String htmlContent)
 	{
@@ -130,6 +148,7 @@ public abstract class NewPostUIActivity extends HFR4droidActivity
 		ll.addView(new FormatButton(layout, ITALIC_KEY));
 		ll.addView(new FormatButton(layout, UNDERLINE_KEY));
 		ll.addView(new FormatButton(layout, STRIKE_KEY));
+		ll.addView(new FormatButton(layout, QUOTE_KEY));
 		ll.addView(new FormatButton(layout, FIXED_KEY));
 		ll.addView(new FormatButton(layout, CODE_KEY));
 		ll.addView(new FormatButton(layout, URL_KEY));

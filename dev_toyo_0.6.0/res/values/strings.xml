@@ -55,6 +55,8 @@
 	<string name="button_post_underline_right">[/u]</string>
 	<string name="button_post_strike_left">[strike]</string>
 	<string name="button_post_strike_right">[/strike]</string>
+	<string name="button_post_quote_left">[quote]</string>
+	<string name="button_post_quote_right">[/quote]</string>
 	<string name="button_post_fixed_left">[fixed]</string>
 	<string name="button_post_fixed_right">[/fixed]</string>
 	<string name="button_post_code_left">[code]</string>

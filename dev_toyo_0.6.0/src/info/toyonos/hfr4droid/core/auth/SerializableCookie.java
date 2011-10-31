@@ -4,7 +4,9 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
+import java.util.Calendar;
 import java.util.Date;
+import java.util.GregorianCalendar;
 
 import org.apache.http.cookie.Cookie;
 import org.apache.http.impl.cookie.BasicClientCookie;
@@ -26,11 +28,16 @@ public class SerializableCookie implements Serializable
 
 	private void writeObject(ObjectOutputStream oos) throws IOException
 	{
+		// On augmente la durée de vie des cookies à 10 ans
+		GregorianCalendar calendar = new GregorianCalendar();
+		calendar.add(Calendar.YEAR, 10);
+
 		oos.defaultWriteObject();
 		oos.writeObject(cookie.getName());
 		oos.writeObject(cookie.getComment());
 		oos.writeObject(cookie.getDomain());
-		oos.writeObject(cookie.getExpiryDate());
+		//oos.writeObject(cookie.getExpiryDate());
+		oos.writeObject(calendar.getTime());
 		oos.writeObject(cookie.getPath());
 		oos.writeObject(cookie.getValue());
 		oos.writeInt(cookie.getVersion());

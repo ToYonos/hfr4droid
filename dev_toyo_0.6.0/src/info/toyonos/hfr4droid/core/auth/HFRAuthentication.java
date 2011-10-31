@@ -161,7 +161,7 @@ public class HFRAuthentication
 		if (client.getCookieStore() != null && client.getCookieStore().getCookies().size() != 0)
 		{
 			cs = client.getCookieStore();
-			serializeCookies(cs);			
+			serializeCookies(cs);
 		}
 
 		client.getConnectionManager().shutdown();

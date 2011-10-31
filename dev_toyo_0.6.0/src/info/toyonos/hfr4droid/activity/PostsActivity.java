@@ -1353,19 +1353,10 @@ public class PostsActivity extends NewPostUIActivity
 	}
 	
 	@Override
-	protected void onActivityResult(int requestCode, int resultCode, Intent data)
+	protected void onRehostOk(String url)
 	{
-		super.onActivityResult(requestCode, resultCode, data);
-		if (requestCode == ImagePicker.CHOOSE_PICTURE && data != null)
-		{
-			Bundle extras = data.getExtras();
-			if (extras != null)
-			{
-				String url = (String) extras.get(ImagePicker.FINAL_URL);
-				insertBBCode((EditText) postDialog.findViewById(R.id.InputPostContent), url, "");
-				postDialog.show();
-			}
-		}
+		insertBBCode((EditText) postDialog.findViewById(R.id.InputPostContent), url, "");
+		postDialog.show();
 	}
 
 	@Override
