@@ -9,7 +9,7 @@ import info.toyonos.hfr4droid.core.message.HFRMessageSender;
 import java.io.File;
 import java.io.IOException;
 
-import com.ubikod.capptain.android.sdk.CapptainApplication;
+import android.app.Application;
 
 /**
  * <p>Classe représentant l'application HFR4droid. Permet de centraliser les instances 
@@ -19,7 +19,7 @@ import com.ubikod.capptain.android.sdk.CapptainApplication;
  * @see android.app.Application
  *
  */
-public class HFR4droidApplication extends CapptainApplication
+public class HFR4droidApplication extends Application
 {
 	public static final String TAG = "HFR4droid";
 	
@@ -28,9 +28,9 @@ public class HFR4droidApplication extends CapptainApplication
 	private HFRMessageSender msgSender;
 
 	@Override
-	public void onApplicationProcessCreate()
+	public void onCreate()
 	{
-		super.onApplicationProcessCreate();
+		super.onCreate();
 		dataRetriever = new HFRDataRetriever(this);
 		if (new File(HFRAuthentication.OLD_COOKIES_FILE_NAME).exists()) new File(HFRAuthentication.OLD_COOKIES_FILE_NAME).delete();
 	}

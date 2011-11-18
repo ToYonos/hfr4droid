@@ -67,6 +67,7 @@ public class HFRDataRetriever implements MDDataRetriever
 	public static final String TOPICS_URL		= BASE_URL + "/forum1.php?config=hfr.inc&cat={$cat}&subcat={$subcat}&page={$page}&owntopic={$type}";
 	public static final String ALL_TOPICS_URL	= BASE_URL + "/forum1f.php?config=hfr.inc&owntopic={$type}";
 	public static final String POSTS_URL		= BASE_URL + "/forum2.php?config=hfr.inc&cat={$cat}&post={$topic}&page={$page}";
+	public static final String SEARCH_POSTS_URL	= BASE_URL + "/forum2.php?config=hfr.inc&cat={$cat}&post={$topic}&word={$word}&spseudo={$pseudo}&currentnum={$fp}&filter=1";
 	public static final String SMILIES_URL		= BASE_URL + "/message-smi-mp-aj.php?config=hfr.inc&findsmilies={$tag}";
 	public static final String QUOTE_URL		= BASE_URL + "/message.php?config=hfr.inc&cat={$cat}&post={$topic}&numrep={$post}";
 	public static final String EDIT_URL			= BASE_URL + "/message.php?config=hfr.inc&cat={$cat}&post={$topic}&numreponse={$post}";
@@ -499,6 +500,97 @@ public class HFRDataRetriever implements MDDataRetriever
 
 		if (!topic.getCategory().equals(Category.MPS_CAT)) checkNewMps(content);
 
+		return posts;
+	}
+	
+	/**
+	 * {@inheritDoc}
+	 */
+	public List<Post> searchPosts(Topic topic, String pseudo, String word, Post fromPost) throws DataRetrieverException
+	{
+		ArrayList<Post> posts = new ArrayList<Post>();
+		String url = SEARCH_POSTS_URL.replaceFirst("\\{\\$cat\\}", topic.getCategory().getRealId())
+		.replaceFirst("\\{\\$topic\\}", String.valueOf(topic.getId()))
+		.replaceFirst("\\{\\$pseudo\\}", pseudo != null ? pseudo : "")
+		.replaceFirst("\\{\\$word\\}", word != null ? word : "")
+		.replaceFirst("\\{\\$fp\\}", String.valueOf(fromPost.getId()));
+		String content = null;
+		try
+		{
+			content = getAsString(url);
+		}
+		catch (Exception e)
+		{
+			throw new DataRetrieverException(context.getString(R.string.error_dr_posts), e);
+		}
+
+		Pattern p = Pattern.compile(
+			"(<tr.*?class=\"message.*?" +
+			"<a.*?href=\"#t([0-9]+)\".*?" +
+			"<b.*?class=\"s2\">(?:<a.*?>)?(.*?)(?:</a>)?</b>.*?" +
+			"(?:(?:<div\\s*class=\"avatar_center\".*?><img src=\"(.*?)\"\\s*alt=\".*?\"\\s*/></div>)|</td>).*?" +
+			"<div.*?class=\"left\">Posté le ([0-9]+)-([0-9]+)-([0-9]+).*?([0-9]+):([0-9]+):([0-9]+).*?" +
+			"<div.*?id=\"para[0-9]+\">(.*?)<div style=\"clear: both;\">\\s*</div></p>" +
+			"(?:<div\\s*class=\"edited\">)?(?:<a.*?>Message cité ([0-9]+) fois</a>)?(?:<br\\s*/>Message édité par .*? le ([0-9]+)-([0-9]+)-([0-9]+).*?([0-9]+):([0-9]+):([0-9]+)</div>)?.*?" +
+			"</div></td></tr></table>)"
+			, Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
+
+		Log.d(HFR4droidApplication.TAG,  topic.getName() != null ? "Matching posts of " + topic.getName() : "Matching posts");
+		Matcher m = p.matcher(content);
+		while (m.find())
+		{
+			Matcher m2 = Pattern.compile("edit\\-in\\.gif").matcher(m.group(1));
+			boolean isMine = m2.find();
+			m2 = Pattern.compile("messageModo").matcher(m.group(1));
+			boolean isModo = m2.find();
+			String postContent = m.group(11);
+			posts.add(new Post(
+					Integer.parseInt(m.group(2)),
+					postContent,
+					m.group(3),
+					m.group(4),
+					new GregorianCalendar(Integer.parseInt(m.group(7)), // Year
+							Integer.parseInt(m.group(6)) - 1, // Month
+							Integer.parseInt(m.group(5)), // Day
+							Integer.parseInt(m.group(8)), // Hour
+							Integer.parseInt(m.group(9)), // Minute
+							Integer.parseInt(m.group(10))  // Second
+							).getTime(),
+							m.group(13) != null ? new GregorianCalendar(Integer.parseInt(m.group(15)), // Year
+									Integer.parseInt(m.group(14)) - 1, // Month
+									Integer.parseInt(m.group(13)), // Day
+									Integer.parseInt(m.group(16)), // Hour
+									Integer.parseInt(m.group(17)), // Minute
+									Integer.parseInt(m.group(18))  // Second
+									).getTime() : null,
+									m.group(12) != null ? Integer.parseInt(m.group(12)) : 0,
+											isMine,
+											isModo,
+											topic
+					)
+					);
+		}
+		Log.d(HFR4droidApplication.TAG, "Match OK, " + posts.size() + " posts retrieved");
+
+		String nbPages = getSingleElement("([0-9]+)</(?:a|b)></div><div\\s*class=\"pagepresuiv\"", content);
+		if (nbPages != null) topic.setNbPages(Integer.parseInt(nbPages));
+
+		hashCheck = getSingleElement("<input\\s*type=\"hidden\"\\s*name=\"hash_check\"\\s*value=\"(.+?)\" />", content);
+
+		String subCat = getSingleElement("<input\\s*type=\"hidden\"\\s*name=\"subcat\"\\s*value=\"([0-9]+)\"\\s*/>", content);
+		if (subCat != null) topic.setSubCategory(new SubCategory(topic.getCategory(), Integer.parseInt(subCat)));
+
+		// Pour HFRUrlParser, récupération d'informations complémentaires
+		if (topic.getName() == null)
+		{
+			//String topicTitle = getSingleElement("<input\\s*type=\"hidden\"\\s*name=\"sujet\"\\s*value=\"(.+?)\"\\s*/>", content);
+			String topicTitle =  HFRDataRetriever.getSingleElement("(?:&nbsp;)*(.*)", HFRDataRetriever.getSingleElement("([^>]+)(?:</a>)?</h1>", content));
+			if (topicTitle != null) topic.setName(topicTitle);
+			if (getSingleElement("(repondre\\.gif)", content) == null) topic.setStatus(TopicStatus.LOCKED);
+		}
+
+		if (!topic.getCategory().equals(Category.MPS_CAT)) checkNewMps(content);
+		
 		return posts;
 	}
 

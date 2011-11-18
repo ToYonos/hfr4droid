@@ -108,6 +108,17 @@ public interface MDDataRetriever
 	 * @throws DataRetrieverException Si un problème survient
 	 */
 	public List<Post> getPosts(Topic topic, int pageNumber) throws DataRetrieverException;
+	
+	/**
+	 * Cherche les posts d'un topic donné selon des critères
+	 * @param topic Le <code>Topic</code> désiré
+	 * @param pseudo L'auteur des posts recherchés
+	 * @param word Le mot contenu dans les posts recherchés
+	 * @param fromPost Le premier post à partir duquel la recherche doit s'effectuer, non inclus dans les résultats (null si depuis le début)
+	 * @return Une <code>List</code> de <code>Post</code>
+	 * @throws DataRetrieverException Si un problème survient
+	 */
+	public List<Post> searchPosts(Topic topic, String pseudo, String word, Post fromPost) throws DataRetrieverException;
 
 	/**
 	 * Donne le nombre de nouveaux mps

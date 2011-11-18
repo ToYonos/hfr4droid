@@ -128,8 +128,8 @@ public class PostsActivity extends NewPostUIActivity
 		}
 	};
 
-	private Topic topic;
-	private List<Post> posts;
+	protected Topic topic;
+	protected List<Post> posts;
 	private TopicType fromType;
 	private boolean fromAllCats;
 
@@ -158,7 +158,6 @@ public class PostsActivity extends NewPostUIActivity
 		}
 	};	
 
-	@SuppressWarnings("unchecked")
 	@Override
 	protected void onCreate(Bundle savedInstanceState)
 	{
@@ -177,26 +176,7 @@ public class PostsActivity extends NewPostUIActivity
 		currentImgsDisplayType = getImgsDisplayType();
 		
 		Bundle bundle = this.getIntent().getExtras();
-		if (fromType == null) fromType =  bundle != null && bundle.getSerializable("fromTopicType") != null ? (TopicType) bundle.getSerializable("fromTopicType") : TopicType.ALL;
-		fromAllCats = bundle == null ? false : bundle.getBoolean("fromAllCats", false); 
-		if (bundle != null && bundle.getSerializable("posts") != null)
-		{
-			posts = (List<Post>) bundle.getSerializable("posts");
-			if (posts != null && posts.size() > 0)
-			{
-				topic = posts.get(0).getTopic();
-				if (isPreloadingEnable()) preLoadPosts(topic, currentPageNumber);
-				displayPosts(posts);
-			}
-		}
-		else
-		{
-			if (bundle != null && bundle.getSerializable("topic") != null)
-			{
-				topic = (Topic) bundle.getSerializable("topic");
-			}
-			if (topic != null) loadPosts(topic, currentPageNumber);
-		}
+		onCreateInit(bundle);
 
 		if (topic != null)
 		{
@@ -248,6 +228,31 @@ public class PostsActivity extends NewPostUIActivity
 				return true;
 			}
 		});
+	}
+	
+	@SuppressWarnings("unchecked")
+	protected void onCreateInit(Bundle bundle)
+	{
+		if (fromType == null) fromType =  bundle != null && bundle.getSerializable("fromTopicType") != null ? (TopicType) bundle.getSerializable("fromTopicType") : TopicType.ALL;
+		fromAllCats = bundle == null ? false : bundle.getBoolean("fromAllCats", false); 
+		if (bundle != null && bundle.getSerializable("posts") != null)
+		{
+			posts = (List<Post>) bundle.getSerializable("posts");
+			if (posts != null && posts.size() > 0)
+			{
+				topic = posts.get(0).getTopic();
+				if (isPreloadingEnable()) preLoadPosts(topic, currentPageNumber);
+				displayPosts(posts);
+			}
+		}
+		else
+		{
+			if (bundle != null && bundle.getSerializable("topic") != null)
+			{
+				topic = (Topic) bundle.getSerializable("topic");
+			}
+			if (topic != null) loadPosts(topic, currentPageNumber);
+		}
 	}
 
 	@Override
@@ -455,7 +460,7 @@ public class PostsActivity extends NewPostUIActivity
 		loadTopics(cat, fromType, 1, false);
 	}
 
-	private void updateButtonsStates()
+	protected void updateButtonsStates()
 	{
 		SlidingDrawer nav = (SlidingDrawer) findViewById(R.id.Nav);
 		TextView topicTitle = (TextView) findViewById(R.id.TopicTitle);
@@ -568,7 +573,7 @@ public class PostsActivity extends NewPostUIActivity
 		innerDisplayPosts(posts, true);
 	}
 
-	private void displayPosts(List<Post> posts)
+	protected void displayPosts(List<Post> posts)
 	{
 		innerDisplayPosts(posts, false);
 	}

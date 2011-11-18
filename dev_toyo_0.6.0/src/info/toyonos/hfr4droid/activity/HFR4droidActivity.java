@@ -16,30 +16,29 @@ import info.toyonos.hfr4droid.core.message.HFRMessageSender;
 import info.toyonos.hfr4droid.service.MpCheckService;
 import info.toyonos.hfr4droid.service.MpTimerCheckService;
 
-import java.io.PrintWriter;
-import java.io.StringWriter;
-import java.io.Writer;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
 
+import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.NotificationManager;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
-import android.content.Intent;
-import android.content.SharedPreferences;
 import android.content.DialogInterface.OnCancelListener;
 import android.content.DialogInterface.OnClickListener;
+import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.text.InputType;
 import android.util.DisplayMetrics;
 import android.util.Log;
+import android.view.GestureDetector.SimpleOnGestureListener;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -48,12 +47,11 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
-import android.view.GestureDetector.SimpleOnGestureListener;
 import android.widget.EditText;
 import android.widget.SlidingDrawer;
 import android.widget.Toast;
 
-import com.ubikod.capptain.android.sdk.activity.CapptainActivity;
+import com.markupartist.android.widget.PullToRefreshListView;
 
 /**
  * <p>Activity générique de l'application. Gère entre autres :
@@ -66,7 +64,7 @@ import com.ubikod.capptain.android.sdk.activity.CapptainActivity;
  * @author ToYonos
  *
  */
-public abstract class HFR4droidActivity extends CapptainActivity
+public abstract class HFR4droidActivity extends Activity
 {
 	public static final String PREF_WELCOME_SCREEN			= "PrefWelcomeScreen";
 	public static final String PREF_CHECK_MPS_ENABLE		= "PrefCheckMpsEnable";
@@ -144,13 +142,6 @@ public abstract class HFR4droidActivity extends CapptainActivity
 	{
 		final String logMsg = getMessage(e, msg);
 		Log.e(HFR4droidApplication.TAG, logMsg, e);
-		
-		Bundle bundle = new Bundle();
-	    Writer result = new StringWriter();
-	    PrintWriter printWriter = new PrintWriter(result);
-	    e.printStackTrace(printWriter);
-		bundle.putString("Stack trace", result.toString());
-		getCapptainAgent().sendSessionError(logMsg, bundle);
 
 		if (toast)
 		{
@@ -378,8 +369,8 @@ public abstract class HFR4droidActivity extends CapptainActivity
 	}
 
 	protected abstract void applyTheme(Theme theme);
-	
-	@SuppressWarnings("unchecked")
+
+	@SuppressWarnings("rawtypes")
 	protected int getKeyByTheme(String themeKey, Class type, String key)
 	{
 		try
@@ -413,6 +404,7 @@ public abstract class HFR4droidActivity extends CapptainActivity
 		currentTheme.setPostEditQuoteTextColor(getColorByKey(themeKey, "post_edit_quote_text"));
 		currentTheme.setPostBlockBackgroundColor(getColorByKey(themeKey, "post_block_background"));
 		currentTheme.setModoPostBackgroundColor(getColorByKey(themeKey, "post_modo_background"));
+		currentTheme.setProgressBarInversed(Boolean.parseBoolean(getString(getKeyByTheme(themeKey, R.string.class, "inverse_progress"))));
 	}
 
 	protected HFR4droidApplication getHFR4droidApplication()
@@ -666,8 +658,13 @@ public abstract class HFR4droidActivity extends CapptainActivity
 	{
 		loadTopics(cat, type, pageNumber, true);
 	}
-
+	
 	protected void loadTopics(final Category cat, final TopicType type, final int pageNumber, final boolean sameActivity)
+	{
+		loadTopics(cat, type, pageNumber, sameActivity, true);
+	}
+
+	protected void loadTopics(final Category cat, final TopicType type, final int pageNumber, final boolean sameActivity, boolean displayLoading)
 	{
 		String progressTitle = cat.toString();
 		String progressContent = type != TopicType.ALL ? getString("getting_topics_" + type.getKey() + "s")
@@ -691,6 +688,7 @@ public abstract class HFR4droidActivity extends CapptainActivity
 				activity.setPageNumber(pageNumber);
 				activity.refreshTopics(topics);
 				setTitle();
+				((PullToRefreshListView) activity.getListView()).onRefreshComplete();
 			}
 
 			@Override
@@ -730,7 +728,7 @@ public abstract class HFR4droidActivity extends CapptainActivity
 					loadCats(false);	
 				}
 			}
-		}.execute(progressTitle, progressContent, noElement, sameActivity, cat);
+		}.execute(progressTitle, progressContent, noElement, sameActivity, displayLoading, cat);
 	}
 
 	protected void loadPosts(Topic topic, final int pageNumber)
@@ -741,8 +739,9 @@ public abstract class HFR4droidActivity extends CapptainActivity
 	protected void loadPosts(final Topic topic, final int pageNumber, final boolean sameActivity)
 	{
 		String progressTitle = topic.toString();
-		String progressContent = topic.getNbPages() != -1 ? getString(R.string.getting_posts, pageNumber, topic.getNbPages())
-															: getString(R.string.getting_posts_simple, pageNumber, topic.getNbPages());
+		String progressContent = topic.getNbPages() != -1 ?
+		getString(R.string.getting_posts, pageNumber, topic.getNbPages()) :
+		getString(R.string.getting_posts_simple, pageNumber, topic.getNbPages());
 		String noElement = getString(R.string.no_post);
 		
 		new DataRetrieverAsyncTask<Post, Topic>()
@@ -854,6 +853,60 @@ public abstract class HFR4droidActivity extends CapptainActivity
 
 		preLoadingPostsAsyncTask = new PreLoadingPostsAsyncTask(targetPageNumber);
 		preLoadingPostsAsyncTask.execute(topic);
+	}
+	
+	protected void searchPosts(Topic topic, String pseudo, String word, Post fromPost)
+	{
+		searchPosts(topic, pseudo, word, fromPost, true);
+	}
+
+	protected void searchPosts(final Topic topic, final String pseudo, final String word, final Post fromPost, final boolean sameActivity)
+	{
+		String progressTitle = topic.toString();
+		String progressContent = pseudo != null && word != null ?
+		getString(R.string.searching_posts_pseudo_word, pseudo, word) : (pseudo != null ?
+		getString(R.string.searching_posts_pseudo, pseudo) :					
+		getString(R.string.searching_posts_word, word));
+		String noElement = getString(R.string.no_post);
+		
+		new DataRetrieverAsyncTask<Post, Topic>()
+		{			
+			@Override
+			protected List<Post> retrieveDataInBackground(Topic... topics) throws DataRetrieverException
+			{
+				return getDataRetriever().searchPosts(topics[0], pseudo, word, fromPost);
+			}
+
+			@Override
+			protected void onPostExecuteSameActivity(List<Post> posts) throws ClassCastException
+			{
+				PostsSearchActivity activity = (PostsSearchActivity) HFR4droidActivity.this;
+				activity.setPosts(posts);
+				
+				Post lastPost = posts.get(posts.size() - 1);
+				if (lastPost.getId() > activity.getLastFromPost().getId())
+				{
+					activity.addFromPost(lastPost);
+				}
+				activity.setPageNumberFromPost(fromPost);
+				setTitle();
+				activity.refreshPosts(posts);
+			}
+
+			@Override
+			protected void onPostExecuteOtherActivity(List<Post> posts)
+			{
+				Intent intent = new Intent(HFR4droidActivity.this, PostsSearchActivity.class);
+				intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP );
+				Bundle bundle = new Bundle();
+				bundle.putSerializable("posts", new ArrayList<Post>(posts));
+				bundle.putSerializable("fromPost", fromPost);
+				bundle.putString("pseudo", pseudo);
+				bundle.putString("word", word);
+				intent.putExtras(bundle);
+				startActivity(intent);
+			}
+		}.execute(progressTitle, progressContent, noElement, sameActivity, topic);
 	}
 	
 	protected void loadFirstPage(){}
@@ -1003,6 +1056,7 @@ public abstract class HFR4droidActivity extends CapptainActivity
 	{
 		private ProgressDialog progressDialog;
 		private boolean sameActivity;
+		private boolean displayLoading;
 		private String noElementMsg;
 
 		protected abstract List<E> retrieveDataInBackground(P... params) throws DataRetrieverException;
@@ -1018,12 +1072,18 @@ public abstract class HFR4droidActivity extends CapptainActivity
 
 		public void execute(final String progressTitle, final String progressContent, final String noElementMsg, final boolean sameActivity, P... params)
 		{
+			execute(progressTitle, progressContent, noElementMsg, sameActivity, true, params);
+		}
+		
+		public void execute(final String progressTitle, final String progressContent, final String noElementMsg, final boolean sameActivity, final boolean displayLoading, P... params)
+		{
 			progressDialog = new ProgressDialog(HFR4droidActivity.this);
 			progressDialog.setTitle(progressTitle != null ? progressTitle : getString(R.string.loading));
 			progressDialog.setMessage(progressContent);
 			progressDialog.setIndeterminate(true);
 			this.noElementMsg = noElementMsg;
 			this.sameActivity = sameActivity;
+			this.displayLoading = displayLoading;
 			execute(params);
 		}
 
@@ -1038,7 +1098,7 @@ public abstract class HFR4droidActivity extends CapptainActivity
 					cancel(true);
 				}
 			});
-			progressDialog.show();
+			if (displayLoading) progressDialog.show();
 		}
 
 		@Override
@@ -1086,7 +1146,7 @@ public abstract class HFR4droidActivity extends CapptainActivity
 					onPostExecuteNoItem(sameActivity, t);
 				}
 			}
-			progressDialog.dismiss();				
+			if (displayLoading) progressDialog.dismiss();				
 		}
 	}
 

@@ -3,8 +3,8 @@ package info.toyonos.hfr4droid.activity;
 import info.toyonos.hfr4droid.R;
 import info.toyonos.hfr4droid.core.bean.Category;
 import info.toyonos.hfr4droid.core.bean.SubCategory;
-import info.toyonos.hfr4droid.core.bean.Theme;
 import info.toyonos.hfr4droid.core.bean.SubCategory.ToStringType;
+import info.toyonos.hfr4droid.core.bean.Theme;
 import info.toyonos.hfr4droid.core.bean.Topic.TopicType;
 import info.toyonos.hfr4droid.core.data.DataRetrieverException;
 import info.toyonos.hfr4droid.core.data.HFRDataRetriever;
@@ -28,24 +28,24 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.text.Html;
 import android.view.ContextMenu;
+import android.view.ContextMenu.ContextMenuInfo;
 import android.view.GestureDetector;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
-import android.view.ViewGroup;
-import android.view.ContextMenu.ContextMenuInfo;
 import android.view.View.OnCreateContextMenuListener;
 import android.view.View.OnTouchListener;
+import android.view.ViewGroup;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
+import android.widget.AdapterView.AdapterContextMenuInfo;
 import android.widget.ArrayAdapter;
 import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
-import android.widget.AdapterView.AdapterContextMenuInfo;
 
 /**
  * <p>Activity listant les catégories</p>

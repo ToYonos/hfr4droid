@@ -184,4 +184,11 @@
 		<item>3</item>
 	</string-array>
 	
+	<!-- Pull to refresh -->
+
+    <string name="pull_to_refresh_pull_label">Tirer pour rafraîchir...</string>
+    <string name="pull_to_refresh_release_label">Relâcher pour rafraîchir...</string>
+    <string name="pull_to_refresh_refreshing_label">Chargement...</string>
+    <string name="pull_to_refresh_tap_label">Appuyer pour rafraîchir...</string>
+	
 </resources>

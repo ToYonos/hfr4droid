@@ -41,6 +41,9 @@
 	<string name="getting_mps">Messages de la page %d...</string>
 	<string name="getting_posts">Posts de la page %1$d sur %2$d...</string>
 	<string name="getting_posts_simple">Posts de la page %d...</string>
+	<string name="searching_posts_pseudo">Recherches des posts de %s...</string>
+	<string name="searching_posts_word">Recherches des posts contentant le mot "%s"...</string>
+	<string name="searching_posts_pseudo_word">>Recherches des posts de %1$s contenant le mot "%2$s"....</string>
 	<string name="no_cat">Aucune catégorie n\'a été trouvée !</string>
 	<string name="no_topic">Aucun topic n\'a été trouvé !</string>
 	<string name="no_post">Aucun post n\'a été trouvé !</string>
