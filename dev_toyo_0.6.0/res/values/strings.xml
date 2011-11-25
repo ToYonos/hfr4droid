@@ -15,7 +15,10 @@
 	<string name="nav_previous_page">La page précèdente</string>
 	<string name="nav_next_page">La page suivante</string>
 	<string name="nav_last_page">La dernière page</string>
-	<string name="nav_user_page">La page...</string>	
+	<string name="nav_user_page">La page...</string>
+	<string name="nav_user_page_label1">Actuellement P. %1$d/%2$d</string>
+	<string name="nav_user_page_label2">%1$d page(s)</string>
+	<string name="nav_user_page_label3">Actuellement P. %1$d</string>
 	<string name="nav_page_number">Numéro de page ?</string>
 	<string name="topic_new_post">Poster un message</string>
 	<string name="topic_set_unread">Marquer comme non lu</string>
@@ -97,6 +100,9 @@
 	<string name="button_yes">Oui</string>
 	<string name="button_no">Non</string>
 	<string name="button_validate_post">Valider</string>
+	
+	<string name="search_posts_word_hint">Mot</string>
+	<string name="search_posts_pseudo_hint">Pseudo</string>
 	
 	<string-array name="welcome_screen_values">
     	<item>Les catégories</item>

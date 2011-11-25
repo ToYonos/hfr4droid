@@ -112,10 +112,10 @@ public class PullToRefreshListView extends ListView implements OnScrollListener 
         resetHeader();
     }
 
-    @Override
+   /* @Override
     protected void onAttachedToWindow() {
         setSelection(1);
-    }
+    }*/
 
     @Override
     public void setAdapter(ListAdapter adapter) {

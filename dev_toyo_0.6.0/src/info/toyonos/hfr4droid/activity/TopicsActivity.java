@@ -113,7 +113,7 @@ public class TopicsActivity extends HFR4droidListActivity<Topic>
             	reloadPage(false);
             }
         });
-		
+
 		adapter = new TopicAdapter(this, R.layout.topic, R.id.ItemContent, topics);
 		lv.setAdapter(adapter);
 		
@@ -220,7 +220,7 @@ public class TopicsActivity extends HFR4droidListActivity<Topic>
 				return true;
 	
 			case R.id.MenuNavUserPage:
-				new PageNumberDialog(currentTopic.getNbPages())
+				new PageNumberDialog(-1, currentTopic.getNbPages())
 				{
 					protected void onValidate(int pageNumber)
 					{
@@ -589,7 +589,7 @@ public class TopicsActivity extends HFR4droidListActivity<Topic>
 	@Override
 	protected void loadUserPage()
 	{
-		new PageNumberDialog()
+		new PageNumberDialog(currentPageNumber)
 		{
 			protected void onValidate(int pageNumber)
 			{

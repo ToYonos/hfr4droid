@@ -12,8 +12,8 @@ import info.toyonos.hfr4droid.core.bean.Topic.TopicType;
 import info.toyonos.hfr4droid.core.data.DataRetrieverException;
 import info.toyonos.hfr4droid.core.data.HFRUrlParser;
 import info.toyonos.hfr4droid.core.data.MDUrlParser;
-import info.toyonos.hfr4droid.core.message.MessageSenderException;
 import info.toyonos.hfr4droid.core.message.HFRMessageSender.ResponseCode;
+import info.toyonos.hfr4droid.core.message.MessageSenderException;
 import info.toyonos.hfr4droid.core.utils.HttpClient;
 import info.toyonos.hfr4droid.core.utils.PatchInputStream;
 import info.toyonos.hfr4droid.service.MpNotifyService;
@@ -36,13 +36,13 @@ import android.app.Dialog;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
-import android.content.Intent;
 import android.content.DialogInterface.OnCancelListener;
 import android.content.DialogInterface.OnDismissListener;
+import android.content.Intent;
 import android.content.res.Configuration;
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.graphics.Bitmap.CompressFormat;
+import android.graphics.BitmapFactory;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.net.Uri;
@@ -54,6 +54,7 @@ import android.text.Selection;
 import android.text.TextUtils.TruncateAt;
 import android.util.SparseIntArray;
 import android.view.ContextMenu;
+import android.view.ContextMenu.ContextMenuInfo;
 import android.view.Display;
 import android.view.GestureDetector;
 import android.view.KeyEvent;
@@ -64,16 +65,16 @@ import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.SubMenu;
 import android.view.View;
-import android.view.ViewGroup;
-import android.view.Window;
-import android.view.WindowManager;
-import android.view.ContextMenu.ContextMenuInfo;
 import android.view.View.OnClickListener;
 import android.view.View.OnCreateContextMenuListener;
+import android.view.View.OnLongClickListener;
+import android.view.ViewGroup;
 import android.view.ViewGroup.LayoutParams;
+import android.view.Window;
+import android.view.WindowManager;
 import android.view.animation.Animation;
-import android.view.animation.AnimationUtils;
 import android.view.animation.Animation.AnimationListener;
+import android.view.animation.AnimationUtils;
 import android.webkit.WebChromeClient;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
@@ -85,10 +86,10 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.SlidingDrawer;
-import android.widget.TextView;
-import android.widget.Toast;
 import android.widget.SlidingDrawer.OnDrawerCloseListener;
 import android.widget.SlidingDrawer.OnDrawerOpenListener;
+import android.widget.TextView;
+import android.widget.Toast;
 
 import com.naholyr.android.ui.HFR4droidQuickActionWindow;
 import com.naholyr.android.ui.QuickActionWindow;
@@ -290,7 +291,7 @@ public class PostsActivity extends NewPostUIActivity
 	private WebView getWebView()
 	{
 		LinearLayout parent = ((LinearLayout) findViewById(R.id.PostsLayout));
-		return ((WebView) parent.getChildAt(3));
+		return ((WebView) parent.getChildAt(4));
 	}
 
 	@Override
@@ -418,7 +419,7 @@ public class PostsActivity extends NewPostUIActivity
 	@Override
 	protected void loadUserPage()
 	{
-		new PageNumberDialog(topic.getNbPages())
+		new PageNumberDialog(currentPageNumber, topic.getNbPages())
 		{
 			protected void onValidate(int pageNumber)
 			{
@@ -502,6 +503,37 @@ public class PostsActivity extends NewPostUIActivity
 				 TextView topicTitle = (TextView) v;
 				 topicTitle.setEllipsize(topicTitle.getEllipsize() == TruncateAt.MARQUEE ? TruncateAt.END : TruncateAt.MARQUEE);
 			}
+		});
+		
+		topicTitle.setOnLongClickListener(new OnLongClickListener()
+		{
+			public boolean onLongClick(View v)
+			{
+				final LinearLayout searchPanel = (LinearLayout) findViewById(R.id.SearchPostsPanel);
+				if (searchPanel.getVisibility() == View.VISIBLE)
+				{
+					Animation anim = AnimationUtils.loadAnimation(PostsActivity.this, R.anim.search_panel_exit);
+					anim.setAnimationListener(new AnimationListener()
+					{
+						public void onAnimationStart(Animation animation) {}
+	
+						public void onAnimationRepeat(Animation animation) {}
+	
+						public void onAnimationEnd(Animation animation)
+						{
+							searchPanel.setVisibility(View.GONE);
+						}
+					});
+					searchPanel.startAnimation(anim);					
+				}
+				else
+				{
+					Animation anim = AnimationUtils.loadAnimation(PostsActivity.this, R.anim.search_panel_enter);
+					searchPanel.setVisibility(View.VISIBLE);
+					searchPanel.startAnimation(anim);
+				}
+				return true;
+			}	
 		});
 		
 		SlidingDrawer slidingDrawer = (SlidingDrawer) findViewById(R.id.Nav);

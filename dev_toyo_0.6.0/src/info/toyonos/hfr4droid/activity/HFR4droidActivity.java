@@ -35,7 +35,6 @@ import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
-import android.text.InputType;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.GestureDetector.SimpleOnGestureListener;
@@ -49,6 +48,7 @@ import android.view.Window;
 import android.view.WindowManager;
 import android.widget.EditText;
 import android.widget.SlidingDrawer;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.markupartist.android.widget.PullToRefreshListView;
@@ -1200,49 +1200,67 @@ public abstract class HFR4droidActivity extends Activity
 
 	protected abstract class PageNumberDialog
 	{
-		private AlertDialog dialog;
-		private int pageMax;
+		protected AlertDialog dialog;
+		protected int currentPage;
+		protected int pageMax;
 
-		public PageNumberDialog()
+		public PageNumberDialog(int currentPage)
 		{
 			dialog = null;
+			this.currentPage = currentPage;
 			this.pageMax = -1;
 		}
 
-		public PageNumberDialog(int pageMax)
+		public PageNumberDialog(int currentPage, int pageMax)
 		{
 			dialog = null;
+			this.currentPage = currentPage;
 			this.pageMax = pageMax;
 		}
 
 		protected abstract void onValidate(int pageNumber);
 
+		protected int getPageNumber(EditText input)
+		{
+			String value = input.getText().toString();
+			int pageNumber = 1;
+			try
+			{
+				pageNumber = Integer.parseInt(value);
+				if (pageMax != -1 && pageNumber > pageMax) pageNumber = pageMax;
+				if (pageNumber < 1) pageNumber = 1;
+			}
+			catch (NumberFormatException e)
+			{
+				return -1;
+			}
+			return pageNumber;
+		}
+		
 		public void show()
 		{
 			if (dialog == null)
 			{
 				AlertDialog.Builder builder = new AlertDialog.Builder(HFR4droidActivity.this);                 
 				builder.setTitle(getString(R.string.nav_page_number));  
-				final EditText input = new EditText(HFR4droidActivity.this);
-				input.setInputType(InputType.TYPE_CLASS_PHONE);
-				builder.setView(input);
+				
+				LayoutInflater inflater = (LayoutInflater) getSystemService(LAYOUT_INFLATER_SERVICE);
+				View layout = inflater.inflate(R.layout.goto_page_number, null);
+				builder.setView(layout);
+
+				final TextView infos = (TextView) layout.findViewById(R.id.CurrentPageInfos);
+				infos.setText(pageMax != -1 ? (
+				currentPage != -1 ?
+						getString(R.string.nav_user_page_label1, currentPage, pageMax) :
+						getString(R.string.nav_user_page_label2, pageMax)) :
+				getString(R.string.nav_user_page_label3, currentPage));
+				final EditText input = (EditText) layout.findViewById(R.id.PageNumber);
 				builder.setPositiveButton(getString(R.string.button_ok), new OnClickListener()
 				{  
 					public void onClick(DialogInterface dialog, int whichButton)
 					{  
-						String value = input.getText().toString();
-						int pageNumber = 1;
-						try
-						{
-							pageNumber = Integer.parseInt(value);
-							if (pageMax != -1 && pageNumber > pageMax) pageNumber = pageMax;
-							if (pageNumber < 1) pageNumber = 1;
-						}
-						catch (NumberFormatException e)
-						{
-							return;
-						}
-						onValidate(pageNumber);             
+						int pageNumber = getPageNumber(input);
+						if (pageNumber != -1) onValidate(pageNumber);       
 					}  
 				});
 				builder.setNegativeButton(getString(R.string.button_cancel), new OnClickListener()

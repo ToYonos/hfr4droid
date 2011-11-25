@@ -10,6 +10,7 @@ import android.os.Bundle;
 import android.view.Menu;
 import android.view.View;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.SlidingDrawer;
 import android.widget.TextView;
 
@@ -23,6 +24,8 @@ public class PostsSearchActivity extends PostsActivity
 	protected void onCreate(Bundle savedInstanceState)
 	{
 		super.onCreate(savedInstanceState);
+		final LinearLayout searchPanel = (LinearLayout) findViewById(R.id.SearchPostsPanel);
+		searchPanel.setVisibility(View.VISIBLE);
 	}
 
 	@SuppressWarnings("unchecked")
