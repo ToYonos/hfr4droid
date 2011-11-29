@@ -6,6 +6,7 @@ import info.toyonos.hfr4droid.activity.HFR4droidActivity;
 import info.toyonos.hfr4droid.core.auth.HFRAuthentication;
 import info.toyonos.hfr4droid.core.bean.Category;
 import info.toyonos.hfr4droid.core.bean.Post;
+import info.toyonos.hfr4droid.core.bean.PostFromSearch;
 import info.toyonos.hfr4droid.core.bean.SubCategory;
 import info.toyonos.hfr4droid.core.bean.Topic;
 import info.toyonos.hfr4droid.core.bean.Topic.TopicStatus;
@@ -472,10 +473,10 @@ public class HFRDataRetriever implements MDDataRetriever
 						Integer.parseInt(m.group(17)), // Minute
 						Integer.parseInt(m.group(18))  // Second
 						).getTime() : null,
-						m.group(12) != null ? Integer.parseInt(m.group(12)) : 0,
-								isMine,
-								isModo,
-								topic
+				m.group(12) != null ? Integer.parseInt(m.group(12)) : 0,
+				isMine,
+				isModo,
+				topic
 				)
 			);
 		}
@@ -513,7 +514,7 @@ public class HFRDataRetriever implements MDDataRetriever
 		.replaceFirst("\\{\\$topic\\}", String.valueOf(topic.getId()))
 		.replaceFirst("\\{\\$pseudo\\}", pseudo != null ? pseudo : "")
 		.replaceFirst("\\{\\$word\\}", word != null ? word : "")
-		.replaceFirst("\\{\\$fp\\}", String.valueOf(fromPost.getId()));
+		.replaceFirst("\\{\\$fp\\}", String.valueOf(fromPost != null ? fromPost.getId() : 0));
 		String content = null;
 		try
 		{
@@ -530,6 +531,7 @@ public class HFRDataRetriever implements MDDataRetriever
 			"<b.*?class=\"s2\">(?:<a.*?>)?(.*?)(?:</a>)?</b>.*?" +
 			"(?:(?:<div\\s*class=\"avatar_center\".*?><img src=\"(.*?)\"\\s*alt=\".*?\"\\s*/></div>)|</td>).*?" +
 			"<div.*?class=\"left\">Posté le ([0-9]+)-([0-9]+)-([0-9]+).*?([0-9]+):([0-9]+):([0-9]+).*?" +
+			"</div></div><a\\s*href=\"(.*?)\".*?><b>Voir ce message dans le sujet non filtré</b></a>.*?" +
 			"<div.*?id=\"para[0-9]+\">(.*?)<div style=\"clear: both;\">\\s*</div></p>" +
 			"(?:<div\\s*class=\"edited\">)?(?:<a.*?>Message cité ([0-9]+) fois</a>)?(?:<br\\s*/>Message édité par .*? le ([0-9]+)-([0-9]+)-([0-9]+).*?([0-9]+):([0-9]+):([0-9]+)</div>)?.*?" +
 			"</div></td></tr></table>)"
@@ -543,32 +545,33 @@ public class HFRDataRetriever implements MDDataRetriever
 			boolean isMine = m2.find();
 			m2 = Pattern.compile("messageModo").matcher(m.group(1));
 			boolean isModo = m2.find();
-			String postContent = m.group(11);
-			posts.add(new Post(
-					Integer.parseInt(m.group(2)),
-					postContent,
-					m.group(3),
-					m.group(4),
-					new GregorianCalendar(Integer.parseInt(m.group(7)), // Year
-							Integer.parseInt(m.group(6)) - 1, // Month
-							Integer.parseInt(m.group(5)), // Day
-							Integer.parseInt(m.group(8)), // Hour
-							Integer.parseInt(m.group(9)), // Minute
-							Integer.parseInt(m.group(10))  // Second
-							).getTime(),
-							m.group(13) != null ? new GregorianCalendar(Integer.parseInt(m.group(15)), // Year
-									Integer.parseInt(m.group(14)) - 1, // Month
-									Integer.parseInt(m.group(13)), // Day
-									Integer.parseInt(m.group(16)), // Hour
-									Integer.parseInt(m.group(17)), // Minute
-									Integer.parseInt(m.group(18))  // Second
-									).getTime() : null,
-									m.group(12) != null ? Integer.parseInt(m.group(12)) : 0,
-											isMine,
-											isModo,
-											topic
-					)
-					);
+			String postContent = m.group(12);
+			PostFromSearch postFS = new PostFromSearch(
+				Integer.parseInt(m.group(2)),
+				postContent,
+				m.group(3),
+				m.group(4),
+				new GregorianCalendar(Integer.parseInt(m.group(7)), // Year
+						Integer.parseInt(m.group(6)) - 1, // Month
+						Integer.parseInt(m.group(5)), // Day
+						Integer.parseInt(m.group(8)), // Hour
+						Integer.parseInt(m.group(9)), // Minute
+						Integer.parseInt(m.group(10))  // Second
+						).getTime(),
+				m.group(14) != null ? new GregorianCalendar(Integer.parseInt(m.group(16)), // Year
+						Integer.parseInt(m.group(15)) - 1, // Month
+						Integer.parseInt(m.group(14)), // Day
+						Integer.parseInt(m.group(17)), // Hour
+						Integer.parseInt(m.group(18)), // Minute
+						Integer.parseInt(m.group(19))  // Second
+						).getTime() : null,
+				m.group(13) != null ? Integer.parseInt(m.group(13)) : 0,
+				isMine,
+				isModo,
+				topic
+			);
+			postFS.setCallbackUrl(BASE_URL + m.group(11));
+			posts.add(postFS);
 		}
 		Log.d(HFR4droidApplication.TAG, "Match OK, " + posts.size() + " posts retrieved");
 
@@ -580,14 +583,7 @@ public class HFRDataRetriever implements MDDataRetriever
 		String subCat = getSingleElement("<input\\s*type=\"hidden\"\\s*name=\"subcat\"\\s*value=\"([0-9]+)\"\\s*/>", content);
 		if (subCat != null) topic.setSubCategory(new SubCategory(topic.getCategory(), Integer.parseInt(subCat)));
 
-		// Pour HFRUrlParser, récupération d'informations complémentaires
-		if (topic.getName() == null)
-		{
-			//String topicTitle = getSingleElement("<input\\s*type=\"hidden\"\\s*name=\"sujet\"\\s*value=\"(.+?)\"\\s*/>", content);
-			String topicTitle =  HFRDataRetriever.getSingleElement("(?:&nbsp;)*(.*)", HFRDataRetriever.getSingleElement("([^>]+)(?:</a>)?</h1>", content));
-			if (topicTitle != null) topic.setName(topicTitle);
-			if (getSingleElement("(repondre\\.gif)", content) == null) topic.setStatus(TopicStatus.LOCKED);
-		}
+		
 
 		if (!topic.getCategory().equals(Category.MPS_CAT)) checkNewMps(content);
 		

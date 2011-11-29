@@ -854,61 +854,7 @@ public abstract class HFR4droidActivity extends Activity
 		preLoadingPostsAsyncTask = new PreLoadingPostsAsyncTask(targetPageNumber);
 		preLoadingPostsAsyncTask.execute(topic);
 	}
-	
-	protected void searchPosts(Topic topic, String pseudo, String word, Post fromPost)
-	{
-		searchPosts(topic, pseudo, word, fromPost, true);
-	}
-
-	protected void searchPosts(final Topic topic, final String pseudo, final String word, final Post fromPost, final boolean sameActivity)
-	{
-		String progressTitle = topic.toString();
-		String progressContent = pseudo != null && word != null ?
-		getString(R.string.searching_posts_pseudo_word, pseudo, word) : (pseudo != null ?
-		getString(R.string.searching_posts_pseudo, pseudo) :					
-		getString(R.string.searching_posts_word, word));
-		String noElement = getString(R.string.no_post);
 		
-		new DataRetrieverAsyncTask<Post, Topic>()
-		{			
-			@Override
-			protected List<Post> retrieveDataInBackground(Topic... topics) throws DataRetrieverException
-			{
-				return getDataRetriever().searchPosts(topics[0], pseudo, word, fromPost);
-			}
-
-			@Override
-			protected void onPostExecuteSameActivity(List<Post> posts) throws ClassCastException
-			{
-				PostsSearchActivity activity = (PostsSearchActivity) HFR4droidActivity.this;
-				activity.setPosts(posts);
-				
-				Post lastPost = posts.get(posts.size() - 1);
-				if (lastPost.getId() > activity.getLastFromPost().getId())
-				{
-					activity.addFromPost(lastPost);
-				}
-				activity.setPageNumberFromPost(fromPost);
-				setTitle();
-				activity.refreshPosts(posts);
-			}
-
-			@Override
-			protected void onPostExecuteOtherActivity(List<Post> posts)
-			{
-				Intent intent = new Intent(HFR4droidActivity.this, PostsSearchActivity.class);
-				intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP );
-				Bundle bundle = new Bundle();
-				bundle.putSerializable("posts", new ArrayList<Post>(posts));
-				bundle.putSerializable("fromPost", fromPost);
-				bundle.putString("pseudo", pseudo);
-				bundle.putString("word", word);
-				intent.putExtras(bundle);
-				startActivity(intent);
-			}
-		}.execute(progressTitle, progressContent, noElement, sameActivity, topic);
-	}
-	
 	protected void loadFirstPage(){}
 
 	protected void loadPreviousPage(){}
@@ -1052,7 +998,7 @@ public abstract class HFR4droidActivity extends Activity
 	
 	/* Classes internes */
 
-	private abstract class DataRetrieverAsyncTask<E, P> extends AsyncTask<P, Void, List<E>>
+	protected abstract class DataRetrieverAsyncTask<E, P> extends AsyncTask<P, Void, List<E>>
 	{
 		private ProgressDialog progressDialog;
 		private boolean sameActivity;

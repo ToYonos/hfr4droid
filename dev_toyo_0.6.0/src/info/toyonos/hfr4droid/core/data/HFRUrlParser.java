@@ -161,8 +161,8 @@ public class HFRUrlParser implements MDUrlParser
 			if (numReponse != null && !numReponse.equals("0"))
 			{
 				// Cas spécifique, on récupère la vraie url
-				String reelUrl = getReelUrl(url) + "#t" + numReponse;
-				return parseUrl(reelUrl);
+				String realUrl = getRealUrl(url) + "#t" + numReponse;
+				return parseUrl(realUrl);
 			}
 			else
 			{
@@ -201,7 +201,7 @@ public class HFRUrlParser implements MDUrlParser
 		return -1;
 	}
 	
-	private String getReelUrl(String url)
+	public static String getRealUrl(String url)
 	{
 		DefaultHttpClient client = new DefaultHttpClient();
 		try

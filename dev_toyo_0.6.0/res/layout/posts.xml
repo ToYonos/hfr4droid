@@ -53,7 +53,7 @@
 				android:hint="@string/search_posts_word_hint"
 				android:lines="1"
 				android:inputType="text"
-				android:textSize="12dip" />
+				android:textSize="14dip" />
 			<EditText
 				android:id="@+id/SearchPostsPseudo"
 				android:layout_width="fill_parent"
@@ -62,13 +62,13 @@
 				android:hint="@string/search_posts_pseudo_hint"
 				android:lines="1"
 				android:inputType="text"
-				android:textSize="12dip" />
+				android:textSize="14dip" />
 			<Button
 				android:id="@+id/ButtonSearchPosts"
 			 	android:layout_width="50dip"
 				android:layout_height="wrap_content"
 				android:padding="3dip"
-				android:textSize="12dip"
+				android:textSize="14dip"
 				android:text="@string/button_ok" />  
     	</LinearLayout>
 	   	<ProgressBar

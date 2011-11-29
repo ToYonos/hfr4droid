@@ -24,6 +24,8 @@
 		<activity android:name=".activity.TopicsActivity" android:configChanges="keyboard|keyboardHidden|orientation" />
 
 		<activity android:name=".activity.PostsActivity" android:configChanges="keyboard|keyboardHidden|orientation" />
+		
+		<activity android:name=".activity.PostsSearchActivity" android:configChanges="keyboard|keyboardHidden|orientation" android:windowSoftInputMode="stateHidden" />
 
 		<activity android:name=".activity.HFR4droidDispatcher" android:noHistory="true">
 			<intent-filter>
