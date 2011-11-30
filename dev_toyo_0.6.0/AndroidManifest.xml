@@ -14,13 +14,15 @@
 	<supports-screens android:smallScreens="true" android:anyDensity="true"/>
 
 	<application android:icon="@drawable/icon" android:label="@string/app_name" android:name="HFR4droidApplication" android:debuggable="true">
-		<activity android:label="@string/app_name" android:name=".activity.CategoriesActivity" android:configChanges="keyboard|keyboardHidden|orientation">
+		<activity android:label="@string/app_name" android:name=".activity.SplashActivity" android:configChanges="keyboard|keyboardHidden|orientation">
 			<intent-filter>
 				<action android:name="android.intent.action.MAIN" />
 				<category android:name="android.intent.category.LAUNCHER" />
 			</intent-filter>
 		</activity>
 
+		<activity android:name=".activity.CategoriesActivity" android:configChanges="keyboard|keyboardHidden|orientation" />		    
+		    
 		<activity android:name=".activity.TopicsActivity" android:configChanges="keyboard|keyboardHidden|orientation" />
 
 		<activity android:name=".activity.PostsActivity" android:configChanges="keyboard|keyboardHidden|orientation" />

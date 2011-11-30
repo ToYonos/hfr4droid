@@ -20,6 +20,7 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.DialogInterface.OnCancelListener;
 import android.content.DialogInterface.OnClickListener;
+import android.content.Intent;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager.NameNotFoundException;
 import android.content.res.ColorStateList;
@@ -56,7 +57,7 @@ import android.widget.Toast;
 public class CategoriesActivity extends HFR4droidListActivity<Category>
 {
 	private AlertDialog infoDialog;
-	protected boolean isCatsLoaded;
+	private boolean isCatsLoaded;
 	private GestureDetector gestureDetector;
 	protected List<Category> expandedCats  = new ArrayList<Category>();
 
@@ -72,22 +73,24 @@ public class CategoriesActivity extends HFR4droidListActivity<Category>
 
 		List<Category> cats  = new ArrayList<Category>();
 		Bundle bundle = this.getIntent().getExtras();
-		if (bundle != null && bundle.getSerializable("cats") != null)
+		if (bundle != null && bundle.getSerializable("topics") != null)
+		{
+			// Cas spécial, on vient de SplashActivity qui veut afficher des topics
+			// et on veut garder l'ordre d'ouverture des activitys (cats -> topics -> posts)
+			// => On passe furtivement par ici avant d'ouvrir PostsActivity
+			isCatsLoaded = false;
+			Intent intent = new Intent(CategoriesActivity.this, TopicsActivity.class);
+			intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+			intent.putExtras(bundle);
+			startActivity(intent);
+		}
+		else if (bundle != null && bundle.getSerializable("cats") != null)
 		{
 			cats = (List<Category>) bundle.getSerializable("cats");
 		}
 		else
 		{
-			int welcomeScreen = getWelcomeScreen();
-			if (welcomeScreen > 0 && isLoggedIn())
-			{
-				isCatsLoaded = false;
-				loadTopics(Category.ALL_CATS, TopicType.fromInt(welcomeScreen), false);
-			}
-			else
-			{
-				loadCats();
-			}
+			loadCats();
 		}
 
 		final ListView lv = getListView();
@@ -261,6 +264,13 @@ public class CategoriesActivity extends HFR4droidListActivity<Category>
 	}
 
 	@Override
+	protected void onDestroy()
+	{
+		super.onDestroy();
+		if (infoDialog != null) infoDialog.dismiss();
+	}
+	
+	@Override
 	public boolean onContextItemSelected(MenuItem aItem)
 	{
 		AdapterContextMenuInfo menuInfo = (AdapterContextMenuInfo) aItem.getMenuInfo();
@@ -322,11 +332,6 @@ public class CategoriesActivity extends HFR4droidListActivity<Category>
 		{
 			return true;
 		}
-	}
-
-	public boolean isCatsLoaded()
-	{
-		return isCatsLoaded;
 	}
 
 	private AlertDialog getInfoDialog()

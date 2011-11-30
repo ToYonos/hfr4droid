@@ -207,8 +207,8 @@ public abstract class HFR4droidActivity extends Activity
 		if (isFullscreenEnable())
 		{
 			getWindow().setFlags(
-							WindowManager.LayoutParams.FLAG_FULLSCREEN,   
-							WindowManager.LayoutParams.FLAG_FULLSCREEN);
+			WindowManager.LayoutParams.FLAG_FULLSCREEN,   
+			WindowManager.LayoutParams.FLAG_FULLSCREEN);
 		}
 		else
 		{
@@ -611,6 +611,11 @@ public abstract class HFR4droidActivity extends Activity
 
 	protected void loadCats(final boolean sameActivity)
 	{
+		loadCats(sameActivity, true);
+	}
+	
+	protected void loadCats(final boolean sameActivity, boolean displayLoading)
+	{
 		String progressTitle = getString(R.string.hfr);
 		String progressContent = getString(R.string.getting_cats);
 		String noElement = getString(R.string.no_cat);
@@ -634,14 +639,14 @@ public abstract class HFR4droidActivity extends Activity
 			protected void onPostExecuteOtherActivity(List<Category> cats)
 			{
 				Intent intent = new Intent(HFR4droidActivity.this, CategoriesActivity.class);
-				intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP );
+				intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
 				Bundle bundle = new Bundle();
 				bundle.putSerializable("cats", new ArrayList<Category>(cats));
 				intent.putExtras(bundle);
 				startActivity(intent);
-				if (HFR4droidActivity.this instanceof NewPostGenericActivity) finish();
+				if (HFR4droidActivity.this instanceof NewPostGenericActivity || HFR4droidActivity.this instanceof SplashActivity) finish();
 			}
-		}.execute(progressTitle, progressContent, noElement, sameActivity);
+		}.execute(progressTitle, progressContent, noElement, sameActivity, displayLoading);
 	}
 
 	protected void loadTopics(Category cat, final TopicType type)
@@ -694,7 +699,10 @@ public abstract class HFR4droidActivity extends Activity
 			@Override
 			protected void onPostExecuteOtherActivity(List<Topic> topics)
 			{
-				Intent intent = new Intent(HFR4droidActivity.this, TopicsActivity.class);
+				// On passe par CategoriesActivity pour garder une navigation cohérente si on l'on vient de SplashActivity
+				Class<?> dest = HFR4droidActivity.this instanceof SplashActivity ? CategoriesActivity.class : TopicsActivity.class;
+
+				Intent intent = new Intent(HFR4droidActivity.this, dest);
 				intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
 				Bundle bundle = new Bundle();
 				bundle.putSerializable("topics", new ArrayList<Topic>(topics));
@@ -703,22 +711,22 @@ public abstract class HFR4droidActivity extends Activity
 				if (type != null) bundle.putSerializable("topicType", type);
 				intent.putExtras(bundle);
 				startActivity(intent);
-				if (HFR4droidActivity.this instanceof NewPostGenericActivity) finish();
+				
+				if (HFR4droidActivity.this instanceof NewPostGenericActivity || HFR4droidActivity.this instanceof SplashActivity) finish();
 			}
 
 			@Override
 			protected void onPostExecuteNoItem(boolean sameActivity, Toast t)
 			{
 				super.onPostExecuteNoItem(sameActivity, t);
-				if (HFR4droidActivity.this instanceof CategoriesActivity && !sameActivity)
+				if (HFR4droidActivity.this instanceof SplashActivity && !sameActivity)
 				{
-					CategoriesActivity ca = (CategoriesActivity) HFR4droidActivity.this;
-					if (!ca.isCatsLoaded()) loadCats();
+					loadCats(false, false);
 				}
 				else if (HFR4droidActivity.this instanceof TopicsActivity && sameActivity && !(cat instanceof SubCategory))
 				{
-					TopicsActivity pa = (TopicsActivity) HFR4droidActivity.this;
-					if (pa.getType() != TopicType.ALL)
+					TopicsActivity ta = (TopicsActivity) HFR4droidActivity.this;
+					if (ta.getType() == TopicType.ALL)
 					{
 						loadCats(false);
 					}

@@ -570,7 +570,7 @@ public class HFRDataRetriever implements MDDataRetriever
 				isModo,
 				topic
 			);
-			postFS.setCallbackUrl(BASE_URL + m.group(11));
+			postFS.setCallbackUrl(BASE_URL + m.group(11).replace("&amp;", "&"));
 			posts.add(postFS);
 		}
 		Log.d(HFR4droidApplication.TAG, "Match OK, " + posts.size() + " posts retrieved");
@@ -582,8 +582,6 @@ public class HFRDataRetriever implements MDDataRetriever
 
 		String subCat = getSingleElement("<input\\s*type=\"hidden\"\\s*name=\"subcat\"\\s*value=\"([0-9]+)\"\\s*/>", content);
 		if (subCat != null) topic.setSubCategory(new SubCategory(topic.getCategory(), Integer.parseInt(subCat)));
-
-		
 
 		if (!topic.getCategory().equals(Category.MPS_CAT)) checkNewMps(content);
 		
