@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">HFR4droid</string>
+    <string name="splash_title">Version %s - Copyleft ToYonos</string>
     <string name="upload_hfr_rehost">Upload sur hfr-rehost.net</string>
 	
 	<string name="nav_go_to">Aller à...</string>

@@ -6,6 +6,7 @@ import info.toyonos.hfr4droid.core.bean.PostFromSearch;
 import info.toyonos.hfr4droid.core.data.DataRetrieverException;
 import info.toyonos.hfr4droid.core.data.HFRUrlParser;
 import info.toyonos.hfr4droid.core.data.MDUrlParser;
+import info.toyonos.hfr4droid.core.message.HFRMessageSender.ResponseCode;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -123,10 +124,6 @@ public class PostsSearchActivity extends PostsActivity
 		refresh.setVisible(false);
 		refresh.setEnabled(false);
 
-		MenuItem addPost = menu.findItem(R.id.MenuAddPost);
-		addPost.setVisible(false);
-		addPost.setEnabled(false);
-
 		return true;
 	}
 
@@ -197,28 +194,30 @@ public class PostsSearchActivity extends PostsActivity
 		buttonLP.setEnabled(false);
 		buttonLP.setAlpha(105);
 	}
-	
+
+	@Override
+	protected void onPostingOk(ResponseCode code, long postId)
+	{
+		switch (code)
+		{	
+			case POST_EDIT_OK: // Edit ok
+				jumpToPost(postId);
+				break;
+
+			case POST_ADD_OK: // New post ok
+				topic.setLastReadPost(BOTTOM_PAGE_ID);
+				loadPosts(topic, topic.getNbPages(), false);
+				break;
+		}
+	}
+
 	protected void addQuickActionWindowItems(HFR4droidQuickActionWindow window, final long currentPostId, boolean isMine)
 	{
 		QuickActionWindow.Item goToOriginalPost = new QuickActionWindow.Item(PostsSearchActivity.this, "", R.drawable.ic_menu_goto, new QuickActionWindow.Item.Callback()
 		{	
 			public void onClick(QuickActionWindow window, Item item, View anchor)
 			{
-				try
-				{
-					PostFromSearch p = getPostById(currentPostId);
-					MDUrlParser urlParser = new HFRUrlParser(getDataRetriever());
-					// Still bugged
-					if (urlParser.parseUrl(p.getCallbackUrl()))
-					{
-						topic.setLastReadPost(currentPostId);
-						loadPosts(topic, urlParser.getPage(), false);
-					}
-				}
-				catch (DataRetrieverException e)
-				{
-					error(getString(R.string.error_dispatching_url), e, true, false);
-				}
+				jumpToPost(currentPostId);
 			}
 		});					
 		window.addItem(goToOriginalPost);
@@ -229,6 +228,24 @@ public class PostsSearchActivity extends PostsActivity
 	protected Post getCurrentFromPost()
 	{
 		return fromPosts.get(currentPageNumber - 1);
+	}
+	
+	private void jumpToPost(long postId)
+	{
+		try
+		{
+			PostFromSearch p = getPostById(postId);
+			MDUrlParser urlParser = new HFRUrlParser(getDataRetriever());
+			if (urlParser.parseUrl(p.getCallbackUrl()))
+			{
+				topic.setLastReadPost(postId);
+				loadPosts(topic, urlParser.getPage(), false);
+			}
+		}
+		catch (DataRetrieverException e)
+		{
+			error(getString(R.string.error_dispatching_url), e, true, false);
+		}
 	}
 	
 	protected void addFromPost(Post p)

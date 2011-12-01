@@ -32,6 +32,8 @@ import android.content.DialogInterface.OnCancelListener;
 import android.content.DialogInterface.OnClickListener;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.PackageInfo;
+import android.content.pm.PackageManager.NameNotFoundException;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
@@ -405,6 +407,7 @@ public abstract class HFR4droidActivity extends Activity
 		currentTheme.setPostBlockBackgroundColor(getColorByKey(themeKey, "post_block_background"));
 		currentTheme.setModoPostBackgroundColor(getColorByKey(themeKey, "post_modo_background"));
 		currentTheme.setProgressBarInversed(Boolean.parseBoolean(getString(getKeyByTheme(themeKey, R.string.class, "inverse_progress"))));
+		currentTheme.setSplashTitleColor(getColorByKey(themeKey, "splash_title"));
 	}
 
 	protected HFR4droidApplication getHFR4droidApplication()
@@ -609,18 +612,18 @@ public abstract class HFR4droidActivity extends Activity
 		loadCats(true);
 	}
 
-	protected void loadCats(final boolean sameActivity)
+	protected DataRetrieverAsyncTask<Category, Void> loadCats(final boolean sameActivity)
 	{
-		loadCats(sameActivity, true);
+		return loadCats(sameActivity, true);
 	}
 	
-	protected void loadCats(final boolean sameActivity, boolean displayLoading)
+	protected DataRetrieverAsyncTask<Category, Void> loadCats(final boolean sameActivity, boolean displayLoading)
 	{
 		String progressTitle = getString(R.string.hfr);
 		String progressContent = getString(R.string.getting_cats);
 		String noElement = getString(R.string.no_cat);
 
-		new DataRetrieverAsyncTask<Category, Void>()
+		DataRetrieverAsyncTask<Category, Void> task = new DataRetrieverAsyncTask<Category, Void>()
 		{	
 			@Override
 			protected List<Category> retrieveDataInBackground(Void... params) throws DataRetrieverException
@@ -646,37 +649,41 @@ public abstract class HFR4droidActivity extends Activity
 				startActivity(intent);
 				if (HFR4droidActivity.this instanceof NewPostGenericActivity || HFR4droidActivity.this instanceof SplashActivity) finish();
 			}
-		}.execute(progressTitle, progressContent, noElement, sameActivity, displayLoading);
+		};
+		
+		task.execute(progressTitle, progressContent, noElement, sameActivity, displayLoading);
+		return task;
+		
 	}
 
-	protected void loadTopics(Category cat, final TopicType type)
+	protected DataRetrieverAsyncTask<Topic, Category> loadTopics(Category cat, final TopicType type)
 	{
-		loadTopics(cat, type, 1, true);
+		return loadTopics(cat, type, 1, true);
 	}
 
-	protected void loadTopics(Category cat, final TopicType type, final boolean sameActivity)
+	protected DataRetrieverAsyncTask<Topic, Category> loadTopics(Category cat, final TopicType type, final boolean sameActivity)
 	{
-		loadTopics(cat, type, 1, sameActivity);
+		return loadTopics(cat, type, 1, sameActivity);
 	}
 
-	protected void loadTopics(Category cat, final TopicType type, final int pageNumber)
+	protected DataRetrieverAsyncTask<Topic, Category> loadTopics(Category cat, final TopicType type, final int pageNumber)
 	{
-		loadTopics(cat, type, pageNumber, true);
+		return loadTopics(cat, type, pageNumber, true);
 	}
 	
-	protected void loadTopics(final Category cat, final TopicType type, final int pageNumber, final boolean sameActivity)
+	protected DataRetrieverAsyncTask<Topic, Category> loadTopics(final Category cat, final TopicType type, final int pageNumber, final boolean sameActivity)
 	{
-		loadTopics(cat, type, pageNumber, sameActivity, true);
+		return loadTopics(cat, type, pageNumber, sameActivity, true);
 	}
 
-	protected void loadTopics(final Category cat, final TopicType type, final int pageNumber, final boolean sameActivity, boolean displayLoading)
+	protected DataRetrieverAsyncTask<Topic, Category> loadTopics(final Category cat, final TopicType type, final int pageNumber, final boolean sameActivity, boolean displayLoading)
 	{
 		String progressTitle = cat.toString();
 		String progressContent = type != TopicType.ALL ? getString("getting_topics_" + type.getKey() + "s")
 				: (isMpsCat(cat) ? getString(R.string.getting_mps, pageNumber) : getString(R.string.getting_topics, pageNumber));
 		String noElement = getString(R.string.no_topic);
 
-		new DataRetrieverAsyncTask<Topic, Category>()
+		DataRetrieverAsyncTask<Topic, Category> task = new DataRetrieverAsyncTask<Topic, Category>()
 		{	
 			@Override
 			protected List<Topic> retrieveDataInBackground(Category... cats) throws DataRetrieverException
@@ -736,7 +743,10 @@ public abstract class HFR4droidActivity extends Activity
 					loadCats(false);	
 				}
 			}
-		}.execute(progressTitle, progressContent, noElement, sameActivity, displayLoading, cat);
+		};
+		
+		task.execute(progressTitle, progressContent, noElement, sameActivity, displayLoading, cat);
+		return task;
 	}
 
 	protected void loadPosts(Topic topic, final int pageNumber)
@@ -1002,6 +1012,20 @@ public abstract class HFR4droidActivity extends Activity
 				break;
 		}
 		return newSize;
+	}
+	
+	protected String getVersionName()
+	{
+		PackageInfo packageInfo;
+		try
+		{
+			packageInfo = getPackageManager().getPackageInfo(getPackageName(), 0);
+			return packageInfo.versionName;
+		}
+		catch (NameNotFoundException e)
+		{
+			return "?";
+		}
 	}
 	
 	/* Classes internes */

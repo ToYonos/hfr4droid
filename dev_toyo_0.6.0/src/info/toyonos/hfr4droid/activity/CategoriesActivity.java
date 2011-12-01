@@ -21,8 +21,6 @@ import android.content.DialogInterface;
 import android.content.DialogInterface.OnCancelListener;
 import android.content.DialogInterface.OnClickListener;
 import android.content.Intent;
-import android.content.pm.PackageInfo;
-import android.content.pm.PackageManager.NameNotFoundException;
 import android.content.res.ColorStateList;
 import android.graphics.drawable.ColorDrawable;
 import android.os.AsyncTask;
@@ -338,14 +336,7 @@ public class CategoriesActivity extends HFR4droidListActivity<Category>
 	{
 		String title = getString(R.string.app_name);
 
-		PackageInfo packageInfo;
-		try
-		{
-			packageInfo = getPackageManager().getPackageInfo(getPackageName(), 0);
-			title += " - V." + packageInfo.versionName;
-		}
-		catch (NameNotFoundException e) {}
-
+		title += " - V." + getVersionName();
 		String infoContent = null;
 		InputStream is = null;
 		try

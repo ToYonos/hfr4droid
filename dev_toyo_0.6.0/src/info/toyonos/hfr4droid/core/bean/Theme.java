@@ -24,6 +24,7 @@ public class Theme
 	private int postBlockBackgroundColor;
 	private int modoPostBackgroundColor;
 	private boolean progressBarInversed;
+	private int splashTitleColor;
 
 	public Theme(String key)
 	{
@@ -40,6 +41,7 @@ public class Theme
 		this.postBlockBackgroundColor = -1;
 		this.modoPostBackgroundColor = -1;
 		this.progressBarInversed = false;
+		this.splashTitleColor = -1;
 	}
 
 	public String getKey()
@@ -220,5 +222,15 @@ public class Theme
 	public void setProgressBarInversed(boolean progressBarInversed)
 	{
 		this.progressBarInversed = progressBarInversed;
+	}
+
+	public int getSplashTitleColor()
+	{
+		return splashTitleColor;
+	}
+
+	public void setSplashTitleColor(int splashTitleColor)
+	{
+		this.splashTitleColor = splashTitleColor;
 	}
 }

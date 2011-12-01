@@ -19,6 +19,7 @@
 	
 	<string name="default_inverse_progress">false</string>
 	
+	<color name="default_splash_title">#1A3A60</color>
 
 	<!-- Thème "dark" -->
 	
@@ -39,6 +40,8 @@
 	
 	<string name="dark_inverse_progress">true</string>
 	
+	<color name="dark_splash_title">#F7F7F7</color>
+	
 
 	<!-- Thème gris (HFR 2011) -->
 
@@ -58,4 +61,6 @@
 	<color name="gray_post_modo_background">#FFEEEE</color>
 	
 	<string name="gray_inverse_progress">false</string>
+	
+	<color name="gray_splash_title">#1A3A60</color>
 </resources>

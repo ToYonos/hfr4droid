@@ -513,7 +513,7 @@ public class HFRDataRetriever implements MDDataRetriever
 		String url = SEARCH_POSTS_URL.replaceFirst("\\{\\$cat\\}", topic.getCategory().getRealId())
 		.replaceFirst("\\{\\$topic\\}", String.valueOf(topic.getId()))
 		.replaceFirst("\\{\\$pseudo\\}", pseudo != null ? pseudo : "")
-		.replaceFirst("\\{\\$word\\}", word != null ? word : "")
+		.replaceFirst("\\{\\$word\\}", word != null ? word.replace("#", "") : "")
 		.replaceFirst("\\{\\$fp\\}", String.valueOf(fromPost != null ? fromPost.getId() : 0));
 		String content = null;
 		try

@@ -1,15 +1,21 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/SplashContainer"
     android:orientation="vertical"
     android:layout_width="fill_parent"
     android:layout_height="fill_parent"
-    android:gravity="center"
-    android:background="#F7F7F7">
-	<ImageView 
-		android:layout_width="fill_parent"
-    	android:layout_height="wrap_content"
-    	android:padding="10dip"
-    	android:src="@drawable/logo_big" />
+    android:gravity="center">
+    <LinearLayout
+	    android:id="@+id/SplashContainer"
+	    android:orientation="vertical"
+	    android:layout_width="wrap_content"
+	    android:layout_height="wrap_content"
+	    android:paddingBottom="30dip">
+		<ImageView 
+		    android:id="@+id/SplashLogo"
+			android:layout_width="wrap_content"
+	    	android:layout_height="wrap_content" />
+	</LinearLayout>
 	<ImageView 
 	    android:id="@+id/SplashAnimation"
 	    android:gravity="center"
@@ -17,12 +23,11 @@
     	android:layout_height="wrap_content"
     	android:src="@drawable/spinner" />
 	<TextView
+	    android:id="@+id/VersionAndAuthor"
 		android:layout_width="fill_parent"
     	android:layout_height="wrap_content"
     	android:gravity="center"
-		android:textSize="18dip"
+		android:textSize="13dip"
 		android:padding="10dip"
-		android:textStyle="bold"
-		android:textColor="#1A3A60"
-    	android:text="Version 0.6.0 - by ToYonos" />
+		android:textStyle="bold" />
 </LinearLayout>

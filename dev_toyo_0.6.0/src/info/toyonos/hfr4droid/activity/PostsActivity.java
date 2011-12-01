@@ -1163,7 +1163,7 @@ public class PostsActivity extends NewPostUIActivity
 		{
 			if (isMine)
 			{
-				QuickActionWindow.Item edit = new QuickActionWindow.Item(PostsActivity.this, "", android.R.drawable.ic_menu_edit, new PostCallBack(PostCallBackType.EDIT, postId, true) 
+				QuickActionWindow.Item edit = new QuickActionWindow.Item(PostsActivity.this, "", android.R.drawable.ic_menu_edit, new PostCallBack(PostCallBackType.EDIT, currentPostId, true) 
 				{
 					@Override
 					protected String doActionInBackground(Post p) throws DataRetrieverException, MessageSenderException
@@ -1180,7 +1180,7 @@ public class PostsActivity extends NewPostUIActivity
 				});
 				window.addItem(edit);	
 
-				QuickActionWindow.Item delete = new QuickActionWindow.Item(PostsActivity.this, "", android.R.drawable.ic_menu_delete, new PostCallBack(PostCallBackType.DELETE, postId, true, true)
+				QuickActionWindow.Item delete = new QuickActionWindow.Item(PostsActivity.this, "", android.R.drawable.ic_menu_delete, new PostCallBack(PostCallBackType.DELETE, currentPostId, true, true)
 				{									
 					@Override
 					protected String doActionInBackground(Post p) throws DataRetrieverException, MessageSenderException
@@ -1205,7 +1205,7 @@ public class PostsActivity extends NewPostUIActivity
 				window.addItem(delete);
 			}
 
-			QuickActionWindow.Item quote = new QuickActionWindow.Item(PostsActivity.this, "", R.drawable.ic_menu_quote, new PostCallBack(PostCallBackType.QUOTE, postId, true)
+			QuickActionWindow.Item quote = new QuickActionWindow.Item(PostsActivity.this, "", R.drawable.ic_menu_quote, new PostCallBack(PostCallBackType.QUOTE, currentPostId, true)
 			{									
 				@Override
 				protected String doActionInBackground(Post p) throws DataRetrieverException, MessageSenderException
@@ -1221,10 +1221,10 @@ public class PostsActivity extends NewPostUIActivity
 			});							
 			window.addItem(quote);
 
-			boolean quoteExists = quotes.get(postId) != null;
+			boolean quoteExists = quotes.get(currentPostId) != null;
 			QuickActionWindow.Item multiQuote = new QuickActionWindow.Item(PostsActivity.this, "",
 					quoteExists ? R.drawable.ic_menu_multi_quote_moins : R.drawable.ic_menu_multi_quote_plus,
-							new PostCallBack(quoteExists ? PostCallBackType.MULTIQUOTE_REMOVE : PostCallBackType.MULTIQUOTE_ADD, postId, false)
+							new PostCallBack(quoteExists ? PostCallBackType.MULTIQUOTE_REMOVE : PostCallBackType.MULTIQUOTE_ADD, currentPostId, false)
 			{								
 				@Override
 				protected String doActionInBackground(Post p) throws DataRetrieverException, MessageSenderException
@@ -1274,7 +1274,7 @@ public class PostsActivity extends NewPostUIActivity
 			window.addItem(multiQuote);
 		}
 		
-		QuickActionWindow.Item addFavorite = new QuickActionWindow.Item(PostsActivity.this, "", R.drawable.ic_menu_star, new PostCallBack(PostCallBackType.FAVORITE, postId, true)
+		QuickActionWindow.Item addFavorite = new QuickActionWindow.Item(PostsActivity.this, "", R.drawable.ic_menu_star, new PostCallBack(PostCallBackType.FAVORITE, currentPostId, true)
 		{									
 			@Override
 			protected String doActionInBackground(Post p) throws DataRetrieverException, MessageSenderException
@@ -1458,14 +1458,13 @@ public class PostsActivity extends NewPostUIActivity
 									postContent.setText("");
 									postDialog.dismiss();
 									topic.setLastReadPost(postId);
-									reloadPage();
+									onPostingOk(code, postId);
 									return true;									
 		
 								case POST_ADD_OK: // New post ok
 									postContent.setText("");
 									postDialog.dismiss();
-									topic.setLastReadPost(BOTTOM_PAGE_ID);
-									if (currentPageNumber == topic.getNbPages()) reloadPage();
+									onPostingOk(code, postId);
 									return true;
 								
 								default:
@@ -1482,11 +1481,26 @@ public class PostsActivity extends NewPostUIActivity
 		});
 	}
 	
+	protected void onPostingOk(ResponseCode code, long postId)
+	{
+		switch (code)
+		{	
+			case POST_EDIT_OK: // Edit ok
+				reloadPage();
+				break;
+
+			case POST_ADD_OK: // New post ok
+				topic.setLastReadPost(BOTTOM_PAGE_ID);
+				if (currentPageNumber == topic.getNbPages()) reloadPage();
+				break;
+		}
+	}
+	
 	private void setDrawablesToggles()
 	{
 		ConnectivityManager connectivityManager = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
 		NetworkInfo info = connectivityManager.getActiveNetworkInfo();
-		boolean isWifiEnable = info != null && (info.getType() == ConnectivityManager.TYPE_WIFI || info.getType() == ConnectivityManager.TYPE_WIMAX);
+		boolean isWifiEnable = info != null && (info.getType() == ConnectivityManager.TYPE_WIFI);
 		
 		setToggleFromPref("isAvatarsEnable", getAvatarsDisplayType(), isWifiEnable);
 		setToggleFromPref("isSmileysEnable", getSmileysDisplayType(), isWifiEnable);
