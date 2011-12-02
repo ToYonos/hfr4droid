@@ -41,7 +41,8 @@ public class HFRMessageSender
 	private static final String FORM_EDIT_KEYWORDS_URI = "http://forum.hardware.fr/wikismilies.php?config=hfr.inc&option_wiki=0&withouttag=0";
 	private static final String FAVORITE_URI = "http://forum.hardware.fr/user/addflag.php?config=hfr.inc&cat={$cat}&post={$topic}&numreponse={$post}";
 	private static final String UNREAD_URI = "http://forum.hardware.fr/user/nonlu.php?config=hfr.inc&cat={$cat}&post={$topic}";
-	private static final String UNFLAG_URI = "http://forum.hardware.fr//modo/manageaction.php?config=hfr.inc&cat={$cat}&type_page=forum1&moderation=0";
+	private static final String UNFLAG_URI = "http://forum.hardware.fr/modo/manageaction.php?config=hfr.inc&cat={$cat}&type_page=forum1&moderation=0";
+	private static final String DELETE_MP_URI = "http://forum.hardware.fr/modo/manageaction.php?config=hfr.inc&cat={$cat}&type_page=forum1&moderation=0";
 
 	/**
 	 * Les codes des réponses
@@ -278,9 +279,34 @@ public class HFRMessageSender
 		}
 		catch (Exception e)
 		{
-			throw new MessageSenderException(context.getString(R.string.keywords_failed), e);
+			throw new MessageSenderException(context.getString(R.string.unflag_failed), e);
 		}
 		return HFRDataRetriever.getSingleElement("<div\\s*class=\"hop\">\\s*(.*?)\\s*</div>", response);
+	}
+	
+	/**
+	 * Supprime un message privé
+	 * @param t le mp concerné
+	 * @return Le message indiquant si l'opération s'est bien passée
+	 * @throws MessageSenderException Si un problème survient
+	 */
+	public boolean deleteMP(Topic t, String hashCheck) throws MessageSenderException
+	{
+		List<NameValuePair> params = new ArrayList<NameValuePair>();
+		params.add(new BasicNameValuePair("action_reaction", "valid_eff_prive"));
+		params.add(new BasicNameValuePair("topic1", String.valueOf(t.getId())));
+		params.add(new BasicNameValuePair("hash_check", hashCheck));
+
+		String response = null;
+		try
+		{
+			response = innerGetResponse(DELETE_MP_URI.replaceFirst("\\{\\$cat\\}", t.getCategory().getRealId()), params);
+		}
+		catch (Exception e)
+		{
+			throw new MessageSenderException(context.getString(R.string.delete_mp_failed), e);
+		}
+		return response.matches(".*Action effectuée avec succès.*");
 	}
 
 	private String innerGetResponse(String url, List<NameValuePair> params) throws UnsupportedEncodingException, IOException

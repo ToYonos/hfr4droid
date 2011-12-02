@@ -8,6 +8,7 @@ import info.toyonos.hfr4droid.core.bean.Theme;
 import info.toyonos.hfr4droid.core.bean.Topic.TopicType;
 import info.toyonos.hfr4droid.core.data.DataRetrieverException;
 import info.toyonos.hfr4droid.core.data.HFRDataRetriever;
+import info.toyonos.hfr4droid.util.listener.SimpleNavOnGestureListener;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -95,7 +96,7 @@ public class CategoriesActivity extends HFR4droidListActivity<Category>
 		adapter = new CategoryAdapter(this, R.layout.category, R.id.ItemContent, cats);
 		lv.setAdapter(adapter);
 
-		gestureDetector = new GestureDetector(new SimpleNavOnGestureListener()
+		gestureDetector = new GestureDetector(new SimpleNavOnGestureListener(this)
 		{
 			@Override
 			protected void onLeftToRight(MotionEvent e1, MotionEvent e2){}

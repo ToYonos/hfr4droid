@@ -24,6 +24,7 @@
 	<string name="topic_new_post">Poster un message</string>
 	<string name="topic_set_unread">Marquer comme non lu</string>
 	<string name="topic_unflag">Effacer le drapeau</string>
+	<string name="topic_delete_mp">Effacer ce message privé</string>
 	
 	<string name="menu_drapeaux">Mes drapeaux</string>
 	<string name="menu_drapeaux_all">Tous les topics</string>
@@ -78,6 +79,7 @@
 	<string name="smiley_tag">Tag du smiley :</string>
 	<string name="smiley_tag_hint">Mot clef...</string>
 	
+	<string name="delete_mp_title">Supprimer ce message</string>
 	<string name="delete_title">Supprimer ce post</string>
 	<string name="delete_message">Êtes-vous sûr ?</string>
 

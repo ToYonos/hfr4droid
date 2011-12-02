@@ -11,12 +11,17 @@ import info.toyonos.hfr4droid.core.bean.Topic.TopicStatus;
 import info.toyonos.hfr4droid.core.bean.Topic.TopicType;
 import info.toyonos.hfr4droid.core.data.DataRetrieverException;
 import info.toyonos.hfr4droid.core.message.MessageSenderException;
+import info.toyonos.hfr4droid.util.asyncktask.SimpleAsyncTask;
+import info.toyonos.hfr4droid.util.dialog.PageNumberDialog;
+import info.toyonos.hfr4droid.util.listener.SimpleNavOnGestureListener;
 
 import java.util.ArrayList;
 import java.util.List;
 
+import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.res.ColorStateList;
 import android.graphics.Typeface;
@@ -153,6 +158,7 @@ public class TopicsActivity extends HFR4droidListActivity<Topic>
 					menu.setHeaderTitle(currentTopic.getName());
 					if (!isLoggedIn() || currentTopic.getLastReadPage() == -1) menu.removeItem(R.id.MenuNavLastReadPage);
 					if (!isLoggedIn() || !isMpsCat()) menu.removeItem(R.id.MenuNavSetUnread);
+					if (!isLoggedIn() || !isMpsCat()) menu.removeItem(R.id.MenuNavDeleteMP);
 					if (!isLoggedIn() || isMpsCat()) menu.removeItem(R.id.MenuNavUnflag);
 					if (!isLoggedIn() || currentTopic.getStatus() == TopicStatus.LOCKED) menu.removeItem(R.id.MenuNavNewPost);
 				}
@@ -164,7 +170,7 @@ public class TopicsActivity extends HFR4droidListActivity<Topic>
 			}
 		});
 
-		gestureDetector = new GestureDetector(new SimpleNavOnGestureListener()
+		gestureDetector = new GestureDetector(new SimpleNavOnGestureListener(this)
 		{
 			@Override
 			protected void onLeftToRight(MotionEvent e1, MotionEvent e2)
@@ -208,7 +214,7 @@ public class TopicsActivity extends HFR4droidListActivity<Topic>
 		AdapterContextMenuInfo menuInfo = (AdapterContextMenuInfo) aItem.getMenuInfo();
 		final Topic currentTopic = menuInfo != null ? (Topic) getListView().getAdapter().getItem(menuInfo.position) : null;
 		final ProgressDialog progressDialog = new ProgressDialog(TopicsActivity.this);
-		
+// TODO accorder violon sur type retour et finir refacto (+ login dialog)		
 		switch (aItem.getItemId())
 		{    	
 			case R.id.MenuNavLastReadPage:
@@ -220,7 +226,7 @@ public class TopicsActivity extends HFR4droidListActivity<Topic>
 				return true;
 	
 			case R.id.MenuNavUserPage:
-				new PageNumberDialog(-1, currentTopic.getNbPages())
+				new PageNumberDialog(this, -1, currentTopic.getNbPages())
 				{
 					protected void onValidate(int pageNumber)
 					{
@@ -349,6 +355,46 @@ public class TopicsActivity extends HFR4droidListActivity<Topic>
 						}
 					}
 				}.execute();
+				return true;
+				
+			case R.id.MenuNavDeleteMP:
+				new AlertDialog.Builder(TopicsActivity.this)
+				.setTitle(getString(R.string.delete_mp_title))
+				.setMessage(getString(R.string.delete_message))
+				.setPositiveButton(R.string.button_yes, new DialogInterface.OnClickListener()
+				{
+					public void onClick(DialogInterface arg0, int arg1)
+					{
+						new SimpleAsyncTask<Boolean>(TopicsActivity.this, getString(R.string.delete_mp_loading))
+						{
+							@Override
+							protected Boolean executeInBackground()	throws HFR4droidException
+							{
+								return getMessageSender().deleteMP(currentTopic, getDataRetriever().getHashCheck());
+							}
+
+							@Override
+							protected void onActionFinished(Boolean response)
+							{
+								if (response != null && response)
+								{
+									adapter.remove(currentTopic);
+									adapter.notifyDataSetChanged();
+								}
+								else
+								{
+									Toast.makeText(TopicsActivity.this, R.string.delete_mp_failed, Toast.LENGTH_SHORT).show();
+								}
+							}	
+						}.execute();
+					}
+
+				})
+				.setNegativeButton(R.string.button_no, new DialogInterface.OnClickListener()
+				{
+					public void onClick(DialogInterface dialog, int which) {}
+				})
+				.show();	
 				return true;
 				
 			default:
@@ -589,7 +635,7 @@ public class TopicsActivity extends HFR4droidListActivity<Topic>
 	@Override
 	protected void loadUserPage()
 	{
-		new PageNumberDialog(currentPageNumber)
+		new PageNumberDialog(this, currentPageNumber)
 		{
 			protected void onValidate(int pageNumber)
 			{

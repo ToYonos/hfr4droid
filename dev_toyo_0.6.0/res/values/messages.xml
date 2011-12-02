@@ -76,8 +76,11 @@
 	<string name="favorite_loading">Ajout du favori...</string>
 	<string name="favorite_failed">Impossible de poser le favori !</string>
 	<string name="unread_loading">Marquage en non lu...</string>
-	<string name="unread_failed">Impossible de mettre ce mp en non lu !</string>
+	<string name="unread_failed">Impossible de mettre ce message en non lu !</string>
 	<string name="unflag_loading">Suppression du drapeau...</string>
+	<string name="unflag_failed">>Impossible de mettre ce drapeau !</string>
+	<string name="delete_mp_loading">Suppression du message privé...</string>
+	<string name="delete_mp_failed">Impossible de supprimer ce message privé !</string>
 
 	<string name="file_hfr_rehost">Sélectionnez le fichier à uploader</string>
 	<string name="loading_hfr_rehost">Upload en cours...</string>

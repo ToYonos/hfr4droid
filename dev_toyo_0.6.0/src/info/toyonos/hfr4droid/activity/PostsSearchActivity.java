@@ -234,7 +234,7 @@ public class PostsSearchActivity extends PostsActivity
 	{
 		try
 		{
-			PostFromSearch p = getPostById(postId);
+			PostFromSearch p = (PostFromSearch) getPostById(postId);
 			MDUrlParser urlParser = new HFRUrlParser(getDataRetriever());
 			if (urlParser.parseUrl(p.getCallbackUrl()))
 			{
@@ -272,14 +272,5 @@ public class PostsSearchActivity extends PostsActivity
 		
 		final TextView topicTitle = (TextView) findViewById(R.id.TopicTitle);
 		topicTitle.setOnLongClickListener(null);
-	}
-	
-	private PostFromSearch getPostById(long postId)
-	{
-		for (Post p : posts)
-		{
-			if (p.getId() == postId) return (PostFromSearch) p;
-		}
-		return null;
 	}
 }

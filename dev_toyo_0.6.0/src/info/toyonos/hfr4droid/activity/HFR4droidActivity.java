@@ -15,6 +15,7 @@ import info.toyonos.hfr4droid.core.data.MDDataRetriever;
 import info.toyonos.hfr4droid.core.message.HFRMessageSender;
 import info.toyonos.hfr4droid.service.MpCheckService;
 import info.toyonos.hfr4droid.service.MpTimerCheckService;
+import info.toyonos.hfr4droid.util.asyncktask.DataRetrieverAsyncTask;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -28,7 +29,6 @@ import android.app.NotificationManager;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
-import android.content.DialogInterface.OnCancelListener;
 import android.content.DialogInterface.OnClickListener;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -37,20 +37,16 @@ import android.content.pm.PackageManager.NameNotFoundException;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
-import android.util.DisplayMetrics;
 import android.util.Log;
-import android.view.GestureDetector.SimpleOnGestureListener;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.MotionEvent;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
 import android.widget.EditText;
 import android.widget.SlidingDrawer;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import com.markupartist.android.widget.PullToRefreshListView;
@@ -125,22 +121,22 @@ public abstract class HFR4droidActivity extends Activity
 	
 	protected abstract void setTitle();
 
-	protected void error(Exception e, boolean toast, boolean onUiThread)
+	public void error(Exception e, boolean toast, boolean onUiThread)
 	{
 		error(null, e, toast, onUiThread);
 	}
 	
-	protected void error(Exception e, boolean toast)
+	public void error(Exception e, boolean toast)
 	{
 		error(null, e, toast, false);
 	}
 	
-	protected void error(Exception e)
+	public void error(Exception e)
 	{
 		error(null, e, false, false);
 	}
 	
-	protected void error(String msg, Exception e, boolean toast, boolean onUiThread)
+	public void error(String msg, Exception e, boolean toast, boolean onUiThread)
 	{
 		final String logMsg = getMessage(e, msg);
 		Log.e(HFR4droidApplication.TAG, logMsg, e);
@@ -623,7 +619,7 @@ public abstract class HFR4droidActivity extends Activity
 		String progressContent = getString(R.string.getting_cats);
 		String noElement = getString(R.string.no_cat);
 
-		DataRetrieverAsyncTask<Category, Void> task = new DataRetrieverAsyncTask<Category, Void>()
+		DataRetrieverAsyncTask<Category, Void> task = new DataRetrieverAsyncTask<Category, Void>(this)
 		{	
 			@Override
 			protected List<Category> retrieveDataInBackground(Void... params) throws DataRetrieverException
@@ -648,6 +644,13 @@ public abstract class HFR4droidActivity extends Activity
 				intent.putExtras(bundle);
 				startActivity(intent);
 				if (HFR4droidActivity.this instanceof NewPostGenericActivity || HFR4droidActivity.this instanceof SplashActivity) finish();
+			}
+			
+			@Override
+			protected void onError(Exception e)
+			{
+				super.onError(e);
+				if (HFR4droidActivity.this instanceof SplashActivity) finish();
 			}
 		};
 		
@@ -683,7 +686,7 @@ public abstract class HFR4droidActivity extends Activity
 				: (isMpsCat(cat) ? getString(R.string.getting_mps, pageNumber) : getString(R.string.getting_topics, pageNumber));
 		String noElement = getString(R.string.no_topic);
 
-		DataRetrieverAsyncTask<Topic, Category> task = new DataRetrieverAsyncTask<Topic, Category>()
+		DataRetrieverAsyncTask<Topic, Category> task = new DataRetrieverAsyncTask<Topic, Category>(this)
 		{	
 			@Override
 			protected List<Topic> retrieveDataInBackground(Category... cats) throws DataRetrieverException
@@ -743,6 +746,13 @@ public abstract class HFR4droidActivity extends Activity
 					loadCats(false);	
 				}
 			}
+			
+			@Override
+			protected void onError(Exception e)
+			{
+				super.onError(e);
+				if (HFR4droidActivity.this instanceof SplashActivity) finish();
+			}
 		};
 		
 		task.execute(progressTitle, progressContent, noElement, sameActivity, displayLoading, cat);
@@ -762,7 +772,7 @@ public abstract class HFR4droidActivity extends Activity
 		getString(R.string.getting_posts_simple, pageNumber, topic.getNbPages());
 		String noElement = getString(R.string.no_post);
 		
-		new DataRetrieverAsyncTask<Post, Topic>()
+		new DataRetrieverAsyncTask<Post, Topic>(this)
 		{			
 			@Override
 			protected List<Post> retrieveDataInBackground(Topic... topics) throws DataRetrieverException
@@ -896,94 +906,94 @@ public abstract class HFR4droidActivity extends Activity
 
 	// Getter des préférences modifiables par l'utilisateur
 
-	protected int getWelcomeScreen()
+	public int getWelcomeScreen()
 	{
 		SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(this);
 		return Integer.parseInt(settings.getString(PREF_WELCOME_SCREEN, getString(R.string.pref_welcome_screen_default)));
 	}
 
-	protected boolean isCheckMpsEnable()
+	public boolean isCheckMpsEnable()
 	{
 		SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(this);
 		return settings.getBoolean(PREF_CHECK_MPS_ENABLE, Boolean.parseBoolean(getString(R.string.pref_check_mps_enable_default)));
 	}
 	
-	protected int getTypeDrapeau()
+	public int getTypeDrapeau()
 	{
 		SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(this);
 		return Integer.parseInt(settings.getString(PREF_TYPE_DRAPEAU, getString(R.string.pref_type_drapeau_default)));
 	}
 
-	protected boolean isSignatureEnable()
+	public boolean isSignatureEnable()
 	{
 		SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(this);
 		return settings.getBoolean(PREF_SIGNATURE_ENABLE, Boolean.parseBoolean(getString(R.string.pref_signature_enable_default)));
 	}
 
-	protected boolean isDblTapEnable()
+	public boolean isDblTapEnable()
 	{
 		SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(this);
 		return settings.getBoolean(PREF_DBLTAP_ENABLE, Boolean.parseBoolean(getString(R.string.pref_dbltap_enable_default)));
 	}
 
-	protected boolean isPreloadingEnable()
+	public boolean isPreloadingEnable()
 	{
 		SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(this);
 		return settings.getBoolean(PREF_PRELOADING_ENABLE, Boolean.parseBoolean(getString(R.string.pref_preloading_enable_default)));
 	}	
 
-	protected int getSwipe()
+	public int getSwipe()
 	{
 		SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(this);
 		return Integer.parseInt(settings.getString(PREF_SWIPE, getString(R.string.pref_swipe_default)));
 	}
 	
-	protected boolean isFullscreenEnable()
+	public boolean isFullscreenEnable()
 	{
 		SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(this);
 		return settings.getBoolean(PREF_FULLSCREEN_ENABLE, Boolean.parseBoolean(getString(R.string.pref_fullscreen_enable_default)));
 	}
 	
-	protected String getThemeKey()
+	public String getThemeKey()
 	{
 		SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(this);
 		return settings.getString(PREF_THEME, getString(R.string.pref_theme_default));
 	}
 	
-	protected int getPoliceSize()
+	public int getPoliceSize()
 	{
 		SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(this);
 		return Integer.parseInt(settings.getString(PREF_POLICE_SIZE, getString(R.string.pref_police_size_default)));
 	}
 
-	protected DrawableDisplayType getAvatarsDisplayType()
+	public DrawableDisplayType getAvatarsDisplayType()
 	{
 		SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(this);
 		String value = settings.getString(HFR4droidActivity.PREF_AVATARS_DISPLAY_TYPE, getString(R.string.pref_avatars_display_type_default));
 		return DrawableDisplayType.fromInt(Integer.parseInt(value));
 	}
 
-	protected DrawableDisplayType getSmileysDisplayType()
+	public DrawableDisplayType getSmileysDisplayType()
 	{
 		SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(this);
 		String value = settings.getString(HFR4droidActivity.PREF_SMILEYS_DISPLAY_TYPE, getString(R.string.pref_smileys_display_type_default));
 		return DrawableDisplayType.fromInt(Integer.parseInt(value));
 	}
 
-	protected DrawableDisplayType getImgsDisplayType()
+	public DrawableDisplayType getImgsDisplayType()
 	{
 		SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(this);
 		String value = settings.getString(HFR4droidActivity.PREF_IMGS_DISPLAY_TYPE, getString(R.string.pref_imgs_display_type_default));
 		return DrawableDisplayType.fromInt(Integer.parseInt(value));
 	}
 
-	protected boolean isSrvMpEnable()
+	public boolean isSrvMpEnable()
 	{
 		SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(this);
 		return settings.getBoolean(PREF_SRV_MPS_ENABLE, Boolean.parseBoolean(getString(R.string.pref_srv_mps_enable_default)));
 	}
 
-	protected String getString(String keyStr, Object... params)
+	public String getString(String keyStr, Object... params)
 	{
 		int key = -1;
 		try
@@ -1030,104 +1040,6 @@ public abstract class HFR4droidActivity extends Activity
 	
 	/* Classes internes */
 
-	protected abstract class DataRetrieverAsyncTask<E, P> extends AsyncTask<P, Void, List<E>>
-	{
-		private ProgressDialog progressDialog;
-		private boolean sameActivity;
-		private boolean displayLoading;
-		private String noElementMsg;
-
-		protected abstract List<E> retrieveDataInBackground(P... params) throws DataRetrieverException;
-
-		protected abstract void onPostExecuteSameActivity(List<E> elements) throws ClassCastException;
-
-		protected abstract void onPostExecuteOtherActivity(List<E> elements);
-
-		protected void onPostExecuteNoItem(boolean sameActivity, Toast t)
-		{
-			t.show();
-		}
-
-		public void execute(final String progressTitle, final String progressContent, final String noElementMsg, final boolean sameActivity, P... params)
-		{
-			execute(progressTitle, progressContent, noElementMsg, sameActivity, true, params);
-		}
-		
-		public void execute(final String progressTitle, final String progressContent, final String noElementMsg, final boolean sameActivity, final boolean displayLoading, P... params)
-		{
-			progressDialog = new ProgressDialog(HFR4droidActivity.this);
-			progressDialog.setTitle(progressTitle != null ? progressTitle : getString(R.string.loading));
-			progressDialog.setMessage(progressContent);
-			progressDialog.setIndeterminate(true);
-			this.noElementMsg = noElementMsg;
-			this.sameActivity = sameActivity;
-			this.displayLoading = displayLoading;
-			execute(params);
-		}
-
-		@Override
-		protected void onPreExecute() 
-		{
-			progressDialog.setCancelable(true);
-			progressDialog.setOnCancelListener(new OnCancelListener()
-			{
-				public void onCancel(DialogInterface dialog)
-				{
-					cancel(true);
-				}
-			});
-			if (displayLoading) progressDialog.show();
-		}
-
-		@Override
-		protected List<E> doInBackground(final P... params)
-		{
-			List<E> elements = null;
-			try
-			{
-				elements = retrieveDataInBackground(params);
-			}
-			catch (DataRetrieverException e)
-			{
-				error(e, true, true);
-			}
-			return elements;
-		}
-
-		@Override
-		protected void onPostExecute(final List<E> elements)
-		{
-			if (elements != null)
-			{
-				if (elements.size() > 0)					
-				{
-					if (sameActivity)
-					{
-						try
-						{
-							onPostExecuteSameActivity(elements);
-						}
-						catch (ClassCastException e)
-						{
-							error(e);
-							throw new RuntimeException(e);
-						}
-					}
-					else
-					{
-						onPostExecuteOtherActivity(elements);
-					}
-				}
-				else
-				{
-					final Toast t = Toast.makeText(HFR4droidActivity.this, noElementMsg, Toast.LENGTH_SHORT);
-					onPostExecuteNoItem(sameActivity, t);
-				}
-			}
-			if (displayLoading) progressDialog.dismiss();				
-		}
-	}
-
 	private class PreLoadingPostsAsyncTask extends DataRetrieverAsyncTask<Post, Topic>
 	{
 		private int targetPageNumber;
@@ -1135,6 +1047,7 @@ public abstract class HFR4droidActivity extends Activity
 		
 		public PreLoadingPostsAsyncTask(int targetPageNumber)
 		{
+			super(HFR4droidActivity.this);
 			this.targetPageNumber = targetPageNumber;
 			isFinished = false;
 		}
@@ -1174,151 +1087,5 @@ public abstract class HFR4droidActivity extends Activity
 
 		@Override
 		protected void onPostExecuteOtherActivity(List<Post> posts) {}
-	}
-
-	protected abstract class PageNumberDialog
-	{
-		protected AlertDialog dialog;
-		protected int currentPage;
-		protected int pageMax;
-
-		public PageNumberDialog(int currentPage)
-		{
-			dialog = null;
-			this.currentPage = currentPage;
-			this.pageMax = -1;
-		}
-
-		public PageNumberDialog(int currentPage, int pageMax)
-		{
-			dialog = null;
-			this.currentPage = currentPage;
-			this.pageMax = pageMax;
-		}
-
-		protected abstract void onValidate(int pageNumber);
-
-		protected int getPageNumber(EditText input)
-		{
-			String value = input.getText().toString();
-			int pageNumber = 1;
-			try
-			{
-				pageNumber = Integer.parseInt(value);
-				if (pageMax != -1 && pageNumber > pageMax) pageNumber = pageMax;
-				if (pageNumber < 1) pageNumber = 1;
-			}
-			catch (NumberFormatException e)
-			{
-				return -1;
-			}
-			return pageNumber;
-		}
-		
-		public void show()
-		{
-			if (dialog == null)
-			{
-				AlertDialog.Builder builder = new AlertDialog.Builder(HFR4droidActivity.this);                 
-				builder.setTitle(getString(R.string.nav_page_number));  
-				
-				LayoutInflater inflater = (LayoutInflater) getSystemService(LAYOUT_INFLATER_SERVICE);
-				View layout = inflater.inflate(R.layout.goto_page_number, null);
-				builder.setView(layout);
-
-				final TextView infos = (TextView) layout.findViewById(R.id.CurrentPageInfos);
-				infos.setText(pageMax != -1 ? (
-				currentPage != -1 ?
-						getString(R.string.nav_user_page_label1, currentPage, pageMax) :
-						getString(R.string.nav_user_page_label2, pageMax)) :
-				getString(R.string.nav_user_page_label3, currentPage));
-				final EditText input = (EditText) layout.findViewById(R.id.PageNumber);
-				builder.setPositiveButton(getString(R.string.button_ok), new OnClickListener()
-				{  
-					public void onClick(DialogInterface dialog, int whichButton)
-					{  
-						int pageNumber = getPageNumber(input);
-						if (pageNumber != -1) onValidate(pageNumber);       
-					}  
-				});
-				builder.setNegativeButton(getString(R.string.button_cancel), new OnClickListener()
-				{
-					public void onClick(DialogInterface dialog, int which){}
-				});
-
-				dialog = builder.create();
-				dialog.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE);
-			}
-			dialog.show();
-		}
-	}
-
-	protected abstract class SimpleNavOnGestureListener extends SimpleOnGestureListener
-	{
-		private int getVelocity()
-		{
-			int swipeMinVelocity;
-			switch (HFR4droidActivity.this.getSwipe())
-			{
-				case 2:
-					swipeMinVelocity = 350;
-					break;
-					
-				case 3:
-					swipeMinVelocity = 200;
-					break;					
-	
-				default:
-					swipeMinVelocity = 500;
-					break;			
-			}
-			return swipeMinVelocity;
-		}
-		
-		private float getWidthPercent()
-		{
-			float widthPercent;
-			switch (HFR4droidActivity.this.getSwipe())
-			{
-				case 2:
-					widthPercent = (float)0.6;
-					break;
-					
-				case 3:
-					widthPercent = (float)0.4;
-					break;					
-	
-				default:
-					widthPercent = (float)0.75;
-					break;			
-			}
-			return widthPercent;
-		}
-		
-		protected abstract void onLeftToRight(MotionEvent e1, MotionEvent e2);
-
-		protected abstract void onRightToLeft(MotionEvent e1, MotionEvent e2);
-		
-		public abstract boolean onDoubleTap(MotionEvent e);
-
-		@Override
-		public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX, float velocityY)
-		{
-			DisplayMetrics metrics = new DisplayMetrics();
-			getWindowManager().getDefaultDisplay().getMetrics(metrics);
-			if (Math.abs(velocityX) > getVelocity() && Math.abs(e1.getX() - e2.getX()) > (metrics.widthPixels * getWidthPercent()))
-			{
-				if (e1.getX() < e2.getX())
-				{
-					onLeftToRight(e1, e2);
-				} 
-				else if (e1.getX() > e2.getX())
-				{
-					onRightToLeft(e1, e2);
-				}
-				return true;
-			}
-			return false;
-		}
 	}
 }

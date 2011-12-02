@@ -17,6 +17,10 @@ import info.toyonos.hfr4droid.core.message.MessageSenderException;
 import info.toyonos.hfr4droid.core.utils.HttpClient;
 import info.toyonos.hfr4droid.core.utils.PatchInputStream;
 import info.toyonos.hfr4droid.service.MpNotifyService;
+import info.toyonos.hfr4droid.util.asyncktask.DataRetrieverAsyncTask;
+import info.toyonos.hfr4droid.util.asyncktask.ValidateMessageAsynckTask;
+import info.toyonos.hfr4droid.util.dialog.PageNumberDialog;
+import info.toyonos.hfr4droid.util.listener.SimpleNavOnGestureListener;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -194,7 +198,7 @@ public class PostsActivity extends NewPostUIActivity
 			}
 		}
 
-		gestureDetector = new GestureDetector(new SimpleNavOnGestureListener()
+		gestureDetector = new GestureDetector(new SimpleNavOnGestureListener(this)
 		{
 			@Override
 			protected void onLeftToRight(MotionEvent e1, MotionEvent e2)
@@ -437,7 +441,7 @@ public class PostsActivity extends NewPostUIActivity
 	@Override
 	protected void loadUserPage()
 	{
-		new PageNumberDialog(currentPageNumber, topic.getNbPages())
+		new PageNumberDialog(this, currentPageNumber, topic.getNbPages())
 		{
 			protected void onValidate(int pageNumber)
 			{
@@ -1151,7 +1155,7 @@ public class PostsActivity extends NewPostUIActivity
 		if (refresh) updateButtonsStates();
 	}
 	
-	protected void addQuickActionWindowItems(HFR4droidQuickActionWindow window, long currentPostId, boolean isMine)
+	protected void addQuickActionWindowItems(HFR4droidQuickActionWindow window, final long currentPostId, boolean isMine)
 	{
 		final StringBuilder postLink = new StringBuilder(getDataRetriever().getBaseUrl() + "/forum2.php?config=hfr.inc");
 		postLink.append("&cat=").append(topic.getCategory().getId());
@@ -1290,6 +1294,24 @@ public class PostsActivity extends NewPostUIActivity
 		});							
 		if (isLoggedIn()) window.addItem(addFavorite);
 		
+		if (!isMine)
+		{
+			QuickActionWindow.Item sendMP = new QuickActionWindow.Item(PostsActivity.this, "", R.drawable.ic_menu_messages, new QuickActionWindow.Item.Callback()
+			{	
+				public void onClick(QuickActionWindow window, Item item, View anchor)
+				{
+					Post p = getPostById(currentPostId);
+					Intent intent = new Intent(PostsActivity.this, NewTopicActivity.class);
+					Bundle bundle = new Bundle();
+					bundle.putSerializable("cat", Category.MPS_CAT);
+					bundle.putString("pseudo", p.getPseudo());
+					intent.putExtras(bundle);
+					startActivity(intent);
+				}
+			});					
+			window.addItem(sendMP);
+		}
+		
 		QuickActionWindow.Item copyLink = new QuickActionWindow.Item(PostsActivity.this, "", R.drawable.ic_menu_copy, new QuickActionWindow.Item.Callback()
 		{	
 			public void onClick(QuickActionWindow window, Item item, View anchor)
@@ -1418,7 +1440,7 @@ public class PostsActivity extends NewPostUIActivity
 			public void onClick(View v)
 			{
 				final EditText postContent = (EditText) postDialog.findViewById(R.id.InputPostContent);
-				new ValidateMessageAsynckTask()
+				new ValidateMessageAsynckTask(PostsActivity.this, postId)
 				{
 					@Override
 					protected boolean canExecute()
@@ -1604,7 +1626,7 @@ public class PostsActivity extends NewPostUIActivity
 		getString("searching_posts_word" + pagination, word));
 		String noElement = getString(R.string.no_post);
 		
-		new DataRetrieverAsyncTask<Post, Topic>()
+		new DataRetrieverAsyncTask<Post, Topic>(this)
 		{			
 			@Override
 			protected List<Post> retrieveDataInBackground(Topic... topics) throws DataRetrieverException
@@ -1644,6 +1666,14 @@ public class PostsActivity extends NewPostUIActivity
 		}.execute(progressTitle, progressContent, noElement, sameActivity, topic);
 	}
 
+	protected Post getPostById(long postId)
+	{
+		for (Post p : posts)
+		{
+			if (p.getId() == postId) return p;
+		}
+		return null;
+	}
 
 	/* Classes internes */
 

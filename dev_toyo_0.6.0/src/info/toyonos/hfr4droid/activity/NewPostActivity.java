@@ -4,16 +4,17 @@ import info.toyonos.hfr4droid.R;
 import info.toyonos.hfr4droid.core.bean.Topic;
 import info.toyonos.hfr4droid.core.bean.Topic.TopicType;
 import info.toyonos.hfr4droid.core.data.DataRetrieverException;
-import info.toyonos.hfr4droid.core.message.MessageSenderException;
 import info.toyonos.hfr4droid.core.message.HFRMessageSender.ResponseCode;
+import info.toyonos.hfr4droid.core.message.MessageSenderException;
+import info.toyonos.hfr4droid.util.asyncktask.ValidateMessageAsynckTask;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.View;
-import android.view.ViewGroup;
 import android.view.View.OnClickListener;
+import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
@@ -88,7 +89,7 @@ public class NewPostActivity extends NewPostGenericActivity
 			public void onClick(View v)
 			{
 				final EditText postContent = (EditText) findViewById(R.id.InputPostContent);
-				new ValidateMessageAsynckTask()
+				new ValidateMessageAsynckTask(NewPostActivity.this, postId)
 				{
 					@Override
 					protected boolean canExecute()

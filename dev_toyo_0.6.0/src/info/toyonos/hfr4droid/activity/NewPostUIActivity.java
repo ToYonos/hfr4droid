@@ -1,11 +1,8 @@
 package info.toyonos.hfr4droid.activity;
 
-import info.toyonos.hfr4droid.HFR4droidException;
 import info.toyonos.hfr4droid.R;
 import info.toyonos.hfr4droid.core.bean.Theme;
 import info.toyonos.hfr4droid.core.data.DataRetrieverException;
-import info.toyonos.hfr4droid.core.message.MessageSenderException;
-import info.toyonos.hfr4droid.core.message.HFRMessageSender.ResponseCode;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
@@ -14,8 +11,8 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.text.Html;
 import android.view.View;
-import android.view.ViewGroup;
 import android.view.View.OnClickListener;
+import android.view.ViewGroup;
 import android.view.ViewGroup.LayoutParams;
 import android.view.inputmethod.InputMethodManager;
 import android.webkit.WebChromeClient;
@@ -26,7 +23,6 @@ import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.TextView;
-import android.widget.Toast;
 
 /**
  * <p>Activity abstraite proposant des méthodes pour l'interface d'ajout / modification d'un post / topic</p>
@@ -322,83 +318,18 @@ public abstract class NewPostUIActivity extends HFR4droidActivity
 			editText.requestFocus();
 		}
 	}
+	
+	protected void applyTheme(Theme theme, ViewGroup rootLayout)
+	{
+		rootLayout.setBackgroundColor(currentTheme.getListBackgroundColor());
+		
+		TextView labelSmileyTag = (TextView) rootLayout.findViewById(R.id.LabelSmileyTag);
+		labelSmileyTag.setTextColor(currentTheme.getPostTextColor());
+	}
 
 	/* Classes internes */
-
-	protected abstract class ValidateMessageAsynckTask extends AsyncTask<Void, Void, ResponseCode>
-	{
-		private ProgressDialog progressDialog;
-		
-		public ValidateMessageAsynckTask()
-		{
-			progressDialog = new ProgressDialog(NewPostUIActivity.this);
-			progressDialog.setMessage(getString(R.string.post_loading));
-			progressDialog.setIndeterminate(true);
-		}
-		
-		protected abstract boolean canExecute(); 
-		
-		protected abstract ResponseCode validateMessage() throws MessageSenderException, DataRetrieverException;
-		
-		@Override
-		protected void onPreExecute() 
-		{
-			if (canExecute())
-			{
-				progressDialog.show();
-			}
-			else
-			{
-				cancel(true);
-			}
-		}
-
-		@Override
-		protected ResponseCode doInBackground(Void... params)
-		{
-			ResponseCode code = ResponseCode.POST_KO_EXCEPTION;
-			try
-			{
-				code = validateMessage();
-			}
-			catch (HFR4droidException e) // MessageSenderException, DataRetrieverException
-			{
-				error(e, true, true);
-			}
-			return code;
-		}
-
-		@Override
-		protected void onPostExecute(ResponseCode code)
-		{
-			handleCodeResponse(code);
-			progressDialog.dismiss();
-		}
-
-		protected boolean handleCodeResponse(ResponseCode code)
-		{
-			switch (code)
-			{
-				case POST_KO: // Undefined error
-					Toast.makeText(NewPostUIActivity.this, getString("post_" + (postId != -1 ? "edit" : "add") + "_failed"), Toast.LENGTH_SHORT).show();
-					return true;
-
-				case POST_FLOOD: // Flood
-					Toast.makeText(NewPostUIActivity.this, getString(R.string.post_flood), Toast.LENGTH_SHORT).show();
-					return true;
-					
-				case POST_MDP_KO: // Wrong password
-					Toast.makeText(NewPostUIActivity.this, getString(R.string.post_wrong_password), Toast.LENGTH_SHORT).show();
-					return true;
-					
-				default:
-					return false;
-					
-			}
-		}		
-	}
 	
-	protected class FormatButton extends Button
+	private class FormatButton extends Button
 	{
 		public FormatButton(Context context)
 		{
@@ -433,13 +364,5 @@ public abstract class NewPostUIActivity extends HFR4droidActivity
 				}
 			});	
 		}
-	}
-	
-	protected void applyTheme(Theme theme, ViewGroup rootLayout)
-	{
-		rootLayout.setBackgroundColor(currentTheme.getListBackgroundColor());
-		
-		TextView labelSmileyTag = (TextView) rootLayout.findViewById(R.id.LabelSmileyTag);
-		labelSmileyTag.setTextColor(currentTheme.getPostTextColor());
 	}
 }
