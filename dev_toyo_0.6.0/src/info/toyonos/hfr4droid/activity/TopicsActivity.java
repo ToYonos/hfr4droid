@@ -10,23 +10,20 @@ import info.toyonos.hfr4droid.core.bean.Topic;
 import info.toyonos.hfr4droid.core.bean.Topic.TopicStatus;
 import info.toyonos.hfr4droid.core.bean.Topic.TopicType;
 import info.toyonos.hfr4droid.core.data.DataRetrieverException;
-import info.toyonos.hfr4droid.core.message.MessageSenderException;
-import info.toyonos.hfr4droid.util.asyncktask.SimpleAsyncTask;
+import info.toyonos.hfr4droid.core.message.HFRMessageResponse;
+import info.toyonos.hfr4droid.util.asynctask.MessageResponseAsyncTask;
 import info.toyonos.hfr4droid.util.dialog.PageNumberDialog;
 import info.toyonos.hfr4droid.util.listener.SimpleNavOnGestureListener;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import android.app.AlertDialog;
-import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.res.ColorStateList;
 import android.graphics.Typeface;
 import android.graphics.drawable.ColorDrawable;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.text.Html;
 import android.text.TextUtils.TruncateAt;
@@ -213,8 +210,7 @@ public class TopicsActivity extends HFR4droidListActivity<Topic>
 	{
 		AdapterContextMenuInfo menuInfo = (AdapterContextMenuInfo) aItem.getMenuInfo();
 		final Topic currentTopic = menuInfo != null ? (Topic) getListView().getAdapter().getItem(menuInfo.position) : null;
-		final ProgressDialog progressDialog = new ProgressDialog(TopicsActivity.this);
-// TODO accorder violon sur type retour et finir refacto (+ login dialog)		
+
 		switch (aItem.getItemId())
 		{    	
 			case R.id.MenuNavLastReadPage:
@@ -275,126 +271,68 @@ public class TopicsActivity extends HFR4droidListActivity<Topic>
 				return true;
 				
 			case R.id.MenuNavSetUnread:
-				progressDialog.setMessage(getString(R.string.unread_loading));
-				progressDialog.setIndeterminate(true);
-				new AsyncTask<Void, Void, Boolean>()
-				{
+				new MessageResponseAsyncTask(this, getString(R.string.unread_loading))
+				{					
 					@Override
-					protected void onPreExecute() 
+					protected HFRMessageResponse executeInBackground() throws HFR4droidException
 					{
-						progressDialog.show();
+						return getMessageSender().setUnread(currentTopic);
 					}
-
+					
 					@Override
-					protected Boolean doInBackground(Void... params)
+					protected void onActionFinished(String message)
 					{
-						boolean response = false;
-						try
-						{
-							response = getMessageSender().setUnread(currentTopic);
-						} 
-						catch (MessageSenderException e)
-						{
-							error(e, true, true);
-						}
-						return response;
-					}
-
-					@Override
-					protected void onPostExecute(Boolean response)
-					{
-						progressDialog.dismiss();
-						if (response)
-						{
-							currentTopic.setStatus(TopicStatus.NEW_MP);
-							adapter.notifyDataSetChanged();
-						}
-						else
-						{
-							Toast.makeText(TopicsActivity.this, R.string.unread_failed, Toast.LENGTH_SHORT).show();
-						}
+						currentTopic.setStatus(TopicStatus.NEW_MP);
+						adapter.notifyDataSetChanged();
 					}
 				}.execute();
 				return true;
 				
 			case R.id.MenuNavUnflag:
-				progressDialog.setMessage(getString(R.string.unflag_loading));
-				progressDialog.setIndeterminate(true);
-				new AsyncTask<Void, Void, String>()
-				{
+				new MessageResponseAsyncTask(this, getString(R.string.unflag_loading))
+				{					
 					@Override
-					protected void onPreExecute() 
+					protected HFRMessageResponse executeInBackground() throws HFR4droidException
 					{
-						progressDialog.show();
+						return getMessageSender().unflag(currentTopic, type, getDataRetriever().getHashCheck());
 					}
-
+					
 					@Override
-					protected String doInBackground(Void... params)
+					protected void onActionFinished(String message)
 					{
-						String response = null;
-						try
-						{
-							response = getMessageSender().unflag(currentTopic, type, getDataRetriever().getHashCheck());
-						} 
-						catch (HFR4droidException e)
-						{
-							error(e, true, true);
-						}
-						return response;
-					}
-
-					@Override
-					protected void onPostExecute(String response)
-					{
-						progressDialog.dismiss();
-						if (response != null)
-						{
-							Toast.makeText(TopicsActivity.this, response, Toast.LENGTH_SHORT).show();
-							adapter.remove(currentTopic);
-							adapter.notifyDataSetChanged();
-						}
+						Toast.makeText(TopicsActivity.this, message, Toast.LENGTH_SHORT).show();
+						adapter.remove(currentTopic);
+						adapter.notifyDataSetChanged();	
 					}
 				}.execute();
 				return true;
 				
 			case R.id.MenuNavDeleteMP:
-				new AlertDialog.Builder(TopicsActivity.this)
-				.setTitle(getString(R.string.delete_mp_title))
-				.setMessage(getString(R.string.delete_message))
-				.setPositiveButton(R.string.button_yes, new DialogInterface.OnClickListener()
+				getConfirmDialog(
+				getString(R.string.delete_mp_title),
+				getString(R.string.are_u_sure_message),
+				new DialogInterface.OnClickListener()
 				{
 					public void onClick(DialogInterface arg0, int arg1)
 					{
-						new SimpleAsyncTask<Boolean>(TopicsActivity.this, getString(R.string.delete_mp_loading))
+						new MessageResponseAsyncTask(TopicsActivity.this, getString(R.string.delete_mp_loading))
 						{
 							@Override
-							protected Boolean executeInBackground()	throws HFR4droidException
+							protected HFRMessageResponse executeInBackground()	throws HFR4droidException
 							{
 								return getMessageSender().deleteMP(currentTopic, getDataRetriever().getHashCheck());
 							}
 
 							@Override
-							protected void onActionFinished(Boolean response)
+							protected void onActionFinished(String message)
 							{
-								if (response != null && response)
-								{
-									adapter.remove(currentTopic);
-									adapter.notifyDataSetChanged();
-								}
-								else
-								{
-									Toast.makeText(TopicsActivity.this, R.string.delete_mp_failed, Toast.LENGTH_SHORT).show();
-								}
+								Toast.makeText(TopicsActivity.this, message, Toast.LENGTH_SHORT).show();
+								adapter.remove(currentTopic);
+								adapter.notifyDataSetChanged();
 							}	
 						}.execute();
 					}
-
-				})
-				.setNegativeButton(R.string.button_no, new DialogInterface.OnClickListener()
-				{
-					public void onClick(DialogInterface dialog, int which) {}
-				})
-				.show();	
+				}).show();	
 				return true;
 				
 			default:

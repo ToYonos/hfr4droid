@@ -36,7 +36,7 @@
 	<color name="dark_post_edit_quote_background">#454545</color>
 	<color name="dark_post_edit_quote_text">#DADADA</color>
 	<color name="dark_post_block_background">#606060</color>
-	<color name="dark_post_modo_background">#FFEEEE</color>
+	<color name="dark_post_modo_background">#666666</color>
 	
 	<string name="dark_inverse_progress">true</string>
 	

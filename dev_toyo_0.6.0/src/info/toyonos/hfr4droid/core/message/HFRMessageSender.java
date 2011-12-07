@@ -156,7 +156,7 @@ public class HFRMessageSender
 		return getResponseCode(response);
 	}
 
-	public boolean deleteMessage(Post p, String hashCheck) throws MessageSenderException
+	public HFRMessageResponse deleteMessage(Post p, String hashCheck) throws MessageSenderException
 	{
 		List<NameValuePair> params = new ArrayList<NameValuePair>();
 		params.add(new BasicNameValuePair("hash_check", hashCheck));
@@ -175,7 +175,10 @@ public class HFRMessageSender
 		{
 			throw new MessageSenderException(context.getString(R.string.delete_failed), e);
 		}
-		return response.matches(".*Message effacé avec succès.*");
+
+		return new HFRMessageResponse(
+			response.matches(".*Message effacé avec succès.*"),
+			HFRDataRetriever.getSingleElement("<div\\s*class=\"hop\">\\s*(.*?)\\s*</div>", response));
 	}
 	
 	/**
@@ -183,10 +186,10 @@ public class HFRMessageSender
 	 * @param hashCheck le hashCheck
 	 * @param code le code du smiley
 	 * @param keywords les nouveaux mots clés du smiley
-	 * @return Le message indiquant si l'opération s'est bien passée
+	 * @return Si l'opération s'est bien passée et le message correspondant
 	 * @throws MessageSenderException Si un problème survient
 	 */
-	public String setKeywords(String hashCheck, String code, String keywords) throws MessageSenderException
+	public HFRMessageResponse setKeywords(String hashCheck, String code, String keywords) throws MessageSenderException
 	{
 		List<NameValuePair> params = new ArrayList<NameValuePair>();
 		params.add(new BasicNameValuePair("modif0", "1"));
@@ -203,16 +206,19 @@ public class HFRMessageSender
 		{
 			throw new MessageSenderException(context.getString(R.string.keywords_failed), e);
 		}
-		return HFRDataRetriever.getSingleElement("<div\\s*class=\"hop\">\\s*(.*?)\\s*</div>", response);
+
+		return new HFRMessageResponse(
+			response.matches(".*Vos modifications sur les mots clés ont été enregistrés avec succès.*"),
+			HFRDataRetriever.getSingleElement("<div\\s*class=\"hop\">\\s*(.*?)\\s*</div>", response));
 	}
 	
 	/**
 	 * Ajoute un favori sur un post donné
 	 * @param p le post concerné
-	 * @return Le message indiquant si l'opération s'est bien passée
+	 * @return Si l'opération s'est bien passée et le message correspondant
 	 * @throws MessageSenderException Si un problème survient
 	 */
-	public String addFavorite(Post p) throws MessageSenderException
+	public HFRMessageResponse addFavorite(Post p) throws MessageSenderException
 	{
 		String url = FAVORITE_URI.replaceFirst("\\{\\$cat\\}", p.getTopic().getCategory().getRealId())
 		.replaceFirst("\\{\\$topic\\}", String.valueOf(p.getTopic().getId()))
@@ -227,16 +233,19 @@ public class HFRMessageSender
 		{
 			throw new MessageSenderException(context.getString(R.string.favorite_failed), e);
 		}
-		return HFRDataRetriever.getSingleElement("<div\\s*class=\"hop\">\\s*(.*?)\\s*</div>", response);
+
+		return new HFRMessageResponse(
+			response.matches(".*Favori positionné avec succès.*"),
+			HFRDataRetriever.getSingleElement("<div\\s*class=\"hop\">\\s*(.*?)\\s*</div>", response));
 	}
 	
 	/**
 	 * Met un mp en non lu
 	 * @param t le topic concerné
-	 * @return true ou false suivant si l'opération s'est bien passé
+	 * @return Si l'opération s'est bien passée et le message correspondant
 	 * @throws MessageSenderException Si un problème survient
 	 */
-	public boolean setUnread(Topic t) throws MessageSenderException
+	public HFRMessageResponse setUnread(Topic t) throws MessageSenderException
 	{
 		String url = UNREAD_URI.replaceFirst("\\{\\$cat\\}", t.getCategory().getRealId())
 		.replaceFirst("\\{\\$topic\\}", String.valueOf(t.getId()));
@@ -250,16 +259,19 @@ public class HFRMessageSender
 		{
 			throw new MessageSenderException(context.getString(R.string.unread_failed), e);
 		}
-		return response.matches(".*Le message a été marqué comme non lu avec succès.*");
+
+		return new HFRMessageResponse(
+			response.matches(".*Le message a été marqué comme non lu avec succès.*"),
+			HFRDataRetriever.getSingleElement("<div\\s*class=\"hop\">\\s*(.*?)\\s*</div>", response));
 	}
 	
 	/**
 	 * Déflag un topic
 	 * @param t le topic concerné
-	 * @return Le message indiquant si l'opération s'est bien passée
+	 * @return Si l'opération s'est bien passée et le message correspondant
 	 * @throws MessageSenderException Si un problème survient
 	 */
-	public String unflag(Topic t, TopicType type, String hashCheck) throws MessageSenderException
+	public HFRMessageResponse unflag(Topic t, TopicType type, String hashCheck) throws MessageSenderException
 	{
 		List<NameValuePair> params = new ArrayList<NameValuePair>();
 		params.add(new BasicNameValuePair("action_reaction", "message_forum_delflags"));
@@ -281,16 +293,19 @@ public class HFRMessageSender
 		{
 			throw new MessageSenderException(context.getString(R.string.unflag_failed), e);
 		}
-		return HFRDataRetriever.getSingleElement("<div\\s*class=\"hop\">\\s*(.*?)\\s*</div>", response);
+
+		return new HFRMessageResponse(
+			response.matches(".*Drapeaux effacés avec succès.*"),
+			HFRDataRetriever.getSingleElement("<div\\s*class=\"hop\">\\s*(.*?)\\s*</div>", response));
 	}
 	
 	/**
 	 * Supprime un message privé
 	 * @param t le mp concerné
-	 * @return Le message indiquant si l'opération s'est bien passée
+	 * @return Si l'opération s'est bien passée et le message correspondant
 	 * @throws MessageSenderException Si un problème survient
 	 */
-	public boolean deleteMP(Topic t, String hashCheck) throws MessageSenderException
+	public HFRMessageResponse deleteMP(Topic t, String hashCheck) throws MessageSenderException
 	{
 		List<NameValuePair> params = new ArrayList<NameValuePair>();
 		params.add(new BasicNameValuePair("action_reaction", "valid_eff_prive"));
@@ -306,7 +321,10 @@ public class HFRMessageSender
 		{
 			throw new MessageSenderException(context.getString(R.string.delete_mp_failed), e);
 		}
-		return response.matches(".*Action effectuée avec succès.*");
+
+		return new HFRMessageResponse(
+			response.matches(".*Action effectuée avec succès.*"),
+			HFRDataRetriever.getSingleElement("<div\\s*class=\"hop\">\\s*(.*?)\\s*</div>", response));
 	}
 
 	private String innerGetResponse(String url, List<NameValuePair> params) throws UnsupportedEncodingException, IOException

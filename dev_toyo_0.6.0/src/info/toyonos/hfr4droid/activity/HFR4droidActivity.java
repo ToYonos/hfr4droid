@@ -15,7 +15,7 @@ import info.toyonos.hfr4droid.core.data.MDDataRetriever;
 import info.toyonos.hfr4droid.core.message.HFRMessageSender;
 import info.toyonos.hfr4droid.service.MpCheckService;
 import info.toyonos.hfr4droid.service.MpTimerCheckService;
-import info.toyonos.hfr4droid.util.asyncktask.DataRetrieverAsyncTask;
+import info.toyonos.hfr4droid.util.asynctask.DataRetrieverAsyncTask;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -323,9 +323,18 @@ public abstract class HFR4droidActivity extends Activity
 				}
 				else
 				{
-					logout();
-					stopMpTimerCheckService();
-					onLogout();
+					getConfirmDialog(
+					getString(R.string.logout_title),
+					getString(R.string.are_u_sure_message),
+					new DialogInterface.OnClickListener()
+					{
+						public void onClick(DialogInterface arg0, int arg1)
+						{
+							logout();
+							stopMpTimerCheckService();
+							onLogout();
+						}
+					}).show();
 				}
 				return true;
 	
@@ -1036,6 +1045,18 @@ public abstract class HFR4droidActivity extends Activity
 		{
 			return "?";
 		}
+	}
+	
+	protected AlertDialog getConfirmDialog(String title, String message, DialogInterface.OnClickListener listener)
+	{
+		return new AlertDialog.Builder(HFR4droidActivity.this)
+		.setTitle(title)
+		.setMessage(message)
+		.setPositiveButton(R.string.button_yes, listener)
+		.setNegativeButton(R.string.button_no, new DialogInterface.OnClickListener()
+		{
+			public void onClick(DialogInterface dialog, int which) {}
+		}).create();
 	}
 	
 	/* Classes internes */

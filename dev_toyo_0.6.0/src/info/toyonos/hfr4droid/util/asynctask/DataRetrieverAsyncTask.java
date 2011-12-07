@@ -1,4 +1,4 @@
-package info.toyonos.hfr4droid.util.asyncktask;
+package info.toyonos.hfr4droid.util.asynctask;
 
 import info.toyonos.hfr4droid.R;
 import info.toyonos.hfr4droid.activity.HFR4droidActivity;

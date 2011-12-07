@@ -4,7 +4,7 @@ import info.toyonos.hfr4droid.R;
 import info.toyonos.hfr4droid.core.bean.Category;
 import info.toyonos.hfr4droid.core.bean.Theme;
 import info.toyonos.hfr4droid.core.bean.Topic.TopicType;
-import info.toyonos.hfr4droid.util.asyncktask.DataRetrieverAsyncTask;
+import info.toyonos.hfr4droid.util.asynctask.DataRetrieverAsyncTask;
 import android.content.res.Configuration;
 import android.os.Bundle;
 import android.view.Display;

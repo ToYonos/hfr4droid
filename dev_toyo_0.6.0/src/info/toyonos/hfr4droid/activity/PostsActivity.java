@@ -12,13 +12,15 @@ import info.toyonos.hfr4droid.core.bean.Topic.TopicType;
 import info.toyonos.hfr4droid.core.data.DataRetrieverException;
 import info.toyonos.hfr4droid.core.data.HFRUrlParser;
 import info.toyonos.hfr4droid.core.data.MDUrlParser;
+import info.toyonos.hfr4droid.core.message.HFRMessageResponse;
 import info.toyonos.hfr4droid.core.message.HFRMessageSender.ResponseCode;
 import info.toyonos.hfr4droid.core.message.MessageSenderException;
 import info.toyonos.hfr4droid.core.utils.HttpClient;
 import info.toyonos.hfr4droid.core.utils.PatchInputStream;
 import info.toyonos.hfr4droid.service.MpNotifyService;
-import info.toyonos.hfr4droid.util.asyncktask.DataRetrieverAsyncTask;
-import info.toyonos.hfr4droid.util.asyncktask.ValidateMessageAsynckTask;
+import info.toyonos.hfr4droid.util.asynctask.DataRetrieverAsyncTask;
+import info.toyonos.hfr4droid.util.asynctask.MessageResponseAsyncTask;
+import info.toyonos.hfr4droid.util.asynctask.ValidateMessageAsynckTask;
 import info.toyonos.hfr4droid.util.dialog.PageNumberDialog;
 import info.toyonos.hfr4droid.util.listener.SimpleNavOnGestureListener;
 
@@ -920,48 +922,18 @@ public class PostsActivity extends NewPostUIActivity
 						{  
 							public void onClick(DialogInterface dialog, int whichButton)
 							{
-								final ProgressDialog progressDialog = new ProgressDialog(PostsActivity.this);
-								progressDialog.setMessage(getString(R.string.keywords_loading));
-								progressDialog.setIndeterminate(true);
-								new AsyncTask<Void, Void, String>()
-								{
+								new MessageResponseAsyncTask(PostsActivity.this, getString(R.string.keywords_loading))
+								{						
 									@Override
-									protected void onPreExecute() 
+									protected HFRMessageResponse executeInBackground()	throws HFR4droidException
 									{
-										progressDialog.setCancelable(true);
-										progressDialog.setOnCancelListener(new OnCancelListener()
-										{
-											public void onCancel(DialogInterface dialog)
-											{
-												cancel(true);
-											}
-										});
-										progressDialog.show();
+										return getMessageSender().setKeywords(getDataRetriever().getHashCheck(), code, keywordsView.getText().toString());
 									}
-
+									
 									@Override
-									protected String doInBackground(Void... params)
+									protected void onActionFinished(String message)
 									{
-										String strResponse = null;
-										try
-										{
-											strResponse = getMessageSender().setKeywords(getDataRetriever().getHashCheck(), code, keywordsView.getText().toString());
-										} 
-										catch (HFR4droidException e) // MessageSenderException, DataRetrieverException
-										{
-											error(e, true, true);
-										}
-										return strResponse;
-									}
-
-									@Override
-									protected void onPostExecute(String strResponse)
-									{
-										progressDialog.dismiss();
-										if (strResponse != null)
-										{
-											Toast.makeText(PostsActivity.this, strResponse, Toast.LENGTH_SHORT).show();
-										}
+										Toast.makeText(PostsActivity.this, message, Toast.LENGTH_SHORT).show();
 									}
 								}.execute();
 							}
@@ -1189,7 +1161,7 @@ public class PostsActivity extends NewPostUIActivity
 					@Override
 					protected String doActionInBackground(Post p) throws DataRetrieverException, MessageSenderException
 					{
-						return getMessageSender().deleteMessage(p, getDataRetriever().getHashCheck()) ? "1" : "0";
+						return getMessageSender().deleteMessage(p, getDataRetriever().getHashCheck()).isSuccess() ? "1" : "0";
 					}
 
 					@Override
@@ -1283,7 +1255,7 @@ public class PostsActivity extends NewPostUIActivity
 			@Override
 			protected String doActionInBackground(Post p) throws DataRetrieverException, MessageSenderException
 			{
-				return getMessageSender().addFavorite(p);
+				return getMessageSender().addFavorite(p).getMessage();
 			}
 
 			@Override
@@ -1312,7 +1284,7 @@ public class PostsActivity extends NewPostUIActivity
 			window.addItem(sendMP);
 		}
 		
-		QuickActionWindow.Item copyLink = new QuickActionWindow.Item(PostsActivity.this, "", R.drawable.ic_menu_copy, new QuickActionWindow.Item.Callback()
+		QuickActionWindow.Item copyLink = new QuickActionWindow.Item(PostsActivity.this, "", R.drawable.ic_menu_link, new QuickActionWindow.Item.Callback()
 		{	
 			public void onClick(QuickActionWindow window, Item item, View anchor)
 			{
@@ -1322,6 +1294,27 @@ public class PostsActivity extends NewPostUIActivity
 			}
 		});					
 		window.addItem(copyLink);
+		
+		QuickActionWindow.Item copyContent = new QuickActionWindow.Item(PostsActivity.this, "", R.drawable.ic_menu_copy, new QuickActionWindow.Item.Callback()
+		{	
+			public void onClick(QuickActionWindow window, Item item, View anchor)
+			{
+				Post p = getPostById(currentPostId);
+				String bbCode;
+				try
+				{
+					bbCode = getDataRetriever().getPostContent(p);
+					ClipboardManager clipboard = (ClipboardManager) getSystemService(CLIPBOARD_SERVICE); 
+					clipboard.setText(cleanBBCode(bbCode));
+					Toast.makeText(PostsActivity.this, getText(R.string.copy_post_content), Toast.LENGTH_SHORT).show();
+				}
+				catch (DataRetrieverException e)
+				{
+					error(e, true);
+				}
+			}
+		});					
+		window.addItem(copyContent);
 		
 		QuickActionWindow.Item shareLink = new QuickActionWindow.Item(PostsActivity.this, "", android.R.drawable.ic_menu_share, new QuickActionWindow.Item.Callback()
 		{	
@@ -1674,6 +1667,11 @@ public class PostsActivity extends NewPostUIActivity
 		}
 		return null;
 	}
+	
+	private String cleanBBCode(String bbCode)
+	{
+		return bbCode.replaceAll("\\[\\/?(?:b|i|u|strike|quote|fixed|code|url|img|\\*|spoiler)*?.*?\\]", "");
+	}
 
 	/* Classes internes */
 
@@ -1708,22 +1706,16 @@ public class PostsActivity extends NewPostUIActivity
 		{
 			if (confirm)
 			{
-				new AlertDialog.Builder(PostsActivity.this)
-				.setTitle(getString(type.getKey() + "_title"))
-				.setMessage(getString(type.getKey() + "_message"))
-				.setPositiveButton(R.string.button_yes, new DialogInterface.OnClickListener()
+				getConfirmDialog(
+				getString(type.getKey() + "_title"),
+				getString(type.getKey() + "_message"),
+				new DialogInterface.OnClickListener()
 				{
 					public void onClick(DialogInterface arg0, int arg1)
 					{
 						execute();
 					}
-
-				})
-				.setNegativeButton(R.string.button_no, new DialogInterface.OnClickListener()
-				{
-					public void onClick(DialogInterface dialog, int which) {}
-				})
-				.show();			
+				}).show();
 			}
 			else
 			{

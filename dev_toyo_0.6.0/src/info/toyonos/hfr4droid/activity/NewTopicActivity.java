@@ -6,7 +6,7 @@ import info.toyonos.hfr4droid.core.bean.Topic.TopicType;
 import info.toyonos.hfr4droid.core.data.DataRetrieverException;
 import info.toyonos.hfr4droid.core.message.HFRMessageSender.ResponseCode;
 import info.toyonos.hfr4droid.core.message.MessageSenderException;
-import info.toyonos.hfr4droid.util.asyncktask.ValidateMessageAsynckTask;
+import info.toyonos.hfr4droid.util.asynctask.ValidateMessageAsynckTask;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
