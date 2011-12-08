@@ -69,13 +69,18 @@ public class PostsSearchActivity extends PostsActivity
 			}
 		}
 		
-		LinearLayout searchPanel = (LinearLayout) findViewById(R.id.SearchPostsPanel);
-		searchPanel.setVisibility(View.VISIBLE);
-		
 		EditText pseudoET = (EditText) findViewById(R.id.SearchPostsPseudo);
 		pseudoET.setText(pseudo);
 		EditText wordET = (EditText) findViewById(R.id.SearchPostsWord);
 		wordET.setText(word);
+	}
+	
+	@Override
+	protected void onStart()
+	{
+		super.onStart();
+		LinearLayout searchPanel = (LinearLayout) findViewById(R.id.SearchPostsPanel);
+		searchPanel.setVisibility(View.VISIBLE);
 	}
 	
 	@Override
@@ -217,6 +222,7 @@ public class PostsSearchActivity extends PostsActivity
 		{	
 			public void onClick(QuickActionWindow window, Item item, View anchor)
 			{
+				keepNavigationHistory = true;
 				jumpToPost(currentPostId);
 			}
 		});					

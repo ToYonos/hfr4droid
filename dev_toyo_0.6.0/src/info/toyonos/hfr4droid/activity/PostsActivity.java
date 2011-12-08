@@ -184,6 +184,8 @@ public class PostsActivity extends NewPostUIActivity
 		currentImgsDisplayType = getImgsDisplayType();
 		
 		Bundle bundle = this.getIntent().getExtras();
+		fromType =  bundle != null && bundle.getSerializable("fromTopicType") != null ? (TopicType) bundle.getSerializable("fromTopicType") : TopicType.ALL;
+		fromAllCats = bundle != null ? bundle.getBoolean("fromAllCats", false) : false;
 		onCreateInit(bundle);
 
 		if (topic != null)
@@ -241,8 +243,6 @@ public class PostsActivity extends NewPostUIActivity
 	@SuppressWarnings("unchecked")
 	protected void onCreateInit(Bundle bundle)
 	{
-		if (fromType == null) fromType =  bundle != null && bundle.getSerializable("fromTopicType") != null ? (TopicType) bundle.getSerializable("fromTopicType") : TopicType.ALL;
-		fromAllCats = bundle == null ? false : bundle.getBoolean("fromAllCats", false); 
 		if (bundle != null && bundle.getSerializable("posts") != null)
 		{
 			posts = (List<Post>) bundle.getSerializable("posts");
@@ -421,7 +421,13 @@ public class PostsActivity extends NewPostUIActivity
 	{
 		final TextView topicTitle = (TextView) findViewById(R.id.TopicTitle);
 		topicTitle.setTextSize(getTextSize(15));
-		topicTitle.setText(topic.toString());
+		String topicName = topic.toString();
+		int index =  topicName.indexOf(']');
+		if (topicName.indexOf('[') == 0 && index != -1)
+		{
+			topicName = topicName.substring(index + 1).trim() + " " + topicName.substring(0, index + 1);
+		}
+		topicTitle.setText(topicName);
 		topicTitle.setSelected(true);
 		final TextView topicPageNumber = (TextView) findViewById(R.id.TopicPageNumber);
 		topicPageNumber.setTextSize(getTextSize(15));
@@ -784,7 +790,7 @@ public class PostsActivity extends NewPostUIActivity
 
 		webView.setFocusable(true);
 		webView.setFocusableInTouchMode(false); 
-		webView.setLayoutParams(new LayoutParams(LayoutParams.FILL_PARENT, LayoutParams.WRAP_CONTENT));
+		webView.setLayoutParams(new LayoutParams(LayoutParams.FILL_PARENT, LayoutParams.FILL_PARENT));
 		webView.addJavascriptInterface(new Object()
 		{
 			@SuppressWarnings("unused")
@@ -815,12 +821,12 @@ public class PostsActivity extends NewPostUIActivity
 			}
 
 			@SuppressWarnings("unused")
-			public void handleQuote(String url)
+			public void handleUrl(String url)
 			{
 				try
 				{
 					MDUrlParser urlParser = new HFRUrlParser(getDataRetriever());
-					if (urlParser.parseUrl(getDataRetriever().getBaseUrl() + url))
+					if (urlParser.parseUrl(url))
 					{
 						BasicElement element = urlParser.getElement();
 						if (element == null)
@@ -844,14 +850,16 @@ public class PostsActivity extends NewPostUIActivity
 								else
 								{
 									// Page différente, on change de page
+									keepNavigationHistory = true;
 									topic.setLastReadPost(t.getLastReadPost());
-									loadPosts(topic, urlParser.getPage());
+									loadPosts(topic, urlParser.getPage(), false);
 								}
 							}
 							else
 							{
 								// Topic différent, on change de topic
-								loadPosts(t, urlParser.getPage());
+								keepNavigationHistory = true;
+								loadPosts(t, urlParser.getPage(), false);
 							}
 						}
 					}
@@ -993,6 +1001,7 @@ public class PostsActivity extends NewPostUIActivity
 		css.append("pre { font-size: 0.7em; white-space: pre-wrap }");
 		css.append("ol.olcode { font-size: 0.7em; }");
 		css.append("body { margin:0; padding:0; background-color:" + currentTheme.getListBackgroundColorAsString() + "; }");
+		css.append(".HFR4droid_posts_container { min-height:100%; }");
 		css.append(".HFR4droid_header { width:100%; background: url(\"" + currentTheme.getPostHeaderData() + "\"); height: 50px; text-align: right; }");
 		css.append(".HFR4droid_header div { position: absolute; margin: 5px 0 0 5px; width:90%; text-align: left; }");
 		css.append(".HFR4droid_header div img { float: left; max-width:60px; max-height:40px; margin-right:5px; }");
@@ -1017,7 +1026,8 @@ public class PostsActivity extends NewPostUIActivity
 		css.append(".HFR4droid_content { padding: 10px; padding-top: 5px; font-size: " + getTextSize(16) + "px; }");
 		css.append(".HFR4droid_content p, .HFR4droid_content div, .HFR4droid_content ul, .HFR4droid_content b { color:" + currentTheme.getPostTextColorAsString() + "}");
 		css.append(".modo_post { background-color: " + currentTheme.getModoPostBackgroundColorAsString() + "; }");
-		css.append(".HFR4droid_footer { height: 10px; width:100%; background: url(\"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAA%2FCAMAAAAWu1JmAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAgY0hSTQAAeiYAAICEAAD6AAAAgOgAAHUwAADqYAAAOpgAABdwnLpRPAAAAwBQTFRFhYWFs7SzysrKy8vLyszKzMzMzc3Nzs7Oz8%2FP0NDQ0dHR0dLR0tLS09PT1NTU1dXV1tbW19fX2NjY2dnZ2tna2tra29rb3Nvc3Nzc3dzdAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAWKfi1AAAABh0RVh0U29mdHdhcmUAUGFpbnQuTkVUIHYzLjM2qefiJQAAAEFJREFUGFddwkcOgDAQBMHBhCWDCQb%2B%2F1Fai8TBqlKhSoOiDiVdejK3PgkndrchYsXiZkwY0bsO7c9kalCjdAF6ARIIA4Sqnjr8AAAAAElFTkSuQmCC\"); }");
+		css.append(".HFR4droid_footer_space { height: 10px; }");
+		css.append(".HFR4droid_footer { height: 10px; width:100%; margin-top: -10px; background: url(\"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAA%2FCAMAAAAWu1JmAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAgY0hSTQAAeiYAAICEAAD6AAAAgOgAAHUwAADqYAAAOpgAABdwnLpRPAAAAwBQTFRFhYWFs7SzysrKy8vLyszKzMzMzc3Nzs7Oz8%2FP0NDQ0dHR0dLR0tLS09PT1NTU1dXV1tbW19fX2NjY2dnZ2tna2tra29rb3Nvc3Nzc3dzdAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAWKfi1AAAABh0RVh0U29mdHdhcmUAUGFpbnQuTkVUIHYzLjM2qefiJQAAAEFJREFUGFddwkcOgDAQBMHBhCWDCQb%2B%2F1Fai8TBqlKhSoOiDiVdejK3PgkndrchYsXiZkwY0bsO7c9kalCjdAF6ARIIA4Sqnjr8AAAAAElFTkSuQmCC\"); }");
 		css.append("</style>");
 
 		Display display = getWindowManager().getDefaultDisplay(); 
@@ -1027,7 +1037,7 @@ public class PostsActivity extends NewPostUIActivity
 		js2.append("</script>");
 
 		setDrawablesToggles();
-		StringBuffer postsContent = new StringBuffer("");
+		StringBuffer postsContent = new StringBuffer("<div class=\"HFR4droid_posts_container\">");
 		for (Post p : posts)
 		{
 			SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy à HH:mm:ss");
@@ -1061,7 +1071,8 @@ public class PostsActivity extends NewPostUIActivity
 			content += "\">" + editQuoteDiv + "<div class=\"HFR4droid_content\"";
 			content += ">" + p.getContent() + "</div></div>";
 			content = content.replaceAll("onload=\"md_verif_size\\(this,'Cliquez pour agrandir','[0-9]+','[0-9]+'\\)\"", "onclick=\"return true;\"");
-			content = content.replaceAll("<b\\s*class=\"s1\"><a href=\"(.*?)\".*?>(.*?)</a></b>", "<b onclick=\"window.HFR4Droid.handleQuote('$1');\" class=\"s1\">$2</b>");
+			content = content.replaceAll("<b\\s*class=\"s1\"><a href=\"(.*?)\".*?>(.*?)</a></b>", "<b onclick=\"window.HFR4Droid.handleUrl(" + getDataRetriever().getBaseUrl() + "'$1');\" class=\"s1\">$2</b>");
+			content = content.replaceAll("<a\\s*href=\"(http://forum\\.hardware\\.fr.*?)\"\\s*target=\"_blank\"\\s*class=\"cLink\">", "<a onclick=\"window.HFR4Droid.handleUrl('$1');\" class=\"cLink\">");			
 			if (!isSmileysEnable) content = content.replaceAll("<img\\s*src=\"http://forum\\-images\\.hardware\\.fr.*?\"\\s*alt=\"(.*?)\".*?/>", "$1");
 			content = content.replaceAll("<img\\s*src=\"http://forum\\-images\\.hardware\\.fr/images/perso/(.*?)\"\\s*alt=\"(.*?)\"", "<img onclick=\"window.HFR4Droid.editKeywords('$2');\" src=\"http://forum-images.hardware.fr/images/perso/$1\" alt=\"$2\"");
 			if (!isImgsEnable) content = content.replaceAll("<img\\s*src=\"http://[^\"]*?\"\\s*alt=\"http://[^\"]*?\"\\s*title=\"(http://.*?)\".*?/>", "<a href=\"$1\" target=\"_blank\" class=\"cLink\">$1</a>");
@@ -1069,7 +1080,7 @@ public class PostsActivity extends NewPostUIActivity
 			postsContent.append(header);
 			postsContent.append(content);
 		}
-		postsContent.append("<div id=\"" + BOTTOM_PAGE_ID + "\" class=\"HFR4droid_footer\" />");
+		postsContent.append("<div class=\"HFR4droid_footer_space\"></div></div><div id=\"" + BOTTOM_PAGE_ID + "\" class=\"HFR4droid_footer\" />");
 		WebSettings settings = webView.getSettings();
 		settings.setDefaultTextEncodingName("UTF-8");
 		settings.setJavaScriptEnabled(true);
@@ -1653,6 +1664,8 @@ public class PostsActivity extends NewPostUIActivity
 				bundle.putSerializable("fromPost", fromPost);
 				bundle.putString("pseudo", pseudo);
 				bundle.putString("word", word);
+				bundle.putSerializable("fromTopicType", fromType);
+				bundle.putBoolean("fromAllCats", fromAllCats);
 				intent.putExtras(bundle);
 				startActivity(intent);
 			}
@@ -1667,6 +1680,17 @@ public class PostsActivity extends NewPostUIActivity
 		}
 		return null;
 	}
+	
+	protected TopicType getFromType()
+	{
+		return fromType;
+	}
+	
+	protected boolean isFromAllCats()
+	{
+		return fromAllCats;
+	}
+	
 	
 	private String cleanBBCode(String bbCode)
 	{

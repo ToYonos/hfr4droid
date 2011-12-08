@@ -109,6 +109,8 @@ public abstract class HFR4droidActivity extends Activity
 		}
 	};
 	
+	protected static boolean keepNavigationHistory = false;
+	
 	protected AlertDialog loginDialog;
 	protected int currentPageNumber;
 
@@ -187,6 +189,7 @@ public abstract class HFR4droidActivity extends Activity
 		requestWindowFeature(Window.FEATURE_NO_TITLE);
 		loadTheme(getThemeKey());
 		currentPoliceSize = getPoliceSize();
+		keepNavigationHistory = false;
 		
 		Bundle bundle = this.getIntent().getExtras();
 		loginDialog = null;
@@ -194,7 +197,7 @@ public abstract class HFR4droidActivity extends Activity
 		preLoadingPostsAsyncTask = null;
 		preLoadedPosts = new HashMap<Integer, List<Post>>();
 		navForward = true;
-		loginFromCache();		
+		loginFromCache();
 	}
 
 	@Override
@@ -307,7 +310,7 @@ public abstract class HFR4droidActivity extends Activity
 		{	        
 			case R.id.MenuPrefs :
 				Intent intent = new Intent(HFR4droidActivity.this, HFR4droidPrefs.class);
-				intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP );
+				intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
 				startActivity(intent);
 				return true;
 	
@@ -846,7 +849,7 @@ public abstract class HFR4droidActivity extends Activity
 			protected void onPostExecuteOtherActivity(List<Post> posts)
 			{
 				Intent intent = new Intent(HFR4droidActivity.this, PostsActivity.class);
-				intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP );
+				if (!keepNavigationHistory) intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
 				Bundle bundle = new Bundle();
 				bundle.putSerializable("posts", new ArrayList<Post>(posts));
 				bundle.putInt("pageNumber", pageNumber);
@@ -854,6 +857,11 @@ public abstract class HFR4droidActivity extends Activity
 				{
 					bundle.putSerializable("fromTopicType", ((TopicsActivity) HFR4droidActivity.this).getType());
 					bundle.putBoolean("fromAllCats", ((TopicsActivity) HFR4droidActivity.this).isAllCatsCat());
+				}
+				else if (HFR4droidActivity.this instanceof PostsActivity || HFR4droidActivity.this instanceof PostsSearchActivity)
+				{
+					bundle.putSerializable("fromTopicType", ((PostsActivity) HFR4droidActivity.this).getFromType());
+					bundle.putBoolean("fromAllCats", ((PostsActivity) HFR4droidActivity.this).isFromAllCats());
 				}
 				else if (HFR4droidActivity.this instanceof HFR4droidDispatcher)
 				{
