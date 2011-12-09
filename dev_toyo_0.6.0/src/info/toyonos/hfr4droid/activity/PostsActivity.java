@@ -24,6 +24,9 @@ import info.toyonos.hfr4droid.util.asynctask.ValidateMessageAsynckTask;
 import info.toyonos.hfr4droid.util.dialog.PageNumberDialog;
 import info.toyonos.hfr4droid.util.listener.SimpleNavOnGestureListener;
 
+import java.io.BufferedInputStream;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -37,6 +40,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeSet;
+
+import org.apache.http.util.ByteArrayBuffer;
 
 import android.app.AlertDialog;
 import android.app.Dialog;
@@ -157,14 +162,31 @@ public class PostsActivity extends NewPostUIActivity
 	private boolean isSmileysEnable = true;
 	private boolean isImgsEnable = true;
 	
-	private final HttpClient<Bitmap> imgHttpClient = new HttpClient<Bitmap>()
+	private final HttpClient<Bitmap> imgBitmapHttpClient = new HttpClient<Bitmap>()
 	{		
 		@Override
 		protected Bitmap transformStream(InputStream is) throws IOException
 		{
 			return BitmapFactory.decodeStream(new PatchInputStream(is));
 		}
-	};	
+	};
+	
+	private final HttpClient<ByteArrayInputStream> imgHttpClient = new HttpClient<ByteArrayInputStream>()
+	{		
+		@Override
+		protected ByteArrayInputStream transformStream(InputStream is) throws IOException
+		{
+		    ByteArrayOutputStream baos = new ByteArrayOutputStream();
+		    byte[] buffer = new byte[1024];
+		    int len;
+		    while ((len = is.read(buffer)) > 0 )
+		    {
+		        baos.write(buffer, 0, len);
+		    }
+		    baos.flush();
+		    return new ByteArrayInputStream(baos.toByteArray()); 
+		}
+	};
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState)
@@ -681,7 +703,7 @@ public class PostsActivity extends NewPostUIActivity
 
                 	MenuItem.OnMenuItemClickListener handler = new MenuItem.OnMenuItemClickListener()
                     {
-                		private void saveImage(final String url, final ImageCallback callback)
+                		private void saveImage(final String url, final boolean compressToPng, final ImageCallback callback)
                 		{                    		
     						final ProgressDialog progressDialog = new ProgressDialog(PostsActivity.this);
     						progressDialog.setMessage(getString(R.string.save_image));
@@ -707,18 +729,37 @@ public class PostsActivity extends NewPostUIActivity
     							{
     								try
 									{
-										Bitmap imgBitmap = imgHttpClient.getResponse(url[0]);
 	                        			File dir = new File(Environment.getExternalStorageDirectory() + DOWNLOAD_DIR);
 	                        			if (!dir.exists()) dir.mkdirs();
 	                        			String originalFileName = url[0].substring(url[0].lastIndexOf('/') + 1, url[0].length());
-	                        			String newFileName = originalFileName.substring(0, originalFileName.lastIndexOf('.')) + ".png";
+	                        			File imgFile = null;
+	                        			
+    									if (compressToPng)
+										{
+											Bitmap imgBitmap = imgBitmapHttpClient.getResponse(url[0]);
+		                        			String newFileName = originalFileName.substring(0, originalFileName.lastIndexOf('.')) + ".png";
+		                        			imgFile = new File(Environment.getExternalStorageDirectory() + DOWNLOAD_DIR, newFileName);
+		                        	        OutputStream fos = new FileOutputStream(imgFile);
+		                        	        imgBitmap.compress(CompressFormat.PNG, 90, fos);
+		                        	        fos.close();
+										}
+										else
+										{											
+											ByteArrayInputStream input = imgHttpClient.getResponse(url[0]);
+											ByteArrayBuffer baf = new ByteArrayBuffer(50);
+											int current = 0;
+											while ((current = input.read()) != -1)
+											{
+												baf.append((byte) current);
+											}
+											imgFile = new File(Environment.getExternalStorageDirectory() + DOWNLOAD_DIR, originalFileName);
+											FileOutputStream fos = new FileOutputStream(imgFile);
+											fos.write(baf.toByteArray());
+											fos.close();  
+											input.close();
+										}
 
-	                        			File f = new File(Environment.getExternalStorageDirectory() + DOWNLOAD_DIR, newFileName);
-	                        	        OutputStream os = new FileOutputStream(f);
-	                        	        imgBitmap.compress(CompressFormat.PNG, 90, os);
-	                        	        os.close();
-	                        	        
-	                        	        return f;
+	                        	        return imgFile;
 									}
 									catch (Exception e)
 									{
@@ -741,7 +782,20 @@ public class PostsActivity extends NewPostUIActivity
                 			switch (item.getItemId())
                 			{
                 				case R.id.SaveImage:
-                					saveImage(url, new ImageCallback()
+                					saveImage(url, false, new ImageCallback()
+									{
+										public void run()
+										{
+											if (image != null)
+											{
+												Toast.makeText(PostsActivity.this, getString(R.string.save_image_ok, image.getParent()), Toast.LENGTH_LONG).show();
+											}
+										}
+									});
+                					break;
+                					
+                				case R.id.SaveImagePng:
+                					saveImage(url, true, new ImageCallback()
 									{
 										public void run()
 										{
@@ -754,7 +808,7 @@ public class PostsActivity extends NewPostUIActivity
                 					break;
 
                 				case R.id.ShareImage:
-                					saveImage(url, new ImageCallback()
+                					saveImage(url, false, new ImageCallback()
 									{
 										public void run()
 										{
@@ -781,6 +835,7 @@ public class PostsActivity extends NewPostUIActivity
 
                 	menu.setHeaderTitle(url);
                     menu.add(0, R.id.SaveImage, 0, R.string.save_image_item).setOnMenuItemClickListener(handler);
+                    menu.add(0, R.id.SaveImagePng, 0, R.string.save_image_png_item).setOnMenuItemClickListener(handler);
                     menu.add(0, R.id.ShareImage, 0, R.string.share_image_item).setOnMenuItemClickListener(handler);
                     menu.add(0, R.id.OpenImage, 0, R.string.open_image_item).setOnMenuItemClickListener(handler);
                 }

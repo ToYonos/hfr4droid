@@ -93,7 +93,8 @@
 	<string name="topic_subject_hint">Sujet du message</string>
 	<string name="send_mp">Envoyer par MP</string>
 
-	<string name="save_image_item">Sauvegarder l\'image</string>
+	<string name="save_image_item">Sauvegarder l\'image originale</string>
+	<string name="save_image_png_item">Sauvegarder au format PNG</string>
 	<string name="share_image_item">Partager l\'image</string>
 	<string name="open_image_item">Ouvrir l\'image en taille réelle</string>
 	<string name="share_image">Partager via :</string>
