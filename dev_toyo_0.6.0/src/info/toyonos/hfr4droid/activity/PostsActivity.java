@@ -444,6 +444,7 @@ public class PostsActivity extends NewPostUIActivity
 		final TextView topicTitle = (TextView) findViewById(R.id.TopicTitle);
 		topicTitle.setTextSize(getTextSize(15));
 		String topicName = topic.toString();
+		if (topicName == null) topicName = "";
 		int index =  topicName.indexOf(']');
 		if (topicName.indexOf('[') == 0 && index != -1)
 		{
