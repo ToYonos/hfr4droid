@@ -27,7 +27,7 @@ public class SplashActivity extends HFR4droidActivity
 		setContentView(R.layout.splash);
 		applyTheme(currentTheme);
 		
-		RotateAnimation anim = new RotateAnimation(0f, 350f, 16f, 16f);
+		RotateAnimation anim = new RotateAnimation(0f, 350f, Animation.RELATIVE_TO_SELF, 0.5f, Animation.RELATIVE_TO_SELF, 0.5f);
 		anim.setInterpolator(new LinearInterpolator());
 		anim.setRepeatCount(Animation.INFINITE);
 		anim.setDuration(700);
