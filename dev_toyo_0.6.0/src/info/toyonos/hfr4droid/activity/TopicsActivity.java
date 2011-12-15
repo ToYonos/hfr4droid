@@ -68,6 +68,11 @@ public class TopicsActivity extends HFR4droidListActivity<Topic>
 {
 	private Category cat = null;
 	private TopicType type = null;
+	
+	// Dans le cas ou aucun élément n'est récupéré, on utilise la sauvegarde 
+	private Category previousCat = null;
+	private TopicType previousType = null;
+	
 	private GestureDetector gestureDetector;
 
 	@SuppressWarnings("unchecked")
@@ -237,6 +242,7 @@ public class TopicsActivity extends HFR4droidListActivity<Topic>
 				
 			case R.id.MenuDrapeauxAll:
 				cat = currentTopic.getCategory();
+				previousType = type;
 				type = TopicType.ALL;
 				if (currentPageNumber < 1) currentPageNumber = 1;
 				reloadPage();
@@ -244,18 +250,21 @@ public class TopicsActivity extends HFR4droidListActivity<Topic>
 	
 			case R.id.MenuDrapeauxCyan:
 				cat = currentTopic.getCategory();
+				previousType = type;
 				type = TopicType.CYAN;
 				reloadPage();
 				return true;
 	
 			case R.id.MenuDrapeauxRouges:
 				cat = currentTopic.getCategory();
+				previousType = type;
 				type = TopicType.ROUGE;
 				reloadPage();
 				return true;
 	
 			case R.id.MenuDrapeauxFavoris:
 				cat = currentTopic.getCategory();
+				previousType = type;
 				type = TopicType.FAVORI;
 				reloadPage();
 				return true;    				
@@ -343,6 +352,7 @@ public class TopicsActivity extends HFR4droidListActivity<Topic>
 							getDataRetriever().getCatById(cat.getId());
 					if (newCat != null)
 					{
+						previousCat = cat;
 						cat = newCat;
 						reloadPage();
 						return true;
@@ -439,22 +449,26 @@ public class TopicsActivity extends HFR4droidListActivity<Topic>
 			switch (item.getItemId())
 			{				
 				case R.id.MenuDrapeauxAll :
+					previousType = type;
 					type = TopicType.ALL;
 					if (currentPageNumber < 1) currentPageNumber = 1;
 					reloadPage();
 					return true;
 
 				case R.id.MenuDrapeauxCyan :
+					previousType = type;
 					type = TopicType.CYAN;
 					reloadPage();
 					return true;
 
 				case R.id.MenuDrapeauxRouges :
+					previousType = type;
 					type = TopicType.ROUGE;
 					reloadPage();
 					return true; 
 
 				case R.id.MenuDrapeauxFavoris :
+					previousType = type;
 					type = TopicType.FAVORI;
 					reloadPage();
 					return true;
@@ -480,6 +494,16 @@ public class TopicsActivity extends HFR4droidListActivity<Topic>
 			return true;
 		}
 	}
+	
+	public Category getCat()
+	{
+		return cat;
+	}
+
+	public void setCat(Category cat)
+	{
+		this.cat = cat;
+	}
 
 	protected TopicType getType() 
 	{
@@ -489,6 +513,26 @@ public class TopicsActivity extends HFR4droidListActivity<Topic>
 	protected void setType(TopicType type) 
 	{
 		this.type = type;
+	}
+	
+	public Category getPreviousCat()
+	{
+		return previousCat;
+	}
+
+	public void setPreviousCat(Category previousCat)
+	{
+		this.previousCat = previousCat;
+	}
+
+	public TopicType getPreviousType()
+	{
+		return previousType;
+	}
+
+	public void setPreviousType(TopicType previousType)
+	{
+		this.previousType = previousType;
 	}
 
 	@Override

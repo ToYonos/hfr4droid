@@ -741,16 +741,32 @@ public abstract class HFR4droidActivity extends Activity
 			protected void onPostExecuteNoItem(boolean sameActivity, Toast t)
 			{
 				super.onPostExecuteNoItem(sameActivity, t);
+
 				if (HFR4droidActivity.this instanceof SplashActivity && !sameActivity)
 				{
 					loadCats(false, false);
 				}
-				else if (HFR4droidActivity.this instanceof TopicsActivity && sameActivity && !(cat instanceof SubCategory))
+				else if (HFR4droidActivity.this instanceof TopicsActivity && sameActivity)
 				{
 					TopicsActivity ta = (TopicsActivity) HFR4droidActivity.this;
-					if (ta.getType() == TopicType.ALL)
+					((PullToRefreshListView) ta.getListView()).onRefreshComplete();
+					if (ta.getType() == TopicType.ALL && !(cat instanceof SubCategory))
 					{
 						loadCats(false);
+					}
+					else // Pas d'élément, on rollback et on revient à la précédente cat/sous-cat ou type de topic 
+					{
+						if (ta.getPreviousCat() != null)
+						{
+							ta.setCat(ta.getPreviousCat());
+							ta.setPreviousCat(null);
+						}
+
+						if (ta.getPreviousType() != null)
+						{
+							ta.setType(ta.getPreviousType());
+							ta.setPreviousType(null);
+						}
 					}
 				}
 				else if (HFR4droidActivity.this instanceof PostsActivity && !sameActivity)
