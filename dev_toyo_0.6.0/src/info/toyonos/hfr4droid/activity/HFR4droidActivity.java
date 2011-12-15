@@ -825,7 +825,7 @@ public abstract class HFR4droidActivity extends Activity
 
 						case FINISHED:
 							List<Post> tmpPosts = HFR4droidActivity.this.preLoadedPosts.get(pageNumber);
-							if ( preLoadedPosts != null)
+							if (tmpPosts != null)
 							{
 								Log.d(HFR4droidApplication.TAG, "Page " + pageNumber + " recuperee dans le cache.");
 								posts = tmpPosts;

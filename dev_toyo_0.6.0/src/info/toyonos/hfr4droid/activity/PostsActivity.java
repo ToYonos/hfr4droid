@@ -495,14 +495,16 @@ public class PostsActivity extends NewPostUIActivity
 	@Override
 	protected void reloadPage()
 	{
-		currentScrollY = getWebView().getScrollY();
+		WebView webView = getWebView();
+		if (webView != null) currentScrollY = webView.getScrollY();
 		loadPosts(topic, currentPageNumber);
 	}
 	
 	@Override
 	protected void redrawPage()
 	{
-		currentScrollY = getWebView().getScrollY();
+		WebView webView = getWebView();
+		if (webView != null) currentScrollY = webView.getScrollY();
 		displayPosts(posts);
 	}
 	
@@ -1236,7 +1238,7 @@ public class PostsActivity extends NewPostUIActivity
 						if (data.equals("1"))
 						{
 							WebView webView = getWebView();
-							webView.loadUrl("javascript:removePost(" + postId + ")");
+							if (webView != null) webView.loadUrl("javascript:removePost(" + postId + ")");
 						}
 						else
 						{
