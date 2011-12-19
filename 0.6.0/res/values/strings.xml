@@ -1,0 +1,206 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">HFR4droid</string>
+    <string name="splash_title">Version %s - Copyleft ToYonos</string>
+    <string name="upload_hfr_rehost">Upload sur hfr-rehost.net</string>
+	
+	<string name="nav_go_to">Aller à...</string>
+	<string name="topic_nav_last_read_page">Aller à la dernière page lue</string>
+	<string name="topic_nav_first_page">Aller à la première page</string>
+	<string name="topic_nav_previous_page">Aller à la page précèdente</string>
+	<string name="topic_nav_next_page">Aller à la page suivante</string>
+	<string name="topic_nav_last_page">Aller à la dernière page</string>
+	<string name="topic_nav_user_page">Aller à la page...</string>
+	<string name="nav_last_read_page">La dernière page lue</string>
+	<string name="nav_first_page">La première page</string>
+	<string name="nav_previous_page">La page précèdente</string>
+	<string name="nav_next_page">La page suivante</string>
+	<string name="nav_last_page">La dernière page</string>
+	<string name="nav_user_page">La page...</string>
+	<string name="nav_user_page_label1">Actuellement P. %1$d/%2$d</string>
+	<string name="nav_user_page_label2">%1$d page(s)</string>
+	<string name="nav_user_page_label3">Actuellement P. %1$d</string>
+	<string name="nav_page_number">Numéro de page ?</string>
+	<string name="topic_new_post">Poster un message</string>
+	<string name="topic_set_unread">Marquer comme non lu</string>
+	<string name="topic_unflag">Effacer le drapeau</string>
+	<string name="topic_delete_mp">Effacer ce message privé</string>
+	
+	<string name="menu_drapeaux">Mes drapeaux</string>
+	<string name="menu_drapeaux_all">Tous les topics</string>
+	<string name="menu_drapeaux_cyan">Drapeaux cyan</string>
+	<string name="menu_drapeaux_rouges">Drapeaux rouges</string>
+	<string name="menu_drapeaux_favoris">Favoris</string>
+	<string name="menu_mps">Messages privés</string>
+	<string name="menu_add_post">Poster un message</string>
+	<string name="menu_login">Connexion</string>
+	<string name="menu_logout">Déconnexion</string>
+	<string name="menu_prefs">Paramètres</string>
+	<string name="menu_info">A propos</string>
+	<string name="menu_quit">Quitter</string>
+	<string name="menu_refresh">Rafraîchir</string>
+	<string name="menu_back">Retour</string>
+	<string name="menu_add_topic">Nouveau topic</string>
+	<string name="menu_subcats">Une sous-catégorie</string>
+	<string name="menu_subcat_filter">Filter par sous-catégorie</string>
+	<string name="menu_subcat_none">Aucune</string>
+	
+	<string name="login_title">Connexion au forum</string>
+	<string name="login_pseudo">Pseudo :</string>
+	<string name="login_mot_de_passe">Mot de passe :</string>
+	
+	<string name="add_post_title">Poster un nouveau message</string>
+	<string name="button_post_smiley_left">[:</string>
+	<string name="button_post_smiley_right">]</string>	
+	<string name="button_post_bold_left">[b]</string>
+	<string name="button_post_bold_right">[/b]</string>
+	<string name="button_post_italic_left">[i]</string>
+	<string name="button_post_italic_right">[/i]</string>
+	<string name="button_post_underline_left">[u]</string>
+	<string name="button_post_underline_right">[/u]</string>
+	<string name="button_post_strike_left">[strike]</string>
+	<string name="button_post_strike_right">[/strike]</string>
+	<string name="button_post_quote_left">[quote]</string>
+	<string name="button_post_quote_right">[/quote]</string>
+	<string name="button_post_fixed_left">[fixed]</string>
+	<string name="button_post_fixed_right">[/fixed]</string>
+	<string name="button_post_code_left">[code]</string>
+	<string name="button_post_code_right">[/code]</string>
+	<string name="button_post_url_left">[url]</string>
+	<string name="button_post_url_right">[/url]</string>
+	<string name="button_post_img_left">[img]</string>
+	<string name="button_post_img_right">[/img]</string>
+	<string name="button_post_hfr_rehost_left">hfr</string>
+	<string name="button_post_hfr_rehost_right">Rehost</string>
+	<string name="button_post_puce_left">[*]</string>
+	<string name="button_post_puce_right"></string>
+	<string name="button_post_spoiler_left">[spoiler]</string>
+	<string name="button_post_spoiler_right">[/spoiler]</string>
+	<string name="smiley_tag">Tag du smiley :</string>
+	<string name="smiley_tag_hint">Mot clef...</string>
+	
+	<string name="delete_mp_title">Supprimer ce message</string>
+	<string name="delete_title">Supprimer ce post</string>
+	<string name="logout_title">Déconnexion du forum</string>
+	<string name="delete_message">Êtes-vous sûr ?</string>
+	<string name="are_u_sure_message">Êtes-vous sûr ?</string>
+
+	<string name="mp_unread">[Non lu]</string>
+	<string name="new_mp">Nouveau message privé</string>
+	<string name="new_topic">Nouveau topic dans "%s"</string>
+	<string name="new_post">Nouveau post dans "%s"</string>
+	<string name="mp_to_hint">Pseudo du dest.</string>
+	<string name="topic_subject_hint">Sujet du message</string>
+	<string name="send_mp">Envoyer par MP</string>
+
+	<string name="save_image_item">Sauvegarder l\'image originale</string>
+	<string name="save_image_png_item">Sauvegarder au format PNG</string>
+	<string name="share_image_item">Partager l\'image</string>
+	<string name="open_image_item">Ouvrir l\'image en taille réelle</string>
+	<string name="share_image">Partager via :</string>
+
+	<string name="keywords_title">Edition des mots clés du smiley %s</string>
+
+	<string name="button_ok">Ok</string>
+	<string name="button_cancel">Annuler</string>
+	<string name="button_yes">Oui</string>
+	<string name="button_no">Non</string>
+	<string name="button_validate_post">Valider</string>
+	
+	<string name="search_posts_word_hint">Mot</string>
+	<string name="search_posts_pseudo_hint">Pseudo</string>
+	
+	<string-array name="welcome_screen_values">
+    	<item>Les catégories</item>
+    	<item>Tous vos drapeaux cyan</item>
+    	<item>Tous vos drapeaux rouges</item>
+    	<item>Tous vos favoris</item> 
+	</string-array>
+	
+	<string-array name="welcome_screen_keys">
+		<item>-1</item>
+		<item>1</item>
+		<item>2</item>
+		<item>3</item>
+	</string-array>
+	
+	<string-array name="notification_type_values">
+    	<item>Barre de statut</item>
+    	<item>Toast</item>
+	</string-array>
+	
+	<string-array name="notification_type_keys">
+		<item>1</item>
+		<item>2</item>
+	</string-array>
+	
+	<string-array name="type_drapeau_values">
+    	<item>Tous les drapeaux</item>
+    	<item>Les drapeaux cyan</item>
+    	<item>Les drapeaux rouges</item>
+    	<item>Les favoris</item> 
+	</string-array>
+	
+	<string-array name="type_drapeau_keys">
+		<item>0</item>
+		<item>1</item>
+		<item>2</item>
+		<item>3</item>
+	</string-array>
+	
+	<string-array name="swipe_values">
+    	<item>Normal</item>
+    	<item>Sensible</item>
+    	<item>Très sensible</item> 
+	</string-array>
+	
+	<string-array name="swipe_keys">
+		<item>1</item>
+		<item>2</item>
+		<item>3</item>
+	</string-array>
+	
+	<string-array name="theme_values">
+    	<item>Défaut</item>
+    	<item>Dark</item>
+    	<item>Gris (HFR 2011)</item>
+	</string-array>
+	
+	<string-array name="theme_keys">
+		<item>default</item>
+		<item>dark</item>
+		<item>gray</item>
+	</string-array>
+	
+	<string-array name="police_size_values">
+    	<item>Normal</item>
+    	<item>Plus grand</item>
+    	<item>Gros bigleux :o</item> 
+	</string-array>
+	
+	<string-array name="police_size_keys">
+		<item>1</item>
+		<item>2</item>
+		<item>3</item>
+	</string-array>
+	
+	<string-array name="drawable_values">
+    	<item>Afficher toujours</item>
+    	<item>Afficher uniquement en WIFI</item>
+    	<item>Ne jamais afficher</item> 
+	</string-array>
+	
+	<string-array name="drawable_keys">
+		<item>1</item>
+		<item>2</item>
+		<item>3</item>
+	</string-array>
+	
+	<!-- Pull to refresh -->
+
+    <string name="pull_to_refresh_pull_label">Tirer pour rafraîchir...</string>
+    <string name="pull_to_refresh_release_label">Relâcher pour rafraîchir...</string>
+    <string name="pull_to_refresh_refreshing_label">Chargement...</string>
+    <string name="pull_to_refresh_tap_label">Appuyer pour rafraîchir...</string>
+	
+</resources>
