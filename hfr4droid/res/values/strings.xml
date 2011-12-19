@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">HFR4droid</string>
+    <string name="splash_title">Version %s - Copyleft ToYonos</string>
     <string name="upload_hfr_rehost">Upload sur hfr-rehost.net</string>
 	
 	<string name="nav_go_to">Aller à...</string>
@@ -15,11 +16,15 @@
 	<string name="nav_previous_page">La page précèdente</string>
 	<string name="nav_next_page">La page suivante</string>
 	<string name="nav_last_page">La dernière page</string>
-	<string name="nav_user_page">La page...</string>	
+	<string name="nav_user_page">La page...</string>
+	<string name="nav_user_page_label1">Actuellement P. %1$d/%2$d</string>
+	<string name="nav_user_page_label2">%1$d page(s)</string>
+	<string name="nav_user_page_label3">Actuellement P. %1$d</string>
 	<string name="nav_page_number">Numéro de page ?</string>
 	<string name="topic_new_post">Poster un message</string>
 	<string name="topic_set_unread">Marquer comme non lu</string>
 	<string name="topic_unflag">Effacer le drapeau</string>
+	<string name="topic_delete_mp">Effacer ce message privé</string>
 	
 	<string name="menu_drapeaux">Mes drapeaux</string>
 	<string name="menu_drapeaux_all">Tous les topics</string>
@@ -55,6 +60,8 @@
 	<string name="button_post_underline_right">[/u]</string>
 	<string name="button_post_strike_left">[strike]</string>
 	<string name="button_post_strike_right">[/strike]</string>
+	<string name="button_post_quote_left">[quote]</string>
+	<string name="button_post_quote_right">[/quote]</string>
 	<string name="button_post_fixed_left">[fixed]</string>
 	<string name="button_post_fixed_right">[/fixed]</string>
 	<string name="button_post_code_left">[code]</string>
@@ -72,8 +79,11 @@
 	<string name="smiley_tag">Tag du smiley :</string>
 	<string name="smiley_tag_hint">Mot clef...</string>
 	
+	<string name="delete_mp_title">Supprimer ce message</string>
 	<string name="delete_title">Supprimer ce post</string>
+	<string name="logout_title">Déconnexion du forum</string>
 	<string name="delete_message">Êtes-vous sûr ?</string>
+	<string name="are_u_sure_message">Êtes-vous sûr ?</string>
 
 	<string name="mp_unread">[Non lu]</string>
 	<string name="new_mp">Nouveau message privé</string>
@@ -83,7 +93,8 @@
 	<string name="topic_subject_hint">Sujet du message</string>
 	<string name="send_mp">Envoyer par MP</string>
 
-	<string name="save_image_item">Sauvegarder l\'image</string>
+	<string name="save_image_item">Sauvegarder l\'image originale</string>
+	<string name="save_image_png_item">Sauvegarder au format PNG</string>
 	<string name="share_image_item">Partager l\'image</string>
 	<string name="open_image_item">Ouvrir l\'image en taille réelle</string>
 	<string name="share_image">Partager via :</string>
@@ -95,6 +106,9 @@
 	<string name="button_yes">Oui</string>
 	<string name="button_no">Non</string>
 	<string name="button_validate_post">Valider</string>
+	
+	<string name="search_posts_word_hint">Mot</string>
+	<string name="search_posts_pseudo_hint">Pseudo</string>
 	
 	<string-array name="welcome_screen_values">
     	<item>Les catégories</item>
@@ -181,5 +195,12 @@
 		<item>2</item>
 		<item>3</item>
 	</string-array>
+	
+	<!-- Pull to refresh -->
+
+    <string name="pull_to_refresh_pull_label">Tirer pour rafraîchir...</string>
+    <string name="pull_to_refresh_release_label">Relâcher pour rafraîchir...</string>
+    <string name="pull_to_refresh_refreshing_label">Chargement...</string>
+    <string name="pull_to_refresh_tap_label">Appuyer pour rafraîchir...</string>
 	
 </resources>

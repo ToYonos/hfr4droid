@@ -4,29 +4,33 @@ import info.toyonos.hfr4droid.HFR4droidException;
 import info.toyonos.hfr4droid.R;
 import info.toyonos.hfr4droid.core.bean.Category;
 import info.toyonos.hfr4droid.core.bean.SubCategory;
+import info.toyonos.hfr4droid.core.bean.SubCategory.ToStringType;
 import info.toyonos.hfr4droid.core.bean.Theme;
 import info.toyonos.hfr4droid.core.bean.Topic;
-import info.toyonos.hfr4droid.core.bean.SubCategory.ToStringType;
 import info.toyonos.hfr4droid.core.bean.Topic.TopicStatus;
 import info.toyonos.hfr4droid.core.bean.Topic.TopicType;
 import info.toyonos.hfr4droid.core.data.DataRetrieverException;
-import info.toyonos.hfr4droid.core.message.MessageSenderException;
+import info.toyonos.hfr4droid.core.message.HFRMessageResponse;
+import info.toyonos.hfr4droid.util.asynctask.MessageResponseAsyncTask;
+import info.toyonos.hfr4droid.util.dialog.PageNumberDialog;
+import info.toyonos.hfr4droid.util.listener.SimpleNavOnGestureListener;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import android.app.ProgressDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.res.ColorStateList;
 import android.graphics.Typeface;
 import android.graphics.drawable.ColorDrawable;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.text.Html;
 import android.text.TextUtils.TruncateAt;
 import android.view.ContextMenu;
+import android.view.ContextMenu.ContextMenuInfo;
 import android.view.GestureDetector;
+import android.view.GestureDetector.SimpleOnGestureListener;
 import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -34,24 +38,25 @@ import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.SubMenu;
 import android.view.View;
-import android.view.ViewGroup;
-import android.view.ContextMenu.ContextMenuInfo;
-import android.view.GestureDetector.SimpleOnGestureListener;
 import android.view.View.OnClickListener;
 import android.view.View.OnCreateContextMenuListener;
 import android.view.View.OnTouchListener;
+import android.view.ViewGroup;
 import android.widget.AdapterView;
+import android.widget.AdapterView.AdapterContextMenuInfo;
+import android.widget.AdapterView.OnItemClickListener;
 import android.widget.ArrayAdapter;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.SlidingDrawer;
-import android.widget.TextView;
-import android.widget.Toast;
-import android.widget.AdapterView.AdapterContextMenuInfo;
-import android.widget.AdapterView.OnItemClickListener;
 import android.widget.SlidingDrawer.OnDrawerCloseListener;
 import android.widget.SlidingDrawer.OnDrawerOpenListener;
+import android.widget.TextView;
+import android.widget.Toast;
+
+import com.markupartist.android.widget.PullToRefreshListView;
+import com.markupartist.android.widget.PullToRefreshListView.OnRefreshListener;
 
 /**
  * <p>Activity listant les topics</p>
@@ -63,6 +68,11 @@ public class TopicsActivity extends HFR4droidListActivity<Topic>
 {
 	private Category cat = null;
 	private TopicType type = null;
+	
+	// Dans le cas ou aucun élément n'est récupéré, on utilise la sauvegarde 
+	private Category previousCat = null;
+	private TopicType previousType = null;
+	
 	private GestureDetector gestureDetector;
 
 	@SuppressWarnings("unchecked")
@@ -101,13 +111,21 @@ public class TopicsActivity extends HFR4droidListActivity<Topic>
 			if (cat != null) loadTopics(cat, type, currentPageNumber);
 		}
 
-		final ListView lv = getListView();
+		final PullToRefreshListView lv = (PullToRefreshListView) getListView();
+		setRefreshHeader();
+        lv.setOnRefreshListener(new OnRefreshListener()
+        {
+            public void onRefresh()
+            {
+            	reloadPage(false);
+            }
+        });
+
 		adapter = new TopicAdapter(this, R.layout.topic, R.id.ItemContent, topics);
 		lv.setAdapter(adapter);
 		
 		if (cat != null)
 		{
-			setTitle();
 			updateButtonsStates();
 			if (cat.equals(Category.MPS_CAT)) clearNotifications();
 		}
@@ -117,7 +135,7 @@ public class TopicsActivity extends HFR4droidListActivity<Topic>
 			public void onItemClick(AdapterView<?> a, View v, int position, long id)
 			{	
 				Topic topic = (Topic) lv.getItemAtPosition(position);
-				if (topic.getId() != -1)
+				if (topic != null && topic.getId() != -1)
 				{
 					int page = topic.getLastReadPage() != -1 ? topic.getLastReadPage() : 1;
 					loadPosts(topic, page, false);
@@ -142,6 +160,7 @@ public class TopicsActivity extends HFR4droidListActivity<Topic>
 					menu.setHeaderTitle(currentTopic.getName());
 					if (!isLoggedIn() || currentTopic.getLastReadPage() == -1) menu.removeItem(R.id.MenuNavLastReadPage);
 					if (!isLoggedIn() || !isMpsCat()) menu.removeItem(R.id.MenuNavSetUnread);
+					if (!isLoggedIn() || !isMpsCat()) menu.removeItem(R.id.MenuNavDeleteMP);
 					if (!isLoggedIn() || isMpsCat()) menu.removeItem(R.id.MenuNavUnflag);
 					if (!isLoggedIn() || currentTopic.getStatus() == TopicStatus.LOCKED) menu.removeItem(R.id.MenuNavNewPost);
 				}
@@ -153,7 +172,7 @@ public class TopicsActivity extends HFR4droidListActivity<Topic>
 			}
 		});
 
-		gestureDetector = new GestureDetector(new SimpleNavOnGestureListener()
+		gestureDetector = new GestureDetector(new SimpleNavOnGestureListener(this)
 		{
 			@Override
 			protected void onLeftToRight(MotionEvent e1, MotionEvent e2)
@@ -196,8 +215,7 @@ public class TopicsActivity extends HFR4droidListActivity<Topic>
 	{
 		AdapterContextMenuInfo menuInfo = (AdapterContextMenuInfo) aItem.getMenuInfo();
 		final Topic currentTopic = menuInfo != null ? (Topic) getListView().getAdapter().getItem(menuInfo.position) : null;
-		final ProgressDialog progressDialog = new ProgressDialog(TopicsActivity.this);
-		
+
 		switch (aItem.getItemId())
 		{    	
 			case R.id.MenuNavLastReadPage:
@@ -209,7 +227,7 @@ public class TopicsActivity extends HFR4droidListActivity<Topic>
 				return true;
 	
 			case R.id.MenuNavUserPage:
-				new PageNumberDialog(currentTopic.getNbPages())
+				new PageNumberDialog(this, -1, currentTopic.getNbPages())
 				{
 					protected void onValidate(int pageNumber)
 					{
@@ -224,6 +242,7 @@ public class TopicsActivity extends HFR4droidListActivity<Topic>
 				
 			case R.id.MenuDrapeauxAll:
 				cat = currentTopic.getCategory();
+				previousType = type;
 				type = TopicType.ALL;
 				if (currentPageNumber < 1) currentPageNumber = 1;
 				reloadPage();
@@ -231,18 +250,21 @@ public class TopicsActivity extends HFR4droidListActivity<Topic>
 	
 			case R.id.MenuDrapeauxCyan:
 				cat = currentTopic.getCategory();
+				previousType = type;
 				type = TopicType.CYAN;
 				reloadPage();
 				return true;
 	
 			case R.id.MenuDrapeauxRouges:
 				cat = currentTopic.getCategory();
+				previousType = type;
 				type = TopicType.ROUGE;
 				reloadPage();
 				return true;
 	
 			case R.id.MenuDrapeauxFavoris:
 				cat = currentTopic.getCategory();
+				previousType = type;
 				type = TopicType.FAVORI;
 				reloadPage();
 				return true;    				
@@ -258,86 +280,68 @@ public class TopicsActivity extends HFR4droidListActivity<Topic>
 				return true;
 				
 			case R.id.MenuNavSetUnread:
-				progressDialog.setMessage(getString(R.string.unread_loading));
-				progressDialog.setIndeterminate(true);
-				new AsyncTask<Void, Void, Boolean>()
-				{
+				new MessageResponseAsyncTask(this, getString(R.string.unread_loading))
+				{					
 					@Override
-					protected void onPreExecute() 
+					protected HFRMessageResponse executeInBackground() throws HFR4droidException
 					{
-						progressDialog.show();
+						return getMessageSender().setUnread(currentTopic);
 					}
-
+					
 					@Override
-					protected Boolean doInBackground(Void... params)
+					protected void onActionFinished(String message)
 					{
-						boolean response = false;
-						try
-						{
-							response = getMessageSender().setUnread(currentTopic);
-						} 
-						catch (MessageSenderException e)
-						{
-							error(e, true, true);
-						}
-						return response;
-					}
-
-					@Override
-					protected void onPostExecute(Boolean response)
-					{
-						progressDialog.dismiss();
-						if (response)
-						{
-							currentTopic.setStatus(TopicStatus.NEW_MP);
-							adapter.notifyDataSetChanged();
-						}
-						else
-						{
-							Toast.makeText(TopicsActivity.this, R.string.unread_failed, Toast.LENGTH_SHORT).show();
-						}
+						currentTopic.setStatus(TopicStatus.NEW_MP);
+						adapter.notifyDataSetChanged();
 					}
 				}.execute();
 				return true;
 				
 			case R.id.MenuNavUnflag:
-				progressDialog.setMessage(getString(R.string.unflag_loading));
-				progressDialog.setIndeterminate(true);
-				new AsyncTask<Void, Void, String>()
-				{
+				new MessageResponseAsyncTask(this, getString(R.string.unflag_loading))
+				{					
 					@Override
-					protected void onPreExecute() 
+					protected HFRMessageResponse executeInBackground() throws HFR4droidException
 					{
-						progressDialog.show();
+						return getMessageSender().unflag(currentTopic, type, getDataRetriever().getHashCheck());
 					}
-
+					
 					@Override
-					protected String doInBackground(Void... params)
+					protected void onActionFinished(String message)
 					{
-						String response = null;
-						try
-						{
-							response = getMessageSender().unflag(currentTopic, type, getDataRetriever().getHashCheck());
-						} 
-						catch (HFR4droidException e)
-						{
-							error(e, true, true);
-						}
-						return response;
-					}
-
-					@Override
-					protected void onPostExecute(String response)
-					{
-						progressDialog.dismiss();
-						if (response != null)
-						{
-							Toast.makeText(TopicsActivity.this, response, Toast.LENGTH_SHORT).show();
-							adapter.remove(currentTopic);
-							adapter.notifyDataSetChanged();
-						}
+						Toast.makeText(TopicsActivity.this, message, Toast.LENGTH_SHORT).show();
+						adapter.remove(currentTopic);
+						adapter.notifyDataSetChanged();	
 					}
 				}.execute();
+				return true;
+				
+			case R.id.MenuNavDeleteMP:
+				getConfirmDialog(
+				getString(R.string.delete_mp_title),
+				getString(R.string.are_u_sure_message),
+				new DialogInterface.OnClickListener()
+				{
+					public void onClick(DialogInterface arg0, int arg1)
+					{
+						new MessageResponseAsyncTask(TopicsActivity.this, getString(R.string.delete_mp_loading))
+						{
+							@Override
+							protected HFRMessageResponse executeInBackground()	throws HFR4droidException
+							{
+								return getMessageSender().deleteMP(currentTopic, getDataRetriever().getHashCheck());
+							}
+
+							@Override
+							protected void onActionFinished(String message)
+							{
+								Toast.makeText(TopicsActivity.this, message, Toast.LENGTH_SHORT).show();
+								adapter.remove(currentTopic);
+								adapter.notifyDataSetChanged();
+							}	
+						}.execute();
+					}
+				}).show();	
 				return true;
 				
 			default:
@@ -348,6 +352,7 @@ public class TopicsActivity extends HFR4droidListActivity<Topic>
 							getDataRetriever().getCatById(cat.getId());
 					if (newCat != null)
 					{
+						previousCat = cat;
 						cat = newCat;
 						reloadPage();
 						return true;
@@ -444,22 +449,26 @@ public class TopicsActivity extends HFR4droidListActivity<Topic>
 			switch (item.getItemId())
 			{				
 				case R.id.MenuDrapeauxAll :
+					previousType = type;
 					type = TopicType.ALL;
 					if (currentPageNumber < 1) currentPageNumber = 1;
 					reloadPage();
 					return true;
 
 				case R.id.MenuDrapeauxCyan :
+					previousType = type;
 					type = TopicType.CYAN;
 					reloadPage();
 					return true;
 
 				case R.id.MenuDrapeauxRouges :
+					previousType = type;
 					type = TopicType.ROUGE;
 					reloadPage();
 					return true; 
 
 				case R.id.MenuDrapeauxFavoris :
+					previousType = type;
 					type = TopicType.FAVORI;
 					reloadPage();
 					return true;
@@ -485,6 +494,16 @@ public class TopicsActivity extends HFR4droidListActivity<Topic>
 			return true;
 		}
 	}
+	
+	public Category getCat()
+	{
+		return cat;
+	}
+
+	public void setCat(Category cat)
+	{
+		this.cat = cat;
+	}
 
 	protected TopicType getType() 
 	{
@@ -494,6 +513,26 @@ public class TopicsActivity extends HFR4droidListActivity<Topic>
 	protected void setType(TopicType type) 
 	{
 		this.type = type;
+	}
+	
+	public Category getPreviousCat()
+	{
+		return previousCat;
+	}
+
+	public void setPreviousCat(Category previousCat)
+	{
+		this.previousCat = previousCat;
+	}
+
+	public TopicType getPreviousType()
+	{
+		return previousType;
+	}
+
+	public void setPreviousType(TopicType previousType)
+	{
+		this.previousType = previousType;
 	}
 
 	@Override
@@ -549,6 +588,18 @@ public class TopicsActivity extends HFR4droidListActivity<Topic>
 		mainList.setDividerHeight(1);
 		mainList.setCacheColorHint(theme.getListBackgroundColor());
 		mainList.setSelector(getKeyByTheme(getThemeKey(), R.drawable.class, "list_selector"));
+		
+		TextView refreshText = (TextView) mainList.findViewById(R.id.pull_to_refresh_text);
+		try
+		{
+			refreshText.setTextColor(ColorStateList.createFromXml(getResources(), getResources().getXml(getKeyByTheme(getThemeKey(), R.color.class, "item"))));
+		}
+		catch (Exception e)
+		{
+			error(e);
+		}
+		
+		((PullToRefreshListView) mainList).inverseColor(currentTheme.isProgressBarInversed());
 	}
 
 	@Override
@@ -566,7 +617,7 @@ public class TopicsActivity extends HFR4droidListActivity<Topic>
 	@Override
 	protected void loadUserPage()
 	{
-		new PageNumberDialog()
+		new PageNumberDialog(this, currentPageNumber)
 		{
 			protected void onValidate(int pageNumber)
 			{
@@ -584,12 +635,18 @@ public class TopicsActivity extends HFR4droidListActivity<Topic>
 	@Override
 	protected void reloadPage()
 	{
-		loadTopics(cat, type, currentPageNumber);	
+		loadTopics(cat, type, currentPageNumber, true);	
+	}
+
+	protected void reloadPage(boolean displayLoading)
+	{
+		loadTopics(cat, type, currentPageNumber, true, displayLoading);	
 	}
 
 	@Override
 	protected void redrawPage()
 	{
+		setRefreshHeader();
 		adapter.notifyDataSetChanged();
 	}
 	
@@ -792,6 +849,16 @@ public class TopicsActivity extends HFR4droidListActivity<Topic>
 	protected boolean isAllCatsCat()
 	{
 		return isAllCatsCat(cat);
+	}
+	
+	protected void setRefreshHeader()
+	{
+		TextView refreshText = (TextView) getListView().findViewById(R.id.pull_to_refresh_text);
+		refreshText.setTextSize(getTextSize(15));
+		float scale = getResources().getDisplayMetrics().density;
+		int top = (int) (5 * scale + 0.5f);
+		int left = (int) (25 * (getPoliceSize() - 1) * scale + 0.5f);
+		refreshText.setPadding(left, top, 0, 0);
 	}
 
 	/* Classes internes */

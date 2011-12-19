@@ -4,8 +4,9 @@ import info.toyonos.hfr4droid.R;
 import info.toyonos.hfr4droid.core.bean.Category;
 import info.toyonos.hfr4droid.core.bean.Topic.TopicType;
 import info.toyonos.hfr4droid.core.data.DataRetrieverException;
-import info.toyonos.hfr4droid.core.message.MessageSenderException;
 import info.toyonos.hfr4droid.core.message.HFRMessageSender.ResponseCode;
+import info.toyonos.hfr4droid.core.message.MessageSenderException;
+import info.toyonos.hfr4droid.util.asynctask.ValidateMessageAsynckTask;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
@@ -13,8 +14,8 @@ import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.View;
-import android.view.ViewGroup;
 import android.view.View.OnClickListener;
+import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
@@ -42,6 +43,12 @@ public class NewTopicActivity extends NewPostGenericActivity
 		Intent intent = getIntent();
 		Bundle bundle = intent.getExtras();
 		String action = intent.getAction();
+		
+		if (bundle != null && bundle.getString("pseudo") != null)
+		{
+			((TextView) findViewById(R.id.inputMpTo)).setText(bundle.getString("pseudo"));
+		}
+		
 		if (bundle != null && bundle.getSerializable("cat") != null)
 		{
 			cat = (Category) bundle.getSerializable("cat");
@@ -77,21 +84,6 @@ public class NewTopicActivity extends NewPostGenericActivity
 	}
 	
 	@Override
-	protected void onActivityResult(int requestCode, int resultCode, Intent data)
-	{
-		super.onActivityResult(requestCode, resultCode, data);
-		if (requestCode == ImagePicker.CHOOSE_PICTURE && data != null)
-		{
-			Bundle extras = data.getExtras();
-			if (extras != null)
-			{
-				String url = (String) extras.get(ImagePicker.FINAL_URL);
-				insertBBCode((EditText) findViewById(R.id.InputPostContent), url, "");
-			}
-		}
-	}
-	
-	@Override
 	public boolean onCreateOptionsMenu(Menu menu)
 	{
 		MenuInflater inflater = getMenuInflater();
@@ -119,7 +111,7 @@ public class NewTopicActivity extends NewPostGenericActivity
 				final EditText postRecipient = (EditText) findViewById(R.id.inputMpTo);
 				final EditText postSubject = (EditText) findViewById(R.id.inputTopicSubject);
 				final EditText postContent = (EditText) findViewById(R.id.InputPostContent);
-				new ValidateMessageAsynckTask()
+				new ValidateMessageAsynckTask(NewTopicActivity.this, postId)
 				{
 					@Override
 					protected boolean canExecute()

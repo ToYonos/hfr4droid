@@ -3,11 +3,12 @@ package info.toyonos.hfr4droid.activity;
 import info.toyonos.hfr4droid.R;
 import info.toyonos.hfr4droid.core.bean.Category;
 import info.toyonos.hfr4droid.core.bean.SubCategory;
-import info.toyonos.hfr4droid.core.bean.Theme;
 import info.toyonos.hfr4droid.core.bean.SubCategory.ToStringType;
+import info.toyonos.hfr4droid.core.bean.Theme;
 import info.toyonos.hfr4droid.core.bean.Topic.TopicType;
 import info.toyonos.hfr4droid.core.data.DataRetrieverException;
 import info.toyonos.hfr4droid.core.data.HFRDataRetriever;
+import info.toyonos.hfr4droid.util.listener.SimpleNavOnGestureListener;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -20,32 +21,31 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.DialogInterface.OnCancelListener;
 import android.content.DialogInterface.OnClickListener;
-import android.content.pm.PackageInfo;
-import android.content.pm.PackageManager.NameNotFoundException;
+import android.content.Intent;
 import android.content.res.ColorStateList;
 import android.graphics.drawable.ColorDrawable;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.text.Html;
 import android.view.ContextMenu;
+import android.view.ContextMenu.ContextMenuInfo;
 import android.view.GestureDetector;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
-import android.view.ViewGroup;
-import android.view.ContextMenu.ContextMenuInfo;
 import android.view.View.OnCreateContextMenuListener;
 import android.view.View.OnTouchListener;
+import android.view.ViewGroup;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
+import android.widget.AdapterView.AdapterContextMenuInfo;
 import android.widget.ArrayAdapter;
 import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
-import android.widget.AdapterView.AdapterContextMenuInfo;
 
 /**
  * <p>Activity listant les catégories</p>
@@ -56,7 +56,7 @@ import android.widget.AdapterView.AdapterContextMenuInfo;
 public class CategoriesActivity extends HFR4droidListActivity<Category>
 {
 	private AlertDialog infoDialog;
-	protected boolean isCatsLoaded;
+	private boolean isCatsLoaded;
 	private GestureDetector gestureDetector;
 	protected List<Category> expandedCats  = new ArrayList<Category>();
 
@@ -72,29 +72,31 @@ public class CategoriesActivity extends HFR4droidListActivity<Category>
 
 		List<Category> cats  = new ArrayList<Category>();
 		Bundle bundle = this.getIntent().getExtras();
-		if (bundle != null && bundle.getSerializable("cats") != null)
+		if (bundle != null && bundle.getSerializable("topics") != null)
+		{
+			// Cas spécial, on vient de SplashActivity qui veut afficher des topics
+			// et on veut garder l'ordre d'ouverture des activitys (cats -> topics -> posts)
+			// => On passe furtivement par ici avant d'ouvrir PostsActivity
+			isCatsLoaded = false;
+			Intent intent = new Intent(CategoriesActivity.this, TopicsActivity.class);
+			intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+			intent.putExtras(bundle);
+			startActivity(intent);
+		}
+		else if (bundle != null && bundle.getSerializable("cats") != null)
 		{
 			cats = (List<Category>) bundle.getSerializable("cats");
 		}
 		else
 		{
-			int welcomeScreen = getWelcomeScreen();
-			if (welcomeScreen > 0 && isLoggedIn())
-			{
-				isCatsLoaded = false;
-				loadTopics(Category.ALL_CATS, TopicType.fromInt(welcomeScreen), false);
-			}
-			else
-			{
-				loadCats();
-			}
+			loadCats();
 		}
 
 		final ListView lv = getListView();
 		adapter = new CategoryAdapter(this, R.layout.category, R.id.ItemContent, cats);
 		lv.setAdapter(adapter);
 
-		gestureDetector = new GestureDetector(new SimpleNavOnGestureListener()
+		gestureDetector = new GestureDetector(new SimpleNavOnGestureListener(this)
 		{
 			@Override
 			protected void onLeftToRight(MotionEvent e1, MotionEvent e2){}
@@ -261,6 +263,13 @@ public class CategoriesActivity extends HFR4droidListActivity<Category>
 	}
 
 	@Override
+	protected void onDestroy()
+	{
+		super.onDestroy();
+		if (infoDialog != null) infoDialog.dismiss();
+	}
+	
+	@Override
 	public boolean onContextItemSelected(MenuItem aItem)
 	{
 		AdapterContextMenuInfo menuInfo = (AdapterContextMenuInfo) aItem.getMenuInfo();
@@ -324,23 +333,11 @@ public class CategoriesActivity extends HFR4droidListActivity<Category>
 		}
 	}
 
-	public boolean isCatsLoaded()
-	{
-		return isCatsLoaded;
-	}
-
 	private AlertDialog getInfoDialog()
 	{
 		String title = getString(R.string.app_name);
 
-		PackageInfo packageInfo;
-		try
-		{
-			packageInfo = getPackageManager().getPackageInfo(getPackageName(), 0);
-			title += " - V." + packageInfo.versionName;
-		}
-		catch (NameNotFoundException e) {}
-
+		title += " - V." + getVersionName();
 		String infoContent = null;
 		InputStream is = null;
 		try

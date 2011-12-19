@@ -17,6 +17,9 @@
 	<color name="default_post_block_background">#FFFFFF</color>
 	<color name="default_post_modo_background">#FFEEEE</color>
 	
+	<string name="default_inverse_progress">false</string>
+	
+	<color name="default_splash_title">#1A3A60</color>
 
 	<!-- Thème "dark" -->
 	
@@ -33,7 +36,11 @@
 	<color name="dark_post_edit_quote_background">#454545</color>
 	<color name="dark_post_edit_quote_text">#DADADA</color>
 	<color name="dark_post_block_background">#606060</color>
-	<color name="dark_post_modo_background">#FFEEEE</color>
+	<color name="dark_post_modo_background">#666666</color>
+	
+	<string name="dark_inverse_progress">true</string>
+	
+	<color name="dark_splash_title">#F7F7F7</color>
 	
 
 	<!-- Thème gris (HFR 2011) -->
@@ -52,4 +59,8 @@
 	<color name="gray_post_edit_quote_text">#555555</color>
 	<color name="gray_post_block_background">#FFFFFF</color>
 	<color name="gray_post_modo_background">#FFEEEE</color>
+	
+	<string name="gray_inverse_progress">false</string>
+	
+	<color name="gray_splash_title">#1A3A60</color>
 </resources>

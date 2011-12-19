@@ -11,6 +11,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
+import android.widget.EditText;
 import android.widget.LinearLayout;
 
 /**
@@ -59,6 +60,12 @@ public abstract class NewPostGenericActivity extends NewPostUIActivity
 			}
 		}
 		return super.onKeyDown(keyCode, event);
+	}
+	
+	@Override
+	protected void onRehostOk(String url)
+	{
+		insertBBCode((EditText) findViewById(R.id.InputPostContent), url, "");
 	}
 
 	@Override

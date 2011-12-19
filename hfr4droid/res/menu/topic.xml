@@ -21,4 +21,7 @@
 	<item
 		android:title="@string/topic_unflag"
 		android:id="@+id/MenuNavUnflag" />
+	<item
+		android:title="@string/topic_delete_mp"
+		android:id="@+id/MenuNavDeleteMP" />
 </menu>

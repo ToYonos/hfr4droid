@@ -7,13 +7,13 @@
     	android:orientation="vertical"
     	android:layout_width="fill_parent"
     	android:layout_height="fill_parent">
-	    <LinearLayout
-	    	android:orientation="horizontal"
-	    	android:background="@drawable/degrad_plus"
-	    	android:gravity="center"
-	    	android:layout_width="fill_parent"
-	    	android:layout_height="40dip">
-	    	<TextView
+		<LinearLayout
+		   	android:orientation="horizontal"
+		   	android:background="@drawable/degrad_plus"
+		   	android:gravity="center"
+		   	android:layout_width="fill_parent"
+		   	android:layout_height="40dip">
+		   	<TextView
 		    	android:id="@+id/TopicPageNumber"
 		    	android:gravity="left"
 		    	android:textSize="15dip"
@@ -23,7 +23,7 @@
 		    	android:textColor="#1A3A60"
 		    	android:layout_width="wrap_content"
 		    	android:layout_height="wrap_content" />
-	    	<TextView
+		   	<TextView
 		    	android:id="@+id/TopicTitle"
 		    	android:gravity="left"
 		    	android:textSize="15dip"
@@ -36,7 +36,41 @@
 		    	android:textColor="#1A3A60"
 		    	android:layout_width="wrap_content" 
 		    	android:layout_height="wrap_content" />
-		</LinearLayout>	    	
+		</LinearLayout>
+		<LinearLayout
+		    android:id="@+id/SearchPostsPanel"
+    		android:orientation="horizontal"
+    		android:layout_width="fill_parent"
+    		android:layout_height="wrap_content"
+    		android:padding="3dip"
+    		android:gravity="center_vertical"
+    		android:visibility="gone">	
+			<EditText
+				android:id="@+id/SearchPostsWord"
+				android:layout_width="fill_parent"
+				android:layout_height="wrap_content"
+				android:layout_weight="1"
+				android:hint="@string/search_posts_word_hint"
+				android:lines="1"
+				android:inputType="text"
+				android:textSize="14dip" />
+			<EditText
+				android:id="@+id/SearchPostsPseudo"
+				android:layout_width="fill_parent"
+				android:layout_height="wrap_content"
+				android:layout_weight="1"
+				android:hint="@string/search_posts_pseudo_hint"
+				android:lines="1"
+				android:inputType="text"
+				android:textSize="14dip" />
+			<Button
+				android:id="@+id/ButtonSearchPosts"
+			 	android:layout_width="50dip"
+				android:layout_height="wrap_content"
+				android:padding="3dip"
+				android:textSize="14dip"
+				android:text="@string/button_ok" />  
+    	</LinearLayout>
 	   	<ProgressBar
 	  		android:id="@+id/PostsProgressBar"
 	  		android:max="100"

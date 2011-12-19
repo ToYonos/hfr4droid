@@ -23,6 +23,8 @@ public class Theme
 	private int postEditQuoteTextColor;
 	private int postBlockBackgroundColor;
 	private int modoPostBackgroundColor;
+	private boolean progressBarInversed;
+	private int splashTitleColor;
 
 	public Theme(String key)
 	{
@@ -38,6 +40,8 @@ public class Theme
 		this.postEditQuoteTextColor = -1;
 		this.postBlockBackgroundColor = -1;
 		this.modoPostBackgroundColor = -1;
+		this.progressBarInversed = false;
+		this.splashTitleColor = -1;
 	}
 
 	public String getKey()
@@ -208,5 +212,25 @@ public class Theme
 	public String getModoPostBackgroundColorAsString()
 	{
 		return "#" + Integer.toHexString(modoPostBackgroundColor).substring(2);
+	}
+
+	public boolean isProgressBarInversed()
+	{
+		return progressBarInversed;
+	}
+
+	public void setProgressBarInversed(boolean progressBarInversed)
+	{
+		this.progressBarInversed = progressBarInversed;
+	}
+
+	public int getSplashTitleColor()
+	{
+		return splashTitleColor;
+	}
+
+	public void setSplashTitleColor(int splashTitleColor)
+	{
+		this.splashTitleColor = splashTitleColor;
 	}
 }
