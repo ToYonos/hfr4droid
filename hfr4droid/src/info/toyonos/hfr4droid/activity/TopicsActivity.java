@@ -142,6 +142,7 @@ public class TopicsActivity extends HFR4droidListActivity<Topic>
 				}
 				else
 				{
+					previousCat = cat;
 					cat = topic.getCategory();
 					loadTopics(topic.getCategory(), type);
 				}

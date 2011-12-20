@@ -699,7 +699,17 @@ public abstract class HFR4droidActivity extends Activity
 		String noElement = getString(R.string.no_topic);
 
 		DataRetrieverAsyncTask<Topic, Category> task = new DataRetrieverAsyncTask<Topic, Category>(this)
-		{	
+		{
+			@Override
+			protected void onCancel()
+			{
+				super.onCancel();
+				if (HFR4droidActivity.this instanceof TopicsActivity)
+				{
+					rollbackAction((TopicsActivity) HFR4droidActivity.this);
+				}
+			}
+
 			@Override
 			protected List<Topic> retrieveDataInBackground(Category... cats) throws DataRetrieverException
 			{
@@ -750,23 +760,14 @@ public abstract class HFR4droidActivity extends Activity
 				{
 					TopicsActivity ta = (TopicsActivity) HFR4droidActivity.this;
 					((PullToRefreshListView) ta.getListView()).onRefreshComplete();
-					if (ta.getType() == TopicType.ALL && !(cat instanceof SubCategory))
+					if (ta.getType() != TopicType.ALL && !(cat instanceof SubCategory))
 					{
 						loadCats(false);
 					}
-					else // Pas d'élément, on rollback et on revient à la précédente cat/sous-cat ou type de topic 
+					else 
 					{
-						if (ta.getPreviousCat() != null)
-						{
-							ta.setCat(ta.getPreviousCat());
-							ta.setPreviousCat(null);
-						}
-
-						if (ta.getPreviousType() != null)
-						{
-							ta.setType(ta.getPreviousType());
-							ta.setPreviousType(null);
-						}
+						// Pas d'élément, on rollback et on revient à la précédente cat/sous-cat ou type de topic
+						rollbackAction(ta);
 					}
 				}
 				else if (HFR4droidActivity.this instanceof PostsActivity && !sameActivity)
@@ -785,6 +786,21 @@ public abstract class HFR4droidActivity extends Activity
 		
 		task.execute(progressTitle, progressContent, noElement, sameActivity, displayLoading, cat);
 		return task;
+	}
+	
+	private void rollbackAction(TopicsActivity ta)
+	{
+		if (ta.getPreviousCat() != null)
+		{
+			ta.setCat(ta.getPreviousCat());
+			ta.setPreviousCat(null);
+		}
+
+		if (ta.getPreviousType() != null)
+		{
+			ta.setType(ta.getPreviousType());
+			ta.setPreviousType(null);
+		}
 	}
 
 	protected void loadPosts(Topic topic, final int pageNumber)

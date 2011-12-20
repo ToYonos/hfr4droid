@@ -27,6 +27,11 @@ public abstract class DataRetrieverAsyncTask<E, P> extends AsyncTask<P, Void, Li
 		this.context = context;
 	}
 
+	protected void onCancel()
+	{
+		cancel(true);
+	}
+	
 	protected abstract List<E> retrieveDataInBackground(P... params) throws DataRetrieverException;
 
 	protected abstract void onPostExecuteSameActivity(List<E> elements) throws ClassCastException;
@@ -68,7 +73,7 @@ public abstract class DataRetrieverAsyncTask<E, P> extends AsyncTask<P, Void, Li
 		{
 			public void onCancel(DialogInterface dialog)
 			{
-				cancel(true);
+				DataRetrieverAsyncTask.this.onCancel();
 			}
 		});
 		if (displayLoading) progressDialog.show();
