@@ -1,5 +1,9 @@
 package info.toyonos.hfr4droid.activity;
 
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Locale;
+
 import info.toyonos.hfr4droid.R;
 import info.toyonos.hfr4droid.core.bean.Category;
 import info.toyonos.hfr4droid.core.bean.Theme;
@@ -86,8 +90,13 @@ public class SplashActivity extends HFR4droidActivity
 	{
 		Display display = getWindowManager().getDefaultDisplay();
 		boolean landscape = display.getWidth() > display.getHeight();
+		SimpleDateFormat sdf = new SimpleDateFormat("MM");
+		boolean december = sdf.format(new Date()).equals("12");
+		
 		ImageView logo = (ImageView) findViewById(R.id.SplashLogo);
-		logo.setBackgroundResource(landscape ? R.drawable.logo_medium : R.drawable.logo_big);
+		logo.setBackgroundResource(landscape ? (
+		december ? R.drawable.logo_medium_xmas : R.drawable.logo_medium) : (
+		december ? R.drawable.logo_big_xmas : R.drawable.logo_big));
 	}
 
 	@Override
