@@ -2,6 +2,7 @@ package info.toyonos.hfr4droid.core.data;
 
 import info.toyonos.hfr4droid.core.bean.Category;
 import info.toyonos.hfr4droid.core.bean.Post;
+import info.toyonos.hfr4droid.core.bean.Profile;
 import info.toyonos.hfr4droid.core.bean.SubCategory;
 import info.toyonos.hfr4droid.core.bean.Topic;
 import info.toyonos.hfr4droid.core.bean.Topic.TopicType;
@@ -159,4 +160,12 @@ public interface MDDataRetriever
 	 * @throws DataRetrieverException Si un problème survient
 	 */
 	public String getKeywords(String code) throws DataRetrieverException;
+	
+	/**
+	 * Récupère le profil d'un utilisateur
+	 * @param pseudo son pseudo
+	 * @return Le <code>Profile</code> de l'utilisateur
+	 * @throws DataRetrieverException Si un problème survient
+	 */
+	public Profile getProfile(String pseudo) throws DataRetrieverException;
 }

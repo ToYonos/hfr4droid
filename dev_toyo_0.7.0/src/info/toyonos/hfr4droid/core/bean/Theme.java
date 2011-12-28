@@ -1,7 +1,5 @@
 package info.toyonos.hfr4droid.core.bean;
 
-
-
 /**
  * La classe qui gère les thèmes de l'application
  * 

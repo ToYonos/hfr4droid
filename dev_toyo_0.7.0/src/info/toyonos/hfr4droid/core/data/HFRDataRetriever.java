@@ -7,8 +7,11 @@ import info.toyonos.hfr4droid.core.auth.HFRAuthentication;
 import info.toyonos.hfr4droid.core.bean.Category;
 import info.toyonos.hfr4droid.core.bean.Post;
 import info.toyonos.hfr4droid.core.bean.PostFromSearch;
+import info.toyonos.hfr4droid.core.bean.Profile;
+import info.toyonos.hfr4droid.core.bean.Profile.ProfileType;
 import info.toyonos.hfr4droid.core.bean.SubCategory;
 import info.toyonos.hfr4droid.core.bean.Topic;
+import info.toyonos.hfr4droid.core.bean.Profile.Gender;
 import info.toyonos.hfr4droid.core.bean.Topic.TopicStatus;
 import info.toyonos.hfr4droid.core.bean.Topic.TopicType;
 import info.toyonos.hfr4droid.service.MpNotifyService;
@@ -27,6 +30,8 @@ import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URLEncoder;
+import java.text.ParsePosition;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.GregorianCalendar;
 import java.util.LinkedHashMap;
@@ -74,6 +79,7 @@ public class HFRDataRetriever implements MDDataRetriever
 	public static final String EDIT_URL			= BASE_URL + "/message.php?config=hfr.inc&cat={$cat}&post={$topic}&numreponse={$post}";
 	public static final String KEYWORDS_URL		= BASE_URL + "/wikismilies.php?config=hfr.inc&detail={$code}";
 	public static final String MPS_URL			= BASE_URL + "/forum1.php?config=hfr.inc&cat=1&page=500000&owntopic=0";
+	public static final String PROFILE_URL		= BASE_URL + "/profilebdd.php?config=hfr.inc&pseudo={$pseudo}";
 
 	public static final String MAINTENANCE 		= "Serveur en cours de maintenance. <br /><br />Veuillez nous excuser pour la gène occasionnée";
 	
@@ -749,6 +755,93 @@ public class HFRDataRetriever implements MDDataRetriever
 		
 		String keywords = getSingleElement("name=\"keywords0\"\\s*value=\"(.*?)\"\\s*onkeyup", content);
 		return keywords;
+	}
+	
+	/**
+	 * {@inheritDoc}
+	 */
+	public Profile getProfile(String pseudo) throws DataRetrieverException
+	{
+		String encodedPseudo = pseudo;
+		try
+		{
+			encodedPseudo = URLEncoder.encode(pseudo, "UTF-8");
+		}
+		catch (UnsupportedEncodingException e1)
+		{
+			Log.w(HFR4droidApplication.TAG, e1);
+		}
+		String url = PROFILE_URL.replaceFirst("\\{\\$pseudo\\}", encodedPseudo);
+		
+		Profile profile = null;
+		String content = null;
+		try
+		{
+			content = getAsString(url);
+		}
+		catch (Exception e)
+		{
+			throw new DataRetrieverException(context.getString(R.string.error_dr_profile), e);
+		}
+
+		Pattern p = Pattern.compile(
+			"<td\\s*class=\"profilCase4\"\\s*rowspan=\"8\"\\s*style=\"text-align:center\">\\s*" +
+			"(?:(?:<div\\s*class=\"avatar_center\"\\s*style=\"clear:both\"><img\\s*src=\"(.*?)\")|</td>).*?" + 
+			"<td\\s*class=\"profilCase2\">Date de naissance.*?</td>\\s*<td\\s*class=\"profilCase3\">(.*?)</td>.*?" + 
+			"<td\\s*class=\"profilCase2\">Carte.*?</td>\\s*<td\\s*class=\"profilCase3\">(.*?)</td>.*?" +
+			"<td\\s*class=\"profilCase2\">sexe.*?</td>\\s*<td\\s*class=\"profilCase3\">(.*?)</td>.*?" +
+			"<td\\s*class=\"profilCase2\">ville.*?</td>\\s*<td\\s*class=\"profilCase3\">(.*?)</td>.*?" +
+			"<td\\s*class=\"profilCase2\">Statut.*?</td>\\s*<td\\s*class=\"profilCase3\">(.*?)</td>.*?" +
+			"<td\\s*class=\"profilCase2\">Nombre de messages postés.*?</td>\\s*<td\\s*class=\"profilCase3\">([0-9]+)</td>.*?" +
+			"<td\\s*class=\"profilCase4\"\\s*rowspan=\"5\">(.*?)</td>.*?" +
+			"<td\\s*class=\"profilCase2\">Date d'arrivée sur le forum.*?</td>\\s*<td\\s*class=\"profilCase3\">(.*?)</td>.*?" +
+			"<td\\s*class=\"profilCase2\">Date du dernier message.*?</td>\\s*<td\\s*class=\"profilCase3\">(.*?)</td>"			
+			, Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
+
+		Log.d(HFR4droidApplication.TAG,  "Matching informations about " + pseudo);
+		Matcher m = p.matcher(content);
+		if (m.find())
+		{
+			SimpleDateFormat sdf1 = new SimpleDateFormat("dd/MM/yyyy");
+			SimpleDateFormat sdf2 = new SimpleDateFormat("dd-MM-yyyy'&nbsp;à&nbsp;'HH:mm");
+			
+			String locationContent = m.group(3);
+			Pattern p2 = Pattern.compile("<a\\s*class=\"cLink\"\\s*href=\"/hfr/carte/.*?\">(.*?)</a>");
+			Matcher m2 = p2.matcher(locationContent);
+			List<String> location = new ArrayList<String>();
+			while (m2.find())
+			{
+				location.add(m2.group(1));
+			}
+			String[] locationArray = new String[location.size()];
+			location.toArray(locationArray);
+			
+			String smileysContent = m.group(8);
+			Pattern p3 = Pattern.compile("<img\\s*src=\"http://forum\\-images\\.hardware\\.fr/images/perso/((?:[0-9]/)?.*?)\"");
+			Matcher m3 = p3.matcher(smileysContent);
+			List<String> smileys = new ArrayList<String>();
+			while (m3.find())
+			{
+				smileys.add(m3.group(1));
+			}
+			String[] smileysArray = new String[smileys.size()];
+			smileys.toArray(smileysArray);
+
+			profile = new Profile(
+				pseudo,
+				sdf1.parse(m.group(2).trim(), new ParsePosition(0)), // Date de naissance
+				locationArray,
+				m.group(5).trim(), // Ville
+				Gender.fromString(m.group(4).trim()),
+				Integer.parseInt(m.group(7)), // Nb messages postés 
+				ProfileType.fromString(m.group(6).trim()),
+				sdf2.parse(m.group(10).trim(), new ParsePosition(0)), // Date du dernier message
+				sdf1.parse(m.group(9).trim(), new ParsePosition(0)), // Date d'arrivée
+				m.group(1),
+				smileysArray);
+		}
+
+		return profile;
 	}
 
 	/**

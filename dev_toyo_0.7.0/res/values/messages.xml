@@ -18,6 +18,7 @@
     <string name="error_dr_smilies">Une erreur s\'est produite lors de la récupération des smileys</string>
     <string name="error_dr_bbcode">Une erreur s\'est produite lors de la récupération du BBCode</string>
     <string name="error_dr_keywords">Une erreur s\'est produite lors de la récupération des mots-clés</string>
+    <string name="error_dr_profile">Une erreur s\'est produite lors de la récupération du profil</string>
     <string name="error_serializing_cats">Une erreur s\'est produite lors de la mise en cache des catégories</string>
     <string name="error_deserializing_cats">Une erreur s\'est produite lors de la récupération des catégories dans le cache</string>
     <string name="warning_allcats_topicall">Vous ne pouvez pas consulter tous les drapeaux de toutes les catégories. Faites un appui long pour sélectionner un type de drapeau.</string>
