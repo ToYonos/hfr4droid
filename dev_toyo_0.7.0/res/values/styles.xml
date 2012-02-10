@@ -4,4 +4,9 @@
 		<item name="android:windowEnterAnimation">@anim/quick_action_window_enter</item>
 		<item name="android:windowExitAnimation">@anim/quick_action_window_exit</item>
 	</style>
+	
+	<style name="Animation.ProfilPopup" parent="@android:style/Animation">
+		<item name="android:windowEnterAnimation">@anim/profil_popup_enter</item>
+		<item name="android:windowExitAnimation">@anim/profil_popup_exit</item>
+	</style>
 </resources>

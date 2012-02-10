@@ -5,6 +5,7 @@ import info.toyonos.hfr4droid.R;
 import info.toyonos.hfr4droid.core.bean.BasicElement;
 import info.toyonos.hfr4droid.core.bean.Category;
 import info.toyonos.hfr4droid.core.bean.Post;
+import info.toyonos.hfr4droid.core.bean.Profile;
 import info.toyonos.hfr4droid.core.bean.Theme;
 import info.toyonos.hfr4droid.core.bean.Topic;
 import info.toyonos.hfr4droid.core.bean.Topic.TopicStatus;
@@ -68,6 +69,7 @@ import android.view.ContextMenu;
 import android.view.ContextMenu.ContextMenuInfo;
 import android.view.Display;
 import android.view.GestureDetector;
+import android.view.Gravity;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -84,6 +86,8 @@ import android.view.ViewGroup.LayoutParams;
 import android.view.Window;
 import android.view.WindowManager;
 import android.view.animation.Animation;
+import android.view.animation.LinearInterpolator;
+import android.view.animation.RotateAnimation;
 import android.view.animation.Animation.AnimationListener;
 import android.view.animation.AnimationUtils;
 import android.webkit.WebChromeClient;
@@ -95,6 +99,7 @@ import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.PopupWindow;
 import android.widget.ProgressBar;
 import android.widget.SlidingDrawer;
 import android.widget.SlidingDrawer.OnDrawerCloseListener;
@@ -160,6 +165,8 @@ public class PostsActivity extends NewPostUIActivity
 	private boolean isAvatarsEnable = true;
 	private boolean isSmileysEnable = true;
 	private boolean isImgsEnable = true;
+	
+	AsyncTask<String, Void, Profile> profileTask = null;
 	
 	private final HttpClient<Bitmap> imgBitmapHttpClient = new HttpClient<Bitmap>()
 	{		
@@ -329,6 +336,11 @@ public class PostsActivity extends NewPostUIActivity
 		if (keyCode == KeyEvent.KEYCODE_SEARCH)
 		{
 			toggleSearchPosts();
+		}
+		else if (keyCode == KeyEvent.KEYCODE_BACK && profileTask != null)
+		{
+			profileTask.cancel(true);
+			profileTask = null;
 		}
 		return super.onKeyDown(keyCode, event);
 	}
@@ -876,6 +888,80 @@ public class PostsActivity extends NewPostUIActivity
 					});
 				}
 			}
+			
+			@SuppressWarnings("unused")
+			public void openProfileWindow(final String pseudo)
+			{
+				runOnUiThread(new Runnable()
+				{
+					public void run()
+					{
+						LayoutInflater inflater = (LayoutInflater) getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+						final View profileView =  inflater.inflate(R.layout.profile_popup, null, false);
+						final PopupWindow pw = new PopupWindow(profileView, 100, 100,	true);
+						pw.setAnimationStyle(R.style.Animation_ProfilPopup);
+						profileView.findViewById(R.id.ProfilePopup).setOnClickListener(new View.OnClickListener()
+						{
+							public void onClick(View v)
+							{
+								pw.dismiss();
+							}
+						});
+						pw.showAtLocation(findViewById(R.id.PostsLayout), Gravity.LEFT, 0, 0);
+
+						profileTask = new AsyncTask<String, Void, Profile>()
+						{
+							ImageView wait = null;
+							
+							@Override
+							protected void onPreExecute()
+							{
+								RotateAnimation anim = new RotateAnimation(0f, 350f, Animation.RELATIVE_TO_SELF, 0.5f, Animation.RELATIVE_TO_SELF, 0.5f);
+								anim.setInterpolator(new LinearInterpolator());
+								anim.setRepeatCount(Animation.INFINITE);
+								anim.setDuration(700);
+
+								wait = (ImageView) profileView.findViewById(R.id.WaitAnimation);
+								wait.startAnimation(anim);
+							}
+
+							@Override
+							protected void onCancelled()
+							{
+								super.onCancelled();
+								pw.dismiss();
+							}
+
+							@Override
+							protected Profile doInBackground(String... pseudo)
+							{
+								Profile profile = null;
+								try
+								{
+									profile = getDataRetriever().getProfile(pseudo[0]);
+								}
+								catch (DataRetrieverException e)
+								{
+									error(e, true, true);
+								}
+								return profile;
+							}
+							
+							@Override
+							protected void onPostExecute(final Profile profile)
+							{
+								//wait.setVisibility(View.GONE);
+								//profileView.findViewById(R.id.WaitAnimation).setVisibility(View.GONE);
+								
+								wait.clearAnimation();
+								((ViewGroup) profileView).removeView(wait);
+								TextView birthDate = (TextView) profileView.findViewById(R.id.ProfileBirthDate);
+								birthDate.setText(profile.getBirthDate().toLocaleString());	
+							}
+						}.execute(pseudo);	
+					}
+				});
+			}
 
 			@SuppressWarnings("unused")
 			public void handleUrl(String url)
@@ -1025,6 +1111,7 @@ public class PostsActivity extends NewPostUIActivity
 		js.append("function scrollToElement(id) {var elem = document.getElementById(id); var x = 0; var y = 0; while (elem != null) { x += elem.offsetLeft; y += elem.offsetTop; elem = elem.offsetParent; } window.scrollTo(x, y); }");
 		js.append("function removePost(id) { var header = document.getElementById(id); header.parentNode.removeChild(header.nextSibling); if (header.nextSibling.className == 'HFR4droid_post') header.parentNode.removeChild(header.nextSibling); header.parentNode.removeChild(header); };");
 		js.append("function openQuickActionWindow(postId, isMine) {var elem = document.getElementById(postId); var yOffset = 0; while (elem != null) { yOffset += elem.offsetTop; elem = elem.offsetParent; } window.HFR4Droid.openQuickActionWindow(postId, isMine, yOffset - window.scrollY); }");
+		js.append("function openProfileWindow(pseudo) { event.stopPropagation(); window.HFR4Droid.openProfileWindow(pseudo); }");
 		js.append("var loadDynamicCss = function(width) { var headID = document.getElementsByTagName('head')[0]; var styles = headID.getElementsByTagName('style'); for (var i=1;i<styles.length;i++) headID.removeChild(styles[i]); var cssNode = document.createElement('style'); cssNode.type = 'text/css'; cssNode.appendChild(document.createTextNode('");
 		js.append("ol { width:' + (Math.round(width * 0.80) - 40) + 'px; }");
 		js.append(".citation p, .oldcitation p, .quote p, .oldquote p, .fixed p, .code p, .spoiler p, .oldspoiler p { width:' + Math.round(width * 0.80) + 'px; }");
@@ -1102,9 +1189,9 @@ public class PostsActivity extends NewPostUIActivity
 			SimpleDateFormat check = new SimpleDateFormat("ddMMyyyy");
 			boolean today = check.format(new Date()).equals(check.format(p.getDate()));
 			String date = today ? todaySdf.format(p.getDate()) : "Le " + sdf.format(p.getDate());
-			String avatar = p.getAvatarUrl() != null && isAvatarsEnable ? "<img alt=\"avatar\" title=\"" + p.getPseudo() + "\" src=\"" + p.getAvatarUrl() + "\" />" : "";
-			String pseudoSpan = "<span class=\"pseudo\">" + p.getPseudo() + "</span>";
-			String dateSpan = "<span class=\"date\">" + date + "</span>";
+			String avatar = p.getAvatarUrl() != null && isAvatarsEnable ? "<img alt=\"avatar\" title=\"" + p.getPseudo() + "\" src=\"" + p.getAvatarUrl() + "\" onclick=\"openProfileWindow('" + p.getPseudo() + "')\" />" : "";
+			String pseudoSpan = "<span class=\"pseudo\" onclick=\"openProfileWindow('" + p.getPseudo() + "')\">" + p.getPseudo() + "</span>";
+			String dateSpan = "<span class=\"date\" onclick=\"openQuickActionWindow(" + p.getId() + ", " + p.isMine() + ")\">" + date + "</span>";
 			StringBuilder editQuoteDiv = new StringBuilder("");
 			if (p.getLastEdition() != null || p.getNbCitations() > 0)
 			{

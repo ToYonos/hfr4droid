@@ -120,6 +120,7 @@ public class MpNotifyService extends Service
 				if (nbMps == 1 && mp != null)
 				{
 					Intent intent = new Intent(MpNotifyService.this, PostsActivity.class);
+					intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
 					Bundle bundle = new Bundle();
 					bundle.putSerializable("topic", mp);
 					bundle.putInt("pageNumber", mp.getNbPages());
@@ -130,6 +131,7 @@ public class MpNotifyService extends Service
 				else
 				{
 					Intent intent = new Intent(MpNotifyService.this, TopicsActivity.class);
+					intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
 					Bundle bundle = new Bundle();
 					bundle.putSerializable("cat", Category.MPS_CAT);
 					bundle.putInt("pageNumber", 1);
