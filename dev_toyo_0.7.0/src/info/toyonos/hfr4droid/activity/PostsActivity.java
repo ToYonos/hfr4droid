@@ -898,7 +898,7 @@ public class PostsActivity extends NewPostUIActivity
 					{
 						LayoutInflater inflater = (LayoutInflater) getSystemService(Context.LAYOUT_INFLATER_SERVICE);
 						final View profileView =  inflater.inflate(R.layout.profile_popup, null, false);
-						final PopupWindow pw = new PopupWindow(profileView, 100, 100,	true);
+						final PopupWindow pw = new PopupWindow(profileView, ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT, true);
 						pw.setAnimationStyle(R.style.Animation_ProfilPopup);
 						profileView.findViewById(R.id.ProfilePopup).setOnClickListener(new View.OnClickListener()
 						{
@@ -1189,8 +1189,8 @@ public class PostsActivity extends NewPostUIActivity
 			SimpleDateFormat check = new SimpleDateFormat("ddMMyyyy");
 			boolean today = check.format(new Date()).equals(check.format(p.getDate()));
 			String date = today ? todaySdf.format(p.getDate()) : "Le " + sdf.format(p.getDate());
-			String avatar = p.getAvatarUrl() != null && isAvatarsEnable ? "<img alt=\"avatar\" title=\"" + p.getPseudo() + "\" src=\"" + p.getAvatarUrl() + "\" onclick=\"openProfileWindow('" + p.getPseudo() + "')\" />" : "";
-			String pseudoSpan = "<span class=\"pseudo\" onclick=\"openProfileWindow('" + p.getPseudo() + "')\">" + p.getPseudo() + "</span>";
+			String avatar = p.getAvatarUrl() != null && isAvatarsEnable ? "<img alt=\"avatar\" title=\"" + p.getPseudo() + "\" src=\"" + p.getAvatarUrl() + "\" onclick=\"openProfileWindow('" + p.getPseudo().replace("'", "\\'") + "')\" />" : "";
+			String pseudoSpan = "<span class=\"pseudo\" onclick=\"openProfileWindow('" + p.getPseudo().replace("'", "\\'") + "')\">" + p.getPseudo() + "</span>";
 			String dateSpan = "<span class=\"date\" onclick=\"openQuickActionWindow(" + p.getId() + ", " + p.isMine() + ")\">" + date + "</span>";
 			StringBuilder editQuoteDiv = new StringBuilder("");
 			if (p.getLastEdition() != null || p.getNbCitations() > 0)
