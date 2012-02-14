@@ -8,10 +8,10 @@ import info.toyonos.hfr4droid.core.bean.Category;
 import info.toyonos.hfr4droid.core.bean.Post;
 import info.toyonos.hfr4droid.core.bean.PostFromSearch;
 import info.toyonos.hfr4droid.core.bean.Profile;
+import info.toyonos.hfr4droid.core.bean.Profile.Gender;
 import info.toyonos.hfr4droid.core.bean.Profile.ProfileType;
 import info.toyonos.hfr4droid.core.bean.SubCategory;
 import info.toyonos.hfr4droid.core.bean.Topic;
-import info.toyonos.hfr4droid.core.bean.Profile.Gender;
 import info.toyonos.hfr4droid.core.bean.Topic.TopicStatus;
 import info.toyonos.hfr4droid.core.bean.Topic.TopicType;
 import info.toyonos.hfr4droid.service.MpNotifyService;
@@ -33,6 +33,7 @@ import java.net.URLEncoder;
 import java.text.ParsePosition;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.GregorianCalendar;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -793,7 +794,7 @@ public class HFRDataRetriever implements MDDataRetriever
 			"<td\\s*class=\"profilCase2\">ville.*?</td>\\s*<td\\s*class=\"profilCase3\">(.*?)</td>.*?" +
 			"<td\\s*class=\"profilCase2\">Statut.*?</td>\\s*<td\\s*class=\"profilCase3\">(.*?)</td>.*?" +
 			"<td\\s*class=\"profilCase2\">Nombre de messages postés.*?</td>\\s*<td\\s*class=\"profilCase3\">([0-9]+)</td>.*?" +
-			"<td\\s*class=\"profilCase4\"\\s*rowspan=\"5\">(.*?)</td>.*?" +
+			"<td\\s*class=\"profilCase4\"\\s*rowspan=\"[0-9]\">(.*?)</td>.*?" +
 			"<td\\s*class=\"profilCase2\">Date d'arrivée sur le forum.*?</td>\\s*<td\\s*class=\"profilCase3\">(.*?)</td>.*?" +
 			"<td\\s*class=\"profilCase2\">Date du dernier message.*?</td>\\s*<td\\s*class=\"profilCase3\">(.*?)</td>"			
 			, Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
@@ -814,6 +815,7 @@ public class HFRDataRetriever implements MDDataRetriever
 				location.add(m2.group(1));
 			}
 			String[] locationArray = new String[location.size()];
+			Collections.reverse(location);
 			location.toArray(locationArray);
 			
 			String smileysContent = m.group(8);
@@ -831,7 +833,7 @@ public class HFRDataRetriever implements MDDataRetriever
 				pseudo,
 				sdf1.parse(m.group(2).trim(), new ParsePosition(0)), // Date de naissance
 				locationArray,
-				m.group(5).trim(), // Ville
+				m.group(5).trim().equals("") ? null : m.group(5).trim(), // Ville
 				Gender.fromString(m.group(4).trim()),
 				Integer.parseInt(m.group(7)), // Nb messages postés 
 				ProfileType.fromString(m.group(6).trim()),

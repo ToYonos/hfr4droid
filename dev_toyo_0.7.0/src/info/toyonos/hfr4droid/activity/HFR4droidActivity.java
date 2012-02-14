@@ -1064,7 +1064,7 @@ public abstract class HFR4droidActivity extends Activity
 				
 			case 3:
 				newSize = (int)Math.round(normalSize * 1.4);
-				break;				
+				break;
 	
 			default:
 				newSize = normalSize;

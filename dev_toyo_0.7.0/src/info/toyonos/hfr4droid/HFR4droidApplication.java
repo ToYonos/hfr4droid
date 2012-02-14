@@ -2,12 +2,15 @@ package info.toyonos.hfr4droid;
 
 import info.toyonos.hfr4droid.core.auth.AuthenticationException;
 import info.toyonos.hfr4droid.core.auth.HFRAuthentication;
+import info.toyonos.hfr4droid.core.bean.Profile;
 import info.toyonos.hfr4droid.core.data.HFRDataRetriever;
 import info.toyonos.hfr4droid.core.data.MDDataRetriever;
 import info.toyonos.hfr4droid.core.message.HFRMessageSender;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 
 import android.app.Application;
 
@@ -26,6 +29,7 @@ public class HFR4droidApplication extends Application
 	private MDDataRetriever dataRetriever;
 	private HFRAuthentication auth;
 	private HFRMessageSender msgSender;
+	private Map<String, Profile> profiles;
 
 	@Override
 	public void onCreate()
@@ -33,6 +37,7 @@ public class HFR4droidApplication extends Application
 		super.onCreate();
 		dataRetriever = new HFRDataRetriever(this);
 		if (new File(HFRAuthentication.OLD_COOKIES_FILE_NAME).exists()) new File(HFRAuthentication.OLD_COOKIES_FILE_NAME).delete();
+		profiles = new HashMap<String, Profile>();
 	}
 
 	public MDDataRetriever getDataRetriever()
@@ -98,5 +103,21 @@ public class HFR4droidApplication extends Application
 	public boolean isLoggedIn()
 	{
 		return auth != null && auth.getCookies() != null;
+	}
+	
+	/**
+	 * @return Le profil d'un membre s'il a été stocké en cache
+	 */
+	public Profile getProfile(String pseudo)
+	{
+		return profiles.get(pseudo);
+	}
+	
+	/**
+	 * Stocke le profil d'un membre en cache
+	 */
+	public void setProfile(String pseudo, Profile profile)
+	{
+		profiles.put(pseudo, profile);
 	}
 }

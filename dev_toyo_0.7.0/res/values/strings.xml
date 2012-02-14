@@ -110,6 +110,10 @@
 	<string name="search_posts_word_hint">Mot</string>
 	<string name="search_posts_pseudo_hint">Pseudo</string>
 	
+	<string name="profile_age">%s ans</string>
+	<string name="profile_default_age">âge non précisé</string>
+	<string name="profile_default_location">Ville non précisée</string>   
+	
 	<string-array name="welcome_screen_values">
     	<item>Les catégories</item>
     	<item>Tous vos drapeaux cyan</item>

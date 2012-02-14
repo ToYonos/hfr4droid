@@ -34,6 +34,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
@@ -55,6 +56,7 @@ import android.content.res.Configuration;
 import android.graphics.Bitmap;
 import android.graphics.Bitmap.CompressFormat;
 import android.graphics.BitmapFactory;
+import android.graphics.drawable.BitmapDrawable;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.net.Uri;
@@ -86,10 +88,10 @@ import android.view.ViewGroup.LayoutParams;
 import android.view.Window;
 import android.view.WindowManager;
 import android.view.animation.Animation;
-import android.view.animation.LinearInterpolator;
-import android.view.animation.RotateAnimation;
 import android.view.animation.Animation.AnimationListener;
 import android.view.animation.AnimationUtils;
+import android.view.animation.LinearInterpolator;
+import android.view.animation.RotateAnimation;
 import android.webkit.WebChromeClient;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
@@ -336,11 +338,6 @@ public class PostsActivity extends NewPostUIActivity
 		if (keyCode == KeyEvent.KEYCODE_SEARCH)
 		{
 			toggleSearchPosts();
-		}
-		else if (keyCode == KeyEvent.KEYCODE_BACK && profileTask != null)
-		{
-			profileTask.cancel(true);
-			profileTask = null;
 		}
 		return super.onKeyDown(keyCode, event);
 	}
@@ -894,71 +891,150 @@ public class PostsActivity extends NewPostUIActivity
 			{
 				runOnUiThread(new Runnable()
 				{
+					private void displayProfile(PopupWindow pw, Profile profile)
+					{
+						final LayoutInflater inflater = (LayoutInflater) getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+						final View profileView =  inflater.inflate(R.layout.profile_popup, null, false);
+						pw.setContentView(profileView);
+
+						ImageView avatar = (ImageView) profileView.findViewById(R.id.ProfileAvatar);
+						if (profile.getAvatarUrl() != null)
+						{
+							avatar.setImageBitmap(profile.getAvatarBitmap());
+							Display display = ((WindowManager) getSystemService(Context.WINDOW_SERVICE)).getDefaultDisplay();
+							int newWidth = Math.min(display.getWidth(), display.getHeight()) / 4;
+							int orgWidth = avatar.getDrawable().getIntrinsicWidth();
+							if (newWidth < orgWidth)
+							{
+								int orgHeight = avatar.getDrawable().getIntrinsicHeight();
+								int newHeight = (int) Math.floor((orgHeight * newWidth) / orgWidth);
+
+								LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(newWidth, newHeight);
+								avatar.setLayoutParams(params);
+								avatar.setScaleType(ImageView.ScaleType.CENTER_CROP);
+							}
+						}
+						else
+						{
+							avatar.setVisibility(View.GONE);
+						}
+						
+						TextView pseudo = (TextView) profileView.findViewById(R.id.ProfilePseudo);
+						pseudo.setText(profile.getPseudo());
+						pseudo.setTextColor(currentTheme.getListBackgroundColor());
+						pseudo.setTextSize(getTextSize(15));
+
+						TextView sexAndAge = (TextView) profileView.findViewById(R.id.ProfileSexAndAge);
+						sexAndAge.setTextColor(currentTheme.getListBackgroundColor());
+						sexAndAge.setTextSize(getTextSize(11));
+						if (profile.getBirthDate() != null)
+						{
+							Calendar now = Calendar.getInstance();
+							Calendar birth = Calendar.getInstance();
+							birth.setTime(profile.getBirthDate());
+							int age = now.get(Calendar.YEAR) - birth.get(Calendar.YEAR);
+							now.add(Calendar.YEAR, -age);
+							if(birth.after(now)) age--;
+							sexAndAge.setText(profile.getGender().getLabel() + ", " + getString(R.string.profile_age, age));
+						}
+						else
+																	{
+							sexAndAge.setText(profile.getGender().getLabel() + ", " + getString(R.string.profile_default_age));
+						}
+						
+						TextView location = (TextView) profileView.findViewById(R.id.ProfileLocation);
+						String city = profile.getCity() != null ? profile.getCity() : getString(R.string.profile_default_location);
+						String locationStr = "";
+						for (int i = 0; i < (profile.getLocation().length < 2 ? profile.getLocation().length : 2); i++)
+						{
+							locationStr += i != 0 ? ", " + profile.getLocation()[i] : profile.getLocation()[i];
+						}
+						location.setText(city + " (" + locationStr + ")");
+						location.setTextColor(currentTheme.getListBackgroundColor());
+						location.setTextSize(getTextSize(11));
+					
+						pw.showAtLocation(findViewById(R.id.PostsLayout), Gravity.LEFT, 0, 0);
+					}
+					
 					public void run()
 					{
-						LayoutInflater inflater = (LayoutInflater) getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-						final View profileView =  inflater.inflate(R.layout.profile_popup, null, false);
-						final PopupWindow pw = new PopupWindow(profileView, ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT, true);
+						final LayoutInflater inflater = (LayoutInflater) getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+						final View waitingView =  inflater.inflate(R.layout.profile_popup_loading, null, false);
+						final PopupWindow pw = new PopupWindow(waitingView, ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT, true);
+						pw.setBackgroundDrawable(new BitmapDrawable());
+						pw.setOutsideTouchable(true);
 						pw.setAnimationStyle(R.style.Animation_ProfilPopup);
-						profileView.findViewById(R.id.ProfilePopup).setOnClickListener(new View.OnClickListener()
+
+						Profile profile = getHFR4droidApplication().getProfile(pseudo);
+						if (profile != null)
 						{
-							public void onClick(View v)
-							{
-								pw.dismiss();
-							}
-						});
-						pw.showAtLocation(findViewById(R.id.PostsLayout), Gravity.LEFT, 0, 0);
-
-						profileTask = new AsyncTask<String, Void, Profile>()
+							displayProfile(pw, profile);
+						}
+						else
 						{
-							ImageView wait = null;
-							
-							@Override
-							protected void onPreExecute()
+							pw.setOnDismissListener(new PopupWindow.OnDismissListener()
 							{
-								RotateAnimation anim = new RotateAnimation(0f, 350f, Animation.RELATIVE_TO_SELF, 0.5f, Animation.RELATIVE_TO_SELF, 0.5f);
-								anim.setInterpolator(new LinearInterpolator());
-								anim.setRepeatCount(Animation.INFINITE);
-								anim.setDuration(700);
-
-								wait = (ImageView) profileView.findViewById(R.id.WaitAnimation);
-								wait.startAnimation(anim);
-							}
-
-							@Override
-							protected void onCancelled()
-							{
-								super.onCancelled();
-								pw.dismiss();
-							}
-
-							@Override
-							protected Profile doInBackground(String... pseudo)
-							{
-								Profile profile = null;
-								try
+								public void onDismiss()
 								{
-									profile = getDataRetriever().getProfile(pseudo[0]);
+									if (profileTask != null)
+									{
+										profileTask.cancel(true);
+										profileTask = null;
+									}
 								}
-								catch (DataRetrieverException e)
-								{
-									error(e, true, true);
-								}
-								return profile;
-							}
-							
-							@Override
-							protected void onPostExecute(final Profile profile)
+							});
+
+							profileTask = new AsyncTask<String, Void, Profile>()
 							{
-								//wait.setVisibility(View.GONE);
-								//profileView.findViewById(R.id.WaitAnimation).setVisibility(View.GONE);
+								ImageView wait = null;
 								
-								wait.clearAnimation();
-								((ViewGroup) profileView).removeView(wait);
-								TextView birthDate = (TextView) profileView.findViewById(R.id.ProfileBirthDate);
-								birthDate.setText(profile.getBirthDate().toLocaleString());	
-							}
-						}.execute(pseudo);	
+								@Override
+								protected void onPreExecute()
+								{
+									RotateAnimation anim = new RotateAnimation(0f, 350f, Animation.RELATIVE_TO_SELF, 0.5f, Animation.RELATIVE_TO_SELF, 0.5f);
+									anim.setInterpolator(new LinearInterpolator());
+									anim.setRepeatCount(Animation.INFINITE);
+									anim.setDuration(700);
+	
+									pw.showAtLocation(findViewById(R.id.PostsLayout), Gravity.LEFT, 0, 0);
+									wait = (ImageView) waitingView.findViewById(R.id.WaitAnimation);
+									wait.startAnimation(anim);
+								}
+	
+								@Override
+								protected Profile doInBackground(String... pseudo)
+								{
+									Profile profile = null;
+									try
+									{
+										profile = getDataRetriever().getProfile(pseudo[0]);
+										if (profile.getAvatarUrl() != null)
+										{
+											profile.setAvatarBitmap(imgBitmapHttpClient.getResponse(profile.getAvatarUrl()));
+										}
+										getHFR4droidApplication().setProfile(pseudo[0], profile);
+									}
+									catch (Exception e)
+									{
+										error(e, true, true);
+									}
+									return profile;
+								}
+								
+								@Override
+								protected void onPostExecute(final Profile profile)
+								{	
+									wait.clearAnimation();
+									pw.setOnDismissListener(null);
+									pw.dismiss();
+	
+									if (profile != null)
+									{
+										displayProfile(pw, profile);
+									}
+								}
+							}.execute(pseudo);
+						}
 					}
 				});
 			}
@@ -1834,7 +1910,6 @@ public class PostsActivity extends NewPostUIActivity
 	{
 		return fromAllCats;
 	}
-	
 	
 	private String cleanBBCode(String bbCode)
 	{

@@ -2,6 +2,8 @@ package info.toyonos.hfr4droid.core.bean;
 
 import java.util.Date;
 
+import android.graphics.Bitmap;
+
 /**
  * Le profile d'un utilisateur
  * 
@@ -99,6 +101,7 @@ public class Profile
 	private Date lastPostDate;
 	private Date registrationDate;
 	private String avatarUrl;
+	private Bitmap avatarBitmap;
 	private String[] smileysUrls;
 
 	public Profile()
@@ -113,6 +116,7 @@ public class Profile
 		this.lastPostDate = null;
 		this.registrationDate = null;
 		this.avatarUrl = null;
+		this.avatarBitmap = null;
 		this.smileysUrls = null;
 	}
 
@@ -128,6 +132,7 @@ public class Profile
 		this.lastPostDate = lastPost;
 		this.registrationDate = registration;
 		this.avatarUrl = avatarUrl;
+		this.avatarBitmap = null;
 		this.smileysUrls = smileysUrls;
 	}
 
@@ -229,6 +234,36 @@ public class Profile
 	public void setAvatarUrl(String avatarUrl)
 	{
 		this.avatarUrl = avatarUrl;
+	}
+
+	public Date getLastPostDate()
+	{
+		return lastPostDate;
+	}
+
+	public void setLastPostDate(Date lastPostDate)
+	{
+		this.lastPostDate = lastPostDate;
+	}
+
+	public Date getRegistrationDate()
+	{
+		return registrationDate;
+	}
+
+	public void setRegistrationDate(Date registrationDate)
+	{
+		this.registrationDate = registrationDate;
+	}
+
+	public Bitmap getAvatarBitmap()
+	{
+		return avatarBitmap;
+	}
+
+	public void setAvatarBitmap(Bitmap avatarBitmap)
+	{
+		this.avatarBitmap = avatarBitmap;
 	}
 
 	public String[] getSmileysUrls()
