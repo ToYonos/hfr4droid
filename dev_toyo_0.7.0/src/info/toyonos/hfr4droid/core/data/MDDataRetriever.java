@@ -33,6 +33,12 @@ public interface MDDataRetriever
 	 * @return L'url de base du forum sous forme de <code>String</code>
 	 */
 	public String getBaseUrl();
+	
+	/**
+	 * Récupère l'url des images perso du forum
+	 * @return L'url des images perso du forum sous forme de <code>String</code>
+	 */
+	public String getImgPersoUrl();
 
 	/**
 	 * Récupère les catégories

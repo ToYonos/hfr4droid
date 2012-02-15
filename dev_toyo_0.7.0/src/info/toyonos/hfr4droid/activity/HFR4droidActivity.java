@@ -416,6 +416,10 @@ public abstract class HFR4droidActivity extends Activity
 		currentTheme.setModoPostBackgroundColor(getColorByKey(themeKey, "post_modo_background"));
 		currentTheme.setProgressBarInversed(Boolean.parseBoolean(getString(getKeyByTheme(themeKey, R.string.class, "inverse_progress"))));
 		currentTheme.setSplashTitleColor(getColorByKey(themeKey, "splash_title"));
+		currentTheme.setSpinner(getString(getKeyByTheme(themeKey, R.string.class, "spinner")));
+		currentTheme.setProfileSpinner(getString(getKeyByTheme(themeKey, R.string.class, "profile_spinner")));
+		currentTheme.setProfileText1Color(getColorByKey(themeKey, "profile_text1"));
+		currentTheme.setProfileText2Color(getColorByKey(themeKey, "profile_text2"));
 	}
 
 	protected HFR4droidApplication getHFR4droidApplication()
@@ -1051,6 +1055,17 @@ public abstract class HFR4droidActivity extends Activity
 		}
 		catch (Exception e){} // On ne fait rien, une RuntimeException se produira au getString
 		return getString(key, params);
+	}
+	
+	public int getDrawableKey(String keyStr)
+	{
+		int key = -1;
+		try
+		{
+			key = R.drawable.class.getField(keyStr).getInt(null);
+		}
+		catch (Exception e){} // On ne fait rien, une RuntimeException se produira au getString
+		return key;
 	}
 
 	protected int getTextSize(int normalSize)

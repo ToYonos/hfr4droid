@@ -69,6 +69,8 @@ public class HFRDataRetriever implements MDDataRetriever
 	
 	public static final String BASE_URL			= "http://forum.hardware.fr";
 	//public static final String BASE_URL		= "http://192.168.0.2/hfr-dev";
+	public static final String IMG_URL			= "http://forum-images.hardware.fr";
+
 	public static final String CATS_URL			= BASE_URL + "/";
 	public static final String SUBCATS_URL		= BASE_URL + "/message.php?&config=hfr.inc&cat={$cat}";
 	public static final String TOPICS_URL		= BASE_URL + "/forum1.php?config=hfr.inc&cat={$cat}&subcat={$subcat}&page={$page}&owntopic={$type}";
@@ -82,6 +84,8 @@ public class HFRDataRetriever implements MDDataRetriever
 	public static final String MPS_URL			= BASE_URL + "/forum1.php?config=hfr.inc&cat=1&page=500000&owntopic=0";
 	public static final String PROFILE_URL		= BASE_URL + "/profilebdd.php?config=hfr.inc&pseudo={$pseudo}";
 
+	public static final String IMG_PERSO_URL	= IMG_URL + "/images/perso/";
+	
 	public static final String MAINTENANCE 		= "Serveur en cours de maintenance. <br /><br />Veuillez nous excuser pour la gène occasionnée";
 	
 	private Context context;
@@ -136,6 +140,14 @@ public class HFRDataRetriever implements MDDataRetriever
 	public String getBaseUrl()
 	{
 		return BASE_URL;
+	}
+	
+	/**
+	 * {@inheritDoc}
+	 */
+	public String getImgPersoUrl()
+	{
+		return IMG_PERSO_URL;
 	}
 	
 	/**

@@ -23,6 +23,10 @@ public class Theme
 	private int modoPostBackgroundColor;
 	private boolean progressBarInversed;
 	private int splashTitleColor;
+	private String spinner;
+	private String profileSpinner;
+	private int profileText1Color;
+	private int profileText2Color;
 
 	public Theme(String key)
 	{
@@ -40,6 +44,10 @@ public class Theme
 		this.modoPostBackgroundColor = -1;
 		this.progressBarInversed = false;
 		this.splashTitleColor = -1;
+		this.spinner = null;
+		this.profileSpinner = null;
+		this.profileText1Color = -1;
+		this.profileText2Color = -1;
 	}
 
 	public String getKey()
@@ -230,5 +238,45 @@ public class Theme
 	public void setSplashTitleColor(int splashTitleColor)
 	{
 		this.splashTitleColor = splashTitleColor;
+	}
+
+	public String getSpinner()
+	{
+		return spinner;
+	}
+
+	public void setSpinner(String spinner)
+	{
+		this.spinner = spinner;
+	}
+
+	public String getProfileSpinner()
+	{
+		return profileSpinner;
+	}
+
+	public void setProfileSpinner(String profileSpinner)
+	{
+		this.profileSpinner = profileSpinner;
+	}
+
+	public int getProfileText1Color()
+	{
+		return profileText1Color;
+	}
+
+	public void setProfileText1Color(int profileText1Color)
+	{
+		this.profileText1Color = profileText1Color;
+	}
+
+	public int getProfileText2Color()
+	{
+		return profileText2Color;
+	}
+
+	public void setProfileText2Color(int profileText2Color)
+	{
+		this.profileText2Color = profileText2Color;
 	}
 }

@@ -37,6 +37,7 @@ public class SplashActivity extends HFR4droidActivity
 		anim.setDuration(700);
 
 		ImageView splash = (ImageView) findViewById(R.id.SplashAnimation);
+		splash.setBackgroundResource(getDrawableKey(currentTheme.getSpinner()));
 		splash.startAnimation(anim);
 		
 		new Thread(new Runnable()

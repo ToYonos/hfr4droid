@@ -12,7 +12,7 @@ import android.graphics.Bitmap;
  */
 public class Profile
 {
-	public static final String DELETED_PROFILE = "Profil supprimé";
+	//public static final String DELETED_PROFILE = "Profil supprimé";
 	
 	/**
 	 * Les genres
@@ -204,26 +204,6 @@ public class Profile
 	public void setType(ProfileType type)
 	{
 		this.type = type;
-	}
-
-	public Date getLastPost()
-	{
-		return lastPostDate;
-	}
-
-	public void setLastPost(Date lastPost)
-	{
-		this.lastPostDate = lastPost;
-	}
-
-	public Date getRegistration()
-	{
-		return registrationDate;
-	}
-
-	public void setRegistration(Date registration)
-	{
-		this.registrationDate = registration;
 	}
 
 	public String getAvatarUrl()

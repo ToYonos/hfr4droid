@@ -111,8 +111,25 @@
 	<string name="search_posts_pseudo_hint">Pseudo</string>
 	
 	<string name="profile_age">%s ans</string>
+	<string name="profile_age_birthday">%s ans aujourd\'hui !</string>
 	<string name="profile_default_age">âge non précisé</string>
-	<string name="profile_default_location">Ville non précisée</string>   
+	<string name="profile_default_location">Ville non précisée</string>
+	<string name="profile_seniority_man">Inscrit le %s</string>
+	<string name="profile_seniority_woman">Inscrite le %s</string>
+	<string name="profile_seniority_angel">Inscrit(e) le %s</string>
+	<plurals name="profile_posts">
+	    <item quantity="zero">%d post</item>
+        <item quantity="one">%d post</item>
+        <item quantity="other">%d posts</item>
+    </plurals>
+    <string name="profile_last_post">Dernier post il y a %s</string>
+    <string name="profile_last_post_inf5min">moins de 5 min</string>
+    <string name="profile_last_post_min"> %d min</string>
+    <string name="profile_last_post_hour">%d h</string>
+    <plurals name="profile_last_post_day">
+        <item quantity="one">%d jour</item>
+        <item quantity="other">%d jours</item>
+    </plurals>
 	
 	<string-array name="welcome_screen_values">
     	<item>Les catégories</item>

@@ -554,7 +554,7 @@ public class TopicsActivity extends HFR4droidListActivity<Topic>
 		else
 		{
 			switch (type)
-			{			
+			{
 				case CYAN:
 					title = " " + cat.toString();
 					catTitle.setCompoundDrawablesWithIntrinsicBounds(getResources().getDrawable(R.drawable.flag_cyan), null, null, null);

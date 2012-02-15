@@ -20,6 +20,11 @@
 	<string name="default_inverse_progress">false</string>
 	
 	<color name="default_splash_title">#1A3A60</color>
+	<string name="default_spinner">spinner</string>
+	
+	<string name="default_profile_spinner">dark_spinner</string>
+	<color name="default_profile_text1">#F7F7F7</color>
+	<color name="default_profile_text2">#DADADA</color>
 
 	<!-- Thème "dark" -->
 	
@@ -41,6 +46,11 @@
 	<string name="dark_inverse_progress">true</string>
 	
 	<color name="dark_splash_title">#F7F7F7</color>
+	<string name="dark_spinner">dark_spinner</string>
+	
+	<string name="dark_profile_spinner">spinner</string>
+	<color name="dark_profile_text1">#000000</color>
+	<color name="dark_profile_text2">#9A9A9A</color>
 	
 
 	<!-- Thème gris (HFR 2011) -->
@@ -63,4 +73,9 @@
 	<string name="gray_inverse_progress">false</string>
 	
 	<color name="gray_splash_title">#1A3A60</color>
+	<string name="gray_spinner">spinner</string>
+	
+	<string name="gray_profile_spinner">dark_spinner</string>
+	<color name="gray_profile_text1">#F7F7F7</color>
+	<color name="gray_profile_text2">#DADADA</color>
 </resources>

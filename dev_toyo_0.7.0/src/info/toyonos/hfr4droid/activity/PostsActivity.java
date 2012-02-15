@@ -64,6 +64,7 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Environment;
 import android.text.ClipboardManager;
+import android.text.Html;
 import android.text.Selection;
 import android.text.TextUtils.TruncateAt;
 import android.util.SparseIntArray;
@@ -891,17 +892,23 @@ public class PostsActivity extends NewPostUIActivity
 			{
 				runOnUiThread(new Runnable()
 				{
-					private void displayProfile(PopupWindow pw, Profile profile)
+					private void displayProfile(final PopupWindow pw, Profile profile)
 					{
+						Display display = ((WindowManager) getSystemService(Context.WINDOW_SERVICE)).getDefaultDisplay();
 						final LayoutInflater inflater = (LayoutInflater) getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-						final View profileView =  inflater.inflate(R.layout.profile_popup, null, false);
+						final LinearLayout profileView =  (LinearLayout) inflater.inflate(R.layout.profile_popup, null, false);
 						pw.setContentView(profileView);
+						profileView.setBackgroundResource(getKeyByTheme(getThemeKey(), R.drawable.class, "profile_popup_background"));
+						float scale = getResources().getDisplayMetrics().density;
+						float dip = 5;
+						int pixel = (int) (dip * scale + 0.5f);
+						profileView.setPadding(pixel, pixel, pixel, pixel);
 
 						ImageView avatar = (ImageView) profileView.findViewById(R.id.ProfileAvatar);
+						avatar.setScaleType(ImageView.ScaleType.CENTER_CROP);
 						if (profile.getAvatarUrl() != null)
 						{
 							avatar.setImageBitmap(profile.getAvatarBitmap());
-							Display display = ((WindowManager) getSystemService(Context.WINDOW_SERVICE)).getDefaultDisplay();
 							int newWidth = Math.min(display.getWidth(), display.getHeight()) / 4;
 							int orgWidth = avatar.getDrawable().getIntrinsicWidth();
 							if (newWidth < orgWidth)
@@ -911,34 +918,40 @@ public class PostsActivity extends NewPostUIActivity
 
 								LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(newWidth, newHeight);
 								avatar.setLayoutParams(params);
-								avatar.setScaleType(ImageView.ScaleType.CENTER_CROP);
 							}
 						}
 						else
 						{
-							avatar.setVisibility(View.GONE);
+							avatar.setImageResource(R.drawable.no_avatar);
 						}
 						
 						TextView pseudo = (TextView) profileView.findViewById(R.id.ProfilePseudo);
 						pseudo.setText(profile.getPseudo());
-						pseudo.setTextColor(currentTheme.getListBackgroundColor());
-						pseudo.setTextSize(getTextSize(15));
+						pseudo.setTextColor(currentTheme.getProfileText1Color());
+						pseudo.setTextSize(getTextSize(18));
 
+						TextView type = (TextView) profileView.findViewById(R.id.ProfileType);
+						type.setTextColor(currentTheme.getProfileText2Color());
+						type.setTextSize(getTextSize(12));
+						type.setText(profile.getType().getLabel());
+						
 						TextView sexAndAge = (TextView) profileView.findViewById(R.id.ProfileSexAndAge);
-						sexAndAge.setTextColor(currentTheme.getListBackgroundColor());
-						sexAndAge.setTextSize(getTextSize(11));
+						sexAndAge.setTextColor(currentTheme.getProfileText2Color());
+						sexAndAge.setTextSize(getTextSize(12));
 						if (profile.getBirthDate() != null)
 						{
 							Calendar now = Calendar.getInstance();
 							Calendar birth = Calendar.getInstance();
 							birth.setTime(profile.getBirthDate());
+							boolean birthday = now.get(Calendar.DAY_OF_YEAR) == birth.get(Calendar.DAY_OF_YEAR);
 							int age = now.get(Calendar.YEAR) - birth.get(Calendar.YEAR);
 							now.add(Calendar.YEAR, -age);
 							if(birth.after(now)) age--;
-							sexAndAge.setText(profile.getGender().getLabel() + ", " + getString(R.string.profile_age, age));
+							sexAndAge.setText(Html.fromHtml(profile.getGender().getLabel() + ", " +
+							(birthday ? "<font color=\"red\">" + getString(R.string.profile_age_birthday, age) + "</font>" : getString(R.string.profile_age, age))));
 						}
 						else
-																	{
+						{
 							sexAndAge.setText(profile.getGender().getLabel() + ", " + getString(R.string.profile_default_age));
 						}
 						
@@ -950,12 +963,83 @@ public class PostsActivity extends NewPostUIActivity
 							locationStr += i != 0 ? ", " + profile.getLocation()[i] : profile.getLocation()[i];
 						}
 						location.setText(city + " (" + locationStr + ")");
-						location.setTextColor(currentTheme.getListBackgroundColor());
-						location.setTextSize(getTextSize(11));
+						location.setTextColor(currentTheme.getProfileText2Color());
+						location.setTextSize(getTextSize(10));
 					
-						pw.showAtLocation(findViewById(R.id.PostsLayout), Gravity.LEFT, 0, 0);
+						TextView seniorityAndPosts = (TextView) profileView.findViewById(R.id.ProfileSeniorityAndPosts);
+						seniorityAndPosts.setTextColor(currentTheme.getProfileText2Color());
+						seniorityAndPosts.setTextSize(getTextSize(10));
+						SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
+						String  seniority = getString("profile_seniority_" + profile.getGender().toString().toLowerCase(), sdf.format(profile.getRegistrationDate()));
+						String posts = getResources().getQuantityString(R.plurals.profile_posts, profile.getNbPosts(), profile.getNbPosts());
+						seniorityAndPosts.setText(seniority + ", " + posts);
+						
+						if (profile.getLastPostDate() != null)
+						{
+							Calendar now = Calendar.getInstance();
+							Calendar lastPostCal = Calendar.getInstance();
+							lastPostCal.setTime(profile.getLastPostDate());
+							int seconds = now.get(Calendar.SECOND) - lastPostCal.get(Calendar.SECOND);
+							
+							String delta = "";
+							if (seconds <= 300) delta = getString(R.string.profile_last_post_inf5min);
+							else if (seconds < 3600) delta =  getString(R.string.profile_last_post_min, ((int) seconds / 60)); // Moins d'une heure
+							else if (seconds < 86400) delta = getString(R.string.profile_last_post_hour, ((int) seconds / 3600)); // Moins d'une journée
+							else delta = getResources().getQuantityString(R.plurals.profile_last_post_day, ((int) seconds / 86400), ((int) seconds / 86400));
+						
+							TextView lastPost = (TextView) profileView.findViewById(R.id.ProfileLastPost);
+							lastPost.setTextColor(currentTheme.getProfileText2Color());
+							lastPost.setTextSize(getTextSize(10));
+							lastPost.setText(getString(R.string.profile_last_post, delta));
+						}
+						
+						if (profile.getSmileysUrls().length > 0)
+						{
+							final WebView smileysWebView = new WebView(PostsActivity.this);
+							smileysWebView.setLayoutParams(new LayoutParams((display.getWidth() / 5 * 4), LayoutParams.WRAP_CONTENT));
+							smileysWebView.setBackgroundColor(0);
+
+							StringBuffer css = new StringBuffer("<style type=\"text/css\">");
+							css.append("body { margin: 0; padding: 0; } img { margin: 5px }");
+							css.append("</style>");
+							StringBuffer smiliesData = new StringBuffer();
+							for (String smiley : profile.getSmileysUrls())
+							{
+								smiliesData.append("<img src=\"")
+								.append(getDataRetriever().getImgPersoUrl())
+								.append(smiley)
+								.append("\" />");
+							}
+							smileysWebView.setWebChromeClient(new WebChromeClient()
+							{
+								public void onProgressChanged(WebView view, int progress)
+								{
+									if (progress == 100)
+									{
+										pw.showAtLocation(findViewById(R.id.PostsLayout), Gravity.LEFT, 0, 0);
+									}
+								}
+							});
+							
+							
+							smileysWebView.loadData("<html><head>" + fixHTML(css.toString()) + "</head>" +
+							"<body>" + fixHTML(smiliesData.toString()) + "</body></html>", "text/html", "UTF-8");
+							profileView.addView(smileysWebView);
+							
+							pw.setOnDismissListener(new PopupWindow.OnDismissListener()
+							{
+								public void onDismiss()
+								{
+									smileysWebView.destroy();
+								}
+							});
+						}
+						else
+						{	
+							pw.showAtLocation(findViewById(R.id.PostsLayout), Gravity.LEFT, 0, 0);
+						}
 					}
-					
+
 					public void run()
 					{
 						final LayoutInflater inflater = (LayoutInflater) getSystemService(Context.LAYOUT_INFLATER_SERVICE);
@@ -964,6 +1048,13 @@ public class PostsActivity extends NewPostUIActivity
 						pw.setBackgroundDrawable(new BitmapDrawable());
 						pw.setOutsideTouchable(true);
 						pw.setAnimationStyle(R.style.Animation_ProfilPopup);
+						
+						waitingView.setBackgroundResource(getKeyByTheme(getThemeKey(), R.drawable.class, "profile_popup_background"));
+						float scale = getResources().getDisplayMetrics().density;
+						float dip = 20;
+						int pixel = (int) (dip * scale + 0.5f);
+						waitingView.setPadding(pixel, pixel, pixel, pixel);
+						
 
 						Profile profile = getHFR4droidApplication().getProfile(pseudo);
 						if (profile != null)
@@ -998,6 +1089,7 @@ public class PostsActivity extends NewPostUIActivity
 	
 									pw.showAtLocation(findViewById(R.id.PostsLayout), Gravity.LEFT, 0, 0);
 									wait = (ImageView) waitingView.findViewById(R.id.WaitAnimation);
+									wait.setBackgroundResource(getDrawableKey(currentTheme.getProfileSpinner()));
 									wait.startAnimation(anim);
 								}
 	
@@ -1024,7 +1116,7 @@ public class PostsActivity extends NewPostUIActivity
 								@Override
 								protected void onPostExecute(final Profile profile)
 								{	
-									wait.clearAnimation();
+									//wait.clearAnimation();
 									pw.setOnDismissListener(null);
 									pw.dismiss();
 	
