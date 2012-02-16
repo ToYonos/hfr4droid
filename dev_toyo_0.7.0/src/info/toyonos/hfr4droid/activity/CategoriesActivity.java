@@ -109,7 +109,7 @@ public class CategoriesActivity extends HFR4droidListActivity<Category>
 			{
 				final int position = lv.pointToPosition((int) me.getX(), (int) me.getY());
 				final Category cat = (Category) lv.getItemAtPosition(position);
-				if (cat == null) return false;
+				if (cat == null || cat instanceof SubCategory) return false;
 				
 				final boolean isCatExpanded = expandedCats.contains(cat);
 				if (!isCatExpanded)

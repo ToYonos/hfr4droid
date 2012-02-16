@@ -1,7 +1,7 @@
 package info.toyonos.hfr4droid.service;
 
+import info.toyonos.hfr4droid.HFR4droidApplication;
 import info.toyonos.hfr4droid.R;
-import info.toyonos.hfr4droid.activity.HFR4droidActivity;
 import info.toyonos.hfr4droid.activity.PostsActivity;
 import info.toyonos.hfr4droid.activity.TopicsActivity;
 import info.toyonos.hfr4droid.core.bean.Category;
@@ -165,7 +165,7 @@ public class MpNotifyService extends Service
 	protected NotificationType getNotificationType()
 	{
 		SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(this);
-		String value = settings.getString(HFR4droidActivity.PREF_NOTIFICATION_TYPE, getString(R.string.pref_notification_type_default));
+		String value = settings.getString(HFR4droidApplication.PREF_NOTIFICATION_TYPE, getString(R.string.pref_notification_type_default));
 		return NotificationType.fromInt(Integer.parseInt(value));
 	}
 }

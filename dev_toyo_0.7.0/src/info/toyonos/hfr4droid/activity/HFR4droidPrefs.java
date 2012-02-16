@@ -1,5 +1,6 @@
 package info.toyonos.hfr4droid.activity;
 
+import info.toyonos.hfr4droid.HFR4droidApplication;
 import info.toyonos.hfr4droid.R;
 import info.toyonos.hfr4droid.service.MpTimerCheckService;
 import android.content.Intent;
@@ -27,29 +28,29 @@ public class HFR4droidPrefs extends PreferenceActivity
 		requestWindowFeature(Window.FEATURE_NO_TITLE);
 		super.onCreate(savedInstanceState);
 		switchFullscreen(PreferenceManager.getDefaultSharedPreferences(this)
-											.getBoolean(HFR4droidActivity.PREF_FULLSCREEN_ENABLE,
+											.getBoolean(HFR4droidApplication.PREF_FULLSCREEN_ENABLE,
 														Boolean.parseBoolean(getString(R.string.pref_fullscreen_enable_default))));
 		
 		addPreferencesFromResource(R.xml.prefs);
 		final PreferenceScreen preferenceScreen = getPreferenceScreen();
 		
-		Preference checkMpsEnable = findPreference(HFR4droidActivity.PREF_CHECK_MPS_ENABLE);
+		Preference checkMpsEnable = findPreference(HFR4droidApplication.PREF_CHECK_MPS_ENABLE);
 		checkMpsEnable.setOnPreferenceChangeListener(new OnPreferenceChangeListener()
 		{
 			public boolean onPreferenceChange(Preference preference, Object newValue)
 			{ 
-				preferenceScreen.findPreference(HFR4droidActivity.PREF_NOTIFICATION_TYPE).setEnabled((Boolean) newValue);
+				preferenceScreen.findPreference(HFR4droidApplication.PREF_NOTIFICATION_TYPE).setEnabled((Boolean) newValue);
 				return true;
 			}
 		});
 		
-		Preference notificationTypePref = findPreference(HFR4droidActivity.PREF_NOTIFICATION_TYPE);
+		Preference notificationTypePref = findPreference(HFR4droidApplication.PREF_NOTIFICATION_TYPE);
 		notificationTypePref.setEnabled(
 				preferenceScreen.getSharedPreferences().getBoolean(
-						HFR4droidActivity.PREF_CHECK_MPS_ENABLE,
+						HFR4droidApplication.PREF_CHECK_MPS_ENABLE,
 						Boolean.parseBoolean(getString(R.string.pref_check_mps_enable_default))));
 
-		Preference fullscreenEnable = findPreference(HFR4droidActivity.PREF_FULLSCREEN_ENABLE);
+		Preference fullscreenEnable = findPreference(HFR4droidApplication.PREF_FULLSCREEN_ENABLE);
 		fullscreenEnable.setOnPreferenceChangeListener(new OnPreferenceChangeListener()
 		{
 			public boolean onPreferenceChange(Preference preference, Object newValue)
@@ -59,29 +60,29 @@ public class HFR4droidPrefs extends PreferenceActivity
 			}
 		});
 		
-		Preference srvMpsEnable = findPreference(HFR4droidActivity.PREF_SRV_MPS_ENABLE);
+		Preference srvMpsEnable = findPreference(HFR4droidApplication.PREF_SRV_MPS_ENABLE);
 		srvMpsEnable.setOnPreferenceChangeListener(new OnPreferenceChangeListener()
 		{
 			public boolean onPreferenceChange(Preference preference, Object newValue)
 			{
 				Intent intent = new Intent(HFR4droidPrefs.this, MpTimerCheckService.class); 
-				preferenceScreen.findPreference(HFR4droidActivity.PREF_SRV_MPS_FREQ).setEnabled((Boolean) newValue);
+				preferenceScreen.findPreference(HFR4droidApplication.PREF_SRV_MPS_FREQ).setEnabled((Boolean) newValue);
 				if ((Boolean) newValue) startService(intent); else stopService(intent);
 				return true;
 			}
 		});
 
-		Preference freqPref = findPreference(HFR4droidActivity.PREF_SRV_MPS_FREQ);
+		Preference freqPref = findPreference(HFR4droidApplication.PREF_SRV_MPS_FREQ);
 		freqPref.setEnabled(
 				preferenceScreen.getSharedPreferences().getBoolean(
-						HFR4droidActivity.PREF_SRV_MPS_ENABLE,
+						HFR4droidApplication.PREF_SRV_MPS_ENABLE,
 						Boolean.parseBoolean(getString(R.string.pref_srv_mps_freq_default))));
 		freqPref.setOnPreferenceChangeListener(new OnPreferenceChangeListener()
 		{
 			public boolean onPreferenceChange(Preference preference, Object newValue)
 			{
 				int oldFreq = Integer.parseInt(preferenceScreen.getSharedPreferences().getString(
-						HFR4droidActivity.PREF_SRV_MPS_FREQ,
+						HFR4droidApplication.PREF_SRV_MPS_FREQ,
 						getString(R.string.pref_srv_mps_freq_default)));
 				int freq = -1;
 				try

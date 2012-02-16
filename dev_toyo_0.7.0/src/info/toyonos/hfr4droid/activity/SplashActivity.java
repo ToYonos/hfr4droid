@@ -1,5 +1,6 @@
 package info.toyonos.hfr4droid.activity;
 
+import info.toyonos.hfr4droid.HFR4droidApplication;
 import info.toyonos.hfr4droid.R;
 import info.toyonos.hfr4droid.core.bean.Category;
 import info.toyonos.hfr4droid.core.bean.Theme;
@@ -11,6 +12,7 @@ import java.util.Date;
 
 import android.content.res.Configuration;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.Display;
 import android.view.KeyEvent;
 import android.view.animation.Animation;
@@ -23,6 +25,7 @@ import android.widget.TextView;
 public class SplashActivity extends HFR4droidActivity
 {
 	private DataRetrieverAsyncTask<?, ?> task = null;
+	private Thread waitingThread = null;
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState)
@@ -40,37 +43,37 @@ public class SplashActivity extends HFR4droidActivity
 		splash.setBackgroundResource(getDrawableKey(currentTheme.getSpinner()));
 		splash.startAnimation(anim);
 		
-		new Thread(new Runnable()
+		waitingThread = new Thread(new Runnable()
 		{	
 			public void run()
 			{
 				try
 				{
 					Thread.sleep(1000);
+					runOnUiThread(new Runnable()
+					{	
+						public void run()
+						{
+							int welcomeScreen = getWelcomeScreen();
+							if (welcomeScreen > 0 && isLoggedIn())
+							{
+								task = loadTopics(Category.ALL_CATS, TopicType.fromInt(welcomeScreen), 1, false, false);
+							}
+							else
+							{
+								task = loadCats(false, false);
+							}
+						}
+					});
 				}
 				catch (InterruptedException e)
 				{
-					error(e, true);
+					Log.d(HFR4droidApplication.TAG, "Launch cancelled");
+					finish();
 				}
-				runOnUiThread(new Runnable()
-				{	
-					public void run()
-					{
-						int welcomeScreen = getWelcomeScreen();
-						if (welcomeScreen > 0 && isLoggedIn())
-						{
-							task = loadTopics(Category.ALL_CATS, TopicType.fromInt(welcomeScreen), 1, false, false);
-						}
-						else
-						{
-							task = loadCats(false, false);
-						}
-					}
-				});
 			}
-		}).start();
-
-		
+		});
+		waitingThread.start();
 	}
 
 	@Override
@@ -105,6 +108,7 @@ public class SplashActivity extends HFR4droidActivity
 	{
 		if (keyCode == KeyEvent.KEYCODE_BACK)
 		{
+			waitingThread.interrupt();
 			if (task != null) task.cancel(true);
 		}
 		return super.onKeyDown(keyCode, event);

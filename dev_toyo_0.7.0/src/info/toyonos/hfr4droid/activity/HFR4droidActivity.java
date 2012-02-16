@@ -31,12 +31,10 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.DialogInterface.OnClickListener;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager.NameNotFoundException;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.preference.PreferenceManager;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
@@ -63,24 +61,7 @@ import com.markupartist.android.widget.PullToRefreshListView;
  *
  */
 public abstract class HFR4droidActivity extends Activity
-{
-	public static final String PREF_WELCOME_SCREEN			= "PrefWelcomeScreen";
-	public static final String PREF_CHECK_MPS_ENABLE		= "PrefCheckMpsEnable";
-	public static final String PREF_NOTIFICATION_TYPE		= "PrefNotificationType";
-	public static final String PREF_TYPE_DRAPEAU			= "PrefTypeDrapeau";
-	public static final String PREF_SIGNATURE_ENABLE		= "PrefSignatureEnable";
-	public static final String PREF_DBLTAP_ENABLE			= "PrefDblTapEnable";
-	public static final String PREF_PRELOADING_ENABLE		= "PrefPreloadingEnable";
-	public static final String PREF_SWIPE					= "PrefSwipe";
-	public static final String PREF_FULLSCREEN_ENABLE		= "PrefFullscreenEnable";
-	public static final String PREF_THEME					= "PrefTheme";
-	public static final String PREF_POLICE_SIZE				= "PrefPoliceSize";
-	public static final String PREF_AVATARS_DISPLAY_TYPE	= "PrefAvatarsDisplayType";
-	public static final String PREF_SMILEYS_DISPLAY_TYPE	= "PrefSmileysDisplayType";
-	public static final String PREF_IMGS_DISPLAY_TYPE		= "PrefImgsDisplayType";
-	public static final String PREF_SRV_MPS_ENABLE			= "PrefSrvMpsEnable";
-	public static final String PREF_SRV_MPS_FREQ			= "PrefSrvMpsFreq";
-	
+{	
 	public static enum DrawableDisplayType
 	{
 		ALWAYS_SHOW(1),
@@ -961,89 +942,77 @@ public abstract class HFR4droidActivity extends Activity
 
 	public int getWelcomeScreen()
 	{
-		SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(this);
-		return Integer.parseInt(settings.getString(PREF_WELCOME_SCREEN, getString(R.string.pref_welcome_screen_default)));
+		return getHFR4droidApplication().getWelcomeScreen();
 	}
 
 	public boolean isCheckMpsEnable()
 	{
-		SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(this);
-		return settings.getBoolean(PREF_CHECK_MPS_ENABLE, Boolean.parseBoolean(getString(R.string.pref_check_mps_enable_default)));
+		return getHFR4droidApplication().isCheckMpsEnable();
 	}
 	
 	public int getTypeDrapeau()
 	{
-		SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(this);
-		return Integer.parseInt(settings.getString(PREF_TYPE_DRAPEAU, getString(R.string.pref_type_drapeau_default)));
+		return getHFR4droidApplication().getTypeDrapeau();
 	}
 
 	public boolean isSignatureEnable()
 	{
-		SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(this);
-		return settings.getBoolean(PREF_SIGNATURE_ENABLE, Boolean.parseBoolean(getString(R.string.pref_signature_enable_default)));
+		return getHFR4droidApplication().isSignatureEnable();
 	}
 
 	public boolean isDblTapEnable()
 	{
-		SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(this);
-		return settings.getBoolean(PREF_DBLTAP_ENABLE, Boolean.parseBoolean(getString(R.string.pref_dbltap_enable_default)));
+		return getHFR4droidApplication().isDblTapEnable();
 	}
 
 	public boolean isPreloadingEnable()
 	{
-		SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(this);
-		return settings.getBoolean(PREF_PRELOADING_ENABLE, Boolean.parseBoolean(getString(R.string.pref_preloading_enable_default)));
+		return getHFR4droidApplication().isPreloadingEnable();
 	}	
 
 	public int getSwipe()
 	{
-		SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(this);
-		return Integer.parseInt(settings.getString(PREF_SWIPE, getString(R.string.pref_swipe_default)));
+		return getHFR4droidApplication().getSwipe();
+	}
+	
+	public boolean isCompressGzipEnable()
+	{
+		return getHFR4droidApplication().isCompressGzipEnable();
 	}
 	
 	public boolean isFullscreenEnable()
 	{
-		SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(this);
-		return settings.getBoolean(PREF_FULLSCREEN_ENABLE, Boolean.parseBoolean(getString(R.string.pref_fullscreen_enable_default)));
+		return getHFR4droidApplication().isFullscreenEnable();
 	}
 	
 	public String getThemeKey()
 	{
-		SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(this);
-		return settings.getString(PREF_THEME, getString(R.string.pref_theme_default));
+		return getHFR4droidApplication().getThemeKey();
 	}
 	
 	public int getPoliceSize()
 	{
-		SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(this);
-		return Integer.parseInt(settings.getString(PREF_POLICE_SIZE, getString(R.string.pref_police_size_default)));
+		return getHFR4droidApplication().getPoliceSize();
 	}
 
 	public DrawableDisplayType getAvatarsDisplayType()
 	{
-		SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(this);
-		String value = settings.getString(HFR4droidActivity.PREF_AVATARS_DISPLAY_TYPE, getString(R.string.pref_avatars_display_type_default));
-		return DrawableDisplayType.fromInt(Integer.parseInt(value));
+		return getHFR4droidApplication().getAvatarsDisplayType();
 	}
 
 	public DrawableDisplayType getSmileysDisplayType()
 	{
-		SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(this);
-		String value = settings.getString(HFR4droidActivity.PREF_SMILEYS_DISPLAY_TYPE, getString(R.string.pref_smileys_display_type_default));
-		return DrawableDisplayType.fromInt(Integer.parseInt(value));
+		return getHFR4droidApplication().getSmileysDisplayType();
 	}
 
 	public DrawableDisplayType getImgsDisplayType()
 	{
-		SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(this);
-		String value = settings.getString(HFR4droidActivity.PREF_IMGS_DISPLAY_TYPE, getString(R.string.pref_imgs_display_type_default));
-		return DrawableDisplayType.fromInt(Integer.parseInt(value));
+		return getHFR4droidApplication().getImgsDisplayType();
 	}
 
 	public boolean isSrvMpEnable()
 	{
-		SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(this);
-		return settings.getBoolean(PREF_SRV_MPS_ENABLE, Boolean.parseBoolean(getString(R.string.pref_srv_mps_enable_default)));
+		return getHFR4droidApplication().isSrvMpEnable();
 	}
 
 	public String getString(String keyStr, Object... params)

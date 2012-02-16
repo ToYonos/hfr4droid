@@ -1,5 +1,6 @@
 package info.toyonos.hfr4droid;
 
+import info.toyonos.hfr4droid.activity.HFR4droidActivity.DrawableDisplayType;
 import info.toyonos.hfr4droid.core.auth.AuthenticationException;
 import info.toyonos.hfr4droid.core.auth.HFRAuthentication;
 import info.toyonos.hfr4droid.core.bean.Profile;
@@ -13,6 +14,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 import android.app.Application;
+import android.content.SharedPreferences;
+import android.preference.PreferenceManager;
 
 /**
  * <p>Classe représentant l'application HFR4droid. Permet de centraliser les instances 
@@ -24,6 +27,24 @@ import android.app.Application;
  */
 public class HFR4droidApplication extends Application
 {
+	public static final String PREF_WELCOME_SCREEN			= "PrefWelcomeScreen";
+	public static final String PREF_CHECK_MPS_ENABLE		= "PrefCheckMpsEnable";
+	public static final String PREF_NOTIFICATION_TYPE		= "PrefNotificationType";
+	public static final String PREF_TYPE_DRAPEAU			= "PrefTypeDrapeau";
+	public static final String PREF_SIGNATURE_ENABLE		= "PrefSignatureEnable";
+	public static final String PREF_DBLTAP_ENABLE			= "PrefDblTapEnable";
+	public static final String PREF_PRELOADING_ENABLE		= "PrefPreloadingEnable";
+	public static final String PREF_SWIPE					= "PrefSwipe";
+	public static final String PREF_COMPRESS_GZIP			= "PrefCompressGzip";
+	public static final String PREF_FULLSCREEN_ENABLE		= "PrefFullscreenEnable";
+	public static final String PREF_THEME					= "PrefTheme";
+	public static final String PREF_POLICE_SIZE				= "PrefPoliceSize";
+	public static final String PREF_AVATARS_DISPLAY_TYPE	= "PrefAvatarsDisplayType";
+	public static final String PREF_SMILEYS_DISPLAY_TYPE	= "PrefSmileysDisplayType";
+	public static final String PREF_IMGS_DISPLAY_TYPE		= "PrefImgsDisplayType";
+	public static final String PREF_SRV_MPS_ENABLE			= "PrefSrvMpsEnable";
+	public static final String PREF_SRV_MPS_FREQ			= "PrefSrvMpsFreq";
+	
 	public static final String TAG = "HFR4droid";
 	
 	private MDDataRetriever dataRetriever;
@@ -119,5 +140,100 @@ public class HFR4droidApplication extends Application
 	public void setProfile(String pseudo, Profile profile)
 	{
 		profiles.put(pseudo, profile);
+	}
+	
+	// Getter des préférences modifiables par l'utilisateur
+
+	public int getWelcomeScreen()
+	{
+		SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(this);
+		return Integer.parseInt(settings.getString(PREF_WELCOME_SCREEN, getString(R.string.pref_welcome_screen_default)));
+	}
+
+	public boolean isCheckMpsEnable()
+	{
+		SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(this);
+		return settings.getBoolean(PREF_CHECK_MPS_ENABLE, Boolean.parseBoolean(getString(R.string.pref_check_mps_enable_default)));
+	}
+	
+	public int getTypeDrapeau()
+	{
+		SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(this);
+		return Integer.parseInt(settings.getString(PREF_TYPE_DRAPEAU, getString(R.string.pref_type_drapeau_default)));
+	}
+
+	public boolean isSignatureEnable()
+	{
+		SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(this);
+		return settings.getBoolean(PREF_SIGNATURE_ENABLE, Boolean.parseBoolean(getString(R.string.pref_signature_enable_default)));
+	}
+
+	public boolean isDblTapEnable()
+	{
+		SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(this);
+		return settings.getBoolean(PREF_DBLTAP_ENABLE, Boolean.parseBoolean(getString(R.string.pref_dbltap_enable_default)));
+	}
+
+	public boolean isPreloadingEnable()
+	{
+		SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(this);
+		return settings.getBoolean(PREF_PRELOADING_ENABLE, Boolean.parseBoolean(getString(R.string.pref_preloading_enable_default)));
+	}	
+
+	public int getSwipe()
+	{
+		SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(this);
+		return Integer.parseInt(settings.getString(PREF_SWIPE, getString(R.string.pref_swipe_default)));
+	}
+	
+	public boolean isCompressGzipEnable()
+	{
+		SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(this);
+		return settings.getBoolean(PREF_COMPRESS_GZIP, Boolean.parseBoolean(getString(R.string.pref_compress_gzip_enable_default)));
+	}
+	
+	public boolean isFullscreenEnable()
+	{
+		SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(this);
+		return settings.getBoolean(PREF_FULLSCREEN_ENABLE, Boolean.parseBoolean(getString(R.string.pref_fullscreen_enable_default)));
+	}
+	
+	public String getThemeKey()
+	{
+		SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(this);
+		return settings.getString(PREF_THEME, getString(R.string.pref_theme_default));
+	}
+	
+	public int getPoliceSize()
+	{
+		SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(this);
+		return Integer.parseInt(settings.getString(PREF_POLICE_SIZE, getString(R.string.pref_police_size_default)));
+	}
+
+	public DrawableDisplayType getAvatarsDisplayType()
+	{
+		SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(this);
+		String value = settings.getString(PREF_AVATARS_DISPLAY_TYPE, getString(R.string.pref_avatars_display_type_default));
+		return DrawableDisplayType.fromInt(Integer.parseInt(value));
+	}
+
+	public DrawableDisplayType getSmileysDisplayType()
+	{
+		SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(this);
+		String value = settings.getString(PREF_SMILEYS_DISPLAY_TYPE, getString(R.string.pref_smileys_display_type_default));
+		return DrawableDisplayType.fromInt(Integer.parseInt(value));
+	}
+
+	public DrawableDisplayType getImgsDisplayType()
+	{
+		SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(this);
+		String value = settings.getString(PREF_IMGS_DISPLAY_TYPE, getString(R.string.pref_imgs_display_type_default));
+		return DrawableDisplayType.fromInt(Integer.parseInt(value));
+	}
+
+	public boolean isSrvMpEnable()
+	{
+		SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(this);
+		return settings.getBoolean(PREF_SRV_MPS_ENABLE, Boolean.parseBoolean(getString(R.string.pref_srv_mps_enable_default)));
 	}
 }

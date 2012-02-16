@@ -1,5 +1,6 @@
 package info.toyonos.hfr4droid.activity;
 
+import info.toyonos.hfr4droid.HFR4droidApplication;
 import info.toyonos.hfr4droid.HFR4droidException;
 import info.toyonos.hfr4droid.R;
 import info.toyonos.hfr4droid.core.bean.BasicElement;
@@ -67,6 +68,7 @@ import android.text.ClipboardManager;
 import android.text.Html;
 import android.text.Selection;
 import android.text.TextUtils.TruncateAt;
+import android.util.Log;
 import android.util.SparseIntArray;
 import android.view.ContextMenu;
 import android.view.ContextMenu.ContextMenuInfo;
@@ -976,11 +978,7 @@ public class PostsActivity extends NewPostUIActivity
 						
 						if (profile.getLastPostDate() != null)
 						{
-							Calendar now = Calendar.getInstance();
-							Calendar lastPostCal = Calendar.getInstance();
-							lastPostCal.setTime(profile.getLastPostDate());
-							int seconds = now.get(Calendar.SECOND) - lastPostCal.get(Calendar.SECOND);
-							
+							long seconds = (new Date().getTime() - profile.getLastPostDate().getTime()) / 1000;
 							String delta = "";
 							if (seconds <= 300) delta = getString(R.string.profile_last_post_inf5min);
 							else if (seconds < 3600) delta =  getString(R.string.profile_last_post_min, ((int) seconds / 60)); // Moins d'une heure
@@ -992,11 +990,16 @@ public class PostsActivity extends NewPostUIActivity
 							lastPost.setTextSize(getTextSize(10));
 							lastPost.setText(getString(R.string.profile_last_post, delta));
 						}
-						
+
 						if (profile.getSmileysUrls().length > 0)
 						{
 							final WebView smileysWebView = new WebView(PostsActivity.this);
-							smileysWebView.setLayoutParams(new LayoutParams((display.getWidth() / 5 * 4), LayoutParams.WRAP_CONTENT));
+							
+							int maxWidth = display.getWidth() / 5 * 4;
+							// Smiley 70px + (2 * 5px de margin) + 10 en plus , avec mise à l'échelle * nb de smileys
+							int targetWidth = (int) (10 + (profile.getSmileysUrls().length * 80 * smileysWebView.getScale()));
+							Log.d(HFR4droidApplication.TAG, "max : " + maxWidth + " / calculated : " + targetWidth);
+							smileysWebView.setLayoutParams(new LayoutParams(targetWidth < maxWidth ? targetWidth : maxWidth, LayoutParams.WRAP_CONTENT));
 							smileysWebView.setBackgroundColor(0);
 
 							StringBuffer css = new StringBuffer("<style type=\"text/css\">");

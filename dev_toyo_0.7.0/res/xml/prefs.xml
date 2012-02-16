@@ -49,7 +49,12 @@
 			android:title="@string/pref_swipe_title"
 			android:defaultValue="@string/pref_swipe_default"
 			android:entries="@array/swipe_values"
-            android:entryValues="@array/swipe_keys" />			        
+            android:entryValues="@array/swipe_keys" />
+		<CheckBoxPreference
+			android:key="PrefCompressGzip"
+			android:summary="@string/pref_compress_gzip_enable_summary"
+			android:title="@string/pref_compress_gzip_enable_title"
+			android:defaultValue="@string/pref_compress_gzip_enable_default" />
 	</PreferenceCategory>
 
 	<PreferenceCategory

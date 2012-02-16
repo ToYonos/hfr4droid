@@ -1,7 +1,7 @@
 package info.toyonos.hfr4droid.service;
 
+import info.toyonos.hfr4droid.HFR4droidApplication;
 import info.toyonos.hfr4droid.R;
-import info.toyonos.hfr4droid.activity.HFR4droidActivity;
 
 import java.util.Timer;
 import java.util.TimerTask;
@@ -53,7 +53,7 @@ public class MpTimerCheckService extends MpCheckService
 	private int getSrvMpsFreq()
 	{
 		SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(this);
-		String value = settings.getString(HFR4droidActivity.PREF_SRV_MPS_FREQ, getString(R.string.pref_srv_mps_freq_default));
+		String value = settings.getString(HFR4droidApplication.PREF_SRV_MPS_FREQ, getString(R.string.pref_srv_mps_freq_default));
 		return Integer.parseInt(value);
 	}
 }

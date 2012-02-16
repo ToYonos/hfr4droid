@@ -34,6 +34,10 @@
 	<string name="pref_preloading_enable_summary">Préchargement des pages afin de fluidifier la navigation (peut perturber les drapeaux)</string>
 	<string name="pref_preloading_enable_default">false</string>
 	
+	<string name="pref_compress_gzip_enable_title">Compression GZIP</string>
+	<string name="pref_compress_gzip_enable_summary">Activer la compression GZIP des pages</string>
+	<string name="pref_compress_gzip_enable_default">true</string>
+	
 	<string name="pref_affichage_title">Affichage</string>
 	
 	<string name="pref_fullscreen_enable_title">Afficher en plein écran</string>
