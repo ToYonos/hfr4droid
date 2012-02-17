@@ -39,6 +39,7 @@ import android.widget.Toast;
  * @author fred
  *
  */
+@SuppressWarnings("deprecation")
 public class ImagePicker extends Activity implements Runnable{
 	
 	private static final String LOG_TAG = ImagePicker.class.getSimpleName();
@@ -200,7 +201,7 @@ public class ImagePicker extends Activity implements Runnable{
     	Log.d(LOG_TAG, "Filename is " + name);
     	return name;
     }
-    
+
     private void setClipboardText(String text) {
     	ClipboardManager cm = (ClipboardManager)getSystemService(CLIPBOARD_SERVICE);
     	Log.d(LOG_TAG, "Setting text on clipboard : " + text);

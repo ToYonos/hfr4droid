@@ -58,10 +58,12 @@ import android.graphics.Bitmap;
 import android.graphics.Bitmap.CompressFormat;
 import android.graphics.BitmapFactory;
 import android.graphics.drawable.BitmapDrawable;
+import android.media.ExifInterface;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.net.Uri;
 import android.os.AsyncTask;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.text.ClipboardManager;
@@ -122,6 +124,7 @@ import com.naholyr.android.ui.QuickActionWindow.Item;
  * @author ToYonos
  *
  */
+@SuppressWarnings("deprecation")
 public class PostsActivity extends NewPostUIActivity
 {
 	private static final String POST_LOADING 	= ">¤>¤>¤>¤>¤...post_loading...<¤<¤<¤<¤<¤";
@@ -743,6 +746,7 @@ public class PostsActivity extends NewPostUIActivity
     							{
     								try
 									{
+    									// TODO bug nom image
 	                        			File dir = new File(Environment.getExternalStorageDirectory() + DOWNLOAD_DIR);
 	                        			if (!dir.exists()) dir.mkdirs();
 	                        			String originalFileName = url[0].substring(url[0].lastIndexOf('/') + 1, url[0].length());
@@ -789,6 +793,60 @@ public class PostsActivity extends NewPostUIActivity
                         	        if (callback != null) callback.run(imageFile);
     							}
     						}.execute(url);
+                		}
+                		
+                		private String[] getExif(String path)
+                		{
+                			if (Build.VERSION.SDK_INT < 5) return null;
+                			
+                			String[] result = null;
+                			try
+                			{
+	                			ExifInterface exif = new ExifInterface(path);
+	                			List<String> data = new ArrayList<String>();
+	                			
+	                			// Date du cliché
+	                			String date = exif.getAttribute(ExifInterface.TAG_DATETIME);
+	                			if (date != null) data.add(getString(R.string.exif_date, date));
+
+	                			// résolution du cliché
+	                			String width = exif.getAttribute(ExifInterface.TAG_IMAGE_WIDTH);
+	                			String lenght = exif.getAttribute(ExifInterface.TAG_IMAGE_LENGTH);
+	                			if (width != null && lenght != null)
+	                			{
+	                				int mp = (Integer.parseInt(width) * Integer.parseInt(lenght) / 1000000);
+	                				data.add(getString(R.string.exif_reso,
+	                				width + " x " + lenght + " (" + (mp == 0 ? "< 1 Mp" : mp + " Mp") + ")"));
+	                			}
+
+	                			// Orientation
+	                			String orientation = exif.getAttribute(ExifInterface.TAG_ORIENTATION);
+	                			if (orientation != null) data.add(getString(R.string.exif_orientation, orientation));
+
+	                			// Pris avec Flash ?
+	                			String flash = exif.getAttribute(ExifInterface.TAG_FLASH);
+	                			if (flash != null)
+	                			{
+	                				data.add(getString(R.string.exif_flash, flash.equals("1") ? getString(R.string.button_yes) : getString(R.string.button_no)));
+	                			}
+
+	                			// Model de l'appareil 
+	                			String make = exif.getAttribute(ExifInterface.TAG_MAKE);
+	                			String model = exif.getAttribute(ExifInterface.TAG_MODEL);
+	                			if (make != null && (model == null || !model.toLowerCase().contains(make.toLowerCase()))) data.add(getString(R.string.exif_make, make));
+	                			if (model != null) data.add(getString(R.string.exif_model, model));
+	                			
+	                			//if (Build.VERSION.SDK_INT >= 5)
+	                			//TODO suite
+	                			
+	                			result = new String[data.size()];
+	                			data.toArray(result);
+                			}
+                			catch (IOException e)
+                			{
+								error(e, true);
+							}
+                			return result;
                 		}
                 		
                         public boolean onMenuItemClick(MenuItem item)
@@ -842,6 +900,56 @@ public class PostsActivity extends NewPostUIActivity
                 					Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
                 					startActivity(intent);
                 					break;
+                					
+                				case R.id.GetExif:
+                					if (Build.VERSION.SDK_INT < 5)
+                					{
+                						Toast.makeText(PostsActivity.this, getString(R.string.exif_version_too_low), Toast.LENGTH_LONG).show();
+                					}
+                					else
+                					{
+	                					saveImage(url, false, new ImageCallback()
+										{
+											public void run()
+											{
+												if (image != null)
+												{
+													String[] exifData = getExif(image.getAbsolutePath());
+													if (exifData != null)
+													{
+														if (exifData.length > 0)
+														{
+															final StringBuilder message = new StringBuilder("");
+															for(String data : exifData) message.append(data + "\n");
+															new AlertDialog.Builder(PostsActivity.this)
+															.setTitle(R.string.exif_data)
+															.setMessage(message)
+															.setPositiveButton(R.string.button_copy_to_clip, new DialogInterface.OnClickListener()
+															{
+																public void onClick(DialogInterface dialog,	int which)
+																{
+																	ClipboardManager clipboard = (ClipboardManager) getSystemService(CLIPBOARD_SERVICE); 
+																	clipboard.setText(message);
+																	Toast.makeText(PostsActivity.this, getString(R.string.copy_exif_data), Toast.LENGTH_LONG).show();
+																}
+															})
+															.setNegativeButton(R.string.button_close, new DialogInterface.OnClickListener()
+															{
+																public void onClick(DialogInterface dialog, int which) {}
+															})
+															.create()
+															.show();
+														}
+														else
+														{
+															Toast.makeText(PostsActivity.this, getString(R.string.exif_no_data), Toast.LENGTH_LONG).show();
+														}
+													}
+												}
+											}
+										});
+                					}
+                					break;
                 			}
                 			return true;
                         }
@@ -852,6 +960,7 @@ public class PostsActivity extends NewPostUIActivity
                     menu.add(0, R.id.SaveImagePng, 0, R.string.save_image_png_item).setOnMenuItemClickListener(handler);
                     menu.add(0, R.id.ShareImage, 0, R.string.share_image_item).setOnMenuItemClickListener(handler);
                     menu.add(0, R.id.OpenImage, 0, R.string.open_image_item).setOnMenuItemClickListener(handler);
+                    menu.add(0, R.id.GetExif, 0, R.string.get_exif_item).setOnMenuItemClickListener(handler);
                 }
 			}
 		});
@@ -1452,7 +1561,7 @@ public class PostsActivity extends NewPostUIActivity
 		}
 		if (refresh) updateButtonsStates();
 	}
-	
+
 	protected void addQuickActionWindowItems(HFR4droidQuickActionWindow window, final long currentPostId, boolean isMine)
 	{
 		final StringBuilder postLink = new StringBuilder(getDataRetriever().getBaseUrl() + "/forum2.php?config=hfr.inc");
@@ -1609,7 +1718,7 @@ public class PostsActivity extends NewPostUIActivity
 			});					
 			window.addItem(sendMP);
 		}
-		
+
 		QuickActionWindow.Item copyLink = new QuickActionWindow.Item(PostsActivity.this, "", R.drawable.ic_menu_link, new QuickActionWindow.Item.Callback()
 		{	
 			public void onClick(QuickActionWindow window, Item item, View anchor)

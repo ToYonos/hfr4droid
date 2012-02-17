@@ -97,6 +97,7 @@
 	<string name="save_image_png_item">Sauvegarder au format PNG</string>
 	<string name="share_image_item">Partager l\'image</string>
 	<string name="open_image_item">Ouvrir l\'image en taille réelle</string>
+	<string name="get_exif_item">Données EXIF</string>
 	<string name="share_image">Partager via :</string>
 
 	<string name="keywords_title">Edition des mots clés du smiley %s</string>
@@ -106,6 +107,8 @@
 	<string name="button_yes">Oui</string>
 	<string name="button_no">Non</string>
 	<string name="button_validate_post">Valider</string>
+	<string name="button_copy_to_clip">Copier</string>
+	<string name="button_close">Fermer</string>
 	
 	<string name="search_posts_word_hint">Mot</string>
 	<string name="search_posts_pseudo_hint">Pseudo</string>
@@ -130,6 +133,14 @@
         <item quantity="one">%d jour</item>
         <item quantity="other">%d jours</item>
     </plurals>
+    
+    <string name="exif_data">Données EXIF de l\'image</string>
+    <string name="exif_date">Date : %s</string>
+    <string name="exif_reso">Résolution : %s</string>
+    <string name="exif_orientation">Orientation : %s</string>
+    <string name="exif_flash">Avec flash : %s</string>
+    <string name="exif_make">Fabriquant : %s</string>
+    <string name="exif_model">Modèle : %s</string>
 	
 	<string-array name="welcome_screen_values">
     	<item>Les catégories</item>
