@@ -138,9 +138,23 @@
     <string name="exif_date">Date : %s</string>
     <string name="exif_reso">Résolution : %s</string>
     <string name="exif_orientation">Orientation : %s</string>
+    <string name="exif_orientation_flip_horizontal">Miroir horizontal</string>	
+    <string name="exif_orientation_flip_vertical">Miroir vertical</string> 	
+    <string name="exif_orientation_normal">Normale</string> 	
+    <string name="exif_orientation_rotate_180">Rotation de 180°</string> 	
+    <string name="exif_orientation_rotate_270">Rotation de 270°</string> 	
+    <string name="exif_orientation_rotate_90">Rotation de 90°</string> 	
+    <string name="exif_orientation_transpose">Transposée</string>	
+    <string name="exif_orientation_transverse">Transversale</string> 	
+    <string name="exif_orientation_undefined">Non définie</string>
+        
     <string name="exif_flash">Avec flash : %s</string>
     <string name="exif_make">Fabriquant : %s</string>
     <string name="exif_model">Modèle : %s</string>
+    <string name="exif_focal">Focal : %s</string>
+    <string name="exif_aperture">Ouverture : %s</string>
+    <string name="exif_exposure">Temps d\'exposition : %s</string>
+    <string name="exif_iso">ISO : %s</string>
 	
 	<string-array name="welcome_screen_values">
     	<item>Les catégories</item>

@@ -821,7 +821,49 @@ public class PostsActivity extends NewPostUIActivity
 
 	                			// Orientation
 	                			String orientation = exif.getAttribute(ExifInterface.TAG_ORIENTATION);
-	                			if (orientation != null) data.add(getString(R.string.exif_orientation, orientation));
+	                			if (orientation != null)
+	                			{
+	                				String orientationLbl = getString(R.string.exif_orientation_undefined);
+	                				switch (Integer.valueOf(orientation))
+									{
+										case ExifInterface.ORIENTATION_FLIP_HORIZONTAL:
+											orientationLbl = getString(R.string.exif_orientation_flip_horizontal);
+											break;
+
+										case ExifInterface.ORIENTATION_FLIP_VERTICAL:
+											orientationLbl = getString(R.string.exif_orientation_flip_vertical);
+											break;
+
+										case ExifInterface.ORIENTATION_NORMAL:
+											orientationLbl = getString(R.string.exif_orientation_normal);
+											break;
+
+										case ExifInterface.ORIENTATION_ROTATE_180:
+											orientationLbl = getString(R.string.exif_orientation_rotate_180);
+											break;
+											
+										case ExifInterface.ORIENTATION_ROTATE_270:
+											orientationLbl = getString(R.string.exif_orientation_rotate_270);
+											break;
+
+										case ExifInterface.ORIENTATION_ROTATE_90:
+											orientationLbl = getString(R.string.exif_orientation_rotate_90);
+											break;
+
+										case ExifInterface.ORIENTATION_TRANSPOSE:
+											orientationLbl = getString(R.string.exif_orientation_transpose);
+											break;
+											
+										case ExifInterface.ORIENTATION_TRANSVERSE:
+											orientationLbl = getString(R.string.exif_orientation_transverse);
+											break;
+
+										default:
+											orientationLbl = getString(R.string.exif_orientation_undefined);
+											break;
+									}
+	                				data.add(getString(R.string.exif_orientation, orientationLbl));
+	                			}
 
 	                			// Pris avec Flash ?
 	                			String flash = exif.getAttribute(ExifInterface.TAG_FLASH);
@@ -836,7 +878,27 @@ public class PostsActivity extends NewPostUIActivity
 	                			if (make != null && (model == null || !model.toLowerCase().contains(make.toLowerCase()))) data.add(getString(R.string.exif_make, make));
 	                			if (model != null) data.add(getString(R.string.exif_model, model));
 	                			
-	                			//if (Build.VERSION.SDK_INT >= 5)
+	                			if (Build.VERSION.SDK_INT >= 8)
+	                			{
+		                			// Focale
+		                			String focal = exif.getAttribute(ExifInterface.TAG_FOCAL_LENGTH);
+		                			if (focal != null) data.add(getString(R.string.exif_focal, focal));
+		                			
+		                			if (Build.VERSION.SDK_INT >= 11)
+		                			{
+			                			// Ouverture
+			                			String aperture = exif.getAttribute(ExifInterface.TAG_APERTURE);
+			                			if (aperture != null) data.add(getString(R.string.exif_aperture, aperture));
+			                			
+			                			// Temps d'exposition
+			                			String exposure = exif.getAttribute(ExifInterface.TAG_EXPOSURE_TIME);
+			                			if (exposure != null) data.add(getString(R.string.exif_exposure, exposure));
+			                			
+			                			// ISO
+			                			String iso = exif.getAttribute(ExifInterface.TAG_ISO);
+			                			if (iso != null) data.add(getString(R.string.exif_iso, iso));
+		                			}
+	                			}
 	                			//TODO suite
 	                			
 	                			result = new String[data.size()];
