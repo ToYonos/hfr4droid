@@ -112,6 +112,11 @@ public class HFRUrlParser implements MDUrlParser
 				return true;
 			}			
 		}
+		else if (url.matches(BASE_URL_REGEXP + "hfr/carte.*?"))
+		{
+			// C'est une carte, pas géré
+			return false;
+		}
 		else
 		{
 			// C'est un topic

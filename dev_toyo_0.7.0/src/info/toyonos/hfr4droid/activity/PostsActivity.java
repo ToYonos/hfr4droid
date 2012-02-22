@@ -174,7 +174,9 @@ public class PostsActivity extends NewPostUIActivity
 	private boolean isSmileysEnable = true;
 	private boolean isImgsEnable = true;
 	
-	AsyncTask<String, Void, Profile> profileTask = null;
+	private HFR4droidQuickActionWindow currentQAwindow = null;
+	
+	private AsyncTask<String, Void, Profile> profileTask = null;
 	
 	private final HttpClient<Bitmap> imgBitmapHttpClient = new HttpClient<Bitmap>()
 	{		
@@ -1049,12 +1051,12 @@ public class PostsActivity extends NewPostUIActivity
 							configuration.put(QuickActionWindow.Config.ITEM_ICON, R.id.QuickActionIcon);
 							configuration.put(QuickActionWindow.Config.WINDOW_ANIMATION_STYLE, R.style.Animation_QuickActionWindow);
 							configuration.put(QuickActionWindow.Config.ARROW_OFFSET, -2);
-							HFR4droidQuickActionWindow window = HFR4droidQuickActionWindow.getWindow(PostsActivity.this, configuration);
+							currentQAwindow = HFR4droidQuickActionWindow.getWindow(PostsActivity.this, configuration);
 							
-							addQuickActionWindowItems(window, postId, isMine);
+							addQuickActionWindowItems(currentQAwindow, postId, isMine);
 							View spp = findViewById(R.id.SearchPostsPanel);
 							View anchor = spp.getVisibility() == View.VISIBLE ? spp : ((LinearLayout) findViewById(R.id.TopicTitle).getParent());
-							window.show(anchor, Math.round(yOffset * webView.getScale()));
+							currentQAwindow.show(anchor, Math.round(yOffset * webView.getScale()));
 						}
 					});
 				}
@@ -1592,6 +1594,7 @@ public class PostsActivity extends NewPostUIActivity
 				}
 				if (progress == 100)
 				{
+					if (currentQAwindow != null) currentQAwindow.dismiss();
 					if (currentScrollY != -1)
 					{
 						view.scrollTo(0, currentScrollY);
