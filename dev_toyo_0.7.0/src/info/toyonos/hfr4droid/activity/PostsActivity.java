@@ -783,7 +783,7 @@ public class PostsActivity extends NewPostUIActivity
 									}
 									catch (Exception e)
 									{
-										error(getString(R.string.save_image_failed), e, true, false);
+										error(getString(R.string.save_image_failed), e, true, true);
 										return null;
 									}
     							}

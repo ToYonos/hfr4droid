@@ -9,6 +9,7 @@
     <string name="error_dispatching_url">Erreur lors de l\'analyse de l\'url</string>
     <string name="invalid_url">Cette url du forum est invalide !</string>
     <string name="server_maintenance">Serveur en cours de maintenance !</string>
+    <string name="no_such_topic">Le topic recherché n\'existe pas (ou plus) !</string>
     <string name="error_dr_hash_check">Une erreur s\'est produite lors de la récupération du hash check</string>
     <string name="error_dr_cats">Une erreur s\'est produite lors de la récupération des catégories</string>
     <string name="error_dr_subcats">Une erreur s\'est produite lors de la récupération des sous-catégories</string>

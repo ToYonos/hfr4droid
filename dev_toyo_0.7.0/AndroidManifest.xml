@@ -13,7 +13,7 @@
 	<uses-sdk android:minSdkVersion="4" android:targetSdkVersion="14" />
 	<supports-screens android:smallScreens="true" android:largeScreens="true" android:anyDensity="true"/>
 
-	<application android:icon="@drawable/icon" android:label="@string/app_name" android:name=".HFR4droidApplication" android:debuggable="true">
+	<application android:icon="@drawable/icon" android:label="@string/app_name" android:name=".HFR4droidApplication" android:hardwareAccelerated="true" android:debuggable="true">
 		<activity android:label="@string/app_name" android:name=".activity.SplashActivity" android:configChanges="keyboard|keyboardHidden|orientation">
 			<intent-filter>
 				<action android:name="android.intent.action.MAIN" />

@@ -91,6 +91,7 @@ public class HFRDataRetriever implements MDDataRetriever
 	public static final String IMG_PERSO_URL	= IMG_URL + "/images/perso/";
 	
 	public static final String MAINTENANCE 		= "Serveur en cours de maintenance. <br /><br />Veuillez nous excuser pour la gène occasionnée";
+	public static final String TOPIC_DELETED	= "Désolé, ce sujet n'existe pas";
 	
 	private HFR4droidApplication context;
 	private HFRAuthentication auth;
@@ -864,7 +865,7 @@ public class HFRDataRetriever implements MDDataRetriever
 	 * @throws URISyntaxException Si l'url est foireuse
 	 * @throws ServerMaintenanceException Si le forum est en maintenance
 	 */
-	private String getAsString(String url) throws IOException, URISyntaxException, ServerMaintenanceException
+	private String getAsString(String url) throws IOException, URISyntaxException, ServerMaintenanceException, NoSuchTopicException
 	{
 		return getAsString(url, false); 
 	}
@@ -878,7 +879,7 @@ public class HFRDataRetriever implements MDDataRetriever
 	 * @throws URISyntaxException Si l'url est foireuse
 	 * @throws ServerMaintenanceException Si le forum est en maintenance
 	 */
-	private String getAsString(String url, boolean cr) throws IOException, URISyntaxException, ServerMaintenanceException
+	private String getAsString(String url, boolean cr) throws IOException, URISyntaxException, ServerMaintenanceException, NoSuchTopicException
 	{
 		Log.d(HFR4droidApplication.TAG, "Retrieving " + url);
 		DefaultHttpClient client = new DefaultHttpClient();
@@ -962,7 +963,8 @@ public class HFRDataRetriever implements MDDataRetriever
 			}
 		}
 
-		if  (content.matches(MAINTENANCE)) throw new ServerMaintenanceException(context.getString(R.string.server_maintenance));
+		if  (content.contains(MAINTENANCE)) throw new ServerMaintenanceException(context.getString(R.string.server_maintenance));
+		if  (content.contains(TOPIC_DELETED)) throw new NoSuchTopicException(context.getString(R.string.no_such_topic));
 		Log.d(HFR4droidApplication.TAG, "GET OK for " + url);
 		return content;
 	}
