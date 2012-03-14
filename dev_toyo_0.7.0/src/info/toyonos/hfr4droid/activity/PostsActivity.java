@@ -1067,6 +1067,18 @@ public class PostsActivity extends NewPostUIActivity
 			{
 				runOnUiThread(new Runnable()
 				{
+					class ProfileDismissListenner implements PopupWindow.OnDismissListener
+					{
+						public void onDismiss()
+						{
+							if (profileTask != null)
+							{
+								profileTask.cancel(true);
+								profileTask = null;
+							}
+						}
+					}
+					
 					private void displayProfile(final PopupWindow pw, Profile profile)
 					{
 						Display display = ((WindowManager) getSystemService(Context.WINDOW_SERVICE)).getDefaultDisplay();
@@ -1190,7 +1202,7 @@ public class PostsActivity extends NewPostUIActivity
 							{
 								public void onProgressChanged(WebView view, int progress)
 								{
-									if (progress == 100)
+									if (progress > 33)
 									{
 										pw.showAtLocation(findViewById(R.id.PostsLayout), Gravity.LEFT, 0, 0);
 									}
@@ -1202,10 +1214,11 @@ public class PostsActivity extends NewPostUIActivity
 							"<body>" + fixHTML(smiliesData.toString()) + "</body></html>", "text/html", "UTF-8");
 							profileView.addView(smileysWebView);
 							
-							pw.setOnDismissListener(new PopupWindow.OnDismissListener()
+							pw.setOnDismissListener(new ProfileDismissListenner()
 							{
 								public void onDismiss()
 								{
+									super.onDismiss();
 									smileysWebView.destroy();
 								}
 							});
@@ -1239,18 +1252,7 @@ public class PostsActivity extends NewPostUIActivity
 						}
 						else
 						{
-							pw.setOnDismissListener(new PopupWindow.OnDismissListener()
-							{
-								public void onDismiss()
-								{
-									if (profileTask != null)
-									{
-										profileTask.cancel(true);
-										profileTask = null;
-									}
-								}
-							});
-
+							pw.setOnDismissListener(new ProfileDismissListenner());
 							profileTask = new AsyncTask<String, Void, Profile>()
 							{
 								ImageView wait = null;
