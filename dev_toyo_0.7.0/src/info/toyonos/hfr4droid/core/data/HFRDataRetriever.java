@@ -50,9 +50,13 @@ import org.apache.http.HttpRequestInterceptor;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpResponseInterceptor;
 import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpHead;
+import org.apache.http.client.params.HttpClientParams;
 import org.apache.http.client.protocol.ClientContext;
 import org.apache.http.entity.HttpEntityWrapper;
 import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.params.BasicHttpParams;
+import org.apache.http.params.HttpParams;
 import org.apache.http.protocol.BasicHttpContext;
 import org.apache.http.protocol.HttpContext;
 
@@ -856,6 +860,43 @@ public class HFRDataRetriever implements MDDataRetriever
 
 		return profile;
 	}
+	
+	/**
+	 * {@inheritDoc}
+	 */
+	public String getRealUrl(String url) throws DataRetrieverException
+	{
+		DefaultHttpClient client = new DefaultHttpClient();
+		try
+		{
+			URI uri = new URI(url);
+			HttpHead method = new HttpHead(uri);
+			method.setHeader("User-Agent", "Mozilla /4.0 (compatible; MSIE 6.0; Windows CE; IEMobile 7.6) Vodafone/1.0/SFR_v1615/1.56.163.8.39");
+			HttpParams params = new BasicHttpParams();
+			HttpClientParams.setRedirecting(params, false);
+			client.setParams(params);
+			HttpResponse response = client.execute(method);
+			if (response.getStatusLine().getStatusCode() == 301)
+			{
+				String rewrittenUrl = BASE_URL + response.getFirstHeader("Location").getValue();
+				Log.d(HFR4droidApplication.TAG, "Rewritten url found : " + rewrittenUrl);
+				return rewrittenUrl;
+			}
+			else
+			{
+				Log.e(HFR4droidApplication.TAG, "Unexpected " + response.getStatusLine().getStatusCode() + " code !");
+				return null;
+			}
+		}
+		catch (Exception e)
+		{
+			throw new DataRetrieverException(e.getMessage(), e);
+		}
+		finally
+		{
+			client.getConnectionManager().shutdown();
+		}
+	}
 
 	/**
 	 * Effectue une requête HTTP GET et récupère un flux en retour
@@ -938,6 +979,7 @@ public class HFRDataRetriever implements MDDataRetriever
 		/* -------------- */
 
 		HttpResponse response = client.execute(method, httpContext);
+		Log.d(HFR4droidApplication.TAG, "Status : " + response.getStatusLine().getStatusCode() + ", " + response.getStatusLine().getReasonPhrase());
 		HttpEntity entity = response.getEntity();
 		String content = "";
 		if (entity != null)

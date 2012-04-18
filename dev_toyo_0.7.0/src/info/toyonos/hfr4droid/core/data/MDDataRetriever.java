@@ -174,4 +174,12 @@ public interface MDDataRetriever
 	 * @throws DataRetrieverException Si un problème survient
 	 */
 	public Profile getProfile(String pseudo) throws DataRetrieverException;
+	
+	/**
+	 * Récupère la vraie url rewrittée par le forum (suite à un code 301)
+	 * @param url L'url de base
+	 * @return L'url vers laquelle on est redirigé, ou null si on obtient un code différent de 301
+	 * @throws DataRetrieverException
+	 */
+	public String getRealUrl(String url) throws DataRetrieverException;
 }
