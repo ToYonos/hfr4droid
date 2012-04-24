@@ -22,6 +22,12 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
+/**
+ * <p>Splash screen de l'application</p>
+ * 
+ * @author ToYonos
+ *
+ */
 public class SplashActivity extends HFR4droidActivity
 {
 	private DataRetrieverAsyncTask<?, ?> task = null;
