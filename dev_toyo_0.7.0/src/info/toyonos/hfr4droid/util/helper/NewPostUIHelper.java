@@ -1,6 +1,8 @@
-package info.toyonos.hfr4droid.activity;
+package info.toyonos.hfr4droid.util.helper;
 
 import info.toyonos.hfr4droid.R;
+import info.toyonos.hfr4droid.activity.HFR4droidActivity;
+import info.toyonos.hfr4droid.activity.ImagePicker;
 import info.toyonos.hfr4droid.core.bean.Theme;
 import info.toyonos.hfr4droid.core.data.DataRetrieverException;
 import android.app.ProgressDialog;
@@ -25,12 +27,12 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 
 /**
- * <p>Activity abstraite proposant des méthodes pour l'interface d'ajout / modification d'un post / topic</p>
+ * <p>Helper abstrait proposant des méthodes pour l'interface d'ajout / modification d'un post / topic</p>
  * 
  * @author ToYonos
  *
  */
-public abstract class NewPostUIActivity extends HFR4droidActivity
+public abstract class NewPostUIHelper
 {
 	private static final String SMILEY_KEY		= "smiley";
 	private static final String BOLD_KEY		= "bold";
@@ -47,18 +49,8 @@ public abstract class NewPostUIActivity extends HFR4droidActivity
 
 	public static final long BOTTOM_PAGE_ID		= 999999999999999L;
 	
-	//protected long postId = -1;
-	
-	@Override
-	protected void onCreate(Bundle savedInstanceState)
+	public void onActivityResult(int requestCode, int resultCode, Intent data)
 	{
-		super.onCreate(savedInstanceState);
-	}
-	
-	@Override
-	protected void onActivityResult(int requestCode, int resultCode, Intent data)
-	{
-		super.onActivityResult(requestCode, resultCode, data);
 		if (requestCode == ImagePicker.CHOOSE_PICTURE && data != null)
 		{
 			Bundle extras = data.getExtras();
@@ -72,7 +64,7 @@ public abstract class NewPostUIActivity extends HFR4droidActivity
 	
 	protected abstract void onRehostOk(String url);
 	
-	protected String fixHTML(String htmlContent)
+	public String fixHTML(String htmlContent)
 	{
 		int len = htmlContent.length();
 		StringBuilder buf = new StringBuilder(len + 100);
@@ -97,30 +89,30 @@ public abstract class NewPostUIActivity extends HFR4droidActivity
 		return buf.toString();
 	}
 
-	protected Button getHfrRehostButton()
+	public Button getHfrRehostButton(final HFR4droidActivity context)
 	{
-		Button hfrRehost = new Button(NewPostUIActivity.this);
+		Button hfrRehost = new Button(context);
 		hfrRehost.setTextSize(20);
 		hfrRehost.setLines(1);
 		hfrRehost.setLayoutParams(new LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT));
-		hfrRehost.setText(Html.fromHtml("<font color=\"#477DBF\">" + getString(R.string.button_post_hfr_rehost_left) + "</font><font color=\"black\">" + getString(R.string.button_post_hfr_rehost_right) + "</font>"));
+		hfrRehost.setText(Html.fromHtml("<font color=\"#477DBF\">" + context.getString(R.string.button_post_hfr_rehost_left) + "</font><font color=\"black\">" + context.getString(R.string.button_post_hfr_rehost_right) + "</font>"));
 
 		hfrRehost.setOnClickListener(new OnClickListener()
 		{
 			public void onClick(View v)
 			{
-				Intent intent = new Intent(NewPostUIActivity.this, ImagePicker.class);
+				Intent intent = new Intent(context, ImagePicker.class);
 				intent.setAction(ImagePicker.ACTION_HFRUPLOADER);
-				startActivityForResult(intent, ImagePicker.CHOOSE_PICTURE);
+				context.startActivityForResult(intent, ImagePicker.CHOOSE_PICTURE);
 			}
 		});
 
 		return hfrRehost;
 	}
 	
-	protected ImageButton getSmileyButton(final ViewGroup layout)
+	public ImageButton getSmileyButton(HFR4droidActivity context, final ViewGroup layout)
 	{
-		ImageButton smiley = new ImageButton(NewPostUIActivity.this);
+		ImageButton smiley = new ImageButton(context);
 		smiley.setLayoutParams(new LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.FILL_PARENT));
 		smiley.setImageResource(R.drawable.redface);
 		smiley.setOnClickListener(new OnClickListener()
@@ -135,23 +127,23 @@ public abstract class NewPostUIActivity extends HFR4droidActivity
 		return smiley;
 	}
 
-	protected void addPostButtons(final ViewGroup layout)
+	public void addPostButtons(final HFR4droidActivity context, final ViewGroup layout)
 	{
 		LinearLayout ll = (LinearLayout) layout.findViewById(R.id.FormatButtons);
-		ll.addView(getSmileyButton(layout));
-		ll.addView(new FormatButton(layout, SMILEY_KEY));
-		ll.addView(new FormatButton(layout, BOLD_KEY));
-		ll.addView(new FormatButton(layout, ITALIC_KEY));
-		ll.addView(new FormatButton(layout, UNDERLINE_KEY));
-		ll.addView(new FormatButton(layout, STRIKE_KEY));
-		ll.addView(new FormatButton(layout, QUOTE_KEY));
-		ll.addView(new FormatButton(layout, FIXED_KEY));
-		ll.addView(new FormatButton(layout, CODE_KEY));
-		ll.addView(new FormatButton(layout, URL_KEY));
-		ll.addView(new FormatButton(layout, IMG_KEY));
-		ll.addView(getHfrRehostButton());
-		ll.addView(new FormatButton(layout, PUCE_KEY));
-		ll.addView(new FormatButton(layout, SPOILER_KEY));
+		ll.addView(getSmileyButton(context, layout));
+		ll.addView(new FormatButton(context, layout, SMILEY_KEY));
+		ll.addView(new FormatButton(context, layout, BOLD_KEY));
+		ll.addView(new FormatButton(context, layout, ITALIC_KEY));
+		ll.addView(new FormatButton(context, layout, UNDERLINE_KEY));
+		ll.addView(new FormatButton(context, layout, STRIKE_KEY));
+		ll.addView(new FormatButton(context, layout, QUOTE_KEY));
+		ll.addView(new FormatButton(context, layout, FIXED_KEY));
+		ll.addView(new FormatButton(context, layout, CODE_KEY));
+		ll.addView(new FormatButton(context, layout, URL_KEY));
+		ll.addView(new FormatButton(context, layout, IMG_KEY));
+		ll.addView(getHfrRehostButton(context));
+		ll.addView(new FormatButton(context, layout, PUCE_KEY));
+		ll.addView(new FormatButton(context, layout, SPOILER_KEY));
 
 		Button wikiButton = (Button) layout.findViewById(R.id.ButtonWikiSmilies);
 		wikiButton.setOnClickListener(new OnClickListener()
@@ -161,17 +153,17 @@ public abstract class NewPostUIActivity extends HFR4droidActivity
 				final EditText smileyTag = (EditText) layout.findViewById(R.id.InputSmileyTag);
 				if (smileyTag.getText().length() == 0) return;
 
-				InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+				InputMethodManager imm = (InputMethodManager) context.getSystemService(Context.INPUT_METHOD_SERVICE);
 				imm.hideSoftInputFromWindow(((EditText) layout.findViewById(R.id.InputSmileyTag)).getWindowToken(), 0);
 
-				final ProgressDialog progressDialog = new ProgressDialog(NewPostUIActivity.this);
-				progressDialog.setMessage(getString(R.string.getting_smilies));
+				final ProgressDialog progressDialog = new ProgressDialog(context);
+				progressDialog.setMessage(context.getString(R.string.getting_smilies));
 				progressDialog.setIndeterminate(true);
 				new AsyncTask<Void, Void, String>()
 				{
 					protected WebView getWebView(final ViewGroup layout, final ViewGroup smiliesLayout, String smiliesData)
 					{
-						final WebView webView = new WebView(NewPostUIActivity.this);
+						final WebView webView = new WebView(context);
 						webView.setLayoutParams(new LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT));
 						webView.setBackgroundColor(0);
 						webView.setVisibility(View.GONE); 
@@ -183,7 +175,7 @@ public abstract class NewPostUIActivity extends HFR4droidActivity
 							@SuppressWarnings("unused")
 							public void addSmiley(final String smiley)
 							{
-								runOnUiThread(new Runnable()
+								context.runOnUiThread(new Runnable()
 								{
 									public void run()
 									{
@@ -210,10 +202,10 @@ public abstract class NewPostUIActivity extends HFR4droidActivity
 								if (progress > 0 && progressDialog.isShowing())
 								{
 									progressDialog.dismiss();
-									TextView smiliesLoading = new TextView(NewPostUIActivity.this);
+									TextView smiliesLoading = new TextView(context);
 									smiliesLoading.setLayoutParams(new LayoutParams(LayoutParams.FILL_PARENT, LayoutParams.FILL_PARENT));
 									smiliesLoading.setTextColor(Color.BLACK);
-									float scale = getResources().getDisplayMetrics().density;
+									float scale = context.getResources().getDisplayMetrics().density;
 									float dip = 20;
 									int pixel = (int) (dip * scale + 0.5f);
 									smiliesLoading.setPadding(pixel, pixel, pixel, pixel);
@@ -245,12 +237,12 @@ public abstract class NewPostUIActivity extends HFR4droidActivity
 						String data = "";
 						try
 						{
-							data = getDataRetriever().getSmiliesByTag(smileyTag.getText().toString());
+							data = context.getDataRetriever().getSmiliesByTag(smileyTag.getText().toString());
 						}
 						catch (DataRetrieverException e)
 						{
 							data = null;
-							error(e, true, true);
+							context.error(e, true, true);
 						}
 						return data;
 					}
@@ -276,11 +268,11 @@ public abstract class NewPostUIActivity extends HFR4droidActivity
 		setOkButtonClickListener(okButton);
 	}
 	
-	protected abstract ViewGroup getSmiliesLayout();
+	public abstract ViewGroup getSmiliesLayout();
 	
 	protected abstract void showWikiSmiliesResults(ViewGroup layout);
 	
-	protected void hideWikiSmiliesResults(ViewGroup layout)
+	public void hideWikiSmiliesResults(ViewGroup layout)
 	{
 		if (layout == null) return;
 		View webView = layout.getChildAt(0);
@@ -296,7 +288,7 @@ public abstract class NewPostUIActivity extends HFR4droidActivity
 		}
 	}
 
-	protected void hideWikiSmiliesSearch(ViewGroup layout)
+	public void hideWikiSmiliesSearch(ViewGroup layout)
 	{
 		layout.findViewById(R.id.Toolbar).setVisibility(View.VISIBLE);
 		layout.findViewById(R.id.SmileySearch).setVisibility(View.GONE);
@@ -304,7 +296,7 @@ public abstract class NewPostUIActivity extends HFR4droidActivity
 
 	protected abstract void setOkButtonClickListener(Button okButton);
 
-	protected void insertBBCode(EditText editText, String left, String right)
+	public void insertBBCode(EditText editText, String left, String right)
 	{
 		if (editText.getSelectionStart() != -1)
 		{
@@ -319,12 +311,12 @@ public abstract class NewPostUIActivity extends HFR4droidActivity
 		}
 	}
 	
-	protected void applyTheme(Theme theme, ViewGroup rootLayout)
+	public void applyTheme(Theme theme, ViewGroup rootLayout)
 	{
-		rootLayout.setBackgroundColor(currentTheme.getListBackgroundColor());
+		rootLayout.setBackgroundColor(theme.getListBackgroundColor());
 		
 		TextView labelSmileyTag = (TextView) rootLayout.findViewById(R.id.LabelSmileyTag);
-		labelSmileyTag.setTextColor(currentTheme.getPostTextColor());
+		labelSmileyTag.setTextColor(theme.getPostTextColor());
 	}
 
 	/* Classes internes */
@@ -336,11 +328,11 @@ public abstract class NewPostUIActivity extends HFR4droidActivity
 			super(context);
 		}
 
-		public FormatButton(final View layout, String key)
+		public FormatButton(HFR4droidActivity context, final View layout, String key)
 		{
-			super(NewPostUIActivity.this);
-			final String left = getString("button_post_" + key.toLowerCase() + "_left");
-			final String right = getString("button_post_" + key.toLowerCase() + "_right");
+			super(context);
+			final String left = context.getString("button_post_" + key.toLowerCase() + "_left");
+			final String right = context.getString("button_post_" + key.toLowerCase() + "_right");
 			setTextSize(20);
 			setLines(1);
 			setLayoutParams(new LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT));

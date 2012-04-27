@@ -182,13 +182,29 @@ public class DragableSpace extends ViewGroup {
                 velocityTracker.computeCurrentVelocity(1000);
                 int velocityX = (int) velocityTracker.getXVelocity();
 
-                if (velocityX > SNAP_VELOCITY && mCurrentScreen > 0) {
-                    // Fling hard enough to move left
-                    snapToScreen(mCurrentScreen - 1);
-                } else if (velocityX < -SNAP_VELOCITY
-                        && mCurrentScreen < getChildCount() - 1) {
-                    // Fling hard enough to move right
-                    snapToScreen(mCurrentScreen + 1);
+                if (velocityX > SNAP_VELOCITY)
+                {
+                	if (mCurrentScreen > 0) 
+                	{
+                        // Fling hard enough to move left
+                        snapToScreen(mCurrentScreen - 1);
+                	}
+                	else
+                	{
+                		onScreenChangeListener.onFailRearward();
+                	}
+                }
+                else if (velocityX < -SNAP_VELOCITY)
+                {
+                	if (mCurrentScreen < getChildCount() - 1)
+                	{
+                		// Fling hard enough to move right
+                		snapToScreen(mCurrentScreen + 1);
+                	}
+                	else
+                	{
+                		onScreenChangeListener.onFailForward();
+                	}
                 } else {
                     snapToDestination();
                 }

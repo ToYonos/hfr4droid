@@ -1,10 +1,8 @@
 package info.toyonos.hfr4droid.activity;
 
-import info.toyonos.hfr4droid.R;
 import info.toyonos.hfr4droid.util.view.DragableSpace;
 import android.os.Bundle;
 import android.view.View;
-import android.widget.ListView;
 
 /**
  * <p>Activity permettant de gérer n écrans via le composant <code>DragableSpace</code>.
@@ -14,10 +12,10 @@ import android.widget.ListView;
  *
  * @param <E> le type de source de données
  */
-public abstract class HFR4droidMultiListActivity<E> extends HFR4droidActivity
+public abstract class HFR4droidMultiListActivity<DS> extends HFR4droidActivity
 {
 	protected DragableSpace space = null;
-	private E dataSources[] = null;
+	private DS dataSources[] = null;
 	private View views[] = null;
 
 	@SuppressWarnings("unchecked")
@@ -25,13 +23,8 @@ public abstract class HFR4droidMultiListActivity<E> extends HFR4droidActivity
 	protected void onCreate(Bundle savedInstanceState)
 	{
 		super.onCreate(savedInstanceState);
-		dataSources = (E[]) new Object[3];
+		dataSources = (DS[]) new Object[3];
 		views = new View[3];
-	}
-
-	protected ListView getListView()
-	{
-		return (ListView) getView().findViewById(R.id.MainList);
 	}
 	
 	protected int getCurrentIndex()
@@ -39,19 +32,19 @@ public abstract class HFR4droidMultiListActivity<E> extends HFR4droidActivity
 		return space.getCurrentScreen();
 	}
 
-	protected E getDatasource()
+	protected DS getDatasource()
 	{
 		return dataSources[getCurrentIndex()];
 	}
 	
-	protected E getDatasource(int index)
+	protected DS getDatasource(int index)
 	{
 		return dataSources[index];
 	}
 	
-	protected E setDatasource(E dataSource)
+	protected DS setDatasource(DS dataSource)
 	{
-		return dataSources[0] = dataSource;
+		return dataSources[getCurrentIndex()] = dataSource;
 	}
 	
 	protected View getView()
@@ -66,10 +59,16 @@ public abstract class HFR4droidMultiListActivity<E> extends HFR4droidActivity
 	
 	protected void setView(View view)
 	{
-		views[0] = view;
+		View oldView = views[getCurrentIndex()];
+		if (oldView != null)
+		{
+			space.removeViewAt(getCurrentIndex());
+		}
+		space.addView(view);
+		views[getCurrentIndex()] = view;
 	}
 	
-	protected void insertAfter(E dataSource, View view)
+	public void insertAfter(DS dataSource, View view)
 	{
 		switch (getCurrentIndex())
 		{
@@ -102,7 +101,7 @@ public abstract class HFR4droidMultiListActivity<E> extends HFR4droidActivity
 		}
 	}
 	
-	protected void insertBefore(E dataSource, View view)
+	public void insertBefore(DS dataSource, View view)
 	{
 		switch (getCurrentIndex())
 		{
@@ -113,7 +112,7 @@ public abstract class HFR4droidMultiListActivity<E> extends HFR4droidActivity
 				views[2] = views[1];
 				views[1] = views[0];
 				views[0] = view;
-				space.removeViewAt(2);
+				if (space.getChildAt(2) != null) space.removeViewAt(2);
 				space.addView(view, 0);
 				space.setToScreen(1);
 				break;

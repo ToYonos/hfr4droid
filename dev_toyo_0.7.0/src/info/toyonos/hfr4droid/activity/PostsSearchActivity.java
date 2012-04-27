@@ -7,6 +7,7 @@ import info.toyonos.hfr4droid.core.data.DataRetrieverException;
 import info.toyonos.hfr4droid.core.data.HFRUrlParser;
 import info.toyonos.hfr4droid.core.data.MDUrlParser;
 import info.toyonos.hfr4droid.core.message.HFRMessageSender.ResponseCode;
+import info.toyonos.hfr4droid.util.helper.NewPostUIHelper;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -59,13 +60,13 @@ public class PostsSearchActivity extends PostsActivity
 		
 		if (bundle != null && bundle.getSerializable("posts") != null)
 		{
-			posts = (List<Post>) bundle.getSerializable("posts");
+			List<Post> posts = setDatasource((List<Post>) bundle.getSerializable("posts"));
 			if (posts != null && posts.size() > 0)
 			{
 				topic = posts.get(0).getTopic();
 				Post lastPost = posts.get(posts.size() - 1);
 				addFromPost(lastPost);
-				displayPosts(posts);
+				displayPosts(posts, false);
 			}
 		}
 		
@@ -210,7 +211,7 @@ public class PostsSearchActivity extends PostsActivity
 				break;
 
 			case POST_ADD_OK: // New post ok
-				topic.setLastReadPost(BOTTOM_PAGE_ID);
+				topic.setLastReadPost(NewPostUIHelper.BOTTOM_PAGE_ID);
 				loadPosts(topic, topic.getNbPages(), false);
 				break;
 		}

@@ -1,10 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
-<info.toyonos.hfr4droid.util.view.DragableSpace
-	xmlns:app="http://schemas.android.com/apk/res/info.toyonos.hfr4droid"
+<com.markupartist.android.widget.PullToRefreshListView
     xmlns:android="http://schemas.android.com/apk/res/android"
-	android:id="@+id/Space"
+	android:id="@+id/MainList"
 	android:layout_width="fill_parent"
 	android:layout_height="fill_parent"
-	app:default_screen="0">
-	<include android:id="@+id/topics1" layout="@layout/topics" />
-</info.toyonos.hfr4droid.util.view.DragableSpace>
+	android:layout_weight="1"
+	android:drawSelectorOnTop="false" />

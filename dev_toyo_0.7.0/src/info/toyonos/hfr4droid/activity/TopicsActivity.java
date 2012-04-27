@@ -20,7 +20,6 @@ import info.toyonos.hfr4droid.util.view.DragableSpace;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.ExecutionException;
 
 import android.content.Context;
 import android.content.DialogInterface;
@@ -66,16 +65,15 @@ import android.widget.Toast;
 import com.markupartist.android.widget.PullToRefreshListView;
 import com.markupartist.android.widget.PullToRefreshListView.OnRefreshListener;
 
-// TODO list
-// - virer le navdrawer ? (remaper sur le ds ?) => en cours
-// - garder la navigation via menu ? => remapper aussi
-
 /**
  * <p>Activity listant les topics</p>
  * 
  * @author ToYonos
  *
  */
+
+// TODO tester navigation et reload
+
 public class TopicsActivity extends HFR4droidMultiListActivity<ArrayAdapter<Topic>>
 {
 	private Category cat = null;
@@ -91,10 +89,15 @@ public class TopicsActivity extends HFR4droidMultiListActivity<ArrayAdapter<Topi
 	protected void onCreate(Bundle savedInstanceState)
 	{
 		super.onCreate(savedInstanceState);
-		setContentView(R.layout.topics_dragable);
-		setView(findViewById(R.id.topics1));
+		setContentView(R.layout.topics);
 		space = (DragableSpace) findViewById(R.id.Space);
+		
+		LayoutInflater inflater = (LayoutInflater) getApplicationContext().getSystemService(LAYOUT_INFLATER_SERVICE);
+		PullToRefreshListView topicsView = (PullToRefreshListView) inflater.inflate(R.layout.topics_dragable, null);
+		setView(topicsView);
+
 		applyTheme(currentTheme);
+		attachEvents();
 
 		Bundle bundle = this.getIntent().getExtras();
 		boolean allCats = bundle == null ? false : bundle.getBoolean("allCats", false);
@@ -113,13 +116,7 @@ public class TopicsActivity extends HFR4droidMultiListActivity<ArrayAdapter<Topi
 			{
 				cat = topics.get(0).getCategory();
 			}
-
-			// Préchargement de la page suivante dans le composant DragableSpace 
-			if (type == TopicType.ALL)
-			{
-				preLoadingTopicsAsyncTask = new PreLoadingTopicsAsyncTask(currentPageNumber + 1);
-				preLoadingTopicsAsyncTask.execute(cat);
-			}
+			preloadTopics();
 		}
 		else
 		{
@@ -130,17 +127,16 @@ public class TopicsActivity extends HFR4droidMultiListActivity<ArrayAdapter<Topi
 			if (cat != null) loadTopics(cat, type, currentPageNumber);
 		}
 
-		// Préchargement de la page suivante ou précédent dans le composant DragableSpace
+		// Listener pour le changement de view dans le composant DragableSpace
 		space.setOnScreenChangeListener(new OnScreenChangeListener()
 		{
-			@Override
 			public void onScreenChange(int oldIndex, int newIndex)
 			{
 				if (oldIndex == newIndex) return;
-		
+				
 				preLoadingTopicsAsyncTask.cancel(true);
 				boolean forward = oldIndex < newIndex;
-				int targetPageNumber = - 1;
+				int targetPageNumber = -1;
 				if (forward)
 				{
 					currentPageNumber++;
@@ -157,13 +153,28 @@ public class TopicsActivity extends HFR4droidMultiListActivity<ArrayAdapter<Topi
 				
 				if (targetPageNumber != -1)
 				{
-					preLoadingTopicsAsyncTask = new PreLoadingTopicsAsyncTask(targetPageNumber);
-					preLoadingTopicsAsyncTask.execute(cat);
+					preLoadingTopicsAsyncTask = new PreLoadingTopicsAsyncTask(TopicsActivity.this);
+					preLoadingTopicsAsyncTask.execute(targetPageNumber, cat);
 				}
+				
+				updateButtonsStates();
+				setTitle();
+			}
+
+			public void onFailForward()
+			{
+				displayPreloadingToast();
+			}
+
+			public void onFailRearward()
+			{
+				displayPreloadingToast();
 			}
 		});
-		
-		onCreateInit(topics, getView(), (PullToRefreshListView) getListView(), currentPageNumber);
+
+		updateButtonsStates();
+		if (Category.MPS_CAT.equals(cat)) clearNotifications();
+		onCreateInit(topics, (PullToRefreshListView) getListView(), currentPageNumber);
 	}
 	
 	@Override
@@ -173,27 +184,20 @@ public class TopicsActivity extends HFR4droidMultiListActivity<ArrayAdapter<Topi
 		if (preLoadingTopicsAsyncTask != null) preLoadingTopicsAsyncTask.cancel(true);
 	}
 	
-	private void onCreateInit(List<Topic> topics, View rootView, final PullToRefreshListView lv, int pageNumber)
+	private void onCreateInit(List<Topic> topics, final PullToRefreshListView lv, int pageNumber)
 	{
-		attachEvents(rootView);
-
 		setRefreshHeader();
+		
         lv.setOnRefreshListener(new OnRefreshListener()
         {
             public void onRefresh()
             {
-            	reloadPage(false);
+            	reloadPage(true, false);
             }
         });
 
 		ArrayAdapter<Topic> adapter = setDatasource(new TopicAdapter(this, R.layout.topic, R.id.ItemContent, topics));
 		lv.setAdapter(adapter);
-		
-		if (cat != null)
-		{
-			updateButtonsStates(rootView, pageNumber);
-			if (cat.equals(Category.MPS_CAT)) clearNotifications();
-		}
 
 		lv.setOnItemClickListener(new OnItemClickListener()
 		{
@@ -274,28 +278,28 @@ public class TopicsActivity extends HFR4droidMultiListActivity<ArrayAdapter<Topi
 				previousType = type;
 				type = TopicType.ALL;
 				if (currentPageNumber < 1) currentPageNumber = 1;
-				reloadPage();
+				reloadPage(false, true);
 				return true;
 	
 			case R.id.MenuDrapeauxCyan:
 				cat = currentTopic.getCategory();
 				previousType = type;
 				type = TopicType.CYAN;
-				reloadPage();
+				reloadPage(false, true);
 				return true;
 	
 			case R.id.MenuDrapeauxRouges:
 				cat = currentTopic.getCategory();
 				previousType = type;
 				type = TopicType.ROUGE;
-				reloadPage();
+				reloadPage(false, true);
 				return true;
 	
 			case R.id.MenuDrapeauxFavoris:
 				cat = currentTopic.getCategory();
 				previousType = type;
 				type = TopicType.FAVORI;
-				reloadPage();
+				reloadPage(false, true);
 				return true;    				
 	
 			case R.id.MenuNavNewPost:
@@ -383,7 +387,7 @@ public class TopicsActivity extends HFR4droidMultiListActivity<ArrayAdapter<Topi
 					{
 						previousCat = cat;
 						cat = newCat;
-						reloadPage();
+						reloadPage(false, true);
 						return true;
 					}
 				}
@@ -393,6 +397,11 @@ public class TopicsActivity extends HFR4droidMultiListActivity<ArrayAdapter<Topi
 				}
 				return false;
 		}
+	}
+	
+	protected ListView getListView()
+	{
+		return (ListView) getView();
 	}
 
 	@Override
@@ -481,25 +490,25 @@ public class TopicsActivity extends HFR4droidMultiListActivity<ArrayAdapter<Topi
 					previousType = type;
 					type = TopicType.ALL;
 					if (currentPageNumber < 1) currentPageNumber = 1;
-					reloadPage();
+					reloadPage(false, true);
 					return true;
 
 				case R.id.MenuDrapeauxCyan :
 					previousType = type;
 					type = TopicType.CYAN;
-					reloadPage();
+					reloadPage(false, true);
 					return true;
 
 				case R.id.MenuDrapeauxRouges :
 					previousType = type;
 					type = TopicType.ROUGE;
-					reloadPage();
+					reloadPage(false, true);
 					return true; 
 
 				case R.id.MenuDrapeauxFavoris :
 					previousType = type;
 					type = TopicType.FAVORI;
-					reloadPage();
+					reloadPage(false, true);
 					return true;
 
 				case R.id.MenuAddTopic :
@@ -567,12 +576,7 @@ public class TopicsActivity extends HFR4droidMultiListActivity<ArrayAdapter<Topi
 	@Override
 	protected void setTitle()
 	{
-		setTitle(getView(), currentPageNumber);
-	}
-
-	protected void setTitle(View rootView, int pageNumber)
-	{
-		TextView catTitle = (TextView) rootView.findViewById(R.id.CatTitle);
+		TextView catTitle = (TextView) findViewById(R.id.CatTitle);
 		catTitle.setTextSize(getTextSize(15));
 		String title;
 		if (isMpsCat() && getDatasource().getCount() > 0)
@@ -582,7 +586,7 @@ public class TopicsActivity extends HFR4droidMultiListActivity<ArrayAdapter<Topi
 			{
 				if (getDatasource().getItem(i).getStatus() == TopicStatus.NEW_MP) newMps++;
 			}
-			title = newMps == 0 ? "P." + pageNumber + " - " + cat.toString() : getResources().getQuantityString(R.plurals.mp_notification_content, newMps, newMps);
+			title = newMps == 0 ? "P." + currentPageNumber + " - " + cat.toString() : getResources().getQuantityString(R.plurals.mp_notification_content, newMps, newMps);
 		}
 		else
 		{
@@ -605,7 +609,7 @@ public class TopicsActivity extends HFR4droidMultiListActivity<ArrayAdapter<Topi
 		
 				default:
 					catTitle.setCompoundDrawablesWithIntrinsicBounds(null, null, null, null);
-					title = cat.toString() + ", P." + pageNumber;
+					title = cat.toString() + ", P." + currentPageNumber;
 					break;
 			}
 		}
@@ -616,12 +620,12 @@ public class TopicsActivity extends HFR4droidMultiListActivity<ArrayAdapter<Topi
 	@Override
 	protected void applyTheme(Theme theme)
 	{
-		applyTheme(theme, getListView());
+		applyTheme(theme, getListView(), false);
 	}
 	
-	protected void applyTheme(Theme theme, ListView mainList)
+	protected void applyTheme(Theme theme, ListView mainList, boolean listOnly)
 	{
-		((LinearLayout) mainList.getParent()).setBackgroundColor(theme.getListBackgroundColor());
+		if (!listOnly) ((LinearLayout) mainList.getParent().getParent()).setBackgroundColor(theme.getListBackgroundColor());
 		mainList.setDivider(new ColorDrawable(theme.getListDividerColor()));
 		mainList.setDividerHeight(1);
 		mainList.setCacheColorHint(theme.getListBackgroundColor());
@@ -643,13 +647,20 @@ public class TopicsActivity extends HFR4droidMultiListActivity<ArrayAdapter<Topi
 	@Override
 	protected void loadFirstPage()
 	{
-		loadTopics(cat, TopicType.ALL, 1);	
+		if (currentPageNumber == 2)
+		{
+			snapToScreen(getCurrentIndex() - 1);
+		}
+		else
+		{
+			loadTopics(cat, TopicType.ALL, 1, false);
+		}
 	}
 
 	@Override
 	protected void loadPreviousPage()
 	{
-		loadTopics(cat, TopicType.ALL, currentPageNumber - 1);	
+		snapToScreen(getCurrentIndex() - 1);	
 	}
 
 	@Override
@@ -659,7 +670,14 @@ public class TopicsActivity extends HFR4droidMultiListActivity<ArrayAdapter<Topi
 		{
 			protected void onValidate(int pageNumber)
 			{
-				loadTopics(cat, TopicType.ALL, pageNumber);
+				if (Math.abs(pageNumber - currentPage) == 1)
+				{
+					snapToScreen(getCurrentIndex() + (pageNumber - currentPage));
+				}
+				else
+				{
+					loadTopics(cat, TopicType.ALL, pageNumber, false);
+				}
 			}
 		}.show();
 	}
@@ -667,7 +685,7 @@ public class TopicsActivity extends HFR4droidMultiListActivity<ArrayAdapter<Topi
 	@Override
 	protected void loadNextPage()
 	{
-		loadTopics(cat, TopicType.ALL, currentPageNumber + 1);
+		snapToScreen(getCurrentIndex() + 1);
 	}
 
 	@Override
@@ -676,11 +694,24 @@ public class TopicsActivity extends HFR4droidMultiListActivity<ArrayAdapter<Topi
 		loadTopics(cat, type, currentPageNumber, true);	
 	}
 
-	protected void reloadPage(boolean displayLoading)
+	protected void reloadPage(boolean sameActivity, boolean displayLoading)
 	{
-		loadTopics(cat, type, currentPageNumber, true, displayLoading);	
+		loadTopics(cat, type, currentPageNumber, sameActivity, displayLoading);	
 	}
 
+	private void snapToScreen(int newIndex)
+	{
+		if (!space.snapToScreen(newIndex)) displayPreloadingToast();
+	}
+	
+	private void displayPreloadingToast()
+	{
+		if (preLoadingTopicsAsyncTask != null && preLoadingTopicsAsyncTask.getStatus() == Status.RUNNING)
+		{
+			Toast.makeText(TopicsActivity.this, getString(R.string.page_loading, preLoadingTopicsAsyncTask.getPageNumber()), Toast.LENGTH_SHORT).show();
+		}
+	}
+	
 	@Override
 	protected void redrawPage()
 	{
@@ -704,7 +735,7 @@ public class TopicsActivity extends HFR4droidMultiListActivity<ArrayAdapter<Topi
 		else
 		{
 			setType(TopicType.ALL);
-			loadFirstPage();
+			loadTopics(cat, TopicType.ALL, 1, false); // Load first page
 		}
 	}
 
@@ -726,10 +757,10 @@ public class TopicsActivity extends HFR4droidMultiListActivity<ArrayAdapter<Topi
 		return result;
 	}
 
-	private void updateButtonsStates(View rootView, int pageNumber)
+	private void updateButtonsStates()
 	{		
-		SlidingDrawer nav = (SlidingDrawer) rootView.findViewById(R.id.Nav);
-		TextView catTitle = (TextView) rootView.findViewById(R.id.CatTitle);
+		SlidingDrawer nav = (SlidingDrawer) findViewById(R.id.Nav);
+		TextView catTitle = (TextView) findViewById(R.id.CatTitle);
 		if (type == TopicType.CYAN || type == TopicType.ROUGE || type == TopicType.FAVORI)
 		{
 			nav.setVisibility(View.GONE);
@@ -740,23 +771,23 @@ public class TopicsActivity extends HFR4droidMultiListActivity<ArrayAdapter<Topi
 			nav.setVisibility(View.VISIBLE);
 			catTitle.setPadding(5, 0, 55, 0);
 
-			ImageView buttonFP = (ImageView) rootView.findViewById(R.id.ButtonNavFirstPage);
-			buttonFP.setEnabled(pageNumber != 1);
-			buttonFP.setAlpha(pageNumber != 1 ? 255 : 105);
+			ImageView buttonFP = (ImageView) findViewById(R.id.ButtonNavFirstPage);
+			buttonFP.setEnabled(currentPageNumber != 1);
+			buttonFP.setAlpha(currentPageNumber != 1 ? 255 : 105);
 
-			ImageView buttonPP = (ImageView) rootView.findViewById(R.id.ButtonNavPreviousPage);
-			buttonPP.setEnabled(pageNumber != 1);
-			buttonPP.setAlpha(pageNumber != 1 ? 255 : 105);
+			ImageView buttonPP = (ImageView) findViewById(R.id.ButtonNavPreviousPage);
+			buttonPP.setEnabled(currentPageNumber != 1);
+			buttonPP.setAlpha(currentPageNumber != 1 ? 255 : 105);
 
-			ImageView buttonLP = (ImageView) rootView.findViewById(R.id.ButtonNavLastPage);
+			ImageView buttonLP = (ImageView) findViewById(R.id.ButtonNavLastPage);
 			buttonLP.setEnabled(false);
 			buttonLP.setAlpha(105);
 		}
 	}
 
-	private void attachEvents(View rootView)
+	private void attachEvents()
 	{
-		final TextView catTitle = (TextView) rootView.findViewById(R.id.CatTitle);
+		final TextView catTitle = (TextView) findViewById(R.id.CatTitle);
 		registerForContextMenu(catTitle);
 
 		catTitle.setOnCreateContextMenuListener(new OnCreateContextMenuListener()
@@ -811,8 +842,8 @@ public class TopicsActivity extends HFR4droidMultiListActivity<ArrayAdapter<Topi
 			}
 		});
 		
-		SlidingDrawer slidingDrawer = (SlidingDrawer) rootView.findViewById(R.id.Nav);
-		final ImageView toggleNav = (ImageView) ((LinearLayout) rootView.findViewById(R.id.NavToggle)).getChildAt(0);
+		SlidingDrawer slidingDrawer = (SlidingDrawer) findViewById(R.id.Nav);
+		final ImageView toggleNav = (ImageView) ((LinearLayout) findViewById(R.id.NavToggle)).getChildAt(0);
 		slidingDrawer.setOnDrawerOpenListener(new OnDrawerOpenListener()
 		{
 			public void onDrawerOpened()
@@ -829,7 +860,7 @@ public class TopicsActivity extends HFR4droidMultiListActivity<ArrayAdapter<Topi
 			}
 		});
 
-		ImageView buttonFP = (ImageView) rootView.findViewById(R.id.ButtonNavFirstPage);
+		ImageView buttonFP = (ImageView) findViewById(R.id.ButtonNavFirstPage);
 		buttonFP.setOnClickListener(new OnClickListener()
 		{
 			public void onClick(View v)
@@ -838,45 +869,42 @@ public class TopicsActivity extends HFR4droidMultiListActivity<ArrayAdapter<Topi
 			}
 		});
 
-		ImageView buttonPP = (ImageView) rootView.findViewById(R.id.ButtonNavPreviousPage);
+		ImageView buttonPP = (ImageView) findViewById(R.id.ButtonNavPreviousPage);
 		buttonPP.setOnClickListener(new OnClickListener()
 		{
 			public void onClick(View v)
 			{
-				if (!space.snapToScreen(getCurrentIndex() - 1))
-				{
-					if (preLoadingTopicsAsyncTask != null && preLoadingTopicsAsyncTask.getStatus() == Status.RUNNING)
-					{
-						Toast.makeText(TopicsActivity.this, "Page " + preLoadingTopicsAsyncTask.getPageNumber() + " en cours de chargement...", Toast.LENGTH_SHORT).show();
-					}
-					// TODO facto
-				}
+				loadPreviousPage();
 			}
 		});
 
-		ImageView buttonUP = (ImageView) rootView.findViewById(R.id.ButtonNavUserPage);
+		ImageView buttonUP = (ImageView) findViewById(R.id.ButtonNavUserPage);
 		buttonUP.setOnClickListener(new OnClickListener()
 		{
 			public void onClick(View v)
 			{
-				loadUserPage();	
+				loadUserPage();
 			}
 		});			
 
-		ImageView buttonNP = (ImageView) rootView.findViewById(R.id.ButtonNavNextPage);
+		ImageView buttonNP = (ImageView) findViewById(R.id.ButtonNavNextPage);
 		buttonNP.setOnClickListener(new OnClickListener()
 		{
 			public void onClick(View v)
 			{
-				if (!space.snapToScreen(getCurrentIndex() + 1))
-				{
-					if (preLoadingTopicsAsyncTask != null && preLoadingTopicsAsyncTask.getStatus() == Status.RUNNING)
-					{
-						Toast.makeText(TopicsActivity.this, "Page " + preLoadingTopicsAsyncTask.getPageNumber() + " en cours de chargement...", Toast.LENGTH_SHORT).show();
-					}
-				}
+				loadNextPage();
 			}
 		});
+	}
+	
+	public void preloadTopics()
+	{
+		// Préchargement de la page suivante dans le composant DragableSpace 
+		if (type == TopicType.ALL)
+		{
+			preLoadingTopicsAsyncTask = new PreLoadingTopicsAsyncTask(this, currentPageNumber != 1);
+			preLoadingTopicsAsyncTask.execute(currentPageNumber + 1, cat);
+		}
 	}
 
 	public void refreshTopics(List<Topic> topics)
@@ -888,7 +916,7 @@ public class TopicsActivity extends HFR4droidMultiListActivity<ArrayAdapter<Topi
 			getDatasource().add(t);
 		}
 		getDatasource().notifyDataSetChanged();
-		updateButtonsStates(getView(), currentPageNumber);
+		updateButtonsStates();
 		getListView().setSelection(0);
 	}
 
@@ -910,11 +938,6 @@ public class TopicsActivity extends HFR4droidMultiListActivity<ArrayAdapter<Topi
 		int top = (int) (5 * scale + 0.5f);
 		int left = (int) (25 * (getPoliceSize() - 1) * scale + 0.5f);
 		refreshText.setPadding(left, top, 0, 0);
-	}
-	
-	protected int getCurrentPageNumber()
-	{
-		return currentPageNumber + getCurrentIndex();
 	}
 
 	/* Classes internes */
@@ -1045,71 +1068,72 @@ public class TopicsActivity extends HFR4droidMultiListActivity<ArrayAdapter<Topi
 	
 	private class PreLoadingTopicsAsyncTask extends DataRetrieverAsyncTask<Topic, Category>
 	{
-		private int targetPageNumber;
-		private boolean isFinished;
+		private boolean loadPreviousPage = false;
 		
-		public PreLoadingTopicsAsyncTask(int targetPageNumber)
+		public PreLoadingTopicsAsyncTask(HFR4droidActivity context)
 		{
-			super(TopicsActivity.this);
-			this.targetPageNumber = targetPageNumber;
-			// TODO à virer ?
-			isFinished = false;
+			super(context);
 		}
 		
-		public int getPageNumber()
+		public PreLoadingTopicsAsyncTask(HFR4droidActivity context, boolean loadPreviousPage)
 		{
-			return targetPageNumber;
+			super(context);
+			this.loadPreviousPage = loadPreviousPage;
 		}
-		
-		/*public List<Topic> waitAndGet() throws InterruptedException, ExecutionException
-		{
-			isFinished = true;
-			return get();
-		}*/
 
 		@Override
 		protected List<Topic> retrieveDataInBackground(Category... categories) throws DataRetrieverException
 		{
-			return getDataRetriever().getTopics(categories[0], TopicType.ALL, targetPageNumber);
+			return getDataRetriever().getTopics(categories[0], TopicType.ALL, getPageNumber());
 		}
 
 		@Override
 		protected void onPreExecute() {}
-		
-		@Override
-		protected void onPostExecute(List<Topic> elements)
-		{
-			if (!isFinished)
-			{
-				LayoutInflater inflater = (LayoutInflater) getApplicationContext().getSystemService(LAYOUT_INFLATER_SERVICE);
-				View topicsView = inflater.inflate(R.layout.topics, null);
-				PullToRefreshListView p2rlv = (PullToRefreshListView) topicsView.findViewById(R.id.MainList);
-				ArrayAdapter<Topic> adapter = new TopicAdapter(TopicsActivity.this, R.layout.topic, R.id.ItemContent, elements);
-				p2rlv.setAdapter(adapter);
-				
-				applyTheme(currentTheme, p2rlv);
-				onCreateInit(elements, topicsView, p2rlv, targetPageNumber);
-				setTitle(topicsView, targetPageNumber);
 
-				if (targetPageNumber > currentPageNumber)
-				{
-					insertAfter(adapter, topicsView);
-				}
-				else if (targetPageNumber < currentPageNumber)
+		@Override
+		protected void onPostExecuteSameActivity(List<Topic> topics) throws ClassCastException
+		{
+			LayoutInflater inflater = (LayoutInflater) getApplicationContext().getSystemService(LAYOUT_INFLATER_SERVICE);
+			PullToRefreshListView topicsView = (PullToRefreshListView) inflater.inflate(R.layout.topics_dragable, null);
+			ArrayAdapter<Topic> adapter = new TopicAdapter(TopicsActivity.this, R.layout.topic, R.id.ItemContent, topics);
+			topicsView.setAdapter(adapter);
+			
+			applyTheme(currentTheme, topicsView, true);
+			onCreateInit(topics, topicsView, getPageNumber());
+
+			if (getPageNumber() > currentPageNumber)
+			{
+				insertAfter(adapter, topicsView);
+			}
+			else if (getPageNumber() < currentPageNumber)
+			{
+				try
 				{
 					insertBefore(adapter, topicsView);
 				}
+				catch (UnsupportedOperationException e)
+				{
+					// Ne devrait pas arriver mais au cas où on ne fait rien et on log
+					Log.e(HFR4droidApplication.TAG, "Could not insert the new view : " + e.getMessage(), e);
+				}
+			}
 
-				Log.d(HFR4droidApplication.TAG, "Page " + targetPageNumber + " loaded");
-				Vibrator v = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
-				v.vibrate(50);
+			Log.d(HFR4droidApplication.TAG, "Page " + getPageNumber() + " loaded");
+			Vibrator v = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
+			v.vibrate(50);
+			
+			// On charge aussi la page n-2, typiquement quand on arrive directement sur une page qui n'est pas la page 1
+			if (loadPreviousPage)
+			{
+				preLoadingTopicsAsyncTask = new PreLoadingTopicsAsyncTask(TopicsActivity.this);
+				preLoadingTopicsAsyncTask.execute(currentPageNumber - 1, cat);				
 			}
 		}
 
 		@Override
-		protected void onPostExecuteSameActivity(List<Topic> topics) throws ClassCastException {}
-
-		@Override
-		protected void onPostExecuteOtherActivity(List<Topic> topics) {}
+		protected void onPostExecuteOtherActivity(List<Topic> topics)
+		{
+			throw new UnsupportedOperationException("You can't use PreLoadingTopicsAsyncTask when sameActivity is false");
+		}
 	}
 }

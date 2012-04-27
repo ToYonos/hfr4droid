@@ -5,6 +5,7 @@ import android.util.DisplayMetrics;
 import android.view.MotionEvent;
 import android.view.GestureDetector.SimpleOnGestureListener;
 
+// TODO virer
 public abstract class SimpleNavOnGestureListener extends SimpleOnGestureListener
 {
 	private HFR4droidActivity context;

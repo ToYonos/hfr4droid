@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<FrameLayout
+	xmlns:app="http://schemas.android.com/apk/res/info.toyonos.hfr4droid"
+	xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="fill_parent"
     android:layout_height="fill_parent">
     <LinearLayout
@@ -27,12 +29,11 @@
 		    	android:layout_width="wrap_content" 
 		    	android:layout_height="wrap_content" />
 		</LinearLayout>
-		<com.markupartist.android.widget.PullToRefreshListView
-			android:id="@+id/MainList"
+		<info.toyonos.hfr4droid.util.view.DragableSpace
+			android:id="@+id/Space"
 			android:layout_width="fill_parent"
-	        android:layout_height="fill_parent"
-	        android:layout_weight="1"
-	        android:drawSelectorOnTop="false" />
-	</LinearLayout>      
+			android:layout_height="fill_parent"
+			app:default_screen="0" />
+	</LinearLayout>
 	<include layout="@layout/nav_drawer" />
 </FrameLayout>

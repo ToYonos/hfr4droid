@@ -111,7 +111,7 @@ public class NewTopicActivity extends NewPostGenericActivity
 				final EditText postRecipient = (EditText) findViewById(R.id.inputMpTo);
 				final EditText postSubject = (EditText) findViewById(R.id.inputTopicSubject);
 				final EditText postContent = (EditText) findViewById(R.id.InputPostContent);
-				new ValidateMessageAsynckTask(NewTopicActivity.this, postId)
+				new ValidateMessageAsynckTask(NewTopicActivity.this, -1)
 				{
 					@Override
 					protected boolean canExecute()

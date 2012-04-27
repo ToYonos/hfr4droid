@@ -89,6 +89,7 @@
     <string name="exif_version_too_low">Votre version d\'Android ne supporte pas l\'affiche des données EXIF de cette image.</string>
     <string name="exif_no_data">Aucune donnée EXIF à afficher !</string>
     <string name="copy_exif_data">Les données EXIF ont été copié dans le presse-papier.</string>
+    <string name="page_loading">Page %d en cours de chargement...</string>
 
     <plurals name="mp_notification_content">
         <item quantity="one">Vous avez 1 nouveau message privé.</item>

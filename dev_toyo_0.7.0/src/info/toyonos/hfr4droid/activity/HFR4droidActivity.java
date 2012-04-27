@@ -21,7 +21,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ExecutionException;
 
 import android.app.Activity;
 import android.app.AlertDialog;
@@ -98,7 +97,7 @@ public abstract class HFR4droidActivity extends Activity
 	protected Theme currentTheme = null;
 	private int currentPoliceSize = -1;
 
-	private PreLoadingPostsAsyncTask preLoadingPostsAsyncTask;
+	//private PreLoadingPostsAsyncTask preLoadingPostsAsyncTask;
 	private Map<Integer, List<Post>> preLoadedPosts;
 	private boolean navForward;
 	
@@ -175,7 +174,7 @@ public abstract class HFR4droidActivity extends Activity
 		Bundle bundle = this.getIntent().getExtras();
 		loginDialog = null;
 		currentPageNumber = bundle != null ? bundle.getInt("pageNumber") : -1;
-		preLoadingPostsAsyncTask = null;
+		//preLoadingPostsAsyncTask = null;
 		preLoadedPosts = new HashMap<Integer, List<Post>>();
 		navForward = true;
 		loginFromCache();
@@ -247,7 +246,7 @@ public abstract class HFR4droidActivity extends Activity
 	protected void onDestroy()
 	{
 		super.onDestroy();
-		if (preLoadingPostsAsyncTask != null) preLoadingPostsAsyncTask.cancel(true);
+		//if (preLoadingPostsAsyncTask != null) preLoadingPostsAsyncTask.cancel(true);
 	}
 
 	@Override
@@ -408,7 +407,7 @@ public abstract class HFR4droidActivity extends Activity
 		return (HFR4droidApplication) getApplication();
 	}
 
-	protected MDDataRetriever getDataRetriever()
+	public MDDataRetriever getDataRetriever()
 	{
 		return getHFR4droidApplication().getDataRetriever();
 	}
@@ -605,12 +604,12 @@ public abstract class HFR4droidActivity extends Activity
 		loadCats(true);
 	}
 
-	protected DataRetrieverAsyncTask<Category, Void> loadCats(final boolean sameActivity)
+	protected DataRetrieverAsyncTask<Category, Void> loadCats(boolean sameActivity)
 	{
 		return loadCats(sameActivity, true);
 	}
 	
-	protected DataRetrieverAsyncTask<Category, Void> loadCats(final boolean sameActivity, boolean displayLoading)
+	protected DataRetrieverAsyncTask<Category, Void> loadCats(boolean sameActivity, boolean displayLoading)
 	{
 		String progressTitle = getString(R.string.hfr);
 		String progressContent = getString(R.string.getting_cats);
@@ -656,27 +655,27 @@ public abstract class HFR4droidActivity extends Activity
 		
 	}
 
-	protected DataRetrieverAsyncTask<Topic, Category> loadTopics(Category cat, final TopicType type)
+	protected DataRetrieverAsyncTask<Topic, Category> loadTopics(Category cat, TopicType type)
 	{
 		return loadTopics(cat, type, 1, true);
 	}
 
-	protected DataRetrieverAsyncTask<Topic, Category> loadTopics(Category cat, final TopicType type, final boolean sameActivity)
+	protected DataRetrieverAsyncTask<Topic, Category> loadTopics(Category cat, TopicType type, boolean sameActivity)
 	{
 		return loadTopics(cat, type, 1, sameActivity);
 	}
 
-	protected DataRetrieverAsyncTask<Topic, Category> loadTopics(Category cat, final TopicType type, final int pageNumber)
+	protected DataRetrieverAsyncTask<Topic, Category> loadTopics(Category cat, TopicType type, int pageNumber)
 	{
 		return loadTopics(cat, type, pageNumber, true);
 	}
 	
-	protected DataRetrieverAsyncTask<Topic, Category> loadTopics(final Category cat, final TopicType type, final int pageNumber, final boolean sameActivity)
+	protected DataRetrieverAsyncTask<Topic, Category> loadTopics(Category cat, TopicType type, int pageNumber, boolean sameActivity)
 	{
 		return loadTopics(cat, type, pageNumber, sameActivity, true);
 	}
 
-	protected DataRetrieverAsyncTask<Topic, Category> loadTopics(final Category cat, final TopicType type, final int pageNumber, final boolean sameActivity, boolean displayLoading)
+	protected DataRetrieverAsyncTask<Topic, Category> loadTopics(final Category cat, final TopicType type, int pageNumber, boolean sameActivity, boolean displayLoading)
 	{
 		String progressTitle = cat.toString();
 		String progressContent = type != TopicType.ALL ? getString("getting_topics_" + type.getKey() + "s")
@@ -700,15 +699,16 @@ public abstract class HFR4droidActivity extends Activity
 			{
 				// On charge les sous-cats pour les mettre en cache
 				getDataRetriever().getSubCats(cats[0]);
-				return getDataRetriever().getTopics(cats[0], type, pageNumber);
+				return getDataRetriever().getTopics(cats[0], type, getPageNumber());
 			}
 
 			@Override
 			protected void onPostExecuteSameActivity(List<Topic> topics) throws ClassCastException
 			{
 				TopicsActivity activity = (TopicsActivity) HFR4droidActivity.this;
-				activity.setPageNumber(pageNumber);
+				activity.setPageNumber(getPageNumber());
 				activity.refreshTopics(topics);
+				activity.preloadTopics();
 				setTitle();
 				((PullToRefreshListView) activity.getListView()).onRefreshComplete();
 			}
@@ -723,7 +723,7 @@ public abstract class HFR4droidActivity extends Activity
 				intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
 				Bundle bundle = new Bundle();
 				bundle.putSerializable("topics", new ArrayList<Topic>(topics));
-				bundle.putInt("pageNumber", pageNumber);
+				bundle.putInt("pageNumber", getPageNumber());
 				if (cat.equals(Category.ALL_CATS)) bundle.putBoolean("allCats", true);
 				if (type != null) bundle.putSerializable("topicType", type);
 				intent.putExtras(bundle);
@@ -769,7 +769,7 @@ public abstract class HFR4droidActivity extends Activity
 			}
 		};
 		
-		task.execute(progressTitle, progressContent, noElement, sameActivity, displayLoading, cat);
+		task.execute(progressTitle, progressContent, noElement, sameActivity, pageNumber, displayLoading, cat);
 		return task;
 	}
 	
@@ -788,12 +788,12 @@ public abstract class HFR4droidActivity extends Activity
 		}
 	}
 
-	protected void loadPosts(Topic topic, final int pageNumber)
+	protected void loadPosts(Topic topic, int pageNumber)
 	{
 		loadPosts(topic, pageNumber, true);
 	}
 
-	protected void loadPosts(final Topic topic, final int pageNumber, final boolean sameActivity)
+	protected void loadPosts(final Topic topic, int pageNumber, boolean sameActivity)
 	{
 		String progressTitle = topic.toString();
 		String progressContent = topic.getNbPages() != -1 ?
@@ -801,22 +801,25 @@ public abstract class HFR4droidActivity extends Activity
 		getString(R.string.getting_posts_simple, pageNumber, topic.getNbPages());
 		String noElement = getString(R.string.no_post);
 		
+
 		new DataRetrieverAsyncTask<Post, Topic>(this)
 		{			
 			@Override
 			protected List<Post> retrieveDataInBackground(Topic... topics) throws DataRetrieverException
 			{
 				List<Post> posts = new ArrayList<Post>();
-				if (preLoadingPostsAsyncTask != null && preLoadingPostsAsyncTask.getPageNumber() == pageNumber)
+				// TODO rempplacer par le chargement classique
+				posts = getDataRetriever().getPosts(topics[0], getPageNumber());
+				/*if (preLoadingPostsAsyncTask != null && preLoadingPostsAsyncTask.getPageNumber() == getPageNumber())
 				{
 					switch (preLoadingPostsAsyncTask.getStatus()) 
 					{
 						case RUNNING:
-							Log.d(HFR4droidApplication.TAG, "Page " + pageNumber + " deja en cours de recuperation...");
+							Log.d(HFR4droidApplication.TAG, "Page " + getPageNumber() + " deja en cours de recuperation...");
 							try
 							{
 								posts = preLoadingPostsAsyncTask.waitAndGet();
-								Log.d(HFR4droidApplication.TAG, "...page " + pageNumber + " recuperee !");
+								Log.d(HFR4droidApplication.TAG, "...page " + getPageNumber() + " recuperee !");
 							}
 							catch (Exception e)
 							{
@@ -825,16 +828,16 @@ public abstract class HFR4droidActivity extends Activity
 							break;
 
 						case FINISHED:
-							List<Post> tmpPosts = HFR4droidActivity.this.preLoadedPosts.get(pageNumber);
+							List<Post> tmpPosts = HFR4droidActivity.this.preLoadedPosts.get(getPageNumber());
 							if (tmpPosts != null)
 							{
-								Log.d(HFR4droidApplication.TAG, "Page " + pageNumber + " recuperee dans le cache.");
+								Log.d(HFR4droidApplication.TAG, "Page " + getPageNumber() + " recuperee dans le cache.");
 								posts = tmpPosts;
 								preLoadedPosts.clear(); // On ne conserve pas le cache des posts
 							}
 							else
 							{
-								posts = getDataRetriever().getPosts(topics[0], pageNumber);
+								posts = getDataRetriever().getPosts(topics[0], getPageNumber());
 							}
 							break;
 						
@@ -845,8 +848,8 @@ public abstract class HFR4droidActivity extends Activity
 				else
 				{	
 					if (preLoadingPostsAsyncTask != null) preLoadingPostsAsyncTask.cancel(true);
-					posts = getDataRetriever().getPosts(topics[0], pageNumber);
-				}
+					posts = getDataRetriever().getPosts(topics[0], getPageNumber());
+				}*/
 				return posts;
 			}
 
@@ -855,11 +858,11 @@ public abstract class HFR4droidActivity extends Activity
 			{
 				PostsActivity activity = (PostsActivity) HFR4droidActivity.this;
 				activity.setPosts(posts);
-				navForward = currentPageNumber <= pageNumber;
-				activity.setPageNumber(pageNumber);
+				navForward = currentPageNumber <= getPageNumber();
+				activity.setPageNumber(getPageNumber());
 				setTitle();
 				activity.refreshPosts(posts);
-				if (isPreloadingEnable()) preLoadPosts(topic, pageNumber);
+				//if (isPreloadingEnable()) preLoadPosts(topic, getPageNumber());
 			}
 
 			@Override
@@ -869,7 +872,7 @@ public abstract class HFR4droidActivity extends Activity
 				if (!keepNavigationHistory) intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
 				Bundle bundle = new Bundle();
 				bundle.putSerializable("posts", new ArrayList<Post>(posts));
-				bundle.putInt("pageNumber", pageNumber);
+				bundle.putInt("pageNumber", getPageNumber());
 				if (HFR4droidActivity.this instanceof TopicsActivity)
 				{
 					bundle.putSerializable("fromTopicType", ((TopicsActivity) HFR4droidActivity.this).getType());
@@ -893,10 +896,10 @@ public abstract class HFR4droidActivity extends Activity
 				startActivity(intent);
 				if (HFR4droidActivity.this instanceof NewPostGenericActivity) finish();
 			}
-		}.execute(progressTitle, progressContent, noElement, sameActivity, topic);
+		}.execute(progressTitle, progressContent, noElement, sameActivity, pageNumber, topic);
 	}
 
-	protected void preLoadPosts(final Topic topic, final int currentPageNumber)
+	/*protected void preLoadPosts(final Topic topic, final int currentPageNumber)
 	{
 		final int tmpPageNumber;
 		if (currentPageNumber == 1)
@@ -915,7 +918,7 @@ public abstract class HFR4droidActivity extends Activity
 
 		preLoadingPostsAsyncTask = new PreLoadingPostsAsyncTask(targetPageNumber);
 		preLoadingPostsAsyncTask.execute(topic);
-	}
+	}*/
 		
 	protected void loadFirstPage(){}
 
@@ -936,6 +939,11 @@ public abstract class HFR4droidActivity extends Activity
 	protected void onLogout()
 	{
 		reloadPage();
+	}
+	
+	public int getCurrentPageNumber()
+	{
+		return currentPageNumber;
 	}
 
 	// Getter des préférences modifiables par l'utilisateur
@@ -1085,7 +1093,7 @@ public abstract class HFR4droidActivity extends Activity
 	
 	/* Classes internes */
 
-	private class PreLoadingPostsAsyncTask extends DataRetrieverAsyncTask<Post, Topic>
+	/*private class PreLoadingPostsAsyncTask extends DataRetrieverAsyncTask<Post, Topic>
 	{
 		private int targetPageNumber;
 		private boolean isFinished;
@@ -1132,5 +1140,5 @@ public abstract class HFR4droidActivity extends Activity
 
 		@Override
 		protected void onPostExecuteOtherActivity(List<Post> posts) {}
-	}
+	}*/
 }

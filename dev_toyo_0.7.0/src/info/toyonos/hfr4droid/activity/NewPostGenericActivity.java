@@ -62,6 +62,20 @@ public abstract class NewPostGenericActivity extends NewPostUIActivity
 		return super.onKeyDown(keyCode, event);
 	}
 	
+	/*@Override
+	protected void onActivityResult(int requestCode, int resultCode, Intent data)
+	{
+		super.onActivityResult(requestCode, resultCode, data);
+		uiHelper.onActivityResultForRehost(requestCode, resultCode, data, new OnRehostOk()
+		{
+			public void run(String url)
+			{
+				uiHelper.insertBBCode((EditText) postDialog.findViewById(R.id.InputPostContent), url, "");
+				postDialog.show();	
+			}
+		});
+	}*/
+	
 	@Override
 	protected void onRehostOk(String url)
 	{

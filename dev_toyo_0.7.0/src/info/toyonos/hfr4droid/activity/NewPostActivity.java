@@ -89,7 +89,7 @@ public class NewPostActivity extends NewPostGenericActivity
 			public void onClick(View v)
 			{
 				final EditText postContent = (EditText) findViewById(R.id.InputPostContent);
-				new ValidateMessageAsynckTask(NewPostActivity.this, postId)
+				new ValidateMessageAsynckTask(NewPostActivity.this, -1)
 				{
 					@Override
 					protected boolean canExecute()

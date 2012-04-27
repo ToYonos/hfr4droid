@@ -5,6 +5,7 @@ import info.toyonos.hfr4droid.core.bean.BasicElement;
 import info.toyonos.hfr4droid.core.bean.Category;
 import info.toyonos.hfr4droid.core.bean.Topic;
 import info.toyonos.hfr4droid.core.bean.Topic.TopicType;
+import info.toyonos.hfr4droid.util.helper.NewPostUIHelper;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -194,7 +195,7 @@ public class HFRUrlParser implements MDUrlParser
 	{
 		if (content != null)
 		{
-			return content.equals("bas") ? PostsActivity.BOTTOM_PAGE_ID : Long.parseLong(content);	
+			return content.equals("bas") ? NewPostUIHelper.BOTTOM_PAGE_ID : Long.parseLong(content);	
 		}
 		return -1;
 	}

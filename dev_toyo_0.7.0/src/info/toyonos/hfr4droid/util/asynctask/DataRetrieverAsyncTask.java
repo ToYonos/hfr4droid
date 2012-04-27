@@ -14,19 +14,23 @@ import android.widget.Toast;
 
 public abstract class DataRetrieverAsyncTask<E, P> extends AsyncTask<P, Void, List<E>>
 {
-	private HFR4droidActivity context;
+	protected HFR4droidActivity context;
 	private ProgressDialog progressDialog;
 	private boolean sameActivity;
 	private boolean displayLoading;
 	private String noElementMsg;
-	
-
+	protected int pageNumber;
 
 	public DataRetrieverAsyncTask(HFR4droidActivity context)
 	{
 		this.context = context;
 	}
 
+	public int getPageNumber()
+	{
+		return pageNumber;
+	}
+	
 	protected void onCancel()
 	{
 		cancel(true);
@@ -48,12 +52,27 @@ public abstract class DataRetrieverAsyncTask<E, P> extends AsyncTask<P, Void, Li
 		context.error(e, true, true);
 	}
 
-	public void execute(final String progressTitle, final String progressContent, final String noElementMsg, final boolean sameActivity, P... params)
+	public void execute(int pageNumber, P... params)
 	{
-		execute(progressTitle, progressContent, noElementMsg, sameActivity, true, params);
+		execute(null, null, null, true, pageNumber, false, params);
+	}
+
+	public void execute(String progressTitle, String progressContent, String noElementMsg, boolean sameActivity, int pageNumber, P... params)
+	{
+		execute(progressTitle, progressContent, noElementMsg, sameActivity, pageNumber, true, params);
+	}
+
+	public void execute(String progressTitle, String progressContent, String noElementMsg, boolean sameActivity, P... params)
+	{
+		execute(progressTitle, progressContent, noElementMsg, sameActivity, -1, true, params);
 	}
 	
-	public void execute(final String progressTitle, final String progressContent, final String noElementMsg, final boolean sameActivity, final boolean displayLoading, P... params)
+	public void execute(String progressTitle, String progressContent, String noElementMsg, boolean sameActivity, boolean displayLoading, P... params)
+	{
+		execute(progressTitle, progressContent, noElementMsg, sameActivity, -1, displayLoading, params);
+	}
+	
+	public void execute(String progressTitle, String progressContent, String noElementMsg, boolean sameActivity, int pageNumber, boolean displayLoading, P... params)
 	{
 		progressDialog = new ProgressDialog(context);
 		progressDialog.setTitle(progressTitle != null ? progressTitle : context.getString(R.string.loading));
@@ -62,6 +81,7 @@ public abstract class DataRetrieverAsyncTask<E, P> extends AsyncTask<P, Void, Li
 		this.noElementMsg = noElementMsg;
 		this.sameActivity = sameActivity;
 		this.displayLoading = displayLoading;
+		this.pageNumber = pageNumber;
 		execute(params);
 	}
 
