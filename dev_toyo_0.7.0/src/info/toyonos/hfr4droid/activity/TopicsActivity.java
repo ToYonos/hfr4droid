@@ -1,6 +1,5 @@
 package info.toyonos.hfr4droid.activity;
 
-import info.toyonos.hfr4droid.HFR4droidApplication;
 import info.toyonos.hfr4droid.HFR4droidException;
 import info.toyonos.hfr4droid.R;
 import info.toyonos.hfr4droid.core.bean.Category;
@@ -12,8 +11,8 @@ import info.toyonos.hfr4droid.core.bean.Topic.TopicStatus;
 import info.toyonos.hfr4droid.core.bean.Topic.TopicType;
 import info.toyonos.hfr4droid.core.data.DataRetrieverException;
 import info.toyonos.hfr4droid.core.message.HFRMessageResponse;
-import info.toyonos.hfr4droid.util.asynctask.DataRetrieverAsyncTask;
 import info.toyonos.hfr4droid.util.asynctask.MessageResponseAsyncTask;
+import info.toyonos.hfr4droid.util.asynctask.PreloadingAsyncTask;
 import info.toyonos.hfr4droid.util.dialog.PageNumberDialog;
 import info.toyonos.hfr4droid.util.listener.OnScreenChangeListener;
 import info.toyonos.hfr4droid.util.view.DragableSpace;
@@ -29,10 +28,8 @@ import android.graphics.Typeface;
 import android.graphics.drawable.ColorDrawable;
 import android.os.AsyncTask.Status;
 import android.os.Bundle;
-import android.os.Vibrator;
 import android.text.Html;
 import android.text.TextUtils.TruncateAt;
-import android.util.Log;
 import android.view.ContextMenu;
 import android.view.ContextMenu.ContextMenuInfo;
 import android.view.GestureDetector;
@@ -126,6 +123,10 @@ public class TopicsActivity extends HFR4droidMultiListActivity<ArrayAdapter<Topi
 			}
 			if (cat != null) loadTopics(cat, type, currentPageNumber);
 		}
+		
+		ArrayAdapter<Topic> adapter = setDatasource(new TopicAdapter(this, R.layout.topic, R.id.ItemContent, topics));
+		PullToRefreshListView lv = (PullToRefreshListView) getListView();
+		lv.setAdapter(adapter);
 
 		// Listener pour le changement de view dans le composant DragableSpace
 		space.setOnScreenChangeListener(new OnScreenChangeListener()
@@ -174,7 +175,7 @@ public class TopicsActivity extends HFR4droidMultiListActivity<ArrayAdapter<Topi
 
 		updateButtonsStates();
 		if (Category.MPS_CAT.equals(cat)) clearNotifications();
-		onCreateInit(topics, (PullToRefreshListView) getListView(), currentPageNumber);
+		onCreateInit(lv, currentPageNumber);
 	}
 	
 	@Override
@@ -184,7 +185,7 @@ public class TopicsActivity extends HFR4droidMultiListActivity<ArrayAdapter<Topi
 		if (preLoadingTopicsAsyncTask != null) preLoadingTopicsAsyncTask.cancel(true);
 	}
 	
-	private void onCreateInit(List<Topic> topics, final PullToRefreshListView lv, int pageNumber)
+	private void onCreateInit(final PullToRefreshListView lv, int pageNumber)
 	{
 		setRefreshHeader();
 		
@@ -195,9 +196,6 @@ public class TopicsActivity extends HFR4droidMultiListActivity<ArrayAdapter<Topi
             	reloadPage(true, false);
             }
         });
-
-		ArrayAdapter<Topic> adapter = setDatasource(new TopicAdapter(this, R.layout.topic, R.id.ItemContent, topics));
-		lv.setAdapter(adapter);
 
 		lv.setOnItemClickListener(new OnItemClickListener()
 		{
@@ -1066,19 +1064,44 @@ public class TopicsActivity extends HFR4droidMultiListActivity<ArrayAdapter<Topi
 		}
 	}
 	
-	private class PreLoadingTopicsAsyncTask extends DataRetrieverAsyncTask<Topic, Category>
+	private class PreLoadingTopicsAsyncTask extends PreloadingAsyncTask<Topic, Category, ArrayAdapter<Topic>>
 	{
-		private boolean loadPreviousPage = false;
-		
-		public PreLoadingTopicsAsyncTask(HFR4droidActivity context)
+		public PreLoadingTopicsAsyncTask(HFR4droidMultiListActivity<ArrayAdapter<Topic>> context)
 		{
 			super(context);
 		}
-		
-		public PreLoadingTopicsAsyncTask(HFR4droidActivity context, boolean loadPreviousPage)
+
+		public PreLoadingTopicsAsyncTask(HFR4droidMultiListActivity<ArrayAdapter<Topic>> context, boolean loadPreviousPage)
 		{
-			super(context);
-			this.loadPreviousPage = loadPreviousPage;
+			super(context, loadPreviousPage);
+		}
+
+		@Override
+		protected View getView(List<Topic> topics)
+		{
+			LayoutInflater inflater = (LayoutInflater) getApplicationContext().getSystemService(LAYOUT_INFLATER_SERVICE);
+			return inflater.inflate(R.layout.topics_dragable, null);
+		}
+
+		@Override
+		protected ArrayAdapter<Topic> getDatasource(List<Topic> topics)
+		{
+			return new TopicAdapter(TopicsActivity.this, R.layout.topic, R.id.ItemContent, topics);
+		}
+
+		@Override
+		protected void init(View v, ArrayAdapter<Topic> datasource)
+		{
+			((PullToRefreshListView) v).setAdapter(datasource);
+			applyTheme(currentTheme, ((PullToRefreshListView) v), true);
+			onCreateInit(((PullToRefreshListView) v), getPageNumber());
+		}
+
+		@Override
+		protected void loadPreviousPage()
+		{
+			preLoadingTopicsAsyncTask = new PreLoadingTopicsAsyncTask(TopicsActivity.this);
+			preLoadingTopicsAsyncTask.execute(currentPageNumber - 1, cat);		
 		}
 
 		@Override
@@ -1086,54 +1109,6 @@ public class TopicsActivity extends HFR4droidMultiListActivity<ArrayAdapter<Topi
 		{
 			return getDataRetriever().getTopics(categories[0], TopicType.ALL, getPageNumber());
 		}
-
-		@Override
-		protected void onPreExecute() {}
-
-		@Override
-		protected void onPostExecuteSameActivity(List<Topic> topics) throws ClassCastException
-		{
-			LayoutInflater inflater = (LayoutInflater) getApplicationContext().getSystemService(LAYOUT_INFLATER_SERVICE);
-			PullToRefreshListView topicsView = (PullToRefreshListView) inflater.inflate(R.layout.topics_dragable, null);
-			ArrayAdapter<Topic> adapter = new TopicAdapter(TopicsActivity.this, R.layout.topic, R.id.ItemContent, topics);
-			topicsView.setAdapter(adapter);
-			
-			applyTheme(currentTheme, topicsView, true);
-			onCreateInit(topics, topicsView, getPageNumber());
-
-			if (getPageNumber() > currentPageNumber)
-			{
-				insertAfter(adapter, topicsView);
-			}
-			else if (getPageNumber() < currentPageNumber)
-			{
-				try
-				{
-					insertBefore(adapter, topicsView);
-				}
-				catch (UnsupportedOperationException e)
-				{
-					// Ne devrait pas arriver mais au cas où on ne fait rien et on log
-					Log.e(HFR4droidApplication.TAG, "Could not insert the new view : " + e.getMessage(), e);
-				}
-			}
-
-			Log.d(HFR4droidApplication.TAG, "Page " + getPageNumber() + " loaded");
-			Vibrator v = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
-			v.vibrate(50);
-			
-			// On charge aussi la page n-2, typiquement quand on arrive directement sur une page qui n'est pas la page 1
-			if (loadPreviousPage)
-			{
-				preLoadingTopicsAsyncTask = new PreLoadingTopicsAsyncTask(TopicsActivity.this);
-				preLoadingTopicsAsyncTask.execute(currentPageNumber - 1, cat);				
-			}
-		}
-
-		@Override
-		protected void onPostExecuteOtherActivity(List<Topic> topics)
-		{
-			throw new UnsupportedOperationException("You can't use PreLoadingTopicsAsyncTask when sameActivity is false");
-		}
+		
 	}
 }

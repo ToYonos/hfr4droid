@@ -108,7 +108,26 @@ public interface MDDataRetriever
 	public List<Topic> getTopics(Category cat, TopicType type, int pageNumber) throws DataRetrieverException;
 
 	/**
+	 * Marque une page de topic comme lu
+	 * @param topic Le <code>Topic</code> désiré
+	 * @param pageNumber Le numéro de la page
+	 * @return true si tout s'est bien passé, false sinon
+	 * @throws DataRetrieverException
+	 */
+	public boolean setPostsAsRead(Topic topic, int pageNumber) throws DataRetrieverException;
+	
+	/**
 	 * Récupère les posts de la page donnée d'un topic
+	 * @param topic Le <code>Topic</code> désiré
+	 * @param pageNumber Le numéro de la page
+	 * @param useFakeAccount Utiliser ou pas un faux compte pour ne pas altérer les drapeaux
+	 * @return Une <code>List</code> de <code>Post</code>
+	 * @throws DataRetrieverException Si un problème survient
+	 */
+	public List<Post> getPosts(Topic topic, int pageNumber, boolean useFakeAccount) throws DataRetrieverException;
+	
+	/**
+	 * Récupère les posts de la page donnée d'un topic en utilisant le vrai compte de l'utilisateur
 	 * @param topic Le <code>Topic</code> désiré
 	 * @param pageNumber Le numéro de la page
 	 * @return Une <code>List</code> de <code>Post</code>

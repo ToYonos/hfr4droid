@@ -1,6 +1,5 @@
 package info.toyonos.hfr4droid.core.data;
 
-import info.toyonos.hfr4droid.activity.PostsActivity;
 import info.toyonos.hfr4droid.core.bean.BasicElement;
 import info.toyonos.hfr4droid.core.bean.Category;
 import info.toyonos.hfr4droid.core.bean.Topic;

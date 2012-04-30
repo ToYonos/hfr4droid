@@ -2,7 +2,6 @@ package info.toyonos.hfr4droid.util.asynctask;
 
 import info.toyonos.hfr4droid.HFR4droidApplication;
 import info.toyonos.hfr4droid.activity.HFR4droidMultiListActivity;
-import info.toyonos.hfr4droid.activity.TopicsActivity;
 
 import java.util.List;
 
@@ -29,27 +28,21 @@ public abstract class PreloadingAsyncTask<E, P, DS> extends DataRetrieverAsyncTa
 	@Override
 	protected void onPreExecute() {}
 	
-	protected abstract View getView();
+	protected abstract View getView(List<E> elements);
 	
-	protected abstract DS getDatasource();
+	protected abstract DS getDatasource(List<E> elements);
 	
-	// TODO faire mieux que ça
+	protected void init(View v, DS datasource) {}
+	
+	protected void loadPreviousPage() {}
 
 	@SuppressWarnings("unchecked")
 	@Override
 	protected void onPostExecuteSameActivity(List<E> elements) throws ClassCastException
 	{
-		
-		/*LayoutInflater inflater = (LayoutInflater) context.getApplicationContext().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-		PullToRefreshListView topicsView = (PullToRefreshListView) inflater.inflate(R.layout.topics_dragable, null);
-		ArrayAdapter<Topic> adapter = new TopicAdapter(TopicsActivity.this, R.layout.topic, R.id.ItemContent, topics);
-		topicsView.setAdapter(adapter);
-		
-		applyTheme(currentTheme, topicsView, true);
-		onCreateInit(topics, topicsView, getPageNumber());*/
-
-		DS datasource = getDatasource();
-		View view = getView();
+		DS datasource = getDatasource(elements);
+		View view = getView(elements);
+		init(view, datasource);
 		
 		if (pageNumber > context.getCurrentPageNumber())
 		{
@@ -73,12 +66,7 @@ public abstract class PreloadingAsyncTask<E, P, DS> extends DataRetrieverAsyncTa
 		v.vibrate(50);
 		
 		// On charge aussi la page n-2, typiquement quand on arrive directement sur une page qui n'est pas la page 1
-		if (loadPreviousPage)
-		{
-			//preLoadingAsyncTask = new PreLoadingTopicsAsyncTask(TopicsActivity.this);
-			//preLoadingTopicsAsyncTask.execute(context.getCurrentPageNumber() - 1, cat);
-			// TODO méthode abstraite
-		}
+		if (loadPreviousPage) loadPreviousPage();
 	}
 
 	@Override

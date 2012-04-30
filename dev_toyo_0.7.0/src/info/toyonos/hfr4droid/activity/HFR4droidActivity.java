@@ -99,7 +99,7 @@ public abstract class HFR4droidActivity extends Activity
 
 	//private PreLoadingPostsAsyncTask preLoadingPostsAsyncTask;
 	private Map<Integer, List<Post>> preLoadedPosts;
-	private boolean navForward;
+	private boolean navForward; // TODO nettoyer
 	
 	protected abstract void setTitle();
 

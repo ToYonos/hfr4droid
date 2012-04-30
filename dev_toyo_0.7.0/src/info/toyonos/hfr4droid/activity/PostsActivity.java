@@ -22,6 +22,7 @@ import info.toyonos.hfr4droid.core.utils.PatchInputStream;
 import info.toyonos.hfr4droid.service.MpNotifyService;
 import info.toyonos.hfr4droid.util.asynctask.DataRetrieverAsyncTask;
 import info.toyonos.hfr4droid.util.asynctask.MessageResponseAsyncTask;
+import info.toyonos.hfr4droid.util.asynctask.PreloadingAsyncTask;
 import info.toyonos.hfr4droid.util.asynctask.ValidateMessageAsynckTask;
 import info.toyonos.hfr4droid.util.dialog.PageNumberDialog;
 import info.toyonos.hfr4droid.util.helper.NewPostUIHelper;
@@ -68,7 +69,6 @@ import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
-import android.os.Vibrator;
 import android.text.ClipboardManager;
 import android.text.Html;
 import android.text.Selection;
@@ -182,6 +182,7 @@ public class PostsActivity extends HFR4droidMultiListActivity<List<Post>>
 	private HFR4droidQuickActionWindow currentQAwindow = null;
 	
 	private PreLoadingPostsAsyncTask preLoadingPostsAsyncTask = null;
+	private int pageToBeSetToRead = -1;
 	private AsyncTask<String, Void, Profile> profileTask = null;
 	
 	private final HttpClient<Bitmap> imgBitmapHttpClient = new HttpClient<Bitmap>()
@@ -266,6 +267,34 @@ public class PostsActivity extends HFR4droidMultiListActivity<List<Post>>
 
 				updateButtonsStates();
 				setTitle();
+				
+				if (currentPageNumber == pageToBeSetToRead)
+				{
+					pageToBeSetToRead = -1;
+					new AsyncTask<Void, Void, Boolean>()
+					{
+						@Override
+						protected Boolean doInBackground(Void... params)
+						{
+							try
+							{
+								return getDataRetriever().setPostsAsRead(topic, currentPageNumber);
+							}
+							catch (DataRetrieverException e)
+							{
+								error(e, true, true);
+								return false;
+							}
+						}
+
+						@Override
+						protected void onPostExecute(Boolean ok)
+						{
+							if (ok) Log.i(HFR4droidApplication.TAG, getString(R.string.set_posts_as_read_ok));
+							else Log.w(HFR4droidApplication.TAG, getString(R.string.set_posts_as_read_ko));
+						}
+					}.execute();
+				}
 			}
 			
 			public void onFailForward()
@@ -398,8 +427,6 @@ public class PostsActivity extends HFR4droidMultiListActivity<List<Post>>
 	private WebView getWebView()
 	{
 		return (WebView) getView();
-		//LinearLayout parent = ((LinearLayout) findViewById(R.id.PostsLayout)); // TODO redéfinir
-		//return ((WebView) parent.getChildAt(4));
 	}
 
 	@Override
@@ -2346,78 +2373,44 @@ public class PostsActivity extends HFR4droidMultiListActivity<List<Post>>
 		}
 	}
 	
-	private class PreLoadingPostsAsyncTask extends DataRetrieverAsyncTask<Post, Topic>
+	private class PreLoadingPostsAsyncTask extends PreloadingAsyncTask<Post, Topic, List<Post>>
 	{
-		private boolean loadPreviousPage = false;
-		
-		public PreLoadingPostsAsyncTask(HFR4droidActivity context)
+		public PreLoadingPostsAsyncTask(HFR4droidMultiListActivity<List<Post>> context)
 		{
 			super(context);
 		}
-		
-		public PreLoadingPostsAsyncTask(HFR4droidActivity context, boolean loadPreviousPage)
+
+		public PreLoadingPostsAsyncTask(HFR4droidMultiListActivity<List<Post>> context, boolean loadPreviousPage)
 		{
-			super(context);
-			this.loadPreviousPage = loadPreviousPage;
+			super(context, loadPreviousPage);
+		}
+
+		@Override
+		protected View getView(List<Post> posts)
+		{
+			return displayPosts(posts, true);
+		}
+
+		@Override
+		protected List<Post> getDatasource(List<Post> posts)
+		{
+			return posts;
+		}
+
+		@Override
+		protected void loadPreviousPage()
+		{
+			preLoadingPostsAsyncTask = new PreLoadingPostsAsyncTask(PostsActivity.this);
+			preLoadingPostsAsyncTask.execute(currentPageNumber - 1, topic);		
 		}
 
 		@Override
 		protected List<Post> retrieveDataInBackground(Topic... topics) throws DataRetrieverException
 		{
-			// TODO avec compte bidon + HTTP HEADER pour la lecture 
-			return getDataRetriever().getPosts(topics[0],getPageNumber());
+			// Si on s'apprête à précharger une page encore jamais lu, on la note 
+			if (getPageNumber() > topic.getLastReadPage()) pageToBeSetToRead = getPageNumber();
+			return getDataRetriever().getPosts(topics[0],getPageNumber(), pageToBeSetToRead != -1);
 		}
-
-		@Override
-		protected void onPreExecute() {}
-
-		@Override
-		protected void onPostExecuteSameActivity(List<Post> posts) throws ClassCastException
-		{
-			/*LayoutInflater inflater = (LayoutInflater) getApplicationContext().getSystemService(LAYOUT_INFLATER_SERVICE);
-			PullToRefreshListView topicsView = (PullToRefreshListView) inflater.inflate(R.layout.topics_dragable, null);
-			ArrayAdapter<Topic> adapter = new TopicAdapter(TopicsActivity.this, R.layout.topic, R.id.ItemContent, topics);
-			topicsView.setAdapter(adapter);
-			
-			applyTheme(currentTheme, topicsView, true);
-			onCreateInit(topics, topicsView, getPageNumber());*/
-			
-			// TODO création webview et cie
-			WebView newWebView = displayPosts(posts, true);
-			
-			if (getPageNumber() > currentPageNumber)
-			{
-				insertAfter(posts, newWebView);
-			}
-			else if (getPageNumber() < currentPageNumber)
-			{
-				try
-				{
-					insertBefore(posts, newWebView);
-				}
-				catch (UnsupportedOperationException e)
-				{
-					// Ne devrait pas arriver mais au cas où on ne fait rien et on log
-					Log.e(HFR4droidApplication.TAG, "Could not insert the new view : " + e.getMessage(), e);
-				}
-			}
-
-			Log.d(HFR4droidApplication.TAG, "Page " + getPageNumber() + " loaded");
-			Vibrator v = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
-			v.vibrate(50);
-			
-			// On charge aussi la page n-2, typiquement quand on arrive directement sur une page qui n'est pas la page 1
-			if (loadPreviousPage)
-			{
-				preLoadingPostsAsyncTask = new PreLoadingPostsAsyncTask(PostsActivity.this);
-				preLoadingPostsAsyncTask.execute(currentPageNumber - 1, topic);				
-			}
-		}
-
-		@Override
-		protected void onPostExecuteOtherActivity(List<Post> posts)
-		{
-			throw new UnsupportedOperationException("You can't use PreLoadingTopicsAsyncTask when sameActivity is false");
-		}
+		
 	}
 }

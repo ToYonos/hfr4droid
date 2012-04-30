@@ -32,6 +32,7 @@ import java.net.URLEncoder;
 import java.text.ParsePosition;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Collections;
 import java.util.GregorianCalendar;
 import java.util.LinkedHashMap;
@@ -49,12 +50,15 @@ import org.apache.http.HttpRequest;
 import org.apache.http.HttpRequestInterceptor;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpResponseInterceptor;
+import org.apache.http.client.CookieStore;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpHead;
 import org.apache.http.client.params.HttpClientParams;
 import org.apache.http.client.protocol.ClientContext;
 import org.apache.http.entity.HttpEntityWrapper;
+import org.apache.http.impl.client.BasicCookieStore;
 import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.impl.cookie.BasicClientCookie;
 import org.apache.http.params.BasicHttpParams;
 import org.apache.http.params.HttpParams;
 import org.apache.http.protocol.BasicHttpContext;
@@ -97,10 +101,14 @@ public class HFRDataRetriever implements MDDataRetriever
 	public static final String MAINTENANCE 		= "Serveur en cours de maintenance. <br /><br />Veuillez nous excuser pour la gène occasionnée";
 	public static final String TOPIC_DELETED	= "Désolé, ce sujet n'existe pas";
 	
+	public static final String FAKE_ACCOUNT_USER = "hfr4droid";
+	public static final String FAKE_ACCOUNT_MD5_PASS = "g6h6#_7$ahytf"; // TODO passer en md5
+	
 	private HFR4droidApplication context;
 	private HFRAuthentication auth;
 	private String hashCheck;
 	private Map<Category, List<SubCategory>> cats;
+	private CookieStore fakeCs = null;
 
 	public HFRDataRetriever(HFR4droidApplication context)
 	{
@@ -119,6 +127,23 @@ public class HFRDataRetriever implements MDDataRetriever
 		hashCheck = null;
 		cats = null;
 		if (clearCache) clearCache();
+		
+		if(auth != null)
+		{
+			fakeCs = new BasicCookieStore();
+			GregorianCalendar calendar = new GregorianCalendar();
+			calendar.add(Calendar.YEAR, 10);
+			BasicClientCookie user = new BasicClientCookie("md_user", FAKE_ACCOUNT_USER);
+			user.setDomain(".hardware.fr");
+			user.setExpiryDate(calendar.getTime());
+			user.setPath("/");
+			BasicClientCookie pass = new BasicClientCookie("md_user", FAKE_ACCOUNT_MD5_PASS);
+			user.setDomain(".hardware.fr");
+			user.setExpiryDate(calendar.getTime());
+			user.setPath("/");
+			fakeCs.addCookie(user);
+			fakeCs.addCookie(pass);
+		}
 	}
 
 	/**
@@ -442,11 +467,56 @@ public class HFRDataRetriever implements MDDataRetriever
 			return TopicStatus.NONE;	
 		}
 	}
+	
+	/**
+	 * {@inheritDoc}
+	 */
+	public boolean setPostsAsRead(Topic topic, int pageNumber) throws DataRetrieverException
+	{
+		String url = POSTS_URL.replaceFirst("\\{\\$cat\\}", topic.getCategory().getRealId())
+		.replaceFirst("\\{\\$topic\\}", String.valueOf(topic.getId()))
+		.replaceFirst("\\{\\$page\\}", String.valueOf(pageNumber));
+		
+		Log.d(HFR4droidApplication.TAG, "Retrieving " + url);
+		DefaultHttpClient client = new DefaultHttpClient();
+
+		try
+		{
+			URI uri = new URI(url);
+			HttpHead method = new HttpHead(uri);
+			method.setHeader("User-Agent", "Mozilla /4.0 (compatible; MSIE 6.0; Windows CE; IEMobile 7.6) Vodafone/1.0/SFR_v1615/1.56.163.8.39");
+			HttpContext httpContext = new BasicHttpContext();
+			if (auth != null && auth.getCookies() != null && fakeCs != null)
+			{
+				httpContext.setAttribute(ClientContext.COOKIE_STORE, auth.getCookies());
+			}
+			
+			HttpResponse response = client.execute(method, httpContext);
+			Log.d(HFR4droidApplication.TAG, "Status : " + response.getStatusLine().getStatusCode() + ", " + response.getStatusLine().getReasonPhrase());
+			return response.getStatusLine().getStatusCode() == 200;
+		}
+		catch (Exception e)
+		{
+			throw new DataRetrieverException(context.getString(R.string.error_dr_topics), e);
+		}
+		finally
+		{
+			client.getConnectionManager().shutdown();
+		}
+	}
 
 	/**
 	 * {@inheritDoc}
 	 */
 	public List<Post> getPosts(Topic topic, int pageNumber) throws DataRetrieverException
+	{
+		return getPosts(topic, pageNumber, false);
+	}
+	
+	/**
+	 * {@inheritDoc}
+	 */
+	public List<Post> getPosts(Topic topic, int pageNumber, boolean useFakeAccount) throws DataRetrieverException
 	{
 		ArrayList<Post> posts = new ArrayList<Post>();
 		String url = POSTS_URL.replaceFirst("\\{\\$cat\\}", topic.getCategory().getRealId())
@@ -455,7 +525,7 @@ public class HFRDataRetriever implements MDDataRetriever
 		String content = null;
 		try
 		{
-			content = getAsString(url);
+			content = getAsString(url, false, useFakeAccount);
 		}
 		catch (Exception e)
 		{
@@ -724,7 +794,7 @@ public class HFRDataRetriever implements MDDataRetriever
 		String content = null;
 		try
 		{
-			content = getAsString(url, true);
+			content = getAsString(url, true, false);
 		}
 		catch (Exception e)
 		{
@@ -762,7 +832,7 @@ public class HFRDataRetriever implements MDDataRetriever
 		String content = null;
 		try
 		{
-			content = getAsString(url, true);
+			content = getAsString(url, true, false);
 		}
 		catch (Exception e)
 		{
@@ -908,19 +978,20 @@ public class HFRDataRetriever implements MDDataRetriever
 	 */
 	private String getAsString(String url) throws IOException, URISyntaxException, ServerMaintenanceException, NoSuchTopicException
 	{
-		return getAsString(url, false); 
+		return getAsString(url, false, false); 
 	}
 
 	/**
 	 * Effectue une requête HTTP GET et récupère un flux en retour
 	 * @param url L'url concernée
 	 * @param cr Conserver les retours charriot
+	 * @param useFakeAccount Utiliser ou pas un faux compte pour ne pas altérer les drapeaux
 	 * @return Un <code>InputStream</code> contenant le résultat
 	 * @throws IOException Si un problème intervient durant la requête
 	 * @throws URISyntaxException Si l'url est foireuse
 	 * @throws ServerMaintenanceException Si le forum est en maintenance
 	 */
-	private String getAsString(String url, boolean cr) throws IOException, URISyntaxException, ServerMaintenanceException, NoSuchTopicException
+	private String getAsString(String url, boolean cr, boolean useFakeAccount) throws IOException, URISyntaxException, ServerMaintenanceException, NoSuchTopicException
 	{
 		Log.d(HFR4droidApplication.TAG, "Retrieving " + url);
 		DefaultHttpClient client = new DefaultHttpClient();
@@ -968,9 +1039,9 @@ public class HFRDataRetriever implements MDDataRetriever
 		HttpGet method = new HttpGet(uri);
 		method.setHeader("User-Agent", "Mozilla /4.0 (compatible; MSIE 6.0; Windows CE; IEMobile 7.6) Vodafone/1.0/SFR_v1615/1.56.163.8.39");
 		HttpContext httpContext = new BasicHttpContext();
-		if (auth != null && auth.getCookies() != null)
+		if (auth != null && auth.getCookies() != null && fakeCs != null)
 		{
-			httpContext.setAttribute(ClientContext.COOKIE_STORE, auth.getCookies());
+			httpContext.setAttribute(ClientContext.COOKIE_STORE, useFakeAccount ? fakeCs : auth.getCookies());
 		}
 
 		/* Proxy de merde */		
