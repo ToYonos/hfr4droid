@@ -39,18 +39,6 @@
 			android:title="@string/pref_dbltap_enable_title"
 			android:defaultValue="@string/pref_dbltap_enable_default" />			
 		<CheckBoxPreference
-			android:key="PrefPreloadingEnable"
-			android:summary="@string/pref_preloading_enable_summary"
-			android:title="@string/pref_preloading_enable_title"
-			android:defaultValue="@string/pref_preloading_enable_default" />
-		<ListPreference
-			android:key="PrefSwipe"
-			android:summary="@string/pref_swipe_summary"
-			android:title="@string/pref_swipe_title"
-			android:defaultValue="@string/pref_swipe_default"
-			android:entries="@array/swipe_values"
-            android:entryValues="@array/swipe_keys" />
-		<CheckBoxPreference
 			android:key="PrefCompressGzip"
 			android:summary="@string/pref_compress_gzip_enable_summary"
 			android:title="@string/pref_compress_gzip_enable_title"

@@ -96,10 +96,6 @@ public abstract class HFR4droidActivity extends Activity
 
 	protected Theme currentTheme = null;
 	private int currentPoliceSize = -1;
-
-	//private PreLoadingPostsAsyncTask preLoadingPostsAsyncTask;
-	private Map<Integer, List<Post>> preLoadedPosts;
-	private boolean navForward; // TODO nettoyer
 	
 	protected abstract void setTitle();
 
@@ -174,9 +170,6 @@ public abstract class HFR4droidActivity extends Activity
 		Bundle bundle = this.getIntent().getExtras();
 		loginDialog = null;
 		currentPageNumber = bundle != null ? bundle.getInt("pageNumber") : -1;
-		//preLoadingPostsAsyncTask = null;
-		preLoadedPosts = new HashMap<Integer, List<Post>>();
-		navForward = true;
 		loginFromCache();
 	}
 
@@ -246,7 +239,6 @@ public abstract class HFR4droidActivity extends Activity
 	protected void onDestroy()
 	{
 		super.onDestroy();
-		//if (preLoadingPostsAsyncTask != null) preLoadingPostsAsyncTask.cancel(true);
 	}
 
 	@Override
@@ -807,50 +799,7 @@ public abstract class HFR4droidActivity extends Activity
 			@Override
 			protected List<Post> retrieveDataInBackground(Topic... topics) throws DataRetrieverException
 			{
-				List<Post> posts = new ArrayList<Post>();
-				// TODO rempplacer par le chargement classique
-				posts = getDataRetriever().getPosts(topics[0], getPageNumber());
-				/*if (preLoadingPostsAsyncTask != null && preLoadingPostsAsyncTask.getPageNumber() == getPageNumber())
-				{
-					switch (preLoadingPostsAsyncTask.getStatus()) 
-					{
-						case RUNNING:
-							Log.d(HFR4droidApplication.TAG, "Page " + getPageNumber() + " deja en cours de recuperation...");
-							try
-							{
-								posts = preLoadingPostsAsyncTask.waitAndGet();
-								Log.d(HFR4droidApplication.TAG, "...page " + getPageNumber() + " recuperee !");
-							}
-							catch (Exception e)
-							{
-								preLoadingPostsAsyncTask = null;
-							}
-							break;
-
-						case FINISHED:
-							List<Post> tmpPosts = HFR4droidActivity.this.preLoadedPosts.get(getPageNumber());
-							if (tmpPosts != null)
-							{
-								Log.d(HFR4droidApplication.TAG, "Page " + getPageNumber() + " recuperee dans le cache.");
-								posts = tmpPosts;
-								preLoadedPosts.clear(); // On ne conserve pas le cache des posts
-							}
-							else
-							{
-								posts = getDataRetriever().getPosts(topics[0], getPageNumber());
-							}
-							break;
-						
-						default:
-							break;
-					}
-				}
-				else
-				{	
-					if (preLoadingPostsAsyncTask != null) preLoadingPostsAsyncTask.cancel(true);
-					posts = getDataRetriever().getPosts(topics[0], getPageNumber());
-				}*/
-				return posts;
+				return getDataRetriever().getPosts(topics[0], getPageNumber());
 			}
 
 			@Override
@@ -858,11 +807,10 @@ public abstract class HFR4droidActivity extends Activity
 			{
 				PostsActivity activity = (PostsActivity) HFR4droidActivity.this;
 				activity.setPosts(posts);
-				navForward = currentPageNumber <= getPageNumber();
 				activity.setPageNumber(getPageNumber());
+				activity.preloadPosts();
 				setTitle();
 				activity.refreshPosts(posts);
-				//if (isPreloadingEnable()) preLoadPosts(topic, getPageNumber());
 			}
 
 			@Override
@@ -971,16 +919,6 @@ public abstract class HFR4droidActivity extends Activity
 	public boolean isDblTapEnable()
 	{
 		return getHFR4droidApplication().isDblTapEnable();
-	}
-
-	public boolean isPreloadingEnable()
-	{
-		return getHFR4droidApplication().isPreloadingEnable();
-	}	
-
-	public int getSwipe()
-	{
-		return getHFR4droidApplication().getSwipe();
 	}
 	
 	public boolean isCompressGzipEnable()

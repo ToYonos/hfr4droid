@@ -1,8 +1,12 @@
 package info.toyonos.hfr4droid.activity;
 
+import info.toyonos.hfr4droid.R;
+import info.toyonos.hfr4droid.util.asynctask.PreLoadingAsyncTask;
 import info.toyonos.hfr4droid.util.view.DragableSpace;
+import android.os.AsyncTask.Status;
 import android.os.Bundle;
 import android.view.View;
+import android.widget.Toast;
 
 /**
  * <p>Activity permettant de gérer n écrans via le composant <code>DragableSpace</code>.
@@ -17,7 +21,7 @@ public abstract class HFR4droidMultiListActivity<DS> extends HFR4droidActivity
 	protected DragableSpace space = null;
 	private DS dataSources[] = null;
 	private View views[] = null;
-
+	
 	@SuppressWarnings("unchecked")
 	@Override
 	protected void onCreate(Bundle savedInstanceState)
@@ -66,6 +70,19 @@ public abstract class HFR4droidMultiListActivity<DS> extends HFR4droidActivity
 		}
 		space.addView(view);
 		views[getCurrentIndex()] = view;
+	}
+	
+	protected void snapToScreen(int newIndex, PreLoadingAsyncTask<?, ?, ?> task)
+	{
+		if (!space.snapToScreen(newIndex)) displayPreloadingToast(task);
+	}
+
+	protected void displayPreloadingToast(PreLoadingAsyncTask<?, ?, ?> task)
+	{
+		if (task != null && task.getStatus() == Status.RUNNING)
+		{
+			Toast.makeText(HFR4droidMultiListActivity.this, getString(R.string.page_loading, task.getPageNumber()), Toast.LENGTH_SHORT).show();
+		}
 	}
 	
 	public void insertAfter(DS dataSource, View view)

@@ -12,7 +12,7 @@ import info.toyonos.hfr4droid.core.bean.Topic.TopicType;
 import info.toyonos.hfr4droid.core.data.DataRetrieverException;
 import info.toyonos.hfr4droid.core.message.HFRMessageResponse;
 import info.toyonos.hfr4droid.util.asynctask.MessageResponseAsyncTask;
-import info.toyonos.hfr4droid.util.asynctask.PreloadingAsyncTask;
+import info.toyonos.hfr4droid.util.asynctask.PreLoadingAsyncTask;
 import info.toyonos.hfr4droid.util.dialog.PageNumberDialog;
 import info.toyonos.hfr4droid.util.listener.OnScreenChangeListener;
 import info.toyonos.hfr4droid.util.view.DragableSpace;
@@ -26,7 +26,6 @@ import android.content.Intent;
 import android.content.res.ColorStateList;
 import android.graphics.Typeface;
 import android.graphics.drawable.ColorDrawable;
-import android.os.AsyncTask.Status;
 import android.os.Bundle;
 import android.text.Html;
 import android.text.TextUtils.TruncateAt;
@@ -68,8 +67,6 @@ import com.markupartist.android.widget.PullToRefreshListView.OnRefreshListener;
  * @author ToYonos
  *
  */
-
-// TODO tester navigation et reload
 
 public class TopicsActivity extends HFR4droidMultiListActivity<ArrayAdapter<Topic>>
 {
@@ -164,12 +161,12 @@ public class TopicsActivity extends HFR4droidMultiListActivity<ArrayAdapter<Topi
 
 			public void onFailForward()
 			{
-				displayPreloadingToast();
+				displayPreloadingToast(preLoadingTopicsAsyncTask);
 			}
 
 			public void onFailRearward()
 			{
-				displayPreloadingToast();
+				displayPreloadingToast(preLoadingTopicsAsyncTask);
 			}
 		});
 
@@ -647,7 +644,7 @@ public class TopicsActivity extends HFR4droidMultiListActivity<ArrayAdapter<Topi
 	{
 		if (currentPageNumber == 2)
 		{
-			snapToScreen(getCurrentIndex() - 1);
+			snapToScreen(getCurrentIndex() - 1, preLoadingTopicsAsyncTask);
 		}
 		else
 		{
@@ -658,7 +655,7 @@ public class TopicsActivity extends HFR4droidMultiListActivity<ArrayAdapter<Topi
 	@Override
 	protected void loadPreviousPage()
 	{
-		snapToScreen(getCurrentIndex() - 1);	
+		snapToScreen(getCurrentIndex() - 1, preLoadingTopicsAsyncTask);	
 	}
 
 	@Override
@@ -670,7 +667,7 @@ public class TopicsActivity extends HFR4droidMultiListActivity<ArrayAdapter<Topi
 			{
 				if (Math.abs(pageNumber - currentPage) == 1)
 				{
-					snapToScreen(getCurrentIndex() + (pageNumber - currentPage));
+					snapToScreen(getCurrentIndex() + (pageNumber - currentPage), preLoadingTopicsAsyncTask);
 				}
 				else
 				{
@@ -683,31 +680,18 @@ public class TopicsActivity extends HFR4droidMultiListActivity<ArrayAdapter<Topi
 	@Override
 	protected void loadNextPage()
 	{
-		snapToScreen(getCurrentIndex() + 1);
+		snapToScreen(getCurrentIndex() + 1, preLoadingTopicsAsyncTask);
 	}
 
 	@Override
 	protected void reloadPage()
 	{
-		loadTopics(cat, type, currentPageNumber, true);	
+		loadTopics(cat, type, currentPageNumber);	
 	}
 
 	protected void reloadPage(boolean sameActivity, boolean displayLoading)
 	{
 		loadTopics(cat, type, currentPageNumber, sameActivity, displayLoading);	
-	}
-
-	private void snapToScreen(int newIndex)
-	{
-		if (!space.snapToScreen(newIndex)) displayPreloadingToast();
-	}
-	
-	private void displayPreloadingToast()
-	{
-		if (preLoadingTopicsAsyncTask != null && preLoadingTopicsAsyncTask.getStatus() == Status.RUNNING)
-		{
-			Toast.makeText(TopicsActivity.this, getString(R.string.page_loading, preLoadingTopicsAsyncTask.getPageNumber()), Toast.LENGTH_SHORT).show();
-		}
 	}
 	
 	@Override
@@ -1064,7 +1048,7 @@ public class TopicsActivity extends HFR4droidMultiListActivity<ArrayAdapter<Topi
 		}
 	}
 	
-	private class PreLoadingTopicsAsyncTask extends PreloadingAsyncTask<Topic, Category, ArrayAdapter<Topic>>
+	private class PreLoadingTopicsAsyncTask extends PreLoadingAsyncTask<Topic, Category, ArrayAdapter<Topic>>
 	{
 		public PreLoadingTopicsAsyncTask(HFR4droidMultiListActivity<ArrayAdapter<Topic>> context)
 		{

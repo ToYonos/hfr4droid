@@ -33,8 +33,6 @@ public class HFR4droidApplication extends Application
 	public static final String PREF_TYPE_DRAPEAU			= "PrefTypeDrapeau";
 	public static final String PREF_SIGNATURE_ENABLE		= "PrefSignatureEnable";
 	public static final String PREF_DBLTAP_ENABLE			= "PrefDblTapEnable";
-	public static final String PREF_PRELOADING_ENABLE		= "PrefPreloadingEnable";
-	public static final String PREF_SWIPE					= "PrefSwipe";
 	public static final String PREF_COMPRESS_GZIP			= "PrefCompressGzip";
 	public static final String PREF_FULLSCREEN_ENABLE		= "PrefFullscreenEnable";
 	public static final String PREF_THEME					= "PrefTheme";
@@ -172,18 +170,6 @@ public class HFR4droidApplication extends Application
 	{
 		SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(this);
 		return settings.getBoolean(PREF_DBLTAP_ENABLE, Boolean.parseBoolean(getString(R.string.pref_dbltap_enable_default)));
-	}
-
-	public boolean isPreloadingEnable()
-	{
-		SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(this);
-		return settings.getBoolean(PREF_PRELOADING_ENABLE, Boolean.parseBoolean(getString(R.string.pref_preloading_enable_default)));
-	}	
-
-	public int getSwipe()
-	{
-		SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(this);
-		return Integer.parseInt(settings.getString(PREF_SWIPE, getString(R.string.pref_swipe_default)));
 	}
 	
 	public boolean isCompressGzipEnable()

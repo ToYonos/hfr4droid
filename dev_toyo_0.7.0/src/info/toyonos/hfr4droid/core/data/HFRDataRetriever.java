@@ -102,7 +102,7 @@ public class HFRDataRetriever implements MDDataRetriever
 	public static final String TOPIC_DELETED	= "Désolé, ce sujet n'existe pas";
 	
 	public static final String FAKE_ACCOUNT_USER = "hfr4droid";
-	public static final String FAKE_ACCOUNT_MD5_PASS = "g6h6#_7$ahytf"; // TODO passer en md5
+	public static final String FAKE_ACCOUNT_MD5_PASS = "57e2d4c435b8aeea182d5126be1c46b4";
 	
 	private HFR4droidApplication context;
 	private HFRAuthentication auth;
@@ -137,10 +137,10 @@ public class HFRDataRetriever implements MDDataRetriever
 			user.setDomain(".hardware.fr");
 			user.setExpiryDate(calendar.getTime());
 			user.setPath("/");
-			BasicClientCookie pass = new BasicClientCookie("md_user", FAKE_ACCOUNT_MD5_PASS);
-			user.setDomain(".hardware.fr");
-			user.setExpiryDate(calendar.getTime());
-			user.setPath("/");
+			BasicClientCookie pass = new BasicClientCookie("md_passs", FAKE_ACCOUNT_MD5_PASS);
+			pass.setDomain(".hardware.fr");
+			pass.setExpiryDate(calendar.getTime());
+			pass.setPath("/");
 			fakeCs.addCookie(user);
 			fakeCs.addCookie(pass);
 		}
@@ -723,7 +723,7 @@ public class HFRDataRetriever implements MDDataRetriever
 				topic.setCategory(Category.MPS_CAT);		
 			}
 		}
-		Log.d(HFR4droidApplication.TAG, "User have " + count + " new mp(s)");
+		Log.i(HFR4droidApplication.TAG, "User have " + count + " new mp(s)");
 		return count;
 	}
 

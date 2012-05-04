@@ -10,16 +10,16 @@ import android.os.Vibrator;
 import android.util.Log;
 import android.view.View;
 
-public abstract class PreloadingAsyncTask<E, P, DS> extends DataRetrieverAsyncTask<E, P>
+public abstract class PreLoadingAsyncTask<E, P, DS> extends DataRetrieverAsyncTask<E, P>
 {
 	private boolean loadPreviousPage = false;
 	
-	public PreloadingAsyncTask(HFR4droidMultiListActivity<DS> context)
+	public PreLoadingAsyncTask(HFR4droidMultiListActivity<DS> context)
 	{
 		super(context);
 	}
 	
-	public PreloadingAsyncTask(HFR4droidMultiListActivity<DS> context, boolean loadPreviousPage)
+	public PreLoadingAsyncTask(HFR4droidMultiListActivity<DS> context, boolean loadPreviousPage)
 	{
 		super(context);
 		this.loadPreviousPage = loadPreviousPage;
@@ -61,7 +61,7 @@ public abstract class PreloadingAsyncTask<E, P, DS> extends DataRetrieverAsyncTa
 			}
 		}
 
-		Log.d(HFR4droidApplication.TAG, "Page " + getPageNumber() + " loaded");
+		Log.i(HFR4droidApplication.TAG, "[Préchargement] Page " + getPageNumber() + " chargée");
 		Vibrator v = (Vibrator) context.getSystemService(Context.VIBRATOR_SERVICE);
 		v.vibrate(50);
 		

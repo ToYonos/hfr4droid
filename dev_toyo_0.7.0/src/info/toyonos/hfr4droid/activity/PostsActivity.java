@@ -22,7 +22,7 @@ import info.toyonos.hfr4droid.core.utils.PatchInputStream;
 import info.toyonos.hfr4droid.service.MpNotifyService;
 import info.toyonos.hfr4droid.util.asynctask.DataRetrieverAsyncTask;
 import info.toyonos.hfr4droid.util.asynctask.MessageResponseAsyncTask;
-import info.toyonos.hfr4droid.util.asynctask.PreloadingAsyncTask;
+import info.toyonos.hfr4droid.util.asynctask.PreLoadingAsyncTask;
 import info.toyonos.hfr4droid.util.asynctask.ValidateMessageAsynckTask;
 import info.toyonos.hfr4droid.util.dialog.PageNumberDialog;
 import info.toyonos.hfr4droid.util.helper.NewPostUIHelper;
@@ -133,6 +133,8 @@ public class PostsActivity extends HFR4droidMultiListActivity<List<Post>>
 {
 	private static final String POST_LOADING 	= ">¤>¤>¤>¤>¤...post_loading...<¤<¤<¤<¤<¤";
 	private static final String DOWNLOAD_DIR 	= "/HFR4droid/";
+	
+	private static Boolean oldCitation = null;
 
 	public static enum PostCallBackType
 	{
@@ -290,8 +292,8 @@ public class PostsActivity extends HFR4droidMultiListActivity<List<Post>>
 						@Override
 						protected void onPostExecute(Boolean ok)
 						{
-							if (ok) Log.i(HFR4droidApplication.TAG, getString(R.string.set_posts_as_read_ok));
-							else Log.w(HFR4droidApplication.TAG, getString(R.string.set_posts_as_read_ko));
+							if (ok) Log.i(HFR4droidApplication.TAG, getString(R.string.set_posts_as_read_ok, currentPageNumber));
+							else Log.w(HFR4droidApplication.TAG, getString(R.string.set_posts_as_read_ko, currentPageNumber));
 						}
 					}.execute();
 				}
@@ -299,12 +301,12 @@ public class PostsActivity extends HFR4droidMultiListActivity<List<Post>>
 			
 			public void onFailForward()
 			{
-				Toast.makeText(PostsActivity.this, "Fail Forward", Toast.LENGTH_SHORT).show();
+				displayPreloadingToast(preLoadingPostsAsyncTask);
 			}
-			//TODO comme pour le topicActivity
+
 			public void onFailRearward()
 			{
-				Toast.makeText(PostsActivity.this, "Fail Rearward", Toast.LENGTH_SHORT).show();
+				displayPreloadingToast(preLoadingPostsAsyncTask);
 			}
 		});
 
@@ -344,22 +346,12 @@ public class PostsActivity extends HFR4droidMultiListActivity<List<Post>>
 			if (posts != null && posts.size() > 0)
 			{
 				topic = posts.get(0).getTopic();
-				//if (isPreloadingEnable()) preLoadPosts(topic, currentPageNumber); TODO a remplacer nouvelle méthode
 				displayPosts(posts, false);
 			}
-			
-			// Préchargement de la page suivante dans le composant DragableSpace 
-			if (topic.getNbPages() > 1)
-			{
-				int targetPageNumber = currentPageNumber == topic.getNbPages() ? currentPageNumber - 1 : currentPageNumber + 1;
-				boolean loadPreviousPage = currentPageNumber != 1 && currentPageNumber != topic.getNbPages();
-				preLoadingPostsAsyncTask = new PreLoadingPostsAsyncTask(this, loadPreviousPage);
-				preLoadingPostsAsyncTask.execute(targetPageNumber, topic);
-			}
+			preloadPosts();
 		}
 		else
 		{
-			// TODO là aussi, mais à la fin du loadPost ?
 			if (bundle != null && bundle.getSerializable("topic") != null)
 			{
 				topic = (Topic) bundle.getSerializable("topic");
@@ -371,12 +363,15 @@ public class PostsActivity extends HFR4droidMultiListActivity<List<Post>>
 	@Override
 	protected void onDestroy()
 	{
-		// TODO à revoir : nettoyage (dans la classe au dessus plutot !)
 		super.onDestroy();
-		WebView postsWV = getWebView();
-		if (postsWV != null) postsWV.destroy();
+		for (int i = 0; i < 3; i++)
+		{
+			WebView v = (WebView) getView(i);
+			if (v != null) v.destroy();
+		}
 		((WebView) findViewById(R.id.loading)).destroy();
 		uiHelper.hideWikiSmiliesResults(uiHelper.getSmiliesLayout());
+		if (preLoadingPostsAsyncTask != null) preLoadingPostsAsyncTask.cancel(true);
 	}
 
 	@Override
@@ -550,12 +545,20 @@ public class PostsActivity extends HFR4droidMultiListActivity<List<Post>>
 	protected void loadFirstPage()
 	{
 		loadPosts(topic, 1);
+		if (currentPageNumber == 2)
+		{
+			snapToScreen(getCurrentIndex() - 1, preLoadingPostsAsyncTask);
+		}
+		else
+		{
+			loadPosts(topic, 1, false);
+		}
 	}
 
 	@Override
 	protected void loadPreviousPage()
 	{
-		loadPosts(topic, currentPageNumber - 1);	
+		snapToScreen(getCurrentIndex() - 1, preLoadingPostsAsyncTask);	
 	}
 
 	@Override
@@ -565,7 +568,14 @@ public class PostsActivity extends HFR4droidMultiListActivity<List<Post>>
 		{
 			protected void onValidate(int pageNumber)
 			{
-				loadPosts(topic, pageNumber);
+				if (Math.abs(pageNumber - currentPage) == 1)
+				{
+					snapToScreen(getCurrentIndex() + (pageNumber - currentPage), preLoadingPostsAsyncTask);
+				}
+				else
+				{
+					loadPosts(topic, pageNumber, false);
+				}
 			}
 		}.show();
 	}
@@ -573,7 +583,7 @@ public class PostsActivity extends HFR4droidMultiListActivity<List<Post>>
 	@Override
 	protected void loadNextPage()
 	{
-		loadPosts(topic, currentPageNumber + 1);
+		snapToScreen(getCurrentIndex() + 1, preLoadingPostsAsyncTask);
 	}
 
 	@Override
@@ -734,6 +744,18 @@ public class PostsActivity extends HFR4droidMultiListActivity<List<Post>>
 			}
 		});
 	}
+	
+	public void preloadPosts()
+	{
+		// Préchargement de la page suivante dans le composant DragableSpace 
+		if (topic.getNbPages() > 1)
+		{
+			int targetPageNumber = currentPageNumber == topic.getNbPages() ? currentPageNumber - 1 : currentPageNumber + 1;
+			boolean loadPreviousPage = currentPageNumber != 1 && currentPageNumber != topic.getNbPages();
+			preLoadingPostsAsyncTask = new PreLoadingPostsAsyncTask(this, loadPreviousPage);
+			preLoadingPostsAsyncTask.execute(targetPageNumber, topic);
+		}
+	}
 
 	public void refreshPosts(List<Post> posts)
 	{
@@ -820,7 +842,7 @@ public class PostsActivity extends HFR4droidMultiListActivity<List<Post>>
     							{
     								try
 									{
-    									// TODO bug nom image
+    									// TODO bug nom image sans ext
 	                        			File dir = new File(Environment.getExternalStorageDirectory() + DOWNLOAD_DIR);
 	                        			if (!dir.exists()) dir.mkdirs();
 	                        			String originalFileName = url[0].substring(url[0].lastIndexOf('/') + 1, url[0].length());
@@ -1632,7 +1654,14 @@ public class PostsActivity extends HFR4droidMultiListActivity<List<Post>>
 			content = "<div class=\"HFR4droid_post";
 			if (p.isModo()) content += " modo_post";
 			content += "\">" + editQuoteDiv + "<div class=\"HFR4droid_content\"";
-			content += ">" + p.getContent() + "</div></div>";
+			String postContent = p.getContent();
+			if (preloading && oldCitation != null && !oldCitation)
+			{
+				postContent = postContent.replaceAll("</p><hr size=\"1\" />", "<br /><br />");
+				postContent = postContent.replaceAll("<hr size=\"1\" />", "");
+				postContent = postContent.replaceAll("\"oldcitation\">", "\"citation\">");
+			}
+			content += ">" + postContent + "</div></div>";
 			content = content.replaceAll("onload=\"md_verif_size\\(this,'Cliquez pour agrandir','[0-9]+','[0-9]+'\\)\"", "onclick=\"return true;\"");
 			content = content.replaceAll("<b\\s*class=\"s1\"><a href=\"(.*?)\".*?>(.*?)</a></b>", "<b onclick=\"window.HFR4Droid.handleUrl('" + getDataRetriever().getBaseUrl() + "$1');\" class=\"s1\">$2</b>");
 			content = content.replaceAll("<a\\s*href=\"(http://forum\\.hardware\\.fr.*?)\"\\s*target=\"_blank\"\\s*class=\"cLink\">", "<a onclick=\"window.HFR4Droid.handleUrl('$1');\" class=\"cLink\">");			
@@ -1642,6 +1671,15 @@ public class PostsActivity extends HFR4droidMultiListActivity<List<Post>>
 			content = content.replaceAll("ondblclick=\".*?\"", "");
 			postsContent.append(header);
 			postsContent.append(content);
+			if (oldCitation == null)
+			{
+				// Si citation il y a...
+				if (p.getContent().indexOf("citation\">") != -1)
+				{
+					// On mémorise le type de citation
+					oldCitation = p.getContent().indexOf("\"oldcitation\">") != -1;
+				}
+			}
 		}
 		postsContent.append("<div class=\"HFR4droid_footer_space\"></div></div><div id=\"" + NewPostUIHelper.BOTTOM_PAGE_ID + "\" class=\"HFR4droid_footer\" />");
 		WebSettings settings = webView.getSettings();
@@ -2373,7 +2411,7 @@ public class PostsActivity extends HFR4droidMultiListActivity<List<Post>>
 		}
 	}
 	
-	private class PreLoadingPostsAsyncTask extends PreloadingAsyncTask<Post, Topic, List<Post>>
+	private class PreLoadingPostsAsyncTask extends PreLoadingAsyncTask<Post, Topic, List<Post>>
 	{
 		public PreLoadingPostsAsyncTask(HFR4droidMultiListActivity<List<Post>> context)
 		{
@@ -2408,8 +2446,8 @@ public class PostsActivity extends HFR4droidMultiListActivity<List<Post>>
 		protected List<Post> retrieveDataInBackground(Topic... topics) throws DataRetrieverException
 		{
 			// Si on s'apprête à précharger une page encore jamais lu, on la note 
-			if (getPageNumber() > topic.getLastReadPage()) pageToBeSetToRead = getPageNumber();
-			return getDataRetriever().getPosts(topics[0],getPageNumber(), pageToBeSetToRead != -1);
+			if (getPageNumber() > topic.getLastReadPage()) pageToBeSetToRead = getPageNumber(); // TODO mettre à jour avec setLastReadPage plus haut
+			return getDataRetriever().getPosts(topics[0],getPageNumber(), pageToBeSetToRead != -1); // TODO à revoir
 		}
 		
 	}
