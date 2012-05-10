@@ -153,7 +153,7 @@
     <string name="exif_model">Modèle : %s</string>
     <string name="exif_focal">Focal : %s</string>
     <string name="exif_aperture">Ouverture : %s</string>
-    <string name="exif_exposure">Temps d\'exposition : %s</string>
+    <string name="exif_exposure">Temps d\'exposition : %s\"</string>
     <string name="exif_iso">ISO : %s</string>
 	
 	<string-array name="welcome_screen_values">

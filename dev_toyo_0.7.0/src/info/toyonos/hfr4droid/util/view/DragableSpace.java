@@ -161,11 +161,12 @@ public class DragableSpace extends ViewGroup {
 
                 //Log.i(LOG_TAG, "event : move, deltaX " + deltaX + ", mScrollX " + mScrollX);
 
-                if (deltaX < 0) {
+                int deltaInit = 40;
+                if (deltaX < -deltaInit) {
                     if (mScrollX > 0) {
                         scrollBy(Math.max(-mScrollX, deltaX), 0);
                     }
-                } else if (deltaX > 0) {
+                } else if (deltaX > deltaInit) {
                     final int availableToScroll = getChildAt(getChildCount() - 1)
                         .getRight()
                         - mScrollX - getWidth();

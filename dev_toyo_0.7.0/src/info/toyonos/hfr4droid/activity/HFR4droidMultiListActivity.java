@@ -68,7 +68,7 @@ public abstract class HFR4droidMultiListActivity<DS> extends HFR4droidActivity
 		{
 			space.removeViewAt(getCurrentIndex());
 		}
-		space.addView(view);
+		space.addView(view, getCurrentIndex());
 		views[getCurrentIndex()] = view;
 	}
 	
@@ -83,6 +83,21 @@ public abstract class HFR4droidMultiListActivity<DS> extends HFR4droidActivity
 		{
 			Toast.makeText(HFR4droidMultiListActivity.this, getString(R.string.page_loading, task.getPageNumber()), Toast.LENGTH_SHORT).show();
 		}
+	}
+	
+	protected void reset()
+	{
+		View current = space.getChildAt(getCurrentIndex());
+		space.removeAllViews();
+		space.addView(current);
+		if (getCurrentIndex() != 0)
+		{
+			dataSources[0] = dataSources[getCurrentIndex()];
+			views[0] = views[getCurrentIndex()];
+			space.setToScreen(0);
+		}
+		views[1] = views[2] = null;
+		dataSources[1] = dataSources[2] = null;
 	}
 	
 	public void insertAfter(DS dataSource, View view)

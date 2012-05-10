@@ -699,8 +699,10 @@ public class TopicsActivity extends HFR4droidMultiListActivity<ArrayAdapter<Topi
 	{
 		setRefreshHeader();
 		getDatasource().notifyDataSetChanged();
+		reset();
+		preloadTopics();
 	}
-	
+
 	@Override
 	protected void goBack()
 	{
@@ -1085,7 +1087,7 @@ public class TopicsActivity extends HFR4droidMultiListActivity<ArrayAdapter<Topi
 		protected void loadPreviousPage()
 		{
 			preLoadingTopicsAsyncTask = new PreLoadingTopicsAsyncTask(TopicsActivity.this);
-			preLoadingTopicsAsyncTask.execute(currentPageNumber - 1, cat);		
+			preLoadingTopicsAsyncTask.execute(getPageNumber() - 2, cat);		
 		}
 
 		@Override

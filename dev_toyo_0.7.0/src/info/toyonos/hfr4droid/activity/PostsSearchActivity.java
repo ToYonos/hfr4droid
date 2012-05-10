@@ -66,7 +66,7 @@ public class PostsSearchActivity extends PostsActivity
 				topic = posts.get(0).getTopic();
 				Post lastPost = posts.get(posts.size() - 1);
 				addFromPost(lastPost);
-				displayPosts(posts, false);
+				displayPosts(posts);
 			}
 		}
 		

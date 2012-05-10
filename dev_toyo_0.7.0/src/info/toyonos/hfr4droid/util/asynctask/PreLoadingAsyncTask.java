@@ -32,9 +32,9 @@ public abstract class PreLoadingAsyncTask<E, P, DS> extends DataRetrieverAsyncTa
 	
 	protected abstract DS getDatasource(List<E> elements);
 	
-	protected void init(View v, DS datasource) {}
+	protected abstract void loadPreviousPage();
 	
-	protected void loadPreviousPage() {}
+	protected void init(View v, DS datasource) {}
 
 	@SuppressWarnings("unchecked")
 	@Override

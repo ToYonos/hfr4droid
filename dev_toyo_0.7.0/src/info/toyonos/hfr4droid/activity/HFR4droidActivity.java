@@ -18,9 +18,7 @@ import info.toyonos.hfr4droid.service.MpTimerCheckService;
 import info.toyonos.hfr4droid.util.asynctask.DataRetrieverAsyncTask;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import android.app.Activity;
 import android.app.AlertDialog;
@@ -810,7 +808,8 @@ public abstract class HFR4droidActivity extends Activity
 				activity.setPageNumber(getPageNumber());
 				activity.preloadPosts();
 				setTitle();
-				activity.refreshPosts(posts);
+				activity.displayPosts(posts);
+				activity.setPreLoadingDisabled(false);
 			}
 
 			@Override
@@ -846,27 +845,6 @@ public abstract class HFR4droidActivity extends Activity
 			}
 		}.execute(progressTitle, progressContent, noElement, sameActivity, pageNumber, topic);
 	}
-
-	/*protected void preLoadPosts(final Topic topic, final int currentPageNumber)
-	{
-		final int tmpPageNumber;
-		if (currentPageNumber == 1)
-		{
-			tmpPageNumber = 2;
-		}
-		else if (currentPageNumber == topic.getNbPages())
-		{
-			tmpPageNumber = topic.getNbPages() - 1;
-		}
-		else
-		{
-			tmpPageNumber = navForward ? currentPageNumber + 1 : currentPageNumber - 1;
-		}
-		final int targetPageNumber = tmpPageNumber;
-
-		preLoadingPostsAsyncTask = new PreLoadingPostsAsyncTask(targetPageNumber);
-		preLoadingPostsAsyncTask.execute(topic);
-	}*/
 		
 	protected void loadFirstPage(){}
 
