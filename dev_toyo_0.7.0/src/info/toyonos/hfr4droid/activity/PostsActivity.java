@@ -60,7 +60,6 @@ import android.content.res.Configuration;
 import android.graphics.Bitmap;
 import android.graphics.Bitmap.CompressFormat;
 import android.graphics.BitmapFactory;
-import android.graphics.Shader;
 import android.graphics.drawable.BitmapDrawable;
 import android.media.ExifInterface;
 import android.net.ConnectivityManager;
@@ -131,7 +130,6 @@ import com.naholyr.android.ui.QuickActionWindow.Item;
  */
 
 // TODO gérer le refresh
-// TODO modifier gif refresh
 // TODO gérer la recherche
 
 @SuppressWarnings("deprecation")
@@ -227,13 +225,6 @@ public class PostsActivity extends HFR4droidMultiListActivity<List<Post>>
 		setContentView(R.layout.posts);
 		space = (DragableSpace) findViewById(R.id.Space);
 		applyTheme(currentTheme);
-		
-		Bitmap bmp = BitmapFactory.decodeResource(getResources(), R.drawable.loading);
-	    BitmapDrawable bitmapDrawable = new BitmapDrawable(bmp);
-	    bitmapDrawable.setTileModeXY(Shader.TileMode.CLAMP, Shader.TileMode.CLAMP);
-		LinearLayout postLayout = (LinearLayout) findViewById(R.id.PostsLayout);
-		FrameLayout root = (FrameLayout) postLayout.getParent();
-		root.setBackgroundDrawable(bitmapDrawable);
 		
 		attachEvents();
 
@@ -2208,8 +2199,9 @@ public class PostsActivity extends HFR4droidMultiListActivity<List<Post>>
 		LinearLayout postLayout = (LinearLayout) findViewById(R.id.PostsLayout);
 		FrameLayout root = (FrameLayout) postLayout.getParent();
 		root.setBackgroundColor(theme.getListBackgroundColor());
-		
-		// TODO gérer le fond loading
+
+		// TODO gérer les thèmes
+		root.setBackgroundResource(R.drawable.loading);
 		
 		if (postDialog != null)
 		{
