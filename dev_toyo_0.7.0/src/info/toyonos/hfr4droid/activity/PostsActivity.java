@@ -129,7 +129,6 @@ import com.naholyr.android.ui.QuickActionWindow.Item;
  *
  */
 
-// TODO gérer le refresh
 // TODO gérer la recherche
 
 @SuppressWarnings("deprecation")
@@ -189,7 +188,6 @@ public class PostsActivity extends HFR4droidMultiListActivity<List<Post>>
 	
 	private PreLoadingPostsAsyncTask preLoadingPostsAsyncTask = null;
 	private int pageToBeSetToRead = -1;
-	private boolean preLoadingDisabled = false;
 	private AsyncTask<String, Void, Profile> profileTask = null;
 	
 	private final HttpClient<Bitmap> imgBitmapHttpClient = new HttpClient<Bitmap>()
@@ -378,7 +376,7 @@ public class PostsActivity extends HFR4droidMultiListActivity<List<Post>>
 			WebView v = (WebView) getView(i);
 			if (v != null) v.destroy();
 		}
-		uiHelper.hideWikiSmiliesResults(uiHelper.getSmiliesLayout());
+		uiHelper.destroyWikiSmiliesResults(uiHelper.getSmiliesLayout());
 		if (preLoadingPostsAsyncTask != null) preLoadingPostsAsyncTask.cancel(true);
 	}
 
@@ -611,7 +609,6 @@ public class PostsActivity extends HFR4droidMultiListActivity<List<Post>>
 	{
 		WebView webView = getWebView();
 		if (webView != null) currentScrollY = webView.getScrollY();
-		preLoadingDisabled = true;
 		loadPosts(topic, currentPageNumber);
 	}
 	
@@ -764,7 +761,7 @@ public class PostsActivity extends HFR4droidMultiListActivity<List<Post>>
 	public void preloadPosts()
 	{
 		// Préchargement de la page suivante dans le composant DragableSpace 
-		if (!preLoadingDisabled && topic.getNbPages() > 1)
+		if (topic.getNbPages() > 1)
 		{
 			int targetPageNumber = currentPageNumber == topic.getNbPages() ? currentPageNumber - 1 : currentPageNumber + 1;
 			boolean loadPreviousPage = currentPageNumber != 1 && currentPageNumber != topic.getNbPages();
@@ -2040,8 +2037,14 @@ public class PostsActivity extends HFR4droidMultiListActivity<List<Post>>
 			@Override
 			protected void showWikiSmiliesResults(ViewGroup layout)
 			{
-				hideWikiSmiliesResults(layout);
-				layout.findViewById(R.id.PostContainer).setVisibility(View.VISIBLE);	
+				layout.findViewById(R.id.PostContainer).setVisibility(View.GONE);	
+			}
+			
+			@Override
+			public void hideWikiSmiliesResults(ViewGroup layout)
+			{
+				destroyWikiSmiliesResults(layout);
+				if (layout != null) layout.findViewById(R.id.PostContainer).setVisibility(View.VISIBLE);	
 			}
 			
 			@Override
@@ -2161,11 +2164,6 @@ public class PostsActivity extends HFR4droidMultiListActivity<List<Post>>
 		setToggleFromPref("isImgsEnable", getImgsDisplayType(), isWifiEnable);
 	}
 	
-	protected void setPreLoadingDisabled(boolean preLoadingDisabled)
-	{
-		this.preLoadingDisabled = preLoadingDisabled; 
-	}
-	
 	private void setToggleFromPref(String drawableToggle, DrawableDisplayType type, boolean isWifiEnable)
 	{
 		try
@@ -2200,8 +2198,7 @@ public class PostsActivity extends HFR4droidMultiListActivity<List<Post>>
 		FrameLayout root = (FrameLayout) postLayout.getParent();
 		root.setBackgroundColor(theme.getListBackgroundColor());
 
-		// TODO gérer les thèmes
-		root.setBackgroundResource(R.drawable.loading);
+		root.setBackgroundResource(getDrawableKey(currentTheme.getPostLoading()));
 		
 		if (postDialog != null)
 		{

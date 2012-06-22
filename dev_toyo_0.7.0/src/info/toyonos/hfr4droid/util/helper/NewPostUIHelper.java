@@ -272,7 +272,9 @@ public abstract class NewPostUIHelper
 	
 	protected abstract void showWikiSmiliesResults(ViewGroup layout);
 	
-	public void hideWikiSmiliesResults(ViewGroup layout)
+	public abstract void hideWikiSmiliesResults(ViewGroup layout);
+	
+	public void destroyWikiSmiliesResults(ViewGroup layout)
 	{
 		if (layout == null) return;
 		View webView = layout.getChildAt(0);

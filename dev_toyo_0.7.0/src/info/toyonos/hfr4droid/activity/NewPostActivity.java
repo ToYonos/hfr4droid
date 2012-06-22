@@ -7,6 +7,7 @@ import info.toyonos.hfr4droid.core.data.DataRetrieverException;
 import info.toyonos.hfr4droid.core.message.HFRMessageSender.ResponseCode;
 import info.toyonos.hfr4droid.core.message.MessageSenderException;
 import info.toyonos.hfr4droid.util.asynctask.ValidateMessageAsynckTask;
+import info.toyonos.hfr4droid.util.helper.NewPostUIHelper;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.LayoutInflater;
@@ -61,7 +62,7 @@ public class NewPostActivity extends NewPostGenericActivity
 			finish();
 			return;
 		}
-		addPostButtons(layout);
+		uiHelper.addPostButtons(this, layout);
 	}
 	
 	@Override
@@ -117,7 +118,7 @@ public class NewPostActivity extends NewPostGenericActivity
 							switch (code)
 							{		
 								case POST_ADD_OK: // New post ok
-									topic.setLastReadPost(BOTTOM_PAGE_ID);
+									topic.setLastReadPost(NewPostUIHelper.BOTTOM_PAGE_ID);
 									loadPosts(topic, topic.getNbPages(), false);
 									return true;
 								

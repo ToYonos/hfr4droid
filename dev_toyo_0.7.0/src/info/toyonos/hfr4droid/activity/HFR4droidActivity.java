@@ -387,6 +387,7 @@ public abstract class HFR4droidActivity extends Activity
 		currentTheme.setProgressBarInversed(Boolean.parseBoolean(getString(getKeyByTheme(themeKey, R.string.class, "inverse_progress"))));
 		currentTheme.setSplashTitleColor(getColorByKey(themeKey, "splash_title"));
 		currentTheme.setSpinner(getString(getKeyByTheme(themeKey, R.string.class, "spinner")));
+		currentTheme.setPostLoading(getString(getKeyByTheme(themeKey, R.string.class, "post_loading")));
 		currentTheme.setProfileSpinner(getString(getKeyByTheme(themeKey, R.string.class, "profile_spinner")));
 		currentTheme.setProfileText1Color(getColorByKey(themeKey, "profile_text1"));
 		currentTheme.setProfileText2Color(getColorByKey(themeKey, "profile_text2"));
@@ -636,7 +637,7 @@ public abstract class HFR4droidActivity extends Activity
 			protected void onError(Exception e)
 			{
 				super.onError(e);
-				if (HFR4droidActivity.this instanceof SplashActivity) finish();
+				if (HFR4droidActivity.this instanceof SplashActivity) finish(); // TODO ticket 78
 			}
 		};
 		
@@ -696,10 +697,17 @@ public abstract class HFR4droidActivity extends Activity
 			protected void onPostExecuteSameActivity(List<Topic> topics) throws ClassCastException
 			{
 				TopicsActivity activity = (TopicsActivity) HFR4droidActivity.this;
-				activity.setPageNumber(getPageNumber());
-				activity.refreshTopics(topics);
-				activity.preloadTopics();
+				if (currentPageNumber != getPageNumber())
+				{
+					activity.setPageNumber(getPageNumber());
+					activity.preloadTopics();
+				}
+				else
+				{
+					activity.setPageNumber(getPageNumber());
+				}
 				setTitle();
+				activity.refreshTopics(topics);
 				((PullToRefreshListView) activity.getListView()).onRefreshComplete();
 			}
 
@@ -805,11 +813,17 @@ public abstract class HFR4droidActivity extends Activity
 			{
 				PostsActivity activity = (PostsActivity) HFR4droidActivity.this;
 				activity.setPosts(posts);
-				activity.setPageNumber(getPageNumber());
-				activity.preloadPosts();
+				if (currentPageNumber != getPageNumber())
+				{
+					activity.setPageNumber(getPageNumber());
+					activity.preloadPosts();
+				}
+				else
+				{
+					activity.setPageNumber(getPageNumber());
+				}
 				setTitle();
 				activity.displayPosts(posts);
-				activity.setPreLoadingDisabled(false);
 			}
 
 			@Override

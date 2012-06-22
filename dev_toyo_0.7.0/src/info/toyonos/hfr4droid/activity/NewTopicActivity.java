@@ -80,7 +80,7 @@ public class NewTopicActivity extends NewPostGenericActivity
 			finish();
 			return;
 		}		
-		addPostButtons(layout);
+		uiHelper.addPostButtons(this, layout);
 	}
 	
 	@Override

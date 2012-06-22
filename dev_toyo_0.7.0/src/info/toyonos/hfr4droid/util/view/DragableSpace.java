@@ -21,6 +21,7 @@ public class DragableSpace extends ViewGroup {
     private int mCurrentScreen = 0;
 
     private float mLastMotionX;
+    private float mLastMotionY;
 
     private static final String LOG_TAG = "DragableSpace";
 
@@ -72,13 +73,16 @@ public class DragableSpace extends ViewGroup {
          * Shortcut the most recurring case: the user is in the dragging state
          * and he is moving his finger. We want to intercept this motion.
          */
+    	
+    	
         final int action = ev.getAction();
-        if ((action == MotionEvent.ACTION_MOVE)
-                && (mTouchState != TOUCH_STATE_REST)) {
+        if ((action == MotionEvent.ACTION_MOVE) && (mTouchState != TOUCH_STATE_REST))
+        {
             return true;
-                }
+        }
 
         final float x = ev.getX();
+        final float y = ev.getY();
 
         switch (action) {
             case MotionEvent.ACTION_MOVE:
@@ -92,10 +96,16 @@ public class DragableSpace extends ViewGroup {
                  * of the down event.
                  */
                 final int xDiff = (int) Math.abs(x - mLastMotionX);
+                final int yDiff = (int) Math.abs(y - mLastMotionY);
+                //Log.i(LOG_TAG, "xDiff " + xDiff + " - yDiff " + yDiff);
 
+                // To be sure that x scroll doesn't parasitize y scroll
+                if (yDiff > 20) return false;
+                
                 boolean xMoved = xDiff > mTouchSlop;
 
-                if (xMoved) {
+                if (xMoved)
+                {
                     // Scroll if the user moved far enough along the X axis
                     mTouchState = TOUCH_STATE_SCROLLING;
                 }
@@ -104,6 +114,7 @@ public class DragableSpace extends ViewGroup {
             case MotionEvent.ACTION_DOWN:
                 // Remember location of down touch
                 mLastMotionX = x;
+                mLastMotionY = y;
 
                 /*
                  * If being flinged and user touches the screen, initiate drag;
@@ -161,16 +172,17 @@ public class DragableSpace extends ViewGroup {
 
                 //Log.i(LOG_TAG, "event : move, deltaX " + deltaX + ", mScrollX " + mScrollX);
 
-                int deltaInit = 40;
-                if (deltaX < -deltaInit) {
-                    if (mScrollX > 0) {
+                if (deltaX < -0) {
+                    if (mScrollX > 0)
+                    {
                         scrollBy(Math.max(-mScrollX, deltaX), 0);
                     }
-                } else if (deltaX > deltaInit) {
-                    final int availableToScroll = getChildAt(getChildCount() - 1)
-                        .getRight()
-                        - mScrollX - getWidth();
-                    if (availableToScroll > 0) {
+                }
+                else if (deltaX > 0)
+                {
+                    final int availableToScroll = getChildAt(getChildCount() - 1).getRight() - mScrollX - getWidth();
+                    if (availableToScroll > 0)
+                    {
                         scrollBy(Math.min(availableToScroll, deltaX), 0);
                     }
                 }

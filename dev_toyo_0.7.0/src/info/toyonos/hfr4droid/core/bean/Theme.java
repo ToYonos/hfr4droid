@@ -24,6 +24,7 @@ public class Theme
 	private boolean progressBarInversed;
 	private int splashTitleColor;
 	private String spinner;
+	private String postLoading;
 	private String profileSpinner;
 	private int profileText1Color;
 	private int profileText2Color;
@@ -45,6 +46,7 @@ public class Theme
 		this.progressBarInversed = false;
 		this.splashTitleColor = -1;
 		this.spinner = null;
+		this.postLoading = null;
 		this.profileSpinner = null;
 		this.profileText1Color = -1;
 		this.profileText2Color = -1;
@@ -253,6 +255,16 @@ public class Theme
 	public String getProfileSpinner()
 	{
 		return profileSpinner;
+	}
+
+	public String getPostLoading()
+	{
+		return postLoading;
+	}
+
+	public void setPostLoading(String postLoading)
+	{
+		this.postLoading = postLoading;
 	}
 
 	public void setProfileSpinner(String profileSpinner)
