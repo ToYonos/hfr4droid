@@ -80,7 +80,7 @@ public class HFRDataRetriever implements MDDataRetriever
 	private static final String CATS_CACHE_FILE_NAME = "hfr4droid_cats.dat";
 	
 	public static final String BASE_URL			= "http://forum.hardware.fr";
-	//public static final String BASE_URL		= "http://192.168.0.2/hfr-dev";
+	//public static final String BASE_URL		= "http://192.168.1.2/hfr-dev";
 	public static final String IMG_URL			= "http://forum-images.hardware.fr";
 
 	public static final String CATS_URL			= BASE_URL + "/";
@@ -539,6 +539,7 @@ public class HFRDataRetriever implements MDDataRetriever
 			"(?:(?:<div\\s*class=\"avatar_center\".*?><img src=\"(.*?)\"\\s*alt=\".*?\"\\s*/></div>)|</td>).*?" +
 			"<div.*?class=\"left\">Posté le ([0-9]+)-([0-9]+)-([0-9]+).*?([0-9]+):([0-9]+):([0-9]+).*?" +
 			"<div.*?id=\"para[0-9]+\">(.*?)<div style=\"clear: both;\">\\s*</div></p>" +
+			// "<div.*?id=\"para[0-9]+\">(.*?)<div class=\"clear\">\\s*</div></p>" + => nouvelle version
 			"(?:<div\\s*class=\"edited\">)?(?:<a.*?>Message cité ([0-9]+) fois</a>)?(?:<br\\s*/>Message édité par .*? le ([0-9]+)-([0-9]+)-([0-9]+).*?([0-9]+):([0-9]+):([0-9]+)</div>)?.*?" +
 			"</div></td></tr></table>)"
 			, Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
