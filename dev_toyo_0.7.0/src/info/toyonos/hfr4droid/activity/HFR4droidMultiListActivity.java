@@ -69,6 +69,9 @@ public abstract class HFR4droidMultiListActivity<DS> extends HFR4droidActivity
 			space.removeViewAt(getCurrentIndex());
 		}
 		space.addView(view, getCurrentIndex());
+
+		destroyView(views[getCurrentIndex()]);
+		views[getCurrentIndex()] = null;
 		views[getCurrentIndex()] = view;
 	}
 	
@@ -117,9 +120,13 @@ public abstract class HFR4droidMultiListActivity<DS> extends HFR4droidActivity
 				break;
 
 			case 2:
+				dataSources[0] = null;
 				dataSources[0] = dataSources[1];
 				dataSources[1] = dataSources[2];
 				dataSources[2] = dataSource;
+				
+				destroyView(views[0]);
+				views[0] = null;
 				views[0] = views[1];
 				views[1] = views[2];
 				views[2] = view;
@@ -138,9 +145,13 @@ public abstract class HFR4droidMultiListActivity<DS> extends HFR4droidActivity
 		switch (getCurrentIndex())
 		{
 			case 0:
+				dataSources[2] = null;
 				dataSources[2] = dataSources[1];
 				dataSources[1] = dataSources[0];
 				dataSources[0] = dataSource;
+				
+				destroyView(views[2]);
+				views[2] = null;
 				views[2] = views[1];
 				views[1] = views[0];
 				views[0] = view;
@@ -153,4 +164,6 @@ public abstract class HFR4droidMultiListActivity<DS> extends HFR4droidActivity
 				throw new UnsupportedOperationException("You can't insert before with the index " + getCurrentIndex());
 		}
 	}
+	
+	public void destroyView(View v)	{}
 }

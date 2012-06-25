@@ -130,6 +130,7 @@ import com.naholyr.android.ui.QuickActionWindow.Item;
  */
 
 // TODO gérer la recherche
+// TODO cancel task when changing screen
 
 @SuppressWarnings("deprecation")
 public class PostsActivity extends HFR4droidMultiListActivity<List<Post>>
@@ -248,7 +249,12 @@ public class PostsActivity extends HFR4droidMultiListActivity<List<Post>>
 			{
 				if (oldIndex == newIndex) return;
 				
-				preLoadingPostsAsyncTask.cancel(true);
+				if (preLoadingPostsAsyncTask != null)
+				{
+					Log.d(HFR4droidApplication.TAG, "Cancelling preLoadingPostsAsyncTask...");
+					preLoadingPostsAsyncTask.cancel(true);
+					preLoadingPostsAsyncTask = null;
+				}
 				findViewById(R.id.PostsProgressBar).setVisibility(View.GONE);
 				
 				boolean forward = oldIndex < newIndex;
@@ -377,7 +383,11 @@ public class PostsActivity extends HFR4droidMultiListActivity<List<Post>>
 			if (v != null) v.destroy();
 		}
 		uiHelper.destroyWikiSmiliesResults(uiHelper.getSmiliesLayout());
-		if (preLoadingPostsAsyncTask != null) preLoadingPostsAsyncTask.cancel(true);
+		if (preLoadingPostsAsyncTask != null)
+		{
+			preLoadingPostsAsyncTask.cancel(true);
+			preLoadingPostsAsyncTask = null;
+		}
 	}
 
 	@Override
@@ -1714,12 +1724,15 @@ public class PostsActivity extends HFR4droidMultiListActivity<List<Post>>
 			progressBar.setVisibility(View.VISIBLE);
 			webView.setWebChromeClient(new WebChromeClient()
 			{
+				private boolean isViewSet = false;
+				
 				public void onProgressChanged(WebView view, int progress)
 				{
 					progressBar.setProgress(progress);
-					if (progress > 15 && getView() == null)
+					if (progress > 15 && !isViewSet)
 					{
 						setView(webView);
+						isViewSet = true;
 					}
 					if (progress == 100)
 					{
@@ -1747,17 +1760,10 @@ public class PostsActivity extends HFR4droidMultiListActivity<List<Post>>
 				}
 			});
 		}
+
 		webView.loadDataWithBaseURL(getDataRetriever().getBaseUrl(), "<html><head>" + js.toString() + css.toString() + js2.toString() + "</head><body>" + postsContent.toString() + "</body></html>", "text/html", "UTF-8", null);
-		if (!preloading)
-		{
-			WebView oldWebView = getWebView();
-			if (oldWebView != null)
-			{
-				oldWebView.setVisibility(View.GONE);
-				oldWebView.destroy();
-			}
-		}
 		updateButtonsStates();
+
 		return webView;
 	}
 
@@ -2315,6 +2321,12 @@ public class PostsActivity extends HFR4droidMultiListActivity<List<Post>>
 	{
 		return bbCode.replaceAll("\\[\\/?(?:b|i|u|strike|quote|fixed|code|url|img|\\*|spoiler)*?.*?\\]", "");
 	}
+	
+	@Override
+	public void destroyView(View v)
+	{
+		if (v != null) ((WebView) v).destroy();
+	}
 
 	/* Classes internes */
 
@@ -2449,7 +2461,7 @@ public class PostsActivity extends HFR4droidMultiListActivity<List<Post>>
 		@Override
 		protected List<Post> retrieveDataInBackground(Topic... topics) throws DataRetrieverException
 		{
-			// Si on s'apprête à précharger une page encore jamais lu, on la note 
+			// Si on s'apprête à précharger une page encore jamais lu, on la note // TODO offline désactiver
 			boolean useFakeAccount = false;
 			if (getPageNumber() > topic.getLastReadPage())
 			{
