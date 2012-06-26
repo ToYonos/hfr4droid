@@ -26,6 +26,7 @@ import android.app.NotificationManager;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.DialogInterface.OnCancelListener;
 import android.content.DialogInterface.OnClickListener;
 import android.content.Intent;
 import android.content.pm.PackageInfo;
@@ -634,10 +635,42 @@ public abstract class HFR4droidActivity extends Activity
 			}
 			
 			@Override
-			protected void onError(Exception e)
+			protected void onError(final Exception e)
 			{
-				super.onError(e);
-				if (HFR4droidActivity.this instanceof SplashActivity) finish(); // TODO ticket 78
+				//super.onError(e);
+				if (HFR4droidActivity.this instanceof SplashActivity)
+				{
+					runOnUiThread(new Runnable()
+					{
+						public void run()
+						{
+							new AlertDialog.Builder(HFR4droidActivity.this)
+							.setTitle(R.string.error_splash_title)
+							.setMessage(getMessage(e, null))
+							.setOnCancelListener(new OnCancelListener()
+							{
+								public void onCancel(DialogInterface dialog)
+								{
+									finish();
+								}
+							})
+							.setPositiveButton(R.string.error_splash_retry,  new DialogInterface.OnClickListener()
+							{
+								public void onClick(DialogInterface dialog, int which) 
+								{
+									((SplashActivity) HFR4droidActivity.this).run();
+								}
+							})
+							.setNegativeButton(R.string.error_splash_cancel, new DialogInterface.OnClickListener()
+							{
+								public void onClick(DialogInterface dialog, int which) 
+								{
+									finish();
+								}
+							}).show();
+						}
+					});
+				}
 			}
 		};
 		

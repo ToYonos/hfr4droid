@@ -49,6 +49,18 @@ public class SplashActivity extends HFR4droidActivity
 		splash.setBackgroundResource(getDrawableKey(currentTheme.getSpinner()));
 		splash.startAnimation(anim);
 		
+		run();
+	}
+
+	@Override
+	protected void onStart()
+	{
+		super.onStart();
+		updateLogo();
+	}
+	
+	public void run()
+	{
 		waitingThread = new Thread(new Runnable()
 		{	
 			public void run()
@@ -83,13 +95,6 @@ public class SplashActivity extends HFR4droidActivity
 	}
 
 	@Override
-	protected void onStart()
-	{
-		super.onStart();
-		updateLogo();
-	}
-
-	@Override
 	public void onConfigurationChanged(Configuration conf)
 	{
 		super.onConfigurationChanged(conf);
@@ -114,8 +119,12 @@ public class SplashActivity extends HFR4droidActivity
 	{
 		if (keyCode == KeyEvent.KEYCODE_BACK)
 		{
+			if (task != null)
+			{
+				task.cancel(true);
+				task = null;
+			}
 			waitingThread.interrupt();
-			if (task != null) task.cancel(true);
 		}
 		return super.onKeyDown(keyCode, event);
 	}

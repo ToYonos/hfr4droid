@@ -113,6 +113,10 @@
 	<string name="search_posts_word_hint">Mot</string>
 	<string name="search_posts_pseudo_hint">Pseudo</string>
 	
+	<string name="error_splash_title">Une erreur est survenue</string>
+	<string name="error_splash_retry">Réessayer</string>
+	<string name="error_splash_cancel">Quitter</string>
+	
 	<string name="profile_age">%s ans</string>
 	<string name="profile_age_birthday">%s ans aujourd\'hui !</string>
 	<string name="profile_default_age">âge non précisé</string>

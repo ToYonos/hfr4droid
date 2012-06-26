@@ -130,7 +130,6 @@ import com.naholyr.android.ui.QuickActionWindow.Item;
  */
 
 // TODO gérer la recherche
-// TODO cancel task when changing screen
 
 @SuppressWarnings("deprecation")
 public class PostsActivity extends HFR4droidMultiListActivity<List<Post>>
@@ -337,7 +336,6 @@ public class PostsActivity extends HFR4droidMultiListActivity<List<Post>>
 			}
 		}
 
-		// TODO pulltorefresh en bas ?
 		gestureDetector = new GestureDetector(new SimpleOnGestureListener()
 		{
 			@Override
@@ -1760,7 +1758,8 @@ public class PostsActivity extends HFR4droidMultiListActivity<List<Post>>
 				}
 			});
 		}
-
+		
+		if (!preloading && getWebView() != null) getWebView().setVisibility(View.GONE);
 		webView.loadDataWithBaseURL(getDataRetriever().getBaseUrl(), "<html><head>" + js.toString() + css.toString() + js2.toString() + "</head><body>" + postsContent.toString() + "</body></html>", "text/html", "UTF-8", null);
 		updateButtonsStates();
 
@@ -2461,9 +2460,9 @@ public class PostsActivity extends HFR4droidMultiListActivity<List<Post>>
 		@Override
 		protected List<Post> retrieveDataInBackground(Topic... topics) throws DataRetrieverException
 		{
-			// Si on s'apprête à précharger une page encore jamais lu, on la note // TODO offline désactiver
+			// Si on s'apprête à précharger une page encore jamais lu, on la note, uniquement si on est connecté
 			boolean useFakeAccount = false;
-			if (getPageNumber() > topic.getLastReadPage())
+			if (getPageNumber() > topic.getLastReadPage() && isLoggedIn())
 			{
 				pageToBeSetToRead = getPageNumber();
 				useFakeAccount = true;
