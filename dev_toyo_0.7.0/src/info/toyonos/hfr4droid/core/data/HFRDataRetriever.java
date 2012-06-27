@@ -724,7 +724,7 @@ public class HFRDataRetriever implements MDDataRetriever
 				topic.setCategory(Category.MPS_CAT);		
 			}
 		}
-		Log.i(HFR4droidApplication.TAG, "User have " + count + " new mp(s)");
+		Log.i(HFR4droidApplication.TAG, context.getString(R.string.new_mp_count, count));
 		return count;
 	}
 

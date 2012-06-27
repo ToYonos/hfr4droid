@@ -1,6 +1,7 @@
 package info.toyonos.hfr4droid.util.asynctask;
 
 import info.toyonos.hfr4droid.HFR4droidApplication;
+import info.toyonos.hfr4droid.R;
 import info.toyonos.hfr4droid.activity.HFR4droidMultiListActivity;
 
 import java.util.List;
@@ -61,7 +62,7 @@ public abstract class PreLoadingAsyncTask<E, P, DS> extends DataRetrieverAsyncTa
 			}
 		}
 
-		Log.i(HFR4droidApplication.TAG, "[Préchargement] Page " + getPageNumber() + " chargée");
+		Log.i(HFR4droidApplication.TAG, context.getString(R.string.preloading_ok, getPageNumber()));
 		Vibrator v = (Vibrator) context.getSystemService(Context.VIBRATOR_SERVICE);
 		v.vibrate(50);
 		

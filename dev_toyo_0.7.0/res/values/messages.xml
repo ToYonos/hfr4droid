@@ -90,8 +90,12 @@
     <string name="exif_no_data">Aucune donnée EXIF à afficher !</string>
     <string name="copy_exif_data">Les données EXIF ont été copié dans le presse-papier.</string>
     <string name="page_loading">Page %d en cours de chargement...</string>
+    
+    <!-- LOG INFO -->
     <string name="set_posts_as_read_ok">La page %d a été marquée comme lu avec succès</string>
     <string name="set_posts_as_read_ko">La page %d n\'a pas été marquée comme lu</string>
+    <string name="preloading_ok">[Préchargement] Page %d chargée</string>
+    <string name="new_mp_count">L\'utilisateur a %d nouveau(x) message(s)</string>
 
     <plurals name="mp_notification_content">
         <item quantity="one">Vous avez 1 nouveau message privé.</item>
