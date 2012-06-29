@@ -29,20 +29,25 @@ public abstract class PreLoadingAsyncTask<E, P, DS> extends DataRetrieverAsyncTa
 	@Override
 	protected void onPreExecute() {}
 	
-	protected abstract View getView(List<E> elements);
-	
 	protected abstract DS getDatasource(List<E> elements);
 	
 	protected abstract void loadPreviousPage();
 	
 	protected void init(View v, DS datasource) {}
+	
+	@Override
+	protected List<E> doInBackground(P... params)
+	{
+		Log.i(HFR4droidApplication.TAG, context.getString(R.string.preloading_begin, getPageNumber()));
+		return super.doInBackground(params);
+	}
 
 	@SuppressWarnings("unchecked")
 	@Override
 	protected void onPostExecuteSameActivity(List<E> elements) throws ClassCastException
 	{
 		DS datasource = getDatasource(elements);
-		View view = getView(elements);
+		View view = ((HFR4droidMultiListActivity<DS>) context).buildView(datasource);
 		init(view, datasource);
 		
 		if (pageNumber > context.getCurrentPageNumber())

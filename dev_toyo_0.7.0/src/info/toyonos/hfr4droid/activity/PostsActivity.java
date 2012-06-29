@@ -28,6 +28,7 @@ import info.toyonos.hfr4droid.util.dialog.PageNumberDialog;
 import info.toyonos.hfr4droid.util.helper.NewPostUIHelper;
 import info.toyonos.hfr4droid.util.listener.OnScreenChangeListener;
 import info.toyonos.hfr4droid.util.view.DragableSpace;
+import info.toyonos.hfr4droid.util.view.NonLeakingWebView;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -44,6 +45,8 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.TreeSet;
 
 import org.apache.http.util.ByteArrayBuffer;
@@ -66,6 +69,7 @@ import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.net.Uri;
 import android.os.AsyncTask;
+import android.os.AsyncTask.Status;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
@@ -189,6 +193,7 @@ public class PostsActivity extends HFR4droidMultiListActivity<List<Post>>
 	private PreLoadingPostsAsyncTask preLoadingPostsAsyncTask = null;
 	private int pageToBeSetToRead = -1;
 	private AsyncTask<String, Void, Profile> profileTask = null;
+	private Timer timerOnPause = null;
 	
 	private final HttpClient<Bitmap> imgBitmapHttpClient = new HttpClient<Bitmap>()
 	{		
@@ -250,8 +255,11 @@ public class PostsActivity extends HFR4droidMultiListActivity<List<Post>>
 				
 				if (preLoadingPostsAsyncTask != null)
 				{
-					Log.d(HFR4droidApplication.TAG, "Cancelling preLoadingPostsAsyncTask...");
-					preLoadingPostsAsyncTask.cancel(true);
+					if (preLoadingPostsAsyncTask.getStatus() != Status.FINISHED)
+					{
+						Log.d(HFR4droidApplication.TAG, "Cancelling preLoadingPostsAsyncTask...");
+						preLoadingPostsAsyncTask.cancel(true);
+					}
 					preLoadingPostsAsyncTask = null;
 				}
 				findViewById(R.id.PostsProgressBar).setVisibility(View.GONE);
@@ -375,17 +383,14 @@ public class PostsActivity extends HFR4droidMultiListActivity<List<Post>>
 	protected void onDestroy()
 	{
 		super.onDestroy();
-		for (int i = 0; i < 3; i++)
-		{
-			WebView v = (WebView) getView(i);
-			if (v != null) v.destroy();
-		}
+		timerOnPause.cancel();
 		uiHelper.destroyWikiSmiliesResults(uiHelper.getSmiliesLayout());
 		if (preLoadingPostsAsyncTask != null)
 		{
 			preLoadingPostsAsyncTask.cancel(true);
 			preLoadingPostsAsyncTask = null;
 		}
+		System.gc();
 	}
 
 	@Override
@@ -393,8 +398,46 @@ public class PostsActivity extends HFR4droidMultiListActivity<List<Post>>
 	{
 		super.onPause();
 		if (postDialog != null) postDialog.dismiss();
+
+		timerOnPause = new Timer();
+		timerOnPause.schedule(new TimerTask()
+		{
+			public void run()
+			{
+				runOnUiThread(new Runnable()
+				{
+					public void run()
+					{
+						// On detruit les webviews pour éviter qu'elle consomme du CPU quand l'appli est en background
+						Log.d(HFR4droidApplication.TAG, "Destroying webviews...");
+						if (preLoadingPostsAsyncTask != null)
+						{
+							preLoadingPostsAsyncTask.cancel(true);
+							preLoadingPostsAsyncTask = null;
+						}
+						WebView webView = getWebView();
+						if (webView != null) currentScrollY = webView.getScrollY();
+						removeViews();
+					}
+				});
+			}
+		}, 1000);
 	}
 	
+	@Override
+	protected void onResume()
+	{
+		super.onResume();
+		
+		if (isViewsHasToBeRestore())
+		{
+			Log.d(HFR4droidApplication.TAG, "Restoring webviews...");
+			restoreViews();
+			preloadPosts(true);
+			// TODO Scroll y ? un timer ? vue pas attachée quand scroll
+		}
+	}
+
 	@Override
 	protected void onRestart()
 	{
@@ -623,6 +666,7 @@ public class PostsActivity extends HFR4droidMultiListActivity<List<Post>>
 	@Override
 	protected void redrawPage()
 	{
+		// TODO comme pour le onpause ? Oui surement.
 		WebView webView = getWebView();
 		if (webView != null) currentScrollY = webView.getScrollY();
 		displayPosts(getDatasource());
@@ -768,11 +812,30 @@ public class PostsActivity extends HFR4droidMultiListActivity<List<Post>>
 	
 	public void preloadPosts()
 	{
+		preloadPosts(false);
+	}
+	
+	public void preloadPosts(boolean verify)
+	{
+		boolean forceLoadingPreviousPage = false;
+		if (verify)
+		{
+			if (isNextPageLoaded())
+			{
+				Log.d(HFR4droidApplication.TAG, "Next page in Dragable space is loaded or not available");
+				if (currentPageNumber != 1) forceLoadingPreviousPage = true;
+				if (isPreviousPageLoaded() || currentPageNumber == 1)
+				{
+					Log.d(HFR4droidApplication.TAG, "Previous page in Dragable space is loaded or not available");
+					return;
+				}
+			}
+		}
 		// Préchargement de la page suivante dans le composant DragableSpace 
 		if (topic.getNbPages() > 1)
 		{
-			int targetPageNumber = currentPageNumber == topic.getNbPages() ? currentPageNumber - 1 : currentPageNumber + 1;
-			boolean loadPreviousPage = currentPageNumber != 1 && currentPageNumber != topic.getNbPages();
+			int targetPageNumber = forceLoadingPreviousPage || currentPageNumber == topic.getNbPages() ? currentPageNumber - 1 : currentPageNumber + 1;
+			boolean loadPreviousPage = !forceLoadingPreviousPage && currentPageNumber != 1 && currentPageNumber != topic.getNbPages();
 			preLoadingPostsAsyncTask = new PreLoadingPostsAsyncTask(this, loadPreviousPage);
 			preLoadingPostsAsyncTask.execute(targetPageNumber, topic);
 		}
@@ -785,7 +848,8 @@ public class PostsActivity extends HFR4droidMultiListActivity<List<Post>>
 
 	protected WebView displayPosts(List<Post> posts, final boolean preloading)
 	{
-	    final WebView webView = new WebView(this)
+	    //final WebView webView = new WebView(this)
+		final WebView webView = new NonLeakingWebView(this)
         {
             @Override
             public boolean onTouchEvent(MotionEvent ev)
@@ -806,7 +870,7 @@ public class PostsActivity extends HFR4droidMultiListActivity<List<Post>>
                 return result;
             }
         };
-        
+        webView.resumeTimers();
 
         registerForContextMenu(webView);
         webView.setOnCreateContextMenuListener(new OnCreateContextMenuListener()
@@ -1301,7 +1365,8 @@ public class PostsActivity extends HFR4droidMultiListActivity<List<Post>>
 
 						if (profile.getSmileysUrls().length > 0)
 						{
-							final WebView smileysWebView = new WebView(PostsActivity.this);
+							//final WebView smileysWebView = new WebView(PostsActivity.this);
+							final WebView smileysWebView = new NonLeakingWebView(PostsActivity.this);
 							
 							int maxWidth = display.getWidth() / 5 * 4;
 							// Smiley 70px + (2 * 5px de margin) + 10 en plus , avec mise à l'échelle * nb de smileys
@@ -1758,9 +1823,27 @@ public class PostsActivity extends HFR4droidMultiListActivity<List<Post>>
 				}
 			});
 		}
+		else
+		{
+			webView.setWebChromeClient(new WebChromeClient()
+			{				
+				public void onProgressChanged(WebView view, int progress)
+				{
+					if (progress == 100)
+					{
+						if (currentScrollY != -1)
+						{
+							view.scrollTo(0, currentScrollY);
+							currentScrollY = -1;
+						}
+					}
+				}
+			});
+		}
 		
 		if (!preloading && getWebView() != null) getWebView().setVisibility(View.GONE);
 		webView.loadDataWithBaseURL(getDataRetriever().getBaseUrl(), "<html><head>" + js.toString() + css.toString() + js2.toString() + "</head><body>" + postsContent.toString() + "</body></html>", "text/html", "UTF-8", null);
+		//webView.resumeTimers();
 		updateButtonsStates();
 
 		return webView;
@@ -2324,7 +2407,10 @@ public class PostsActivity extends HFR4droidMultiListActivity<List<Post>>
 	@Override
 	public void destroyView(View v)
 	{
-		if (v != null) ((WebView) v).destroy();
+		if (v != null)
+		{
+			((WebView) v).destroy();
+		}
 	}
 
 	/* Classes internes */
@@ -2426,6 +2512,11 @@ public class PostsActivity extends HFR4droidMultiListActivity<List<Post>>
 		}
 	}
 	
+	public View buildView(List<Post> posts)
+	{
+		return displayPosts(posts, true);
+	}
+	
 	private class PreLoadingPostsAsyncTask extends PreLoadingAsyncTask<Post, Topic, List<Post>>
 	{
 		public PreLoadingPostsAsyncTask(HFR4droidMultiListActivity<List<Post>> context)
@@ -2436,12 +2527,6 @@ public class PostsActivity extends HFR4droidMultiListActivity<List<Post>>
 		public PreLoadingPostsAsyncTask(HFR4droidMultiListActivity<List<Post>> context, boolean loadPreviousPage)
 		{
 			super(context, loadPreviousPage);
-		}
-
-		@Override
-		protected View getView(List<Post> posts)
-		{
-			return displayPosts(posts, true);
 		}
 
 		@Override
@@ -2462,7 +2547,7 @@ public class PostsActivity extends HFR4droidMultiListActivity<List<Post>>
 		{
 			// Si on s'apprête à précharger une page encore jamais lu, on la note, uniquement si on est connecté
 			boolean useFakeAccount = false;
-			if (getPageNumber() > topic.getLastReadPage() && isLoggedIn())
+			if (topic.getLastReadPage() != -1 && getPageNumber() > topic.getLastReadPage() && isLoggedIn())
 			{
 				pageToBeSetToRead = getPageNumber();
 				useFakeAccount = true;

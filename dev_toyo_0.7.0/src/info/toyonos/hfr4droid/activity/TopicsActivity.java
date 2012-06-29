@@ -1050,6 +1050,12 @@ public class TopicsActivity extends HFR4droidMultiListActivity<ArrayAdapter<Topi
 		}
 	}
 	
+	public View buildView(ArrayAdapter<Topic> topics)
+	{
+		LayoutInflater inflater = (LayoutInflater) getApplicationContext().getSystemService(LAYOUT_INFLATER_SERVICE);
+		return inflater.inflate(R.layout.topics_dragable, null);
+	}
+	
 	private class PreLoadingTopicsAsyncTask extends PreLoadingAsyncTask<Topic, Category, ArrayAdapter<Topic>>
 	{
 		public PreLoadingTopicsAsyncTask(HFR4droidMultiListActivity<ArrayAdapter<Topic>> context)
@@ -1060,13 +1066,6 @@ public class TopicsActivity extends HFR4droidMultiListActivity<ArrayAdapter<Topi
 		public PreLoadingTopicsAsyncTask(HFR4droidMultiListActivity<ArrayAdapter<Topic>> context, boolean loadPreviousPage)
 		{
 			super(context, loadPreviousPage);
-		}
-
-		@Override
-		protected View getView(List<Topic> topics)
-		{
-			LayoutInflater inflater = (LayoutInflater) getApplicationContext().getSystemService(LAYOUT_INFLATER_SERVICE);
-			return inflater.inflate(R.layout.topics_dragable, null);
 		}
 
 		@Override

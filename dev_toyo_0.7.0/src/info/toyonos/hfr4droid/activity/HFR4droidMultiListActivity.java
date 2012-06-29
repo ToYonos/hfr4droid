@@ -31,6 +31,14 @@ public abstract class HFR4droidMultiListActivity<DS> extends HFR4droidActivity
 		views = new View[3];
 	}
 	
+	@Override
+	protected void onDestroy()
+	{
+		super.onDestroy();
+		removeViews();
+		dataSources = null;
+	}
+	
 	protected int getCurrentIndex()
 	{
 		return space.getCurrentScreen();
@@ -53,12 +61,17 @@ public abstract class HFR4droidMultiListActivity<DS> extends HFR4droidActivity
 	
 	protected View getView()
 	{
-		return views[getCurrentIndex()];
+		return views == null ? null : views[getCurrentIndex()];
+	}
+	
+	protected boolean isViewsHasToBeRestore()
+	{
+		return views == null;
 	}
 	
 	protected View getView(int index)
 	{
-		return views[index];
+		return  views == null ? null : views[index];
 	}
 	
 	protected void setView(View view)
@@ -75,6 +88,26 @@ public abstract class HFR4droidMultiListActivity<DS> extends HFR4droidActivity
 		views[getCurrentIndex()] = view;
 	}
 	
+	protected boolean isNextPageLoaded()
+	{
+		int currentIndex = space.getCurrentScreen();
+		return
+				currentIndex < 2 && 
+				dataSources != null && dataSources[currentIndex + 1] != null &&
+				views != null && views[currentIndex + 1] != null &&
+				space.getChildAt(currentIndex + 1) != null;
+	}
+	
+	protected boolean isPreviousPageLoaded()
+	{
+		int currentIndex = space.getCurrentScreen();
+		return
+				currentIndex > 0 && 
+				dataSources != null && dataSources[currentIndex - 1] != null &&
+				views != null && views[currentIndex - 1] != null &&
+				space.getChildAt(currentIndex - 1) != null;
+	}
+	
 	protected void snapToScreen(int newIndex, PreLoadingAsyncTask<?, ?, ?> task)
 	{
 		if (!space.snapToScreen(newIndex)) displayPreloadingToast(task);
@@ -88,6 +121,7 @@ public abstract class HFR4droidMultiListActivity<DS> extends HFR4droidActivity
 		}
 	}
 	
+	@Deprecated
 	protected void reset()
 	{
 		View current = space.getChildAt(getCurrentIndex());
@@ -99,9 +133,38 @@ public abstract class HFR4droidMultiListActivity<DS> extends HFR4droidActivity
 			views[0] = views[getCurrentIndex()];
 			space.setToScreen(0);
 		}
+		destroyView(views[1]);
+		destroyView(views[2]);
 		views[1] = views[2] = null;
 		dataSources[1] = dataSources[2] = null;
 	}
+	
+	protected void removeViews()
+	{
+		for (int i = 0; i < 3; i++)
+		{
+			destroyView(views[i]);
+		}
+		views = null;
+		space.removeAllViews();
+	}
+	
+	protected void restoreViews()
+	{
+		views = new View[3];
+		for (int i = 0; i < 3; i++)
+		{
+			if (dataSources[i] != null)
+			{
+				View v = buildView(dataSources[i]);
+				views[i] = v;
+				space.addView(v, i);
+			}
+		}
+		space.setToScreen(space.getCurrentScreen());
+	}
+	
+	abstract public View buildView(DS datasource);
 	
 	public void insertAfter(DS dataSource, View view)
 	{
