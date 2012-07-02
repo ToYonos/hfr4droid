@@ -134,6 +134,7 @@ import com.naholyr.android.ui.QuickActionWindow.Item;
  */
 
 // TODO gérer la recherche
+// TODO 07-02 18:33:37.680: E/webview(16784): Got null mVelocityTracker when mPreventDefault = 0 mDeferTouchProcess = false mTouchMode = 1
 
 @SuppressWarnings("deprecation")
 public class PostsActivity extends HFR4droidMultiListActivity<List<Post>>
@@ -433,6 +434,8 @@ public class PostsActivity extends HFR4droidMultiListActivity<List<Post>>
 		{
 			Log.d(HFR4droidApplication.TAG, "Restoring webviews...");
 			restoreViews();
+			getWebView().scrollTo(0, currentScrollY);
+			currentScrollY = -1;
 			preloadPosts(true);
 			// TODO Scroll y ? un timer ? vue pas attachée quand scroll
 		}
@@ -664,17 +667,6 @@ public class PostsActivity extends HFR4droidMultiListActivity<List<Post>>
 	}
 	
 	@Override
-	protected void redrawPage()
-	{
-		// TODO comme pour le onpause ? Oui surement.
-		WebView webView = getWebView();
-		if (webView != null) currentScrollY = webView.getScrollY();
-		displayPosts(getDatasource());
-		reset();
-		preloadPosts();
-	}
-	
-	@Override
 	protected void goBack()
 	{
 		Category cat = fromAllCats ? Category.ALL_CATS : topic.getCategory();
@@ -822,20 +814,31 @@ public class PostsActivity extends HFR4droidMultiListActivity<List<Post>>
 		{
 			if (isNextPageLoaded())
 			{
-				Log.d(HFR4droidApplication.TAG, "Next page in Dragable space is loaded or not available");
+				Log.d(HFR4droidApplication.TAG, "Next page in Dragable space is loaded");
 				if (currentPageNumber != 1) forceLoadingPreviousPage = true;
 				if (isPreviousPageLoaded() || currentPageNumber == 1)
 				{
-					Log.d(HFR4droidApplication.TAG, "Previous page in Dragable space is loaded or not available");
+					Log.d(HFR4droidApplication.TAG, "Previous page in Dragable space is loaded");
 					return;
 				}
+			}
+			else if (currentPageNumber == topic.getNbPages() && isPreviousPageLoaded())
+			{
+				Log.d(HFR4droidApplication.TAG, "Previous page in Dragable space is loaded");
+				return;
 			}
 		}
 		// Préchargement de la page suivante dans le composant DragableSpace 
 		if (topic.getNbPages() > 1)
-		{
-			int targetPageNumber = forceLoadingPreviousPage || currentPageNumber == topic.getNbPages() ? currentPageNumber - 1 : currentPageNumber + 1;
-			boolean loadPreviousPage = !forceLoadingPreviousPage && currentPageNumber != 1 && currentPageNumber != topic.getNbPages();
+		{			
+			boolean loadPreviousPage = currentPageNumber != 1;
+			int targetPageNumber = currentPageNumber + 1;
+			if (forceLoadingPreviousPage || currentPageNumber == topic.getNbPages())
+			{
+				targetPageNumber = currentPageNumber - 1;
+				loadPreviousPage = false;
+			}
+			
 			preLoadingPostsAsyncTask = new PreLoadingPostsAsyncTask(this, loadPreviousPage);
 			preLoadingPostsAsyncTask.execute(targetPageNumber, topic);
 		}
@@ -865,7 +868,9 @@ public class PostsActivity extends HFR4droidMultiListActivity<List<Post>>
                 }
                 catch (NullPointerException e)
                 {
-                	error(e);
+                	// error(e);
+                	// NullPointerException ignorée car le double tap est malgré tout bien supporté
+ 
                 }
                 return result;
             }
@@ -1843,7 +1848,6 @@ public class PostsActivity extends HFR4droidMultiListActivity<List<Post>>
 		
 		if (!preloading && getWebView() != null) getWebView().setVisibility(View.GONE);
 		webView.loadDataWithBaseURL(getDataRetriever().getBaseUrl(), "<html><head>" + js.toString() + css.toString() + js2.toString() + "</head><body>" + postsContent.toString() + "</body></html>", "text/html", "UTF-8", null);
-		//webView.resumeTimers();
 		updateButtonsStates();
 
 		return webView;

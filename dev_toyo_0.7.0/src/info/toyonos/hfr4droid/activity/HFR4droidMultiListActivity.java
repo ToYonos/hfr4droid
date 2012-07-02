@@ -120,8 +120,7 @@ public abstract class HFR4droidMultiListActivity<DS> extends HFR4droidActivity
 			Toast.makeText(HFR4droidMultiListActivity.this, getString(R.string.page_loading, task.getPageNumber()), Toast.LENGTH_SHORT).show();
 		}
 	}
-	
-	@Deprecated
+
 	protected void reset()
 	{
 		View current = space.getChildAt(getCurrentIndex());
@@ -141,9 +140,12 @@ public abstract class HFR4droidMultiListActivity<DS> extends HFR4droidActivity
 	
 	protected void removeViews()
 	{
-		for (int i = 0; i < 3; i++)
+		if (views != null)
 		{
-			destroyView(views[i]);
+			for (int i = 0; i < 3; i++)
+			{
+				destroyView(views[i]);
+			}
 		}
 		views = null;
 		space.removeAllViews();
