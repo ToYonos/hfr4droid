@@ -14,13 +14,14 @@ import android.view.View;
 public abstract class PreLoadingAsyncTask<E, P, DS> extends DataRetrieverAsyncTask<E, P>
 {
 	private boolean loadPreviousPage = false;
+	protected PreLoadingAsyncTask<E, P, DS> task; 
 	
 	public PreLoadingAsyncTask(HFR4droidMultiListActivity<DS> context)
 	{
 		super(context);
 	}
 	
-	public PreLoadingAsyncTask(HFR4droidMultiListActivity<DS> context, boolean loadPreviousPage)
+	public PreLoadingAsyncTask(HFR4droidMultiListActivity<DS> context, PreLoadingAsyncTask<E, P, DS> task, boolean loadPreviousPage)
 	{
 		super(context);
 		this.loadPreviousPage = loadPreviousPage;

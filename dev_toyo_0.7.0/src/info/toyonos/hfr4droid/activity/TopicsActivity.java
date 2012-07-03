@@ -886,7 +886,7 @@ public class TopicsActivity extends HFR4droidMultiListActivity<ArrayAdapter<Topi
 		// Préchargement de la page suivante dans le composant DragableSpace 
 		if (type == TopicType.ALL)
 		{
-			preLoadingTopicsAsyncTask = new PreLoadingTopicsAsyncTask(this, currentPageNumber != 1);
+			preLoadingTopicsAsyncTask = new PreLoadingTopicsAsyncTask(this, preLoadingTopicsAsyncTask, currentPageNumber != 1);
 			preLoadingTopicsAsyncTask.execute(currentPageNumber + 1, cat);
 		}
 	}
@@ -1063,9 +1063,9 @@ public class TopicsActivity extends HFR4droidMultiListActivity<ArrayAdapter<Topi
 			super(context);
 		}
 
-		public PreLoadingTopicsAsyncTask(HFR4droidMultiListActivity<ArrayAdapter<Topic>> context, boolean loadPreviousPage)
+		public PreLoadingTopicsAsyncTask(HFR4droidMultiListActivity<ArrayAdapter<Topic>> context, PreLoadingTopicsAsyncTask task, boolean loadPreviousPage)
 		{
-			super(context, loadPreviousPage);
+			super(context, task, loadPreviousPage);
 		}
 
 		@Override
@@ -1085,8 +1085,8 @@ public class TopicsActivity extends HFR4droidMultiListActivity<ArrayAdapter<Topi
 		@Override
 		protected void loadPreviousPage()
 		{
-			preLoadingTopicsAsyncTask = new PreLoadingTopicsAsyncTask(TopicsActivity.this);
-			preLoadingTopicsAsyncTask.execute(getPageNumber() - 2, cat);		
+			task = new PreLoadingTopicsAsyncTask(TopicsActivity.this);
+			task.execute(getPageNumber() - 2, cat);		
 		}
 
 		@Override

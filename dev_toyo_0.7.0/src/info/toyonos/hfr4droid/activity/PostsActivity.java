@@ -134,7 +134,6 @@ import com.naholyr.android.ui.QuickActionWindow.Item;
  */
 
 // TODO gérer la recherche
-// TODO 07-02 18:33:37.680: E/webview(16784): Got null mVelocityTracker when mPreventDefault = 0 mDeferTouchProcess = false mTouchMode = 1
 
 @SuppressWarnings("deprecation")
 public class PostsActivity extends HFR4droidMultiListActivity<List<Post>>
@@ -191,7 +190,7 @@ public class PostsActivity extends HFR4droidMultiListActivity<List<Post>>
 	
 	private HFR4droidQuickActionWindow currentQAwindow = null;
 	
-	private PreLoadingPostsAsyncTask preLoadingPostsAsyncTask = null;
+	protected PreLoadingPostsAsyncTask preLoadingPostsAsyncTask = null;
 	private int pageToBeSetToRead = -1;
 	private AsyncTask<String, Void, Profile> profileTask = null;
 	private Timer timerOnPause = null;
@@ -430,14 +429,12 @@ public class PostsActivity extends HFR4droidMultiListActivity<List<Post>>
 	{
 		super.onResume();
 		
+		if (timerOnPause != null) timerOnPause.cancel();
 		if (isViewsHasToBeRestore())
 		{
 			Log.d(HFR4droidApplication.TAG, "Restoring webviews...");
 			restoreViews();
-			getWebView().scrollTo(0, currentScrollY);
-			currentScrollY = -1;
 			preloadPosts(true);
-			// TODO Scroll y ? un timer ? vue pas attachée quand scroll
 		}
 	}
 
@@ -839,7 +836,7 @@ public class PostsActivity extends HFR4droidMultiListActivity<List<Post>>
 				loadPreviousPage = false;
 			}
 			
-			preLoadingPostsAsyncTask = new PreLoadingPostsAsyncTask(this, loadPreviousPage);
+			preLoadingPostsAsyncTask = new PreLoadingPostsAsyncTask(this, preLoadingPostsAsyncTask, loadPreviousPage);
 			preLoadingPostsAsyncTask.execute(targetPageNumber, topic);
 		}
 	}
@@ -851,7 +848,6 @@ public class PostsActivity extends HFR4droidMultiListActivity<List<Post>>
 
 	protected WebView displayPosts(List<Post> posts, final boolean preloading)
 	{
-	    //final WebView webView = new WebView(this)
 		final WebView webView = new NonLeakingWebView(this)
         {
             @Override
@@ -868,14 +864,12 @@ public class PostsActivity extends HFR4droidMultiListActivity<List<Post>>
                 }
                 catch (NullPointerException e)
                 {
-                	// error(e);
                 	// NullPointerException ignorée car le double tap est malgré tout bien supporté
- 
+                	// E/webview(16784): Got null mVelocityTracker when mPreventDefault = 0 mDeferTouchProcess = false mTouchMode = 1
                 }
                 return result;
             }
         };
-        webView.resumeTimers();
 
         registerForContextMenu(webView);
         webView.setOnCreateContextMenuListener(new OnCreateContextMenuListener()
@@ -1805,11 +1799,24 @@ public class PostsActivity extends HFR4droidMultiListActivity<List<Post>>
 					if (progress == 100)
 					{
 						if (currentQAwindow != null) currentQAwindow.dismiss();
-						if (currentScrollY != -1)
+						Timer timer = new Timer();
+						timer.schedule(new TimerTask()
 						{
-							view.scrollTo(0, currentScrollY);
-							currentScrollY = -1;
-						}
+							public void run()
+							{
+								runOnUiThread(new Runnable()
+								{
+									public void run()
+									{
+										if (currentScrollY != -1)
+										{
+											getWebView().scrollTo(0, currentScrollY);
+											currentScrollY = -1;
+										}
+									}
+								});
+							}
+						}, 500);
 						lockQuickAction = false;
 						Animation anim = AnimationUtils.loadAnimation(PostsActivity.this, R.anim.hide_progress_bar);
 						anim.setAnimationListener(new AnimationListener()
@@ -1836,11 +1843,24 @@ public class PostsActivity extends HFR4droidMultiListActivity<List<Post>>
 				{
 					if (progress == 100)
 					{
-						if (currentScrollY != -1)
+						Timer timer = new Timer();
+						timer.schedule(new TimerTask()
 						{
-							view.scrollTo(0, currentScrollY);
-							currentScrollY = -1;
-						}
+							public void run()
+							{
+								runOnUiThread(new Runnable()
+								{
+									public void run()
+									{
+										if (currentScrollY != -1)
+										{
+											getWebView().scrollTo(0, currentScrollY);
+											currentScrollY = -1;
+										}
+									}
+								});
+							}
+						}, 500);
 					}
 				}
 			});
@@ -2521,16 +2541,16 @@ public class PostsActivity extends HFR4droidMultiListActivity<List<Post>>
 		return displayPosts(posts, true);
 	}
 	
-	private class PreLoadingPostsAsyncTask extends PreLoadingAsyncTask<Post, Topic, List<Post>>
+	protected class PreLoadingPostsAsyncTask extends PreLoadingAsyncTask<Post, Topic, List<Post>>
 	{
 		public PreLoadingPostsAsyncTask(HFR4droidMultiListActivity<List<Post>> context)
 		{
 			super(context);
 		}
 
-		public PreLoadingPostsAsyncTask(HFR4droidMultiListActivity<List<Post>> context, boolean loadPreviousPage)
+		public PreLoadingPostsAsyncTask(HFR4droidMultiListActivity<List<Post>> context, PreLoadingPostsAsyncTask task, boolean loadPreviousPage)
 		{
-			super(context, loadPreviousPage);
+			super(context, task, loadPreviousPage);
 		}
 
 		@Override
@@ -2542,8 +2562,8 @@ public class PostsActivity extends HFR4droidMultiListActivity<List<Post>>
 		@Override
 		protected void loadPreviousPage()
 		{
-			preLoadingPostsAsyncTask = new PreLoadingPostsAsyncTask(PostsActivity.this);
-			preLoadingPostsAsyncTask.execute(getPageNumber() - 2, topic);
+			task = new PreLoadingPostsAsyncTask(PostsActivity.this);
+			task.execute(getPageNumber() - 2, topic);
 		}
 
 		@Override

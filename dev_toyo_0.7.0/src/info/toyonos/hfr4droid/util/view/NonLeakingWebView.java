@@ -63,7 +63,6 @@ public class NonLeakingWebView extends WebView {
     		{
     			WebView.class.getMethod("onPause").invoke(this);//stop flash
     			this.pauseTimers();
-    			this.stopLoading();
     		}
     		catch (Exception e) {}
 
