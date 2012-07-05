@@ -204,7 +204,7 @@ public class DragableSpace extends ViewGroup {
                 	}
                 	else
                 	{
-                		onScreenChangeListener.onFailRearward();
+                		if (onScreenChangeListener != null) onScreenChangeListener.onFailRearward();
                 	}
                 }
                 else if (velocityX < -SNAP_VELOCITY)
@@ -216,7 +216,7 @@ public class DragableSpace extends ViewGroup {
                 	}
                 	else
                 	{
-                		onScreenChangeListener.onFailForward();
+                		if (onScreenChangeListener != null) onScreenChangeListener.onFailForward();
                 	}
                 } else {
                     snapToDestination();

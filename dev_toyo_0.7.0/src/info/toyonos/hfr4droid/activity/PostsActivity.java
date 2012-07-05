@@ -245,6 +245,53 @@ public class PostsActivity extends HFR4droidMultiListActivity<List<Post>>
 		fromType =  bundle != null && bundle.getSerializable("fromTopicType") != null ? (TopicType) bundle.getSerializable("fromTopicType") : TopicType.ALL;
 		fromAllCats = bundle != null ? bundle.getBoolean("fromAllCats", false) : false;
 		onCreateInit(bundle);
+
+		if (topic != null)
+		{
+			setTitle();
+			if (topic.getCategory().equals(Category.MPS_CAT))
+			{
+				clearNotifications();
+				synchronized (MpNotifyService.class)
+				{
+					if (MpNotifyService.currentNewMps > 0 && topic.getStatus() == TopicStatus.NEW_MP) MpNotifyService.currentNewMps--;	
+				}
+			}
+		}
+
+		gestureDetector = new GestureDetector(new SimpleOnGestureListener()
+		{
+			@Override
+			public boolean onDoubleTap(MotionEvent e)
+			{
+				if (!isDblTapEnable()) return false;
+				reloadPage();
+				return true;
+			}
+		});
+	}
+	
+	@SuppressWarnings("unchecked")
+	protected void onCreateInit(Bundle bundle)
+	{
+		if (bundle != null && bundle.getSerializable("posts") != null)
+		{
+			List<Post> posts = setDatasource((List<Post>) bundle.getSerializable("posts"));
+			if (posts != null && posts.size() > 0)
+			{
+				topic = posts.get(0).getTopic();
+				displayPosts(posts);
+			}
+			preloadPosts();
+		}
+		else
+		{
+			if (bundle != null && bundle.getSerializable("topic") != null)
+			{
+				topic = (Topic) bundle.getSerializable("topic");
+			}
+			if (topic != null) loadPosts(topic, currentPageNumber);
+		}
 		
 		// Listener pour le changement de view dans le composant DragableSpace
 		space.setOnScreenChangeListener(new OnScreenChangeListener()
@@ -330,53 +377,6 @@ public class PostsActivity extends HFR4droidMultiListActivity<List<Post>>
 				displayPreloadingToast(preLoadingPostsAsyncTask);
 			}
 		});
-
-		if (topic != null)
-		{
-			setTitle();
-			if (topic.getCategory().equals(Category.MPS_CAT))
-			{
-				clearNotifications();
-				synchronized (MpNotifyService.class)
-				{
-					if (MpNotifyService.currentNewMps > 0 && topic.getStatus() == TopicStatus.NEW_MP) MpNotifyService.currentNewMps--;	
-				}
-			}
-		}
-
-		gestureDetector = new GestureDetector(new SimpleOnGestureListener()
-		{
-			@Override
-			public boolean onDoubleTap(MotionEvent e)
-			{
-				if (!isDblTapEnable()) return false;
-				reloadPage();
-				return true;
-			}
-		});
-	}
-	
-	@SuppressWarnings("unchecked")
-	protected void onCreateInit(Bundle bundle)
-	{
-		if (bundle != null && bundle.getSerializable("posts") != null)
-		{
-			List<Post> posts = setDatasource((List<Post>) bundle.getSerializable("posts"));
-			if (posts != null && posts.size() > 0)
-			{
-				topic = posts.get(0).getTopic();
-				displayPosts(posts);
-			}
-			preloadPosts();
-		}
-		else
-		{
-			if (bundle != null && bundle.getSerializable("topic") != null)
-			{
-				topic = (Topic) bundle.getSerializable("topic");
-			}
-			if (topic != null) loadPosts(topic, currentPageNumber);
-		}
 	}
 
 	@Override
@@ -794,7 +794,7 @@ public class PostsActivity extends HFR4droidMultiListActivity<List<Post>>
 				EditText pseudo = (EditText) findViewById(R.id.SearchPostsPseudo);
 				EditText word = (EditText) findViewById(R.id.SearchPostsWord);
 				Post fromPost = PostsActivity.this instanceof PostsSearchActivity ? null : getDatasource().get(0);
-				searchPosts(topic, pseudo.getText().toString(), word.getText().toString(), fromPost, false);
+				searchPosts(topic, pseudo.getText().toString().trim(), word.getText().toString().trim(), fromPost, false);
 			}
 		});
 	}
