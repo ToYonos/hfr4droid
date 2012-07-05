@@ -3,6 +3,7 @@ package info.toyonos.hfr4droid.activity;
 import info.toyonos.hfr4droid.HFR4droidApplication;
 import info.toyonos.hfr4droid.HFR4droidException;
 import info.toyonos.hfr4droid.R;
+import info.toyonos.hfr4droid.core.bean.AlertQualitay;
 import info.toyonos.hfr4droid.core.bean.BasicElement;
 import info.toyonos.hfr4droid.core.bean.Category;
 import info.toyonos.hfr4droid.core.bean.Post;
@@ -19,6 +20,7 @@ import info.toyonos.hfr4droid.core.message.HFRMessageSender.ResponseCode;
 import info.toyonos.hfr4droid.core.message.MessageSenderException;
 import info.toyonos.hfr4droid.core.utils.HttpClient;
 import info.toyonos.hfr4droid.core.utils.PatchInputStream;
+import info.toyonos.hfr4droid.core.utils.TransformStreamException;
 import info.toyonos.hfr4droid.service.MpNotifyService;
 import info.toyonos.hfr4droid.util.asynctask.DataRetrieverAsyncTask;
 import info.toyonos.hfr4droid.util.asynctask.MessageResponseAsyncTask;
@@ -195,10 +197,12 @@ public class PostsActivity extends HFR4droidMultiListActivity<List<Post>>
 	private AsyncTask<String, Void, Profile> profileTask = null;
 	private Timer timerOnPause = null;
 	
+	private List<AlertQualitay> alertsQualitaÿ = null;
+	
 	private final HttpClient<Bitmap> imgBitmapHttpClient = new HttpClient<Bitmap>()
 	{		
 		@Override
-		protected Bitmap transformStream(InputStream is) throws IOException
+		protected Bitmap transformStream(InputStream is) throws TransformStreamException
 		{
 			return BitmapFactory.decodeStream(new PatchInputStream(is));
 		}
@@ -207,17 +211,24 @@ public class PostsActivity extends HFR4droidMultiListActivity<List<Post>>
 	private final HttpClient<ByteArrayInputStream> imgHttpClient = new HttpClient<ByteArrayInputStream>()
 	{		
 		@Override
-		protected ByteArrayInputStream transformStream(InputStream is) throws IOException
+		protected ByteArrayInputStream transformStream(InputStream is) throws TransformStreamException
 		{
-		    ByteArrayOutputStream baos = new ByteArrayOutputStream();
-		    byte[] buffer = new byte[1024];
-		    int len;
-		    while ((len = is.read(buffer)) > 0 )
-		    {
-		        baos.write(buffer, 0, len);
-		    }
-		    baos.flush();
-		    return new ByteArrayInputStream(baos.toByteArray()); 
+			try
+			{
+			    ByteArrayOutputStream baos = new ByteArrayOutputStream();
+			    byte[] buffer = new byte[1024];
+			    int len;
+			    while ((len = is.read(buffer)) > 0 )
+			    {
+			        baos.write(buffer, 0, len);
+			    }
+			    baos.flush();
+			    return new ByteArrayInputStream(baos.toByteArray());
+			}
+			catch (IOException e)
+			{
+				throw new TransformStreamException(e);
+			}
 		}
 	};
 
@@ -1872,15 +1883,21 @@ public class PostsActivity extends HFR4droidMultiListActivity<List<Post>>
 
 		return webView;
 	}
-
-	protected void addQuickActionWindowItems(HFR4droidQuickActionWindow window, final long currentPostId, boolean isMine)
+	
+	private String getPostUrl(long postId)
 	{
 		final StringBuilder postLink = new StringBuilder(getDataRetriever().getBaseUrl() + "/forum2.php?config=hfr.inc");
 		postLink.append("&cat=").append(topic.getCategory().getId());
 		postLink.append("&post=").append(topic.getId());
 		postLink.append("&page=").append(currentPageNumber);
-		postLink.append("#t").append(currentPostId);
-		
+		postLink.append("#t").append(postId);
+		return postLink.toString();
+	}
+
+	protected void addQuickActionWindowItems(HFR4droidQuickActionWindow window, final long currentPostId, boolean isMine)
+	{
+		final String postLink = getPostUrl(currentPostId);
+
 		if (topic.getStatus() != TopicStatus.LOCKED)
 		{
 			if (isMine)
@@ -2073,6 +2090,101 @@ public class PostsActivity extends HFR4droidMultiListActivity<List<Post>>
 			}
 		});					
 		window.addItem(shareLink);
+		
+		QuickActionWindow.Item aqLink = new QuickActionWindow.Item(PostsActivity.this, "", android.R.drawable.ic_menu_compass, new QuickActionWindow.Item.Callback()
+		{
+			private void showAlerts()
+			{
+				if (alertsQualitaÿ != null && alertsQualitaÿ.size() > 0)
+				{
+					final CharSequence[] itemsId = new String[alertsQualitaÿ.size() + 1];
+					final CharSequence[] itemsLabel = new String[alertsQualitaÿ.size() + 1];
+					itemsId[0] = "-1";
+					itemsLabel[0] = "-- Nouvelle alerte --";
+					for (int i = 0; i < alertsQualitaÿ.size(); i++)
+					{
+						AlertQualitay alert = alertsQualitaÿ.get(i);
+						StringBuilder content = new StringBuilder("[");
+						SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
+						content.append(sdf.format(alert.getDate()))
+						.append("] ")
+						.append(alert.getName())
+						.append(" (")
+						.append(alert.getInitiator())
+						.append(")");
+						itemsId[i+1] = String.valueOf(alert.getAlertQualitayId());
+						itemsLabel[i+1] = content.toString();
+					}
+					
+					new AlertDialog.Builder(PostsActivity.this)
+					.setTitle("test")
+					.setItems(itemsLabel, new DialogInterface.OnClickListener()
+					{
+				        public void onClick(DialogInterface dialog, int item)
+				        {
+				            Toast.makeText(getApplicationContext(), itemsId[item] + " / " +  itemsLabel[item], Toast.LENGTH_LONG).show();
+				        }
+				    }).show();
+				}
+			}
+			
+			public void onClick(QuickActionWindow window, Item item, View anchor)
+			{
+				if (alertsQualitaÿ == null)
+				{
+					final ProgressDialog progressDialog = new ProgressDialog(PostsActivity.this);
+					progressDialog.setMessage("Récupérations des alertes qualitaÿ du topic");
+					progressDialog.setIndeterminate(true);
+					new AsyncTask<Topic, Void, List<AlertQualitay>>()
+					{
+						@Override
+						protected void onPreExecute() 
+						{
+							progressDialog.setCancelable(true);
+							progressDialog.setOnCancelListener(new OnCancelListener()
+							{
+								public void onCancel(DialogInterface dialog)
+								{
+									cancel(true);
+								}
+							});
+							progressDialog.show();
+						}
+	
+						@Override
+						protected List<AlertQualitay> doInBackground(Topic... params)
+						{
+							try
+							{
+								return getDataRetriever().getAlertsByTopic(params[0]);
+							}
+							catch (DataRetrieverException e)
+							{
+								error(e, true, true);
+								return null;
+							}
+						}
+	
+						@Override
+						protected void onPostExecute(List<AlertQualitay> alerts)
+						{
+							progressDialog.dismiss();
+							if (alerts != null)
+							{
+								alertsQualitaÿ = new ArrayList<AlertQualitay>();
+								alertsQualitaÿ.addAll(alerts);
+								showAlerts();
+							}
+						}
+					}.execute(topic);
+				}
+				else
+				{
+					showAlerts();
+				}
+			}
+		});					
+		window.addItem(aqLink);
 	}
 
 	private void showAddPostDialog(PostCallBackType type, String data)

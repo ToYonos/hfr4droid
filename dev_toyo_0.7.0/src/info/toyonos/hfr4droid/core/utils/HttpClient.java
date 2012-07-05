@@ -19,7 +19,7 @@ public abstract class HttpClient<T>
 	 * @throws IOException Si un problème intervient durant la requête
 	 * @throws URISyntaxException Si l'url est foireuse
 	 */
-	public T getResponse(String url) throws IOException, URISyntaxException
+	public T getResponse(String url) throws IOException, URISyntaxException, TransformStreamException
 	{
 		DefaultHttpClient client = new DefaultHttpClient();
 		InputStream data = null;
@@ -37,10 +37,6 @@ public abstract class HttpClient<T>
 				data = entity.getContent();
 				result = transformStream(data);
 			}
-			catch (IOException e)
-			{
-				throw e;
-			}
 			catch (RuntimeException e)
 			{
 				method.abort();
@@ -55,5 +51,5 @@ public abstract class HttpClient<T>
 		return result;
 	}
 	
-	protected abstract T transformStream(InputStream is) throws IOException;		
+	protected abstract T transformStream(InputStream is) throws TransformStreamException;
 }

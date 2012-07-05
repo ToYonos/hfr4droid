@@ -43,6 +43,7 @@ public class HFRMessageSender
 	private static final String UNREAD_URI = "http://forum.hardware.fr/user/nonlu.php?config=hfr.inc&cat={$cat}&post={$topic}";
 	private static final String UNFLAG_URI = "http://forum.hardware.fr/modo/manageaction.php?config=hfr.inc&cat={$cat}&type_page=forum1&moderation=0";
 	private static final String DELETE_MP_URI = "http://forum.hardware.fr/modo/manageaction.php?config=hfr.inc&cat={$cat}&type_page=forum1&moderation=0";
+	private static final String AQ_URI = "http://alerte-qualitay.toyonos.info/api/addAlerte.php5";
 
 	/**
 	 * Les codes des réponses
@@ -325,6 +326,74 @@ public class HFRMessageSender
 		return new HFRMessageResponse(
 			response.matches(".*Action effectuée avec succès.*"),
 			HFRDataRetriever.getSingleElement("<div\\s*class=\"hop\">\\s*(.*?)\\s*</div>", response));
+	}
+	
+	/**
+	 * Fait une alerte qualitaÿ sur le post concerné
+	 * @param alertId l'id de l'alerte existante en cas de +1, -1 si nouvelle alerte
+	 * @param alertName le nom de l'alerte si nouvelle alerte
+	 * @param p le post concerné
+	 * @param postUrl son url
+	 * @param comment l'éventuel commentaire
+	 * @return Si l'opération s'est bien passée et le message correspondant
+	 * @throws MessageSenderException
+	 */
+	public HFRMessageResponse alertPost(long alertId, String alertName, Post p, String postUrl, String comment) throws MessageSenderException
+	{
+		List<NameValuePair> params = new ArrayList<NameValuePair>();
+		params.add(new BasicNameValuePair("alerte_qualitay_id", String.valueOf(alertId)));
+		if (alertId == -1)
+		{
+			params.add(new BasicNameValuePair("nom", alertName));
+			params.add(new BasicNameValuePair("topic_id", String.valueOf(p.getTopic().getId())));
+			params.add(new BasicNameValuePair("topic_titre", p.getTopic().getName()));
+		}
+		params.add(new BasicNameValuePair("pseudo", auth.getUser()));
+		params.add(new BasicNameValuePair("post_id", String.valueOf(p.getId())));
+		params.add(new BasicNameValuePair("post_url", postUrl));
+		if (comment != null && !comment.equals("")) params.add(new BasicNameValuePair("commentaire", comment));
+	
+		String response = null;
+		try
+		{
+			response = innerGetResponse(AQ_URI, params);
+		}
+		catch (Exception e)
+		{
+			throw new MessageSenderException(context.getString(R.string.alert_post_failed), e);
+		}
+		
+		int code = -1;
+		try
+		{
+			code = Integer.parseInt(response);
+		}
+		catch (NumberFormatException e){} // Reste en -1 : erreur		
+
+		return new HFRMessageResponse(
+			code == 1,
+			getAQResponseAsString(code));
+	}
+	
+	private String getAQResponseAsString(int code)
+	{
+		switch (code)
+		{
+			case 1:
+				return context.getString(R.string.aq_ok);
+				
+			case -2:
+				return context.getString(R.string.aq_not_found);
+				
+			case -3:
+				return context.getString(R.string.aq_missing_parameter);
+				
+			case -4:
+				return context.getString(R.string.aq_already_report);
+
+			default:
+				return context.getString(R.string.aq_ko);
+		}
 	}
 
 	private String innerGetResponse(String url, List<NameValuePair> params) throws UnsupportedEncodingException, IOException

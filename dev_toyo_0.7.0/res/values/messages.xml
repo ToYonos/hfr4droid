@@ -20,6 +20,7 @@
     <string name="error_dr_bbcode">Une erreur s\'est produite lors de la récupération du BBCode</string>
     <string name="error_dr_keywords">Une erreur s\'est produite lors de la récupération des mots-clés</string>
     <string name="error_dr_profile">Une erreur s\'est produite lors de la récupération du profil</string>
+    <string name="error_dr_aqs">Une erreur s\'est produite lors de la récupération des alertes qualitaÿ du topic</string>
     <string name="error_serializing_cats">Une erreur s\'est produite lors de la mise en cache des catégories</string>
     <string name="error_deserializing_cats">Une erreur s\'est produite lors de la récupération des catégories dans le cache</string>
     <string name="warning_allcats_topicall">Vous ne pouvez pas consulter tous les drapeaux de toutes les catégories. Faites un appui long pour sélectionner un type de drapeau.</string>
@@ -58,6 +59,7 @@
     <string name="edit_loading">Edition du message...</string>
     <string name="delete_loading">Supression du message...</string>
     <string name="delete_failed">Impossible de supprimer ce message !</string>
+    <string name="alert_post_failed">Impossible d\'alerter ce post !</string>
     <string name="post_loading">Validation du message...</string>
     <string name="post_add_failed">Impossible de poster ce message !</string>
     <string name="post_edit_failed">Impossible de modifier ce message !</string>
@@ -90,6 +92,14 @@
     <string name="exif_no_data">Aucune donnée EXIF à afficher !</string>
     <string name="copy_exif_data">Les données EXIF ont été copié dans le presse-papier.</string>
     <string name="page_loading">Page %d en cours de chargement...</string>
+    
+    <!-- Alerte Qualitaÿ -->
+    <string name="aq_ok">Ce post a été signalé avec succès.</string>
+    <string name="aq_not_found">L\'alerte spécifiée est inexistante !</string>
+    <string name="aq_missing_parameter">Un ou plusieurs paramètres d\'appel sont manquants !</string>
+    <string name="aq_already_report">Vous avez déjà signalé cette qualitaÿ !</string>
+    <string name="aq_ko">Une erreur imprévue est survenue durant la signalisation de ce post !</string>
+    
     
     <!-- LOG INFO -->
     <string name="set_posts_as_read_ok">La page %d a été marquée comme lu avec succès</string>

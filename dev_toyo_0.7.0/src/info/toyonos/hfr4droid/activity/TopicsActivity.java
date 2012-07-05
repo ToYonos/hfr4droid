@@ -515,7 +515,7 @@ public class TopicsActivity extends HFR4droidMultiListActivity<ArrayAdapter<Topi
 					return true;
 
 				case R.id.MenuNavSubCats :
-					openContextMenu(getView().findViewById(R.id.CatTitle));
+					openContextMenu(findViewById(R.id.CatTitle));
 					return true;
 					
 				default:

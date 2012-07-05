@@ -1,5 +1,6 @@
 package info.toyonos.hfr4droid.core.data;
 
+import info.toyonos.hfr4droid.core.bean.AlertQualitay;
 import info.toyonos.hfr4droid.core.bean.Category;
 import info.toyonos.hfr4droid.core.bean.Post;
 import info.toyonos.hfr4droid.core.bean.Profile;
@@ -201,4 +202,12 @@ public interface MDDataRetriever
 	 * @throws DataRetrieverException
 	 */
 	public String getRealUrl(String url) throws DataRetrieverException;
+	
+	/**
+	 * Récupère les alertes qualitaÿ d'un topic donné
+	 * @param topic Le topic concerné
+	 * @return  Une <code>List</code> d'<code>AlertQualitay</code>
+	 * @throws DataRetrieverException
+	 */
+	public List<AlertQualitay> getAlertsByTopic(Topic topic) throws DataRetrieverException;
 }

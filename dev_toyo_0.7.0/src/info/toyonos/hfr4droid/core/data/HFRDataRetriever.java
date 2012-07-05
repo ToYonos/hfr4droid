@@ -3,6 +3,7 @@ package info.toyonos.hfr4droid.core.data;
 import info.toyonos.hfr4droid.HFR4droidApplication;
 import info.toyonos.hfr4droid.R;
 import info.toyonos.hfr4droid.core.auth.HFRAuthentication;
+import info.toyonos.hfr4droid.core.bean.AlertQualitay;
 import info.toyonos.hfr4droid.core.bean.Category;
 import info.toyonos.hfr4droid.core.bean.Post;
 import info.toyonos.hfr4droid.core.bean.PostFromSearch;
@@ -13,6 +14,8 @@ import info.toyonos.hfr4droid.core.bean.SubCategory;
 import info.toyonos.hfr4droid.core.bean.Topic;
 import info.toyonos.hfr4droid.core.bean.Topic.TopicStatus;
 import info.toyonos.hfr4droid.core.bean.Topic.TopicType;
+import info.toyonos.hfr4droid.core.utils.HttpClient;
+import info.toyonos.hfr4droid.core.utils.TransformStreamException;
 import info.toyonos.hfr4droid.service.MpNotifyService;
 
 import java.io.BufferedReader;
@@ -42,6 +45,9 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.zip.GZIPInputStream;
 
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+
 import org.apache.http.Header;
 import org.apache.http.HeaderElement;
 import org.apache.http.HttpEntity;
@@ -63,6 +69,11 @@ import org.apache.http.params.BasicHttpParams;
 import org.apache.http.params.HttpParams;
 import org.apache.http.protocol.BasicHttpContext;
 import org.apache.http.protocol.HttpContext;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.NamedNodeMap;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
 
 import android.content.Intent;
 import android.text.Html;
@@ -97,6 +108,8 @@ public class HFRDataRetriever implements MDDataRetriever
 	public static final String PROFILE_URL		= BASE_URL + "/profilebdd.php?config=hfr.inc&pseudo={$pseudo}";
 
 	public static final String IMG_PERSO_URL	= IMG_URL + "/images/perso/";
+	
+	public static final String AQ_BY_TOPIC_URL	= "http://alerte-qualitay.toyonos.info/api/getAlertesByTopic.php5?topic_id={$topic}";
 	
 	public static final String MAINTENANCE 		= "Serveur en cours de maintenance. <br /><br />Veuillez nous excuser pour la gène occasionnée";
 	public static final String TOPIC_DELETED	= "Désolé, ce sujet n'existe pas";
@@ -930,6 +943,63 @@ public class HFRDataRetriever implements MDDataRetriever
 		}
 
 		return profile;
+	}
+	
+	/**
+	 * {@inheritDoc}
+	 */
+	public List<AlertQualitay> getAlertsByTopic(Topic topic) throws DataRetrieverException
+	{
+		ArrayList<AlertQualitay> alerts = new ArrayList<AlertQualitay>();
+		String url = AQ_BY_TOPIC_URL.replaceFirst("\\{\\$topic\\}", String.valueOf(topic.getId()));
+		HttpClient<Document> client = new HttpClient<Document>()
+		{		
+			@Override
+			protected Document transformStream(InputStream is) throws TransformStreamException
+			{
+				try
+				{
+					DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+					DocumentBuilder builder = factory.newDocumentBuilder();
+					return builder.parse(is);
+				}
+				catch (Exception e)
+				{
+					throw new TransformStreamException(e);
+				}
+			}
+		};
+		
+		try
+		{
+			Document dom = client.getResponse(url);
+			Element root = dom.getDocumentElement();
+			NodeList items = root.getElementsByTagName("alerte");
+			for (int i = 0; i < items.getLength(); i++)
+			{
+				Node item = items.item(i);
+				NamedNodeMap atts = item.getAttributes();
+				SimpleDateFormat sdf = new SimpleDateFormat("dd-MM-yyyy");
+				
+				String[] postsIdsStr = atts.getNamedItem("postsIds").getNodeValue().split(",");
+				long[] postsIds = new long[postsIdsStr.length];
+				for (int j = 0; j < postsIdsStr.length; j++) postsIds[j] = Long.parseLong(postsIdsStr[j]); 
+
+				AlertQualitay alert = new AlertQualitay(
+					Long.parseLong(atts.getNamedItem("id").getNodeValue()),
+					atts.getNamedItem("nom").getNodeValue(),
+					atts.getNamedItem("pseudoInitiateur").getNodeValue(),
+					sdf.parse(atts.getNamedItem("date").getNodeValue()),
+					postsIds);
+				alerts.add(alert);	
+			}
+		}
+		catch (Exception e)
+		{
+			throw new DataRetrieverException(context.getString(R.string.error_dr_aqs), e);
+		}
+
+		return alerts;
 	}
 	
 	/**
