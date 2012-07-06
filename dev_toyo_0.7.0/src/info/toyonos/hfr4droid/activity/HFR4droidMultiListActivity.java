@@ -46,12 +46,12 @@ public abstract class HFR4droidMultiListActivity<DS> extends HFR4droidActivity
 
 	protected DS getDatasource()
 	{
-		return dataSources[getCurrentIndex()];
+		return dataSources == null ? null : dataSources[getCurrentIndex()];
 	}
 	
 	protected DS getDatasource(int index)
 	{
-		return dataSources[index];
+		return dataSources == null ? null : dataSources[index];
 	}
 	
 	protected DS setDatasource(DS dataSource)

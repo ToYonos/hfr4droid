@@ -1,5 +1,6 @@
 package info.toyonos.hfr4droid.core.bean;
 
+import java.text.SimpleDateFormat;
 import java.util.Date;
 
 /**
@@ -14,9 +15,9 @@ public class AlertQualitay
 	private String name;
 	private String initiator;
 	private Date date;
-	private long[] postIds;
+	private Long[] postIds;
 
-	public AlertQualitay(long alertQualitayId, String name, String initiator, Date date, long[] postIds)
+	public AlertQualitay(long alertQualitayId, String name, String initiator, Date date, Long[] postIds)
 	{
 		this.alertQualitayId = alertQualitayId;
 		this.name = name;
@@ -65,13 +66,43 @@ public class AlertQualitay
 		this.date = date;
 	}
 
-	public long[] getPostIds()
+	public Long[] getPostIds()
 	{
 		return postIds;
 	}
 
-	public void setPostIds(long[] postIds)
+	public void setPostIds(Long[] postIds)
 	{
 		this.postIds = postIds;
+	}
+
+	@Override
+	public String toString()
+	{
+		StringBuilder content = new StringBuilder("");
+		SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
+		if (date != null)
+		{
+			content.append("[")
+			.append(sdf.format(date))
+			.append("] ");
+		}
+		content.append(name);
+		if (initiator != null)
+		{
+			content.append(" (")
+			.append(initiator)
+			.append(")");
+		}
+		return content.toString();
+	}
+
+	@Override
+	public boolean equals(Object o)
+	{
+		return this != null &&
+		o != null &&
+		o instanceof AlertQualitay &&
+		this.alertQualitayId == ((AlertQualitay) o).getAlertQualitayId();
 	}
 }

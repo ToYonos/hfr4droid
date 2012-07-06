@@ -982,7 +982,7 @@ public class HFRDataRetriever implements MDDataRetriever
 				SimpleDateFormat sdf = new SimpleDateFormat("dd-MM-yyyy");
 				
 				String[] postsIdsStr = atts.getNamedItem("postsIds").getNodeValue().split(",");
-				long[] postsIds = new long[postsIdsStr.length];
+				Long[] postsIds = new Long[postsIdsStr.length];
 				for (int j = 0; j < postsIdsStr.length; j++) postsIds[j] = Long.parseLong(postsIdsStr[j]); 
 
 				AlertQualitay alert = new AlertQualitay(

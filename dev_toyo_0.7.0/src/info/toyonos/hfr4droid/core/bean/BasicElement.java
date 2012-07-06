@@ -65,7 +65,7 @@ public class BasicElement implements Serializable
 	@Override
 	public String toString()
 	{
-		return name != null ? Html.fromHtml(name).toString() : null;
+		return name != null ? Html.fromHtml(name).toString() : "[undefined]";
 	}
 
 	@Override

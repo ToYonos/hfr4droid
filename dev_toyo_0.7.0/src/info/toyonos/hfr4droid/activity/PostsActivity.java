@@ -41,6 +41,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Collections;
 import java.util.Date;
@@ -111,6 +112,7 @@ import android.webkit.WebChromeClient;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebView.HitTestResult;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.FrameLayout;
@@ -134,8 +136,6 @@ import com.naholyr.android.ui.QuickActionWindow.Item;
  * @author ToYonos
  *
  */
-
-// TODO gérer la recherche
 
 @SuppressWarnings("deprecation")
 public class PostsActivity extends HFR4droidMultiListActivity<List<Post>>
@@ -180,7 +180,6 @@ public class PostsActivity extends HFR4droidMultiListActivity<List<Post>>
 	private long postId;
 
 	protected Map<Long, String> quotes;
-	protected boolean lockQuickAction;
 
 	protected DrawableDisplayType currentAvatarsDisplayType = null;
 	protected DrawableDisplayType currentSmileysDisplayType = null;
@@ -197,7 +196,7 @@ public class PostsActivity extends HFR4droidMultiListActivity<List<Post>>
 	private AsyncTask<String, Void, Profile> profileTask = null;
 	private Timer timerOnPause = null;
 	
-	private List<AlertQualitay> alertsQualitaÿ = null;
+	private List<AlertQualitay> alertsQualitay = null;
 	
 	private final HttpClient<Bitmap> imgBitmapHttpClient = new HttpClient<Bitmap>()
 	{		
@@ -245,7 +244,6 @@ public class PostsActivity extends HFR4droidMultiListActivity<List<Post>>
 		currentScrollY = -1;
 		postDialog = null;
 		quotes = Collections.synchronizedMap(new HashMap<Long, String>());
-		lockQuickAction = true;
 		uiHelper = getNewPostUIHelper();
 
 		currentAvatarsDisplayType = getAvatarsDisplayType();
@@ -1235,7 +1233,7 @@ public class PostsActivity extends HFR4droidMultiListActivity<List<Post>>
 			@SuppressWarnings("unused")
 			public void openQuickActionWindow(final long postId, final boolean isMine, final int yOffset)
 			{
-				if (yOffset >= 0 && !lockQuickAction)
+				if (yOffset >= 0)
 				{
 					runOnUiThread(new Runnable()
 					{
@@ -1796,39 +1794,14 @@ public class PostsActivity extends HFR4droidMultiListActivity<List<Post>>
 			final ProgressBar progressBar = (ProgressBar) findViewById(R.id.PostsProgressBar);
 			progressBar.setVisibility(View.VISIBLE);
 			webView.setWebChromeClient(new WebChromeClient()
-			{
-				private boolean isViewSet = false;
-				
+			{				
 				public void onProgressChanged(WebView view, int progress)
 				{
 					progressBar.setProgress(progress);
-					if (progress > 15 && !isViewSet)
-					{
-						setView(webView);
-						isViewSet = true;
-					}
 					if (progress == 100)
 					{
 						if (currentQAwindow != null) currentQAwindow.dismiss();
-						Timer timer = new Timer();
-						timer.schedule(new TimerTask()
-						{
-							public void run()
-							{
-								runOnUiThread(new Runnable()
-								{
-									public void run()
-									{
-										if (currentScrollY != -1)
-										{
-											getWebView().scrollTo(0, currentScrollY);
-											currentScrollY = -1;
-										}
-									}
-								});
-							}
-						}, 500);
-						lockQuickAction = false;
+						scrollToLastPos();
 						Animation anim = AnimationUtils.loadAnimation(PostsActivity.this, R.anim.hide_progress_bar);
 						anim.setAnimationListener(new AnimationListener()
 						{
@@ -1852,36 +1825,38 @@ public class PostsActivity extends HFR4droidMultiListActivity<List<Post>>
 			{				
 				public void onProgressChanged(WebView view, int progress)
 				{
-					if (progress == 100)
-					{
-						Timer timer = new Timer();
-						timer.schedule(new TimerTask()
-						{
-							public void run()
-							{
-								runOnUiThread(new Runnable()
-								{
-									public void run()
-									{
-										if (currentScrollY != -1)
-										{
-											getWebView().scrollTo(0, currentScrollY);
-											currentScrollY = -1;
-										}
-									}
-								});
-							}
-						}, 500);
-					}
+					if (progress == 100) scrollToLastPos();
 				}
 			});
 		}
 		
-		if (!preloading && getWebView() != null) getWebView().setVisibility(View.GONE);
+		if (!preloading) setView(webView);
 		webView.loadDataWithBaseURL(getDataRetriever().getBaseUrl(), "<html><head>" + js.toString() + css.toString() + js2.toString() + "</head><body>" + postsContent.toString() + "</body></html>", "text/html", "UTF-8", null);
 		updateButtonsStates();
 
 		return webView;
+	}
+	
+	private void scrollToLastPos()
+	{
+		Timer timer = new Timer();
+		timer.schedule(new TimerTask()
+		{
+			public void run()
+			{
+				runOnUiThread(new Runnable()
+				{
+					public void run()
+					{
+						if (currentScrollY != -1)
+						{
+							getWebView().scrollTo(0, currentScrollY);
+							currentScrollY = -1;
+						}
+					}
+				});
+			}
+		}, 500);
 	}
 	
 	private String getPostUrl(long postId)
@@ -2095,42 +2070,43 @@ public class PostsActivity extends HFR4droidMultiListActivity<List<Post>>
 		{
 			private void showAlerts()
 			{
-				if (alertsQualitaÿ != null && alertsQualitaÿ.size() > 0)
+				if (alertsQualitay != null && alertsQualitay.size() > 0)
 				{
-					final CharSequence[] itemsId = new String[alertsQualitaÿ.size() + 1];
-					final CharSequence[] itemsLabel = new String[alertsQualitaÿ.size() + 1];
-					itemsId[0] = "-1";
-					itemsLabel[0] = "-- Nouvelle alerte --";
-					for (int i = 0; i < alertsQualitaÿ.size(); i++)
-					{
-						AlertQualitay alert = alertsQualitaÿ.get(i);
-						StringBuilder content = new StringBuilder("[");
-						SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
-						content.append(sdf.format(alert.getDate()))
-						.append("] ")
-						.append(alert.getName())
-						.append(" (")
-						.append(alert.getInitiator())
-						.append(")");
-						itemsId[i+1] = String.valueOf(alert.getAlertQualitayId());
-						itemsLabel[i+1] = content.toString();
-					}
+					/*Spinner spinner = new Spinner(PostsActivity.this);
+					ArrayAdapter<AlertQualitay> adapter = new ArrayAdapter<AlertQualitay>(PostsActivity.this, android.R.layout.simple_spinner_item, alertsQualitay);
+					adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+					spinner.setAdapter(adapter);*/
 					
+					final List<AlertQualitay> alerts = new ArrayList<AlertQualitay>(alertsQualitay);
+					alerts.add(0, new AlertQualitay(-1, "-- Nouvelle alerte --", null, null, new Long[0]));
+					ArrayAdapter<AlertQualitay> adapter = new ArrayAdapter<AlertQualitay>(PostsActivity.this, R.layout.select_dialog_singlechoice, alerts);
+
+					int preselectedAlert = 0;
+					for (AlertQualitay alert : alerts)
+					{
+						if (Arrays.asList(alert.getPostIds()).indexOf(currentPostId) != -1)
+						{
+							preselectedAlert = alerts.indexOf(alert);
+						}
+					}
 					new AlertDialog.Builder(PostsActivity.this)
 					.setTitle("test")
-					.setItems(itemsLabel, new DialogInterface.OnClickListener()
+					.setSingleChoiceItems(adapter, preselectedAlert, new DialogInterface.OnClickListener()
 					{
-				        public void onClick(DialogInterface dialog, int item)
-				        {
-				            Toast.makeText(getApplicationContext(), itemsId[item] + " / " +  itemsLabel[item], Toast.LENGTH_LONG).show();
-				        }
-				    }).show();
+						public void onClick(DialogInterface dialog, int which)
+						{
+							dialog.dismiss();
+							AlertQualitay selectedAlert = alerts.get(which);
+							System.out.println(selectedAlert);
+						}
+					})
+					.show();
 				}
 			}
 			
 			public void onClick(QuickActionWindow window, Item item, View anchor)
 			{
-				if (alertsQualitaÿ == null)
+				if (alertsQualitay == null)
 				{
 					final ProgressDialog progressDialog = new ProgressDialog(PostsActivity.this);
 					progressDialog.setMessage("Récupérations des alertes qualitaÿ du topic");
@@ -2171,8 +2147,8 @@ public class PostsActivity extends HFR4droidMultiListActivity<List<Post>>
 							progressDialog.dismiss();
 							if (alerts != null)
 							{
-								alertsQualitaÿ = new ArrayList<AlertQualitay>();
-								alertsQualitaÿ.addAll(alerts);
+								alertsQualitay = new ArrayList<AlertQualitay>();
+								alertsQualitay.addAll(alerts);
 								showAlerts();
 							}
 						}

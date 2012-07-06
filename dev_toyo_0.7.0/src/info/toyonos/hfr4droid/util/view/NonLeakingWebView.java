@@ -43,11 +43,14 @@ public class NonLeakingWebView extends WebView {
 
         @Override
         public boolean shouldOverrideUrlLoading(WebView view, String url) {
-            try {
+            try
+            {
                 final Activity activity = activityRef.get();
                 if( activity!=null )
                     activity.startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(url)));
-            }catch( RuntimeException ignored ) {
+            }
+            catch(RuntimeException ignored)
+            {
                 // ignore any url parsing exceptions
             }
             return true;
