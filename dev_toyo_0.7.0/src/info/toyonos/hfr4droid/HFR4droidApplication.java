@@ -9,13 +9,16 @@ import info.toyonos.hfr4droid.core.data.MDDataRetriever;
 import info.toyonos.hfr4droid.core.message.HFRMessageSender;
 
 import java.io.File;
+import java.io.FileFilter;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.regex.Pattern;
 
 import android.app.Application;
 import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
+import android.util.Log;
 
 /**
  * <p>Classe représentant l'application HFR4droid. Permet de centraliser les instances 
@@ -34,6 +37,7 @@ public class HFR4droidApplication extends Application
 	public static final String PREF_SIGNATURE_ENABLE		= "PrefSignatureEnable";
 	public static final String PREF_DBLTAP_ENABLE			= "PrefDblTapEnable";
 	public static final String PREF_COMPRESS_GZIP			= "PrefCompressGzip";
+	public static final String PREF_OVERRIDE_LIGHT_MODE		= "PrefOverrideLightMode";
 	public static final String PREF_FULLSCREEN_ENABLE		= "PrefFullscreenEnable";
 	public static final String PREF_THEME					= "PrefTheme";
 	public static final String PREF_POLICE_SIZE				= "PrefPoliceSize";
@@ -49,6 +53,7 @@ public class HFR4droidApplication extends Application
 	private HFRAuthentication auth;
 	private HFRMessageSender msgSender;
 	private Map<String, Profile> profiles;
+	private boolean isMonoCore;
 
 	@Override
 	public void onCreate()
@@ -57,6 +62,7 @@ public class HFR4droidApplication extends Application
 		dataRetriever = new HFRDataRetriever(this);
 		if (new File(HFRAuthentication.OLD_COOKIES_FILE_NAME).exists()) new File(HFRAuthentication.OLD_COOKIES_FILE_NAME).delete();
 		profiles = new HashMap<String, Profile>();
+		isMonoCore = getNumCores() == 1;
 	}
 
 	public MDDataRetriever getDataRetriever()
@@ -178,6 +184,12 @@ public class HFR4droidApplication extends Application
 		return settings.getBoolean(PREF_COMPRESS_GZIP, Boolean.parseBoolean(getString(R.string.pref_compress_gzip_enable_default)));
 	}
 	
+	public boolean isOverrideLightModeEnable()
+	{
+		SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(this);
+		return settings.getBoolean(PREF_OVERRIDE_LIGHT_MODE, Boolean.parseBoolean(getString(R.string.pref_override_light_mode_enable_default)));
+	}
+	
 	public boolean isFullscreenEnable()
 	{
 		SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(this);
@@ -221,5 +233,45 @@ public class HFR4droidApplication extends Application
 	{
 		SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(this);
 		return settings.getBoolean(PREF_SRV_MPS_ENABLE, Boolean.parseBoolean(getString(R.string.pref_srv_mps_enable_default)));
+	}
+	
+	public boolean isLightMode()
+	{
+		return isMonoCore && !isOverrideLightModeEnable();
+	}
+	
+	/**
+	 * Gets the number of cores available in this device, across all processors.
+	 * Requires: Ability to peruse the filesystem at "/sys/devices/system/cpu"
+	 * @return The number of cores, or 1 if failed to get result
+	 * @see http://stackoverflow.com/questions/7962155/how-can-you-detect-a-dual-core-cpu-on-an-android-device-from-code
+	 */
+	private int getNumCores()
+	{
+	    //Private Class to display only CPU devices in the directory listing
+	    class CpuFilter implements FileFilter
+	    {
+	        public boolean accept(File pathname)
+	        {
+	            //Check if filename is "cpu", followed by a single digit number
+	            return Pattern.matches("cpu[0-9]", pathname.getName());
+	        }      
+	    }
+
+	    try
+	    {
+	        //Get directory containing CPU info
+	        File dir = new File("/sys/devices/system/cpu/");
+	        //Filter to only list the devices we care about
+	        File[] files = dir.listFiles(new CpuFilter());
+	        //Return the number of cores (virtual CPU devices)
+	        return files.length;
+	    }
+	    catch(Exception e)
+	    {
+	        //Default to return 1 core
+	    	Log.e(TAG, e.getMessage(), e);
+	        return 1;
+	    }
 	}
 }

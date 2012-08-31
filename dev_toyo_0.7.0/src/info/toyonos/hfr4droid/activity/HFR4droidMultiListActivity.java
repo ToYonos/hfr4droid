@@ -74,6 +74,11 @@ public abstract class HFR4droidMultiListActivity<DS> extends HFR4droidActivity
 		return  views == null ? null : views[index];
 	}
 	
+	protected void setView(int index, View view)
+	{
+		views[index] = view;
+	}
+	
 	protected void setView(View view)
 	{
 		View oldView = views[getCurrentIndex()];
@@ -151,19 +156,34 @@ public abstract class HFR4droidMultiListActivity<DS> extends HFR4droidActivity
 		space.removeAllViews();
 	}
 	
+	protected void removeView(int index)
+	{
+		if (views != null)
+		{
+			destroyView(views[index]);
+			views[index] = null;
+			space.removeViewAt(index);
+		}
+	}
+	
 	protected void restoreViews()
 	{
 		views = new View[3];
 		for (int i = 0; i < 3; i++)
 		{
-			if (dataSources[i] != null)
-			{
-				View v = buildView(dataSources[i]);
-				views[i] = v;
-				space.addView(v, i);
-			}
+			restoreView(i);
 		}
 		space.setToScreen(space.getCurrentScreen());
+	}
+	
+	protected void restoreView(int index)
+	{
+		if (dataSources[index] != null)
+		{
+			View v = buildView(dataSources[index]);
+			views[index] = v;
+			space.addView(v, index);
+		}
 	}
 	
 	abstract public View buildView(DS datasource);

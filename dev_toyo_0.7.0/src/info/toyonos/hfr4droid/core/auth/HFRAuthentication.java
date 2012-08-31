@@ -1,6 +1,8 @@
 package info.toyonos.hfr4droid.core.auth;
 
+import info.toyonos.hfr4droid.HFR4droidApplication;
 import info.toyonos.hfr4droid.R;
+import info.toyonos.hfr4droid.core.utils.HttpClientHelper;
 
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -43,7 +45,7 @@ import android.content.Context;
  */
 public class HFRAuthentication
 {
-	private Context context;
+	private HFR4droidApplication context;
 	private String userName = null;
 	private String userPassword = null;
 	private String passHash = null;
@@ -65,7 +67,7 @@ public class HFRAuthentication
 	 * 			Le mot de passe
 	 * 
 	 */
-	public HFRAuthentication(Context context, String user, String password) throws AuthenticationException
+	public HFRAuthentication(HFR4droidApplication context, String user, String password) throws AuthenticationException
 	{
 		this.context = context;
 		userName = user;
@@ -82,7 +84,7 @@ public class HFRAuthentication
 		}
 	}
 
-	public HFRAuthentication(Context context) throws AuthenticationException
+	public HFRAuthentication(HFR4droidApplication context) throws AuthenticationException
 	{        
 		this.context = context;
 		
@@ -149,7 +151,7 @@ public class HFRAuthentication
 		CookieStore cs = null;
 		HttpPost post = new HttpPost(AUTH_FORM_URL);
 		post.setHeader("User-Agent", "Mozilla /4.0 (compatible; MSIE 6.0; Windows CE; IEMobile 7.6) Vodafone/1.0/SFR_v1615/1.56.163.8.39");
-		DefaultHttpClient client = new DefaultHttpClient();
+		DefaultHttpClient client = HttpClientHelper.getHttpClient(context);
 		HttpProtocolParams.setUseExpectContinue(client.getParams(), false);
 		List<NameValuePair> params = new ArrayList<NameValuePair>();
 		params.add(new BasicNameValuePair("pseudo", userName));
@@ -163,8 +165,6 @@ public class HFRAuthentication
 			cs = client.getCookieStore();
 			serializeCookies(cs);
 		}
-
-		client.getConnectionManager().shutdown();
 
 		return cs;
 	}

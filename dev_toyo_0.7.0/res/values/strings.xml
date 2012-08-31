@@ -113,6 +113,17 @@
 	<string name="search_posts_word_hint">Mot</string>
 	<string name="search_posts_pseudo_hint">Pseudo</string>
 	
+	<string name="aq_name_hint">Nom de l\'alerte</string>
+	<string name="aq_comment_hint">Commentaire (facultatif)</string>
+	<string name="aq_new">-- Nouvelle alerte --</string>
+	<string name="aq_new_title">Nouvelle alerte qualitaÿ</string>
+	<string name="aq_sent">Envoyer</string>
+	<string name="aq_sent_loading">Envoi de l\'alerte...</string>
+	<string name="aq_list_title">Alertes du topic</string>
+	
+	<string name="pref_warning">Attention !</string>
+	<string name="pref_override_light_mode_message">Activer cette option peut ralentir considérablement l\'application sur un appareil mono CPU. Elle n\'a aucun effet si vous possédez au moins un dual core.</string>
+	
 	<string name="error_splash_title">Une erreur est survenue</string>
 	<string name="error_splash_retry">Réessayer</string>
 	<string name="error_splash_cancel">Quitter</string>

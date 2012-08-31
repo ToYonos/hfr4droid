@@ -15,6 +15,7 @@ import info.toyonos.hfr4droid.core.bean.Topic;
 import info.toyonos.hfr4droid.core.bean.Topic.TopicStatus;
 import info.toyonos.hfr4droid.core.bean.Topic.TopicType;
 import info.toyonos.hfr4droid.core.utils.HttpClient;
+import info.toyonos.hfr4droid.core.utils.HttpClientHelper;
 import info.toyonos.hfr4droid.core.utils.TransformStreamException;
 import info.toyonos.hfr4droid.service.MpNotifyService;
 
@@ -43,25 +44,17 @@ import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.zip.GZIPInputStream;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 
-import org.apache.http.Header;
-import org.apache.http.HeaderElement;
 import org.apache.http.HttpEntity;
-import org.apache.http.HttpException;
-import org.apache.http.HttpRequest;
-import org.apache.http.HttpRequestInterceptor;
 import org.apache.http.HttpResponse;
-import org.apache.http.HttpResponseInterceptor;
 import org.apache.http.client.CookieStore;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpHead;
 import org.apache.http.client.params.HttpClientParams;
 import org.apache.http.client.protocol.ClientContext;
-import org.apache.http.entity.HttpEntityWrapper;
 import org.apache.http.impl.client.BasicCookieStore;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.impl.cookie.BasicClientCookie;
@@ -119,6 +112,9 @@ public class HFRDataRetriever implements MDDataRetriever
 	
 	private HFR4droidApplication context;
 	private HFRAuthentication auth;
+	
+	DefaultHttpClient client;
+	
 	private String hashCheck;
 	private Map<Category, List<SubCategory>> cats;
 	private CookieStore fakeCs = null;
@@ -137,6 +133,8 @@ public class HFRDataRetriever implements MDDataRetriever
 	{
 		this.context = context;
 		this.auth = auth;
+		this.client = HttpClientHelper.getHttpClient(context);
+		
 		hashCheck = null;
 		cats = null;
 		if (clearCache) clearCache();
@@ -491,8 +489,6 @@ public class HFRDataRetriever implements MDDataRetriever
 		.replaceFirst("\\{\\$page\\}", String.valueOf(pageNumber));
 		
 		Log.d(HFR4droidApplication.TAG, "Retrieving " + url);
-		DefaultHttpClient client = new DefaultHttpClient();
-
 		try
 		{
 			URI uri = new URI(url);
@@ -511,10 +507,6 @@ public class HFRDataRetriever implements MDDataRetriever
 		catch (Exception e)
 		{
 			throw new DataRetrieverException(context.getString(R.string.error_dr_topics), e);
-		}
-		finally
-		{
-			client.getConnectionManager().shutdown();
 		}
 	}
 
@@ -1007,7 +999,6 @@ public class HFRDataRetriever implements MDDataRetriever
 	 */
 	public String getRealUrl(String url) throws DataRetrieverException
 	{
-		DefaultHttpClient client = new DefaultHttpClient();
 		try
 		{
 			URI uri = new URI(url);
@@ -1032,10 +1023,6 @@ public class HFRDataRetriever implements MDDataRetriever
 		catch (Exception e)
 		{
 			throw new DataRetrieverException(e.getMessage(), e);
-		}
-		finally
-		{
-			client.getConnectionManager().shutdown();
 		}
 	}
 
@@ -1065,45 +1052,6 @@ public class HFRDataRetriever implements MDDataRetriever
 	private String getAsString(String url, boolean cr, boolean useFakeAccount) throws IOException, URISyntaxException, ServerMaintenanceException, NoSuchTopicException
 	{
 		Log.d(HFR4droidApplication.TAG, "Retrieving " + url);
-		DefaultHttpClient client = new DefaultHttpClient();
-		
-		// @see http://stackoverflow.com/a/6797742
-		if(context.isCompressGzipEnable())
-		{
-			Log.d(HFR4droidApplication.TAG, "GZIP compression is enable");
-			
-			client.addRequestInterceptor(new HttpRequestInterceptor()
-			{
-				public void process(final HttpRequest request, final HttpContext context) throws HttpException, IOException
-				{
-					if (!request.containsHeader("Accept-Encoding"))
-					{
-						request.addHeader("Accept-Encoding", "gzip");
-					}
-				}
-			});
-
-			client.addResponseInterceptor(new HttpResponseInterceptor()
-			{
-				public void process(final HttpResponse response, final HttpContext context) throws HttpException, IOException
-				{
-					HttpEntity entity = response.getEntity();
-					Header contentEncodingHeader = entity.getContentEncoding();
-					if(contentEncodingHeader != null)
-					{
-						HeaderElement[] compressors = contentEncodingHeader.getElements();
-						for (int idx = 0; idx < compressors.length; idx++)
-						{
-							if (compressors[idx].getName().equalsIgnoreCase("gzip"))
-							{
-								response.setEntity(new GzipDecompressingEntity(response.getEntity()));
-								return;
-							}
-						}
-					}
-				}
-			});
-		}
 
 		InputStream data = null;
 		URI uri = new URI(url);
@@ -1143,7 +1091,6 @@ public class HFRDataRetriever implements MDDataRetriever
 			finally
 			{
 				if (entity != null) entity.consumeContent();
-				client.getConnectionManager().shutdown();	
 			}
 		}
 
@@ -1257,30 +1204,5 @@ public class HFRDataRetriever implements MDDataRetriever
 		File f = new File(context.getCacheDir(), CATS_CACHE_FILE_NAME);
 		f.delete();
 		Log.d(HFR4droidApplication.TAG, "Destroying categories");
-	}
-	
-	/**
-	 * Décompression GZIP de l'input stream.
-	 * @see http://stackoverflow.com/a/6797742
-	 */
-	private class GzipDecompressingEntity extends HttpEntityWrapper
-	{
-		public GzipDecompressingEntity(final HttpEntity entity)
-		{
-			super(entity);
-		}
-
-		@Override
-		public InputStream getContent()	throws IOException, IllegalStateException
-		{
-			InputStream wrappedin = wrappedEntity.getContent();
-			return new GZIPInputStream(wrappedin);
-		}
-
-		@Override
-		public long getContentLength()
-		{
-			return -1;
-		}
 	}
 }

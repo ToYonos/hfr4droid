@@ -6,8 +6,6 @@ import info.toyonos.hfr4droid.activity.HFR4droidMultiListActivity;
 
 import java.util.List;
 
-import android.content.Context;
-import android.os.Vibrator;
 import android.util.Log;
 import android.view.View;
 
@@ -24,6 +22,7 @@ public abstract class PreLoadingAsyncTask<E, P, DS> extends DataRetrieverAsyncTa
 	public PreLoadingAsyncTask(HFR4droidMultiListActivity<DS> context, PreLoadingAsyncTask<E, P, DS> task, boolean loadPreviousPage)
 	{
 		super(context);
+		this.task = task;
 		this.loadPreviousPage = loadPreviousPage;
 	}
 
@@ -69,8 +68,8 @@ public abstract class PreLoadingAsyncTask<E, P, DS> extends DataRetrieverAsyncTa
 		}
 
 		Log.i(HFR4droidApplication.TAG, context.getString(R.string.preloading_ok, getPageNumber()));
-		Vibrator v = (Vibrator) context.getSystemService(Context.VIBRATOR_SERVICE);
-		v.vibrate(50);
+		//Vibrator v = (Vibrator) context.getSystemService(Context.VIBRATOR_SERVICE);
+		//v.vibrate(50);
 		
 		// On charge aussi la page n-2, typiquement quand on arrive directement sur une page qui n'est pas la page 1
 		if (loadPreviousPage) loadPreviousPage();

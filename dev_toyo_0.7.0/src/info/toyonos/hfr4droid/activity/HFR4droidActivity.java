@@ -13,6 +13,7 @@ import info.toyonos.hfr4droid.core.bean.Topic.TopicType;
 import info.toyonos.hfr4droid.core.data.DataRetrieverException;
 import info.toyonos.hfr4droid.core.data.MDDataRetriever;
 import info.toyonos.hfr4droid.core.message.HFRMessageSender;
+import info.toyonos.hfr4droid.core.utils.HttpClientHelper;
 import info.toyonos.hfr4droid.service.MpCheckService;
 import info.toyonos.hfr4droid.service.MpTimerCheckService;
 import info.toyonos.hfr4droid.util.asynctask.DataRetrieverAsyncTask;
@@ -238,6 +239,7 @@ public abstract class HFR4droidActivity extends Activity
 	protected void onDestroy()
 	{
 		super.onDestroy();
+		HttpClientHelper.closeExpiredConnections();
 	}
 
 	@Override
@@ -741,7 +743,8 @@ public abstract class HFR4droidActivity extends Activity
 				}
 				setTitle();
 				activity.refreshTopics(topics);
-				((PullToRefreshListView) activity.getListView()).onRefreshComplete();
+				PullToRefreshListView list = ((PullToRefreshListView) activity.getListView());
+				if (list != null) list.onRefreshComplete();
 			}
 
 			@Override
@@ -826,7 +829,7 @@ public abstract class HFR4droidActivity extends Activity
 
 	protected void loadPosts(final Topic topic, int pageNumber, boolean sameActivity)
 	{
-		String progressTitle = topic.toString();
+		String progressTitle = topic.getName() != null ? topic.toString() : null;
 		String progressContent = topic.getNbPages() != -1 ?
 		getString(R.string.getting_posts, pageNumber, topic.getNbPages()) :
 		getString(R.string.getting_posts_simple, pageNumber, topic.getNbPages());

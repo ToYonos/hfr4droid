@@ -1,5 +1,6 @@
 package info.toyonos.hfr4droid.core.message;
 
+import info.toyonos.hfr4droid.HFR4droidApplication;
 import info.toyonos.hfr4droid.R;
 import info.toyonos.hfr4droid.core.auth.HFRAuthentication;
 import info.toyonos.hfr4droid.core.bean.Category;
@@ -7,6 +8,7 @@ import info.toyonos.hfr4droid.core.bean.Post;
 import info.toyonos.hfr4droid.core.bean.Topic;
 import info.toyonos.hfr4droid.core.bean.Topic.TopicType;
 import info.toyonos.hfr4droid.core.data.HFRDataRetriever;
+import info.toyonos.hfr4droid.core.utils.HttpClientHelper;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -20,7 +22,6 @@ import java.util.regex.Pattern;
 
 import org.apache.http.HttpResponse;
 import org.apache.http.NameValuePair;
-import org.apache.http.client.HttpClient;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
@@ -32,7 +33,7 @@ import org.apache.http.protocol.BasicHttpContext;
 import org.apache.http.protocol.HTTP;
 import org.apache.http.protocol.HttpContext;
 
-import android.content.Context;
+import android.util.Log;
 
 public class HFRMessageSender
 {	 
@@ -61,13 +62,16 @@ public class HFRMessageSender
 		POST_KO_EXCEPTION;
 	};
 
-	private Context context;
+	private HFR4droidApplication context;
 	private HFRAuthentication auth;
+	
+	private DefaultHttpClient client;
 
-	public HFRMessageSender(Context context, HFRAuthentication auth)
+	public HFRMessageSender(HFR4droidApplication context, HFRAuthentication auth)
 	{
 		this.context = context;
 		this.auth = auth;
+		this.client = HttpClientHelper.getHttpClient(context);
 	}
 
 	public ResponseCode postMessage(Topic t, String hashCheck, String message, boolean signature) throws MessageSenderException
@@ -398,15 +402,16 @@ public class HFRMessageSender
 
 	private String innerGetResponse(String url, List<NameValuePair> params) throws UnsupportedEncodingException, IOException
 	{
+		Log.d(HFR4droidApplication.TAG, "Posting " + url);
 		HttpContext ctx = new BasicHttpContext();
 		ctx.setAttribute(ClientContext.COOKIE_STORE, auth.getCookies());
-		HttpClient client = new DefaultHttpClient();
 		HttpProtocolParams.setUseExpectContinue(client.getParams(), false);
 		HttpPost post = new HttpPost(url);
 		post.setHeader("User-Agent", "Mozilla /4.0 (compatible; MSIE 6.0; Windows CE; IEMobile 7.6) Vodafone/1.0/SFR_v1615/1.56.163.8.39");
 		post.setEntity(new UrlEncodedFormEntity(params, HTTP.UTF_8));
 		StringBuilder sb = new StringBuilder("");
 		HttpResponse rep = client.execute(post, ctx);
+		Log.d(HFR4droidApplication.TAG, "Status : " + rep.getStatusLine().getStatusCode() + ", " + rep.getStatusLine().getReasonPhrase());
 		InputStream is = rep.getEntity().getContent();
 		BufferedReader reader = new BufferedReader(new InputStreamReader(is));
 		String repHtml = reader.readLine();
@@ -416,20 +421,20 @@ public class HFRMessageSender
 			repHtml = reader.readLine();
 		}
 		rep.getEntity().consumeContent();
-		client.getConnectionManager().shutdown();
 		return sb.toString();		
 	}
 	
 	private String innerGetResponse(String url) throws IOException
 	{
+		Log.d(HFR4droidApplication.TAG, "Posting " + url);
 		HttpContext ctx = new BasicHttpContext();
 		ctx.setAttribute(ClientContext.COOKIE_STORE, auth.getCookies());
-		HttpClient client = new DefaultHttpClient();
 		HttpProtocolParams.setUseExpectContinue(client.getParams(), false);
 		HttpGet get = new HttpGet(url);
 		get.setHeader("User-Agent", "Mozilla /4.0 (compatible; MSIE 6.0; Windows CE; IEMobile 7.6) Vodafone/1.0/SFR_v1615/1.56.163.8.39");
 		StringBuilder sb = new StringBuilder("");
 		HttpResponse rep = client.execute(get, ctx);
+		Log.d(HFR4droidApplication.TAG, "Status : " + rep.getStatusLine().getStatusCode() + ", " + rep.getStatusLine().getReasonPhrase());
 		InputStream is = rep.getEntity().getContent();
 		BufferedReader reader = new BufferedReader(new InputStreamReader(is));
 		String repHtml = reader.readLine();
@@ -439,7 +444,6 @@ public class HFRMessageSender
 			repHtml = reader.readLine();
 		}
 		rep.getEntity().consumeContent();
-		client.getConnectionManager().shutdown();
 		return sb.toString();		
 	}
 

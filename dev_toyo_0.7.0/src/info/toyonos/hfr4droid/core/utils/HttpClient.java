@@ -21,7 +21,7 @@ public abstract class HttpClient<T>
 	 */
 	public T getResponse(String url) throws IOException, URISyntaxException, TransformStreamException
 	{
-		DefaultHttpClient client = new DefaultHttpClient();
+		DefaultHttpClient client = HttpClientHelper.getHttpClient();
 		InputStream data = null;
 		URI uri = new URI(url);
 		HttpGet method = new HttpGet(uri);
@@ -45,7 +45,6 @@ public abstract class HttpClient<T>
 			finally
 			{
 				if (entity != null) entity.consumeContent();
-				client.getConnectionManager().shutdown();	
 			}
 		}
 		return result;

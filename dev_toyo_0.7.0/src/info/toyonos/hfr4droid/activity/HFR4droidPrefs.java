@@ -3,13 +3,15 @@ package info.toyonos.hfr4droid.activity;
 import info.toyonos.hfr4droid.HFR4droidApplication;
 import info.toyonos.hfr4droid.R;
 import info.toyonos.hfr4droid.service.MpTimerCheckService;
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.preference.Preference;
+import android.preference.Preference.OnPreferenceChangeListener;
 import android.preference.PreferenceActivity;
 import android.preference.PreferenceManager;
 import android.preference.PreferenceScreen;
-import android.preference.Preference.OnPreferenceChangeListener;
 import android.view.Window;
 import android.view.WindowManager;
 import android.widget.Toast;
@@ -49,6 +51,26 @@ public class HFR4droidPrefs extends PreferenceActivity
 				preferenceScreen.getSharedPreferences().getBoolean(
 						HFR4droidApplication.PREF_CHECK_MPS_ENABLE,
 						Boolean.parseBoolean(getString(R.string.pref_check_mps_enable_default))));
+		
+		Preference overrideLightModeEnable = findPreference(HFR4droidApplication.PREF_OVERRIDE_LIGHT_MODE);
+		overrideLightModeEnable.setOnPreferenceChangeListener(new OnPreferenceChangeListener()
+		{
+			public boolean onPreferenceChange(Preference preference, Object newValue)
+			{
+				if ((Boolean) newValue)
+				{
+					new AlertDialog.Builder(HFR4droidPrefs.this)
+					.setTitle(R.string.pref_warning)
+					.setMessage(R.string.pref_override_light_mode_message)
+					.setPositiveButton(R.string.button_ok,  new DialogInterface.OnClickListener()
+					{
+						public void onClick(DialogInterface dialog, int which) {}
+					})
+					.show();
+				}
+				return true;
+			}
+		});
 
 		Preference fullscreenEnable = findPreference(HFR4droidApplication.PREF_FULLSCREEN_ENABLE);
 		fullscreenEnable.setOnPreferenceChangeListener(new OnPreferenceChangeListener()

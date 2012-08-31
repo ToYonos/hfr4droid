@@ -43,6 +43,11 @@
 			android:summary="@string/pref_compress_gzip_enable_summary"
 			android:title="@string/pref_compress_gzip_enable_title"
 			android:defaultValue="@string/pref_compress_gzip_enable_default" />
+		<CheckBoxPreference
+			android:key="PrefOverrideLightMode"
+			android:summary="@string/pref_override_light_mode_enable_summary"
+			android:title="@string/pref_override_light_mode_enable_title"
+			android:defaultValue="@string/pref_override_light_mode_enable_default" />			
 	</PreferenceCategory>
 
 	<PreferenceCategory

@@ -1,6 +1,7 @@
 package info.toyonos.hfr4droid.activity;
 
 import info.toyonos.hfr4droid.R;
+import info.toyonos.hfr4droid.core.utils.HttpClientHelper;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -17,9 +18,6 @@ import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.mime.MultipartEntity;
 import org.apache.http.entity.mime.content.ContentBody;
 import org.apache.http.entity.mime.content.FileBody;
-import org.apache.http.impl.client.DefaultHttpClient;
-import org.apache.http.params.BasicHttpParams;
-import org.apache.http.params.HttpParams;
 
 import android.app.Activity;
 import android.app.ProgressDialog;
@@ -243,13 +241,8 @@ public class ImagePicker extends Activity implements Runnable{
 		
 		String imgUrl = null;
 		HttpPost post;
-		
-		HttpParams httpParameters = new BasicHttpParams();		
-		HttpClient httpClient = new DefaultHttpClient(httpParameters);
-		/* Proxy de merde */		
-		//HttpHost proxy = new HttpHost("192.168.3.108", 8080);
-		//httpClient.getParams().setParameter(ConnRoutePNames.DEFAULT_PROXY, proxy);
-		/* -------------- */
+		HttpClient httpClient = HttpClientHelper.getHttpClient();
+
 		try {
 			httpClient.getParams().setParameter("http.socket.timeout", new Integer(90000)); // 90 second
 			post = new HttpPost(new URI(UPLOAD_URL));
@@ -273,8 +266,6 @@ public class ImagePicker extends Activity implements Runnable{
 		} catch (Exception ex) {
 			Log.e(LOG_TAG, "Exception : " + ex.getMessage());
 			ex.printStackTrace();
-		} finally {
-			httpClient.getConnectionManager().shutdown();
 		}
 		return imgUrl;
 	}

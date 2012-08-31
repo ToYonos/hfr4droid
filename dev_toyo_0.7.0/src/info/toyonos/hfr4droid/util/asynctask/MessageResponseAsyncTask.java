@@ -52,7 +52,7 @@ public abstract class MessageResponseAsyncTask extends AsyncTask<Void, Void, HFR
 		}
 		else
 		{
-			Toast.makeText(context, response.getMessage(), Toast.LENGTH_SHORT).show();
+			if (response != null) Toast.makeText(context, response.getMessage(), Toast.LENGTH_SHORT).show();
 		}
 		
 	}

@@ -54,6 +54,7 @@ import java.util.TreeSet;
 
 import org.apache.http.util.ByteArrayBuffer;
 
+import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.app.ProgressDialog;
@@ -153,7 +154,8 @@ public class PostsActivity extends HFR4droidMultiListActivity<List<Post>>
 		DELETE("delete"),
 		MULTIQUOTE_ADD("multiquote_add"),
 		MULTIQUOTE_REMOVE("multiquote_remove"),
-		FAVORITE("favorite");
+		FAVORITE("favorite"),
+		COPY_CONTENT("copy_content");
 
 		private final String key;
 
@@ -305,7 +307,7 @@ public class PostsActivity extends HFR4droidMultiListActivity<List<Post>>
 		// Listener pour le changement de view dans le composant DragableSpace
 		space.setOnScreenChangeListener(new OnScreenChangeListener()
 		{
-			public void onScreenChange(int oldIndex, int newIndex)
+			public void onScreenChange(final int oldIndex, final int newIndex)
 			{
 				if (oldIndex == newIndex) return;
 				
@@ -333,7 +335,10 @@ public class PostsActivity extends HFR4droidMultiListActivity<List<Post>>
 				else
 				{
 					currentPageNumber--;
-					if (currentPageNumber != 1) targetPageNumber = currentPageNumber - 1;
+					if (currentPageNumber != 1 && (newIndex != 1 || getView(0) == null || getDatasource(0) == null))
+					{
+						targetPageNumber = currentPageNumber - 1;
+					}
 				}
 				
 				// On marque comme lu la page courante si elle a été marqué ainsi
@@ -372,6 +377,28 @@ public class PostsActivity extends HFR4droidMultiListActivity<List<Post>>
 					preLoadingPostsAsyncTask.execute(targetPageNumber, topic);
 				}
 
+				// Pour éviter une surchage du cpu, on n'utilise qu'une seule webview, que l'on supprime et recrée dynamiquement
+				if (getHFR4droidApplication().isLightMode())
+				{
+					new Timer().schedule(new TimerTask()
+					{
+						public void run()
+						{
+							runOnUiThread(new Runnable()
+							{
+								public void run()
+								{
+									removeView(newIndex);
+									restoreView(newIndex);
+									
+									removeView(oldIndex);
+									restoreView(oldIndex);
+								}
+							});
+						}
+					}, 500);
+				}
+				
 				updateButtonsStates();
 				setTitle();
 			}
@@ -1850,7 +1877,7 @@ public class PostsActivity extends HFR4droidMultiListActivity<List<Post>>
 					{
 						if (currentScrollY != -1)
 						{
-							getWebView().scrollTo(0, currentScrollY);
+							if (getWebView() != null) getWebView().scrollTo(0, currentScrollY);
 							currentScrollY = -1;
 						}
 					}
@@ -1933,7 +1960,7 @@ public class PostsActivity extends HFR4droidMultiListActivity<List<Post>>
 					showAddPostDialog(PostCallBackType.QUOTE, data);
 				}
 			});							
-			window.addItem(quote);
+			if (isLoggedIn()) window.addItem(quote);
 
 			boolean quoteExists = quotes.get(currentPostId) != null;
 			QuickActionWindow.Item multiQuote = new QuickActionWindow.Item(PostsActivity.this, "",
@@ -1985,7 +2012,7 @@ public class PostsActivity extends HFR4droidMultiListActivity<List<Post>>
 					}
 				}								
 			});
-			window.addItem(multiQuote);
+			if (isLoggedIn()) window.addItem(multiQuote);
 		}
 		
 		QuickActionWindow.Item addFavorite = new QuickActionWindow.Item(PostsActivity.this, "", R.drawable.ic_menu_star, new PostCallBack(PostCallBackType.FAVORITE, currentPostId, true)
@@ -2004,81 +2031,14 @@ public class PostsActivity extends HFR4droidMultiListActivity<List<Post>>
 		});							
 		if (isLoggedIn()) window.addItem(addFavorite);
 		
-		if (!isMine)
-		{
-			QuickActionWindow.Item sendMP = new QuickActionWindow.Item(PostsActivity.this, "", R.drawable.ic_menu_messages, new QuickActionWindow.Item.Callback()
-			{	
-				public void onClick(QuickActionWindow window, Item item, View anchor)
-				{
-					Post p = getPostById(currentPostId);
-					Intent intent = new Intent(PostsActivity.this, NewTopicActivity.class);
-					Bundle bundle = new Bundle();
-					bundle.putSerializable("cat", Category.MPS_CAT);
-					bundle.putString("pseudo", p.getPseudo());
-					intent.putExtras(bundle);
-					startActivity(intent);
-				}
-			});					
-			window.addItem(sendMP);
-		}
-
-		QuickActionWindow.Item copyLink = new QuickActionWindow.Item(PostsActivity.this, "", R.drawable.ic_menu_link, new QuickActionWindow.Item.Callback()
-		{	
-			public void onClick(QuickActionWindow window, Item item, View anchor)
-			{
-				ClipboardManager clipboard = (ClipboardManager) getSystemService(CLIPBOARD_SERVICE); 
-				clipboard.setText(postLink);
-				Toast.makeText(PostsActivity.this, getText(R.string.copy_post_link), Toast.LENGTH_SHORT).show();
-			}
-		});					
-		window.addItem(copyLink);
-		
-		QuickActionWindow.Item copyContent = new QuickActionWindow.Item(PostsActivity.this, "", R.drawable.ic_menu_copy, new QuickActionWindow.Item.Callback()
-		{	
-			public void onClick(QuickActionWindow window, Item item, View anchor)
-			{
-				Post p = getPostById(currentPostId);
-				String bbCode;
-				try
-				{
-					bbCode = getDataRetriever().getPostContent(p);
-					ClipboardManager clipboard = (ClipboardManager) getSystemService(CLIPBOARD_SERVICE); 
-					clipboard.setText(cleanBBCode(bbCode));
-					Toast.makeText(PostsActivity.this, getText(R.string.copy_post_content), Toast.LENGTH_SHORT).show();
-				}
-				catch (DataRetrieverException e)
-				{
-					error(e, true);
-				}
-			}
-		});					
-		window.addItem(copyContent);
-		
-		QuickActionWindow.Item shareLink = new QuickActionWindow.Item(PostsActivity.this, "", android.R.drawable.ic_menu_share, new QuickActionWindow.Item.Callback()
-		{	
-			public void onClick(QuickActionWindow window, Item item, View anchor)
-			{
-				Intent sendIntent = new Intent(Intent.ACTION_SEND); 
-				sendIntent.setType("text/plain");
-				sendIntent.putExtra(android.content.Intent.EXTRA_TEXT, postLink.toString());
-				startActivity(Intent.createChooser(sendIntent, getString(R.string.share_post_link_title))); 
-			}
-		});					
-		window.addItem(shareLink);
-		
 		QuickActionWindow.Item aqLink = new QuickActionWindow.Item(PostsActivity.this, "", android.R.drawable.ic_menu_compass, new QuickActionWindow.Item.Callback()
 		{
 			private void showAlerts()
 			{
-				if (alertsQualitay != null && alertsQualitay.size() > 0)
-				{
-					/*Spinner spinner = new Spinner(PostsActivity.this);
-					ArrayAdapter<AlertQualitay> adapter = new ArrayAdapter<AlertQualitay>(PostsActivity.this, android.R.layout.simple_spinner_item, alertsQualitay);
-					adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-					spinner.setAdapter(adapter);*/
-					
+				if (alertsQualitay != null)
+				{					
 					final List<AlertQualitay> alerts = new ArrayList<AlertQualitay>(alertsQualitay);
-					alerts.add(0, new AlertQualitay(-1, "-- Nouvelle alerte --", null, null, new Long[0]));
+					alerts.add(0, new AlertQualitay(-1, getString(R.string.aq_new), null, null, new Long[0]));
 					ArrayAdapter<AlertQualitay> adapter = new ArrayAdapter<AlertQualitay>(PostsActivity.this, R.layout.select_dialog_singlechoice, alerts);
 
 					int preselectedAlert = 0;
@@ -2087,17 +2047,80 @@ public class PostsActivity extends HFR4droidMultiListActivity<List<Post>>
 						if (Arrays.asList(alert.getPostIds()).indexOf(currentPostId) != -1)
 						{
 							preselectedAlert = alerts.indexOf(alert);
+							break;
 						}
 					}
 					new AlertDialog.Builder(PostsActivity.this)
-					.setTitle("test")
+					.setTitle(R.string.aq_list_title)
 					.setSingleChoiceItems(adapter, preselectedAlert, new DialogInterface.OnClickListener()
 					{
 						public void onClick(DialogInterface dialog, int which)
 						{
 							dialog.dismiss();
-							AlertQualitay selectedAlert = alerts.get(which);
-							System.out.println(selectedAlert);
+							final AlertQualitay selectedAlert = alerts.get(which);
+							
+							LayoutInflater inflater = (LayoutInflater) PostsActivity.this.getSystemService(Activity.LAYOUT_INFLATER_SERVICE);
+							final View layout = inflater.inflate(R.layout.alerte_qualitay, null);
+							if (selectedAlert.getAlertQualitayId() != -1) layout.findViewById(R.id.AQ_name).setVisibility(View.GONE);
+
+							final AlertDialog d = new AlertDialog.Builder(PostsActivity.this)
+							.setTitle(R.string.aq_new_title)
+							.setView(layout)
+							.setPositiveButton(R.string.aq_sent, new DialogInterface.OnClickListener()
+							{
+								public void onClick(DialogInterface dialog, int which) {}
+							})
+							.setNegativeButton(PostsActivity.this.getString(R.string.button_cancel), new DialogInterface.OnClickListener()
+							{
+								public void onClick(DialogInterface dialog, int which) {}
+							})
+							.create();
+							
+							d.setOnShowListener(new DialogInterface.OnShowListener()
+							{
+							    public void onShow(DialogInterface dialog)
+							    {
+							    	d.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(new View.OnClickListener()
+							        {
+							            public void onClick(View view)
+							            {
+											final String name = ((EditText) layout.findViewById(R.id.AQ_name)).getText().toString().trim();
+											final String comment =  ((EditText) layout.findViewById(R.id.AQ_comment)).getText().toString().trim();
+											if (selectedAlert.getAlertQualitayId() == -1 && name.isEmpty())
+											{
+												Toast.makeText(PostsActivity.this, getString(R.string.aq_name_mandatory), Toast.LENGTH_SHORT).show();
+												return;
+											}
+
+											new MessageResponseAsyncTask(PostsActivity.this, getString(R.string.aq_sent_loading))
+											{
+												@Override
+												protected HFRMessageResponse executeInBackground() throws HFR4droidException
+												{
+													Post p = new Post(currentPostId);
+													p.setTopic(topic);
+													
+													return getMessageSender().alertPost(
+														selectedAlert.getAlertQualitayId(),
+														selectedAlert.getAlertQualitayId() == -1 ? name : null,
+														p,
+														postLink,
+														!comment.isEmpty() ? comment : null);
+												}
+
+												@Override
+												protected void onActionFinished(String message)
+												{
+													Toast.makeText(PostsActivity.this, message, Toast.LENGTH_SHORT).show();	
+												}	
+											}.execute();
+											d.dismiss();
+							            }
+							        });
+							    }
+							});
+							
+							d.show();
 						}
 					})
 					.show();
@@ -2109,7 +2132,7 @@ public class PostsActivity extends HFR4droidMultiListActivity<List<Post>>
 				if (alertsQualitay == null)
 				{
 					final ProgressDialog progressDialog = new ProgressDialog(PostsActivity.this);
-					progressDialog.setMessage("Récupérations des alertes qualitaÿ du topic");
+					progressDialog.setMessage(getString(R.string.aq_loading));
 					progressDialog.setIndeterminate(true);
 					new AsyncTask<Topic, Void, List<AlertQualitay>>()
 					{
@@ -2160,7 +2183,67 @@ public class PostsActivity extends HFR4droidMultiListActivity<List<Post>>
 				}
 			}
 		});					
-		window.addItem(aqLink);
+		if (isLoggedIn()) window.addItem(aqLink);
+		
+		if (!isMine)
+		{
+			QuickActionWindow.Item sendMP = new QuickActionWindow.Item(PostsActivity.this, "", R.drawable.ic_menu_messages, new QuickActionWindow.Item.Callback()
+			{	
+				public void onClick(QuickActionWindow window, Item item, View anchor)
+				{
+					Post p = getPostById(currentPostId);
+					Intent intent = new Intent(PostsActivity.this, NewTopicActivity.class);
+					Bundle bundle = new Bundle();
+					bundle.putSerializable("cat", Category.MPS_CAT);
+					bundle.putString("pseudo", p.getPseudo());
+					intent.putExtras(bundle);
+					startActivity(intent);
+				}
+			});					
+			window.addItem(sendMP);
+		}
+
+		QuickActionWindow.Item copyLink = new QuickActionWindow.Item(PostsActivity.this, "", R.drawable.ic_menu_link, new QuickActionWindow.Item.Callback()
+		{	
+			public void onClick(QuickActionWindow window, Item item, View anchor)
+			{
+				ClipboardManager clipboard = (ClipboardManager) getSystemService(CLIPBOARD_SERVICE); 
+				clipboard.setText(postLink);
+				Toast.makeText(PostsActivity.this, getText(R.string.copy_post_link), Toast.LENGTH_SHORT).show();
+			}
+		});					
+		window.addItem(copyLink);
+		
+		QuickActionWindow.Item copyContent = new QuickActionWindow.Item(PostsActivity.this, "", R.drawable.ic_menu_copy, new PostCallBack(PostCallBackType.COPY_CONTENT, currentPostId, true)
+		{
+			@Override
+			protected String doActionInBackground(Post p) throws DataRetrieverException, MessageSenderException
+			{
+				return getDataRetriever().getPostContent(p);
+			}
+
+			@Override
+			protected void onActionExecute(String data)
+			{
+				ClipboardManager clipboard = (ClipboardManager) getSystemService(CLIPBOARD_SERVICE); 
+				clipboard.setText(cleanBBCode(data));
+				Toast.makeText(PostsActivity.this, getText(R.string.copy_post_content), Toast.LENGTH_SHORT).show();
+			}
+		});
+				
+		window.addItem(copyContent);
+		
+		QuickActionWindow.Item shareLink = new QuickActionWindow.Item(PostsActivity.this, "", android.R.drawable.ic_menu_share, new QuickActionWindow.Item.Callback()
+		{	
+			public void onClick(QuickActionWindow window, Item item, View anchor)
+			{
+				Intent sendIntent = new Intent(Intent.ACTION_SEND); 
+				sendIntent.setType("text/plain");
+				sendIntent.putExtra(android.content.Intent.EXTRA_TEXT, postLink.toString());
+				startActivity(Intent.createChooser(sendIntent, getString(R.string.share_post_link_title))); 
+			}
+		});					
+		window.addItem(shareLink);
 	}
 
 	private void showAddPostDialog(PostCallBackType type, String data)
@@ -2349,6 +2432,13 @@ public class PostsActivity extends HFR4droidMultiListActivity<List<Post>>
 			case POST_ADD_OK: // New post ok
 				topic.setLastReadPost(NewPostUIHelper.BOTTOM_PAGE_ID);
 				if (currentPageNumber == topic.getNbPages()) reloadPage();
+				if (currentPageNumber == topic.getNbPages() - 1
+				&& getCurrentIndex() < 2 && getView(getCurrentIndex() + 1) != null && getDatasource(getCurrentIndex() + 1) != null)
+				{
+					removeView(getCurrentIndex() + 1);
+					preLoadingPostsAsyncTask = new PreLoadingPostsAsyncTask(PostsActivity.this);
+					preLoadingPostsAsyncTask.execute(topic.getNbPages(), topic);
+				}
 				break;
 		}
 	}
@@ -2519,7 +2609,7 @@ public class PostsActivity extends HFR4droidMultiListActivity<List<Post>>
 	@Override
 	public void destroyView(View v)
 	{
-		if (v != null)
+		if (v != null && v instanceof WebView)
 		{
 			((WebView) v).destroy();
 		}
@@ -2624,9 +2714,21 @@ public class PostsActivity extends HFR4droidMultiListActivity<List<Post>>
 		}
 	}
 	
+	@Override
 	public View buildView(List<Post> posts)
 	{
-		return displayPosts(posts, true);
+		return getHFR4droidApplication().isLightMode() ? new View(this) : displayPosts(posts, true);
+	}
+	
+	@Override
+	protected void restoreView(int index)
+	{
+		if (getDatasource(index) != null)
+		{
+			View v = index == getCurrentIndex() ? displayPosts(getDatasource(index), true) : buildView(getDatasource(index));
+			setView(index, v);
+			space.addView(v, index);
+		}
 	}
 	
 	protected class PreLoadingPostsAsyncTask extends PreLoadingAsyncTask<Post, Topic, List<Post>>

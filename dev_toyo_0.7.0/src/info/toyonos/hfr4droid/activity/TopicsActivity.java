@@ -320,7 +320,7 @@ public class TopicsActivity extends HFR4droidMultiListActivity<ArrayAdapter<Topi
 					protected void onActionFinished(String message)
 					{
 						currentTopic.setStatus(TopicStatus.NEW_MP);
-						getDatasource().notifyDataSetChanged();
+						if (getDatasource() != null) getDatasource().notifyDataSetChanged();
 					}
 				}.execute();
 				return true;
@@ -338,8 +338,8 @@ public class TopicsActivity extends HFR4droidMultiListActivity<ArrayAdapter<Topi
 					protected void onActionFinished(String message)
 					{
 						Toast.makeText(TopicsActivity.this, message, Toast.LENGTH_SHORT).show();
-						getDatasource().remove(currentTopic);
-						getDatasource().notifyDataSetChanged();	
+						if (getDatasource() != null) getDatasource().remove(currentTopic);
+						if (getDatasource() != null) getDatasource().notifyDataSetChanged();	
 					}
 				}.execute();
 				return true;
@@ -364,8 +364,8 @@ public class TopicsActivity extends HFR4droidMultiListActivity<ArrayAdapter<Topi
 							protected void onActionFinished(String message)
 							{
 								Toast.makeText(TopicsActivity.this, message, Toast.LENGTH_SHORT).show();
-								getDatasource().remove(currentTopic);
-								getDatasource().notifyDataSetChanged();
+								if (getDatasource() != null) getDatasource().remove(currentTopic);
+								if (getDatasource() != null) getDatasource().notifyDataSetChanged();
 							}	
 						}.execute();
 					}
@@ -574,7 +574,7 @@ public class TopicsActivity extends HFR4droidMultiListActivity<ArrayAdapter<Topi
 		TextView catTitle = (TextView) findViewById(R.id.CatTitle);
 		catTitle.setTextSize(getTextSize(15));
 		String title;
-		if (isMpsCat() && getDatasource().getCount() > 0)
+		if (isMpsCat() && getDatasource() != null && getDatasource().getCount() > 0)
 		{
 			int newMps = 0;
 			for (int i = 0; i < getDatasource().getCount(); i++)
@@ -698,7 +698,7 @@ public class TopicsActivity extends HFR4droidMultiListActivity<ArrayAdapter<Topi
 	protected void redrawPage()
 	{
 		setRefreshHeader();
-		getDatasource().notifyDataSetChanged();
+		if (getDatasource() != null) getDatasource().notifyDataSetChanged();
 		reset();
 		preloadTopics();
 	}
@@ -893,15 +893,18 @@ public class TopicsActivity extends HFR4droidMultiListActivity<ArrayAdapter<Topi
 
 	public void refreshTopics(List<Topic> topics)
 	{
-		getDatasource().clear();
-		if (isAllCatsCat(cat)) topics = addCats(topics);
-		for (Topic t : topics)
+		if (getDatasource() != null)
 		{
-			getDatasource().add(t);
+			getDatasource().clear();
+			if (isAllCatsCat(cat)) topics = addCats(topics);
+			for (Topic t : topics)
+			{
+				getDatasource().add(t);
+			}
+			getDatasource().notifyDataSetChanged();
+			updateButtonsStates();
+			getListView().setSelection(0);
 		}
-		getDatasource().notifyDataSetChanged();
-		updateButtonsStates();
-		getListView().setSelection(0);
 	}
 
 	protected boolean isMpsCat()

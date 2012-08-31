@@ -76,6 +76,8 @@
     <string name="keywords_failed">Impossible de modifier les mots clés !</string>
     <string name="favorite_loading">Ajout du favori...</string>
     <string name="favorite_failed">Impossible de poser le favori !</string>
+    <string name="copy_content_loading">Copie du contenu du post...</string>
+    <string name="aq_loading">Récupérations des alertes qualitaÿ du topic</string>
     <string name="unread_loading">Marquage en non lu...</string>
     <string name="unread_failed">Impossible de mettre ce message en non lu !</string>
     <string name="unflag_loading">Suppression du drapeau...</string>
@@ -99,6 +101,7 @@
     <string name="aq_missing_parameter">Un ou plusieurs paramètres d\'appel sont manquants !</string>
     <string name="aq_already_report">Vous avez déjà signalé cette qualitaÿ !</string>
     <string name="aq_ko">Une erreur imprévue est survenue durant la signalisation de ce post !</string>
+    <string name="aq_name_mandatory">"Le nom de l'alerte est obligatoire !</string>
     
     
     <!-- LOG INFO -->
