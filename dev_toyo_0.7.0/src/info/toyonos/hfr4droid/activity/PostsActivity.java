@@ -2584,6 +2584,7 @@ public class PostsActivity extends HFR4droidMultiListActivity<List<Post>>
 
 	protected Post getPostById(long postId)
 	{
+		if (getDatasource() == null) return null;
 		for (Post p : getDatasource())
 		{
 			if (p.getId() == postId) return p;

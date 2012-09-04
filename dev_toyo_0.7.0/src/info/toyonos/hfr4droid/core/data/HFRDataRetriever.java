@@ -589,7 +589,7 @@ public class HFRDataRetriever implements MDDataRetriever
 		String nbPages = getSingleElement("([0-9]+)</(?:a|b)></div><div\\s*class=\"pagepresuiv\"", content);
 		if (nbPages != null) topic.setNbPages(Integer.parseInt(nbPages));
 
-		if(!useFakeAccount) hashCheck = getSingleElement("<input\\s*type=\"hidden\"\\s*name=\"hash_check\"\\s*value=\"(.+?)\" />", content);
+		if (!useFakeAccount) hashCheck = getSingleElement("<input\\s*type=\"hidden\"\\s*name=\"hash_check\"\\s*value=\"(.+?)\" />", content);
 		
 		String subCat = getSingleElement("<input\\s*type=\"hidden\"\\s*name=\"subcat\"\\s*value=\"([0-9]+)\"\\s*/>", content);
 		if (subCat != null) topic.setSubCategory(new SubCategory(topic.getCategory(), Integer.parseInt(subCat)));
@@ -598,7 +598,7 @@ public class HFRDataRetriever implements MDDataRetriever
 		if (topic.getName() == null)
 		{
 			//String topicTitle = getSingleElement("<input\\s*type=\"hidden\"\\s*name=\"sujet\"\\s*value=\"(.+?)\"\\s*/>", content);
-			String topicTitle =  HFRDataRetriever.getSingleElement("(?:&nbsp;)*(.*)", HFRDataRetriever.getSingleElement("([^>]+)(?:</a>)?</h1>", content));
+			String topicTitle =  HFRDataRetriever.getSingleElement("<h3>(.*)</h3>", content);
 			if (topicTitle != null) topic.setName(topicTitle);
 			if (getSingleElement("(repondre\\.gif)", content) == null) topic.setStatus(TopicStatus.LOCKED);
 		}
@@ -999,12 +999,14 @@ public class HFRDataRetriever implements MDDataRetriever
 	 */
 	public String getRealUrl(String url) throws DataRetrieverException
 	{
+		HttpParams params = new BasicHttpParams();
 		try
 		{
 			URI uri = new URI(url);
 			HttpHead method = new HttpHead(uri);
 			method.setHeader("User-Agent", "Mozilla /4.0 (compatible; MSIE 6.0; Windows CE; IEMobile 7.6) Vodafone/1.0/SFR_v1615/1.56.163.8.39");
-			HttpParams params = new BasicHttpParams();
+			
+			// We disable redirecting
 			HttpClientParams.setRedirecting(params, false);
 			client.setParams(params);
 			HttpResponse response = client.execute(method);
@@ -1023,6 +1025,12 @@ public class HFRDataRetriever implements MDDataRetriever
 		catch (Exception e)
 		{
 			throw new DataRetrieverException(e.getMessage(), e);
+		}
+		finally
+		{
+			// We re-enable redirecting
+			HttpClientParams.setRedirecting(params, true);
+			client.setParams(params);
 		}
 	}
 
