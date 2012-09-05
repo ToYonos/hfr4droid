@@ -22,6 +22,7 @@ import info.toyonos.hfr4droid.core.utils.HttpClient;
 import info.toyonos.hfr4droid.core.utils.PatchInputStream;
 import info.toyonos.hfr4droid.core.utils.TransformStreamException;
 import info.toyonos.hfr4droid.service.MpNotifyService;
+import info.toyonos.hfr4droid.util.asynctask.ProgressDialogAsyncTask;
 import info.toyonos.hfr4droid.util.asynctask.DataRetrieverAsyncTask;
 import info.toyonos.hfr4droid.util.asynctask.MessageResponseAsyncTask;
 import info.toyonos.hfr4droid.util.asynctask.PreLoadingAsyncTask;
@@ -60,7 +61,6 @@ import android.app.Dialog;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
-import android.content.DialogInterface.OnCancelListener;
 import android.content.DialogInterface.OnDismissListener;
 import android.content.Intent;
 import android.content.res.Configuration;
@@ -200,38 +200,9 @@ public class PostsActivity extends HFR4droidMultiListActivity<List<Post>>
 	
 	private List<AlertQualitay> alertsQualitay = null;
 	
-	private final HttpClient<Bitmap> imgBitmapHttpClient = new HttpClient<Bitmap>()
-	{		
-		@Override
-		protected Bitmap transformStream(InputStream is) throws TransformStreamException
-		{
-			return BitmapFactory.decodeStream(new PatchInputStream(is));
-		}
-	};
+	private HttpClient<Bitmap> imgBitmapHttpClient = null;
 	
-	private final HttpClient<ByteArrayInputStream> imgHttpClient = new HttpClient<ByteArrayInputStream>()
-	{		
-		@Override
-		protected ByteArrayInputStream transformStream(InputStream is) throws TransformStreamException
-		{
-			try
-			{
-			    ByteArrayOutputStream baos = new ByteArrayOutputStream();
-			    byte[] buffer = new byte[1024];
-			    int len;
-			    while ((len = is.read(buffer)) > 0 )
-			    {
-			        baos.write(buffer, 0, len);
-			    }
-			    baos.flush();
-			    return new ByteArrayInputStream(baos.toByteArray());
-			}
-			catch (IOException e)
-			{
-				throw new TransformStreamException(e);
-			}
-		}
-	};
+	private HttpClient<ByteArrayInputStream> imgHttpClient = null;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState)
@@ -280,6 +251,40 @@ public class PostsActivity extends HFR4droidMultiListActivity<List<Post>>
 				return true;
 			}
 		});
+		
+		imgBitmapHttpClient = new HttpClient<Bitmap>(getHFR4droidApplication().getHttpClientHelper())
+		{
+			@Override
+			protected Bitmap transformStream(InputStream is) throws TransformStreamException
+			{
+				return BitmapFactory.decodeStream(new PatchInputStream(is));
+			}
+		};
+
+		imgHttpClient = new HttpClient<ByteArrayInputStream>(getHFR4droidApplication().getHttpClientHelper())
+		{		
+			@Override
+			protected ByteArrayInputStream transformStream(InputStream is) throws TransformStreamException
+			{
+				try
+				{
+				    ByteArrayOutputStream baos = new ByteArrayOutputStream();
+				    byte[] buffer = new byte[1024];
+				    int len;
+				    while ((len = is.read(buffer)) > 0 )
+				    {
+				        baos.write(buffer, 0, len);
+				    }
+				    baos.flush();
+				    return new ByteArrayInputStream(baos.toByteArray());
+				}
+				catch (IOException e)
+				{
+					throw new TransformStreamException(e);
+				}
+			}
+		};
+				
 	}
 	
 	@SuppressWarnings("unchecked")
@@ -405,12 +410,26 @@ public class PostsActivity extends HFR4droidMultiListActivity<List<Post>>
 			
 			public void onFailForward()
 			{
-				displayPreloadingToast(preLoadingPostsAsyncTask);
+				if (currentPageNumber == topic.getNbPages())
+				{
+					reloadPage();
+				}
+				else
+				{
+					displayPreloadingToast(preLoadingPostsAsyncTask);
+				}
 			}
 
 			public void onFailRearward()
 			{
-				displayPreloadingToast(preLoadingPostsAsyncTask);
+				if (currentPageNumber == 1)
+				{
+					reloadPage();
+				}
+				else
+				{
+					displayPreloadingToast(preLoadingPostsAsyncTask);
+				}
 			}
 		});
 	}
@@ -933,28 +952,21 @@ public class PostsActivity extends HFR4droidMultiListActivity<List<Post>>
                     {
                 		private void saveImage(final String url, final boolean compressToPng, final ImageCallback callback)
                 		{                    		
-    						final ProgressDialog progressDialog = new ProgressDialog(PostsActivity.this);
-    						progressDialog.setMessage(getString(R.string.save_image));
-    						progressDialog.setIndeterminate(true);
-    						new AsyncTask<String, Void, File>()
+    						new ProgressDialogAsyncTask<String, Void, File>(PostsActivity.this)
     						{
     							@Override
     							protected void onPreExecute() 
     							{
-									progressDialog.setCancelable(true);
-									progressDialog.setOnCancelListener(new OnCancelListener()
-									{
-										public void onCancel(DialogInterface dialog)
-										{
-											cancel(true);
-										}
-									});
+    								super.onPreExecute();
+    	    						progressDialog.setMessage(getString(R.string.save_image));
+    	    						progressDialog.setIndeterminate(true);
 									progressDialog.show();
     							}
 
     							@Override
     							protected File doInBackground(String... url)
     							{
+    								setThreadId();
     								try
 									{
 	                        			File dir = new File(Environment.getExternalStorageDirectory() + DOWNLOAD_DIR);
@@ -965,6 +977,7 @@ public class PostsActivity extends HFR4droidMultiListActivity<List<Post>>
     									if (compressToPng)
 										{
 											Bitmap imgBitmap = imgBitmapHttpClient.getResponse(url[0]);
+											if (imgBitmap == null) return null;
 		                        			String newFileName = originalFileName + ".png";
 		                        			if (originalFileName.lastIndexOf('.') != -1)
 		                        			{
@@ -978,6 +991,7 @@ public class PostsActivity extends HFR4droidMultiListActivity<List<Post>>
 										else
 										{											
 											ByteArrayInputStream input = imgHttpClient.getResponse(url[0]);
+											if (input == null) return null;
 											ByteArrayBuffer baf = new ByteArrayBuffer(50);
 											int current = 0;
 											while ((current = input.read()) != -1)
@@ -1315,7 +1329,7 @@ public class PostsActivity extends HFR4droidMultiListActivity<List<Post>>
 
 						ImageView avatar = (ImageView) profileView.findViewById(R.id.ProfileAvatar);
 						avatar.setScaleType(ImageView.ScaleType.CENTER_CROP);
-						if (profile.getAvatarUrl() != null)
+						if (profile.getAvatarUrl() != null && profile.getAvatarBitmap() != null)
 						{
 							avatar.setImageBitmap(profile.getAvatarBitmap());
 							int newWidth = Math.min(display.getWidth(), display.getHeight()) / 4;
@@ -1585,22 +1599,14 @@ public class PostsActivity extends HFR4droidMultiListActivity<List<Post>>
 			@SuppressWarnings("unused")
 			public void editKeywords(final String code)
 			{
-				final ProgressDialog progressDialog = new ProgressDialog(PostsActivity.this);
-				progressDialog.setMessage(getString(R.string.getting_keywords, code));
-				progressDialog.setIndeterminate(true);
-				new AsyncTask<String, Void, String>()
+				new ProgressDialogAsyncTask<String, Void, String>(PostsActivity.this)
 				{
 					@Override
 					protected void onPreExecute() 
 					{
-						progressDialog.setCancelable(true);
-						progressDialog.setOnCancelListener(new OnCancelListener()
-						{
-							public void onCancel(DialogInterface dialog)
-							{
-								cancel(true);
-							}
-						});
+						super.onPreExecute();
+						progressDialog.setMessage(getString(R.string.getting_keywords, code));
+						progressDialog.setIndeterminate(true);
 						progressDialog.show();
 					}
 
@@ -2131,28 +2137,21 @@ public class PostsActivity extends HFR4droidMultiListActivity<List<Post>>
 			{
 				if (alertsQualitay == null)
 				{
-					final ProgressDialog progressDialog = new ProgressDialog(PostsActivity.this);
-					progressDialog.setMessage(getString(R.string.aq_loading));
-					progressDialog.setIndeterminate(true);
-					new AsyncTask<Topic, Void, List<AlertQualitay>>()
+					new ProgressDialogAsyncTask<Topic, Void, List<AlertQualitay>>(PostsActivity.this)
 					{
 						@Override
 						protected void onPreExecute() 
 						{
-							progressDialog.setCancelable(true);
-							progressDialog.setOnCancelListener(new OnCancelListener()
-							{
-								public void onCancel(DialogInterface dialog)
-								{
-									cancel(true);
-								}
-							});
+							super.onPreExecute();
+							progressDialog.setMessage(getString(R.string.aq_loading));
+							progressDialog.setIndeterminate(true);
 							progressDialog.show();
 						}
 	
 						@Override
 						protected List<AlertQualitay> doInBackground(Topic... params)
 						{
+							setThreadId();
 							try
 							{
 								return getDataRetriever().getAlertsByTopic(params[0]);
@@ -2618,16 +2617,16 @@ public class PostsActivity extends HFR4droidMultiListActivity<List<Post>>
 
 	/* Classes internes */
 
-	private abstract class PostCallBack extends AsyncTask<Void, Void, String> implements QuickActionWindow.Item.Callback
+	private abstract class PostCallBack extends ProgressDialogAsyncTask<Void, Void, String> implements QuickActionWindow.Item.Callback
 	{
 		protected PostCallBackType type;
 		protected long postId;
 		private boolean progress;
 		private boolean confirm;
-		private ProgressDialog progressDialog;
 
 		public PostCallBack(PostCallBackType type, long postId, boolean progress)
 		{
+			super(PostsActivity.this);
 			this.type = type;
 			this.postId = postId;
 			this.progress = progress;
@@ -2671,17 +2670,9 @@ public class PostsActivity extends HFR4droidMultiListActivity<List<Post>>
 		{
 			if (progress)
 			{
-				progressDialog = new ProgressDialog(PostsActivity.this);
+				super.onPreExecute();
 				progressDialog.setMessage(getString(type.getKey() + "_loading"));
 				progressDialog.setIndeterminate(true);
-				progressDialog.setCancelable(true);
-				progressDialog.setOnCancelListener(new OnCancelListener()
-				{
-					public void onCancel(DialogInterface dialog)
-					{
-						cancel(true);
-					}
-				});
 				progressDialog.show();
 			}
 		}
@@ -2689,6 +2680,7 @@ public class PostsActivity extends HFR4droidMultiListActivity<List<Post>>
 		@Override
 		protected String doInBackground(Void... params)
 		{
+			setThreadId();
 			String data = "";
 			try
 			{

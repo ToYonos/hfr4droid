@@ -9,6 +9,8 @@ import info.toyonos.hfr4droid.util.helper.NewPostUIHelper;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import android.os.StrictMode;
+
 /**
  * <p>Implémentation pour le forum de Hardware.fr du <code>MDUrlParser</code></p>
  * 
@@ -158,7 +160,12 @@ public class HFRUrlParser implements MDUrlParser
 			if (numReponse != null && !numReponse.equals("0"))
 			{
 				// Cas spécifique, on récupère la vraie url
+				// Pour éviter la NetworkOnMainThreadException
+				StrictMode.ThreadPolicy oldPolicy = StrictMode.getThreadPolicy(); 
+				StrictMode.ThreadPolicy newPolicy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
+		        StrictMode.setThreadPolicy(newPolicy);
 				String realUrl = dataRetriever.getRealUrl(url);
+				StrictMode.setThreadPolicy(oldPolicy);
 				if (realUrl == null) return false;
 				return parseUrl(realUrl);
 			}

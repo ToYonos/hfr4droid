@@ -3,6 +3,9 @@ package info.toyonos.hfr4droid.core.utils;
 import info.toyonos.hfr4droid.HFR4droidApplication;
 
 import java.io.IOException;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.apache.http.Header;
 import org.apache.http.HeaderElement;
@@ -13,6 +16,8 @@ import org.apache.http.HttpRequestInterceptor;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpResponseInterceptor;
 import org.apache.http.HttpVersion;
+import org.apache.http.client.ClientProtocolException;
+import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.conn.ClientConnectionManager;
 import org.apache.http.conn.params.ConnManagerParams;
 import org.apache.http.conn.params.ConnPerRoute;
@@ -31,80 +36,147 @@ import org.apache.http.protocol.HttpContext;
 import android.util.Log;
 
 public class HttpClientHelper
-{
-	private static DefaultHttpClient client = null;
+{	
+	private DefaultHttpClient client = null;
+	private Map<Long, HttpUriRequestWrapper> requests;
 	
-	public static DefaultHttpClient getHttpClient()
+	public HttpClientHelper()
 	{
-		return getHttpClient(null);
-	}
-	
-	public static DefaultHttpClient getHttpClient(HFR4droidApplication context)
-	{
-		if (client == null)
+		requests = Collections.synchronizedMap(new HashMap<Long, HttpUriRequestWrapper>());
+		
+		HttpParams parameters = new BasicHttpParams();
+		HttpProtocolParams.setVersion(parameters, HttpVersion.HTTP_1_1);
+		HttpProtocolParams.setContentCharset(parameters, HTTP.UTF_8);
+		ConnPerRoute connPerRoute = new ConnPerRouteBean(50);
+		ConnManagerParams.setMaxConnectionsPerRoute(parameters, connPerRoute); 
+		ConnManagerParams.setMaxTotalConnections(parameters, 50); 
+
+		SchemeRegistry schReg = new SchemeRegistry();
+		schReg.register(new Scheme("http", PlainSocketFactory.getSocketFactory(), 80));
+		ClientConnectionManager conMgr = new ThreadSafeClientConnManager(parameters, schReg);
+
+		client = new DefaultHttpClient(conMgr, parameters);
+		
+		// @see http://stackoverflow.com/a/6797742
+		client.addRequestInterceptor(new HttpRequestInterceptor()
 		{
-			HttpParams parameters = new BasicHttpParams();
-			HttpProtocolParams.setVersion(parameters, HttpVersion.HTTP_1_1);
-			HttpProtocolParams.setContentCharset(parameters, HTTP.UTF_8);
-			ConnPerRoute connPerRoute = new ConnPerRouteBean(50);
-			ConnManagerParams.setMaxConnectionsPerRoute(parameters, connPerRoute); 
-			ConnManagerParams.setMaxTotalConnections(parameters, 50); 
-
-			SchemeRegistry schReg = new SchemeRegistry();
-			schReg.register(new Scheme("http", PlainSocketFactory.getSocketFactory(), 80));
-			ClientConnectionManager conMgr = new ThreadSafeClientConnManager(parameters, schReg);
-
-			client = new DefaultHttpClient(conMgr, parameters);
-			
-			// @see http://stackoverflow.com/a/6797742
-			if(context != null && context.isCompressGzipEnable())
+			public void process(final HttpRequest request, final HttpContext context) throws HttpException, IOException
 			{
-				Log.d(HFR4droidApplication.TAG, "GZIP compression is enable");
-				
-				client.addRequestInterceptor(new HttpRequestInterceptor()
+				if (!request.containsHeader("Accept-Encoding"))
 				{
-					public void process(final HttpRequest request, final HttpContext context) throws HttpException, IOException
-					{
-						if (!request.containsHeader("Accept-Encoding"))
-						{
-							request.addHeader("Accept-Encoding", "gzip");
-						}
-					}
-				});
+					request.addHeader("Accept-Encoding", "gzip");
+				}
+			}
+		});
 
-				client.addResponseInterceptor(new HttpResponseInterceptor()
+		client.addResponseInterceptor(new HttpResponseInterceptor()
+		{
+			public void process(final HttpResponse response, final HttpContext context) throws HttpException, IOException
+			{
+				HttpEntity entity = response.getEntity();
+				if (entity == null) return;
+				Header contentEncodingHeader = entity.getContentEncoding();
+				if(contentEncodingHeader != null)
 				{
-					public void process(final HttpResponse response, final HttpContext context) throws HttpException, IOException
+					HeaderElement[] compressors = contentEncodingHeader.getElements();
+					for (int idx = 0; idx < compressors.length; idx++)
 					{
-						HttpEntity entity = response.getEntity();
-						if (entity == null) return;
-						Header contentEncodingHeader = entity.getContentEncoding();
-						if(contentEncodingHeader != null)
+						if (compressors[idx].getName().equalsIgnoreCase("gzip"))
 						{
-							HeaderElement[] compressors = contentEncodingHeader.getElements();
-							for (int idx = 0; idx < compressors.length; idx++)
-							{
-								if (compressors[idx].getName().equalsIgnoreCase("gzip"))
-								{
-									response.setEntity(new GzipDecompressingEntity(response.getEntity()));
-									return;
-								}
-							}
+							response.setEntity(new GzipDecompressingEntity(response.getEntity()));
+							return;
 						}
 					}
-				});
-			}	
-		}
+				}
+			}
+		});
+	}
+	
+	public DefaultHttpClient getHttpClient()
+	{
 		return client;
+	}	
+
+	public HttpResponse execute(HttpUriRequest request) throws ClientProtocolException, IOException
+	{
+		return execute(request, null);
+	}
+
+	public HttpResponse execute(HttpUriRequest request, HttpContext context) throws ClientProtocolException, IOException
+	{
+		Long threadId = Thread.currentThread().getId();
+		requests.put(threadId, new HttpUriRequestWrapper(request));
+		Log.d(HFR4droidApplication.TAG, "New request to " + request.getURI() + " for the thread #" + threadId);
+		try
+		{
+			HttpResponse response = context != null ? client.execute(request, context) : client.execute(request);
+			Log.d(HFR4droidApplication.TAG, "Response received for the thread #" + threadId);
+			if (requests.remove(threadId).isCancelled())
+			{
+				Log.d(HFR4droidApplication.TAG, "Request to " + request.getURI() + " has been tardily cancelled");
+				return null;
+			}
+			return response;
+		}
+		catch (IOException e)
+		{
+			if (requests.get(threadId) != null)
+			{
+				// Ok, on annule la requête, exception attendue
+				Log.d(HFR4droidApplication.TAG, "Request to " + request.getURI() + " has been cancelled");
+				requests.remove(threadId);
+				return null;
+			}
+			throw e;
+		}
+	}
+
+	public void abortRequest(long threadId)
+	{
+		HttpUriRequestWrapper request = requests.get(threadId);
+		if (request != null)
+		{
+			Log.d(HFR4droidApplication.TAG, "Aborting request to " + request.get().getURI() + " for the thread #" + threadId);
+			// On annule la requête
+			request.get().abort();
+			// On flag la requête comme annulé
+			request.setCancelled(true);
+		}
 	}
 	
-	public static void closeExpiredConnections()
+	public void closeExpiredConnections()
 	{
-		if (client != null) client.getConnectionManager().closeExpiredConnections();
+		client.getConnectionManager().closeExpiredConnections();
+	}
+
+	public void shutdown()
+	{
+		client.getConnectionManager().shutdown();
 	}
 	
-	public static void shutdown()
+	private class HttpUriRequestWrapper
 	{
-		if (client != null) client.getConnectionManager().shutdown();
+		private boolean isCancelled;
+		private HttpUriRequest request;
+	
+		public HttpUriRequestWrapper(HttpUriRequest request)
+		{
+			this.request = request;
+		}
+
+		public HttpUriRequest get()
+		{
+			return request;
+		}
+
+		public boolean isCancelled()
+		{
+			return isCancelled;
+		}
+
+		public void setCancelled(boolean isCancelled)
+		{
+			this.isCancelled = isCancelled;
+		}
 	}
 }

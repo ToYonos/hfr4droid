@@ -1,7 +1,7 @@
 package info.toyonos.hfr4droid.activity;
 
+import info.toyonos.hfr4droid.HFR4droidApplication;
 import info.toyonos.hfr4droid.R;
-import info.toyonos.hfr4droid.core.utils.HttpClientHelper;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -241,7 +241,7 @@ public class ImagePicker extends Activity implements Runnable{
 		
 		String imgUrl = null;
 		HttpPost post;
-		HttpClient httpClient = HttpClientHelper.getHttpClient();
+		HttpClient httpClient = ((HFR4droidApplication) getApplication()).getHttpClientHelper().getHttpClient();
 
 		try {
 			httpClient.getParams().setParameter("http.socket.timeout", new Integer(90000)); // 90 second

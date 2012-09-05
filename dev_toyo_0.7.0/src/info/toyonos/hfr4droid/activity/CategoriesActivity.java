@@ -8,6 +8,7 @@ import info.toyonos.hfr4droid.core.bean.Theme;
 import info.toyonos.hfr4droid.core.bean.Topic.TopicType;
 import info.toyonos.hfr4droid.core.data.DataRetrieverException;
 import info.toyonos.hfr4droid.core.data.HFRDataRetriever;
+import info.toyonos.hfr4droid.util.asynctask.ProgressDialogAsyncTask;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -15,15 +16,12 @@ import java.util.ArrayList;
 import java.util.List;
 
 import android.app.AlertDialog;
-import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
-import android.content.DialogInterface.OnCancelListener;
 import android.content.DialogInterface.OnClickListener;
 import android.content.Intent;
 import android.content.res.ColorStateList;
 import android.graphics.drawable.ColorDrawable;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.text.Html;
 import android.view.ContextMenu;
@@ -111,25 +109,17 @@ public class CategoriesActivity extends HFR4droidListActivity<Category>
 					try
 					{
 						final boolean isSubCatsLoaded = CategoriesActivity.this.getDataRetriever().isSubCatsLoaded(cat);
-						final ProgressDialog progressDialog = new ProgressDialog(CategoriesActivity.this);
-						progressDialog.setTitle(cat.toString());
-						progressDialog.setMessage(getString(R.string.getting_subcats));
-						progressDialog.setIndeterminate(true);
-						new AsyncTask<Category, Void, List<SubCategory>>()
+						new ProgressDialogAsyncTask<Category, Void, List<SubCategory>>(CategoriesActivity.this)
 						{
 							@Override
 							protected void onPreExecute() 
 							{
 								if (!isSubCatsLoaded)
 								{
-									progressDialog.setCancelable(true);
-									progressDialog.setOnCancelListener(new OnCancelListener()
-									{
-										public void onCancel(DialogInterface dialog)
-										{
-											cancel(true);
-										}
-									});
+									super.onPreExecute();
+									progressDialog.setTitle(cat.toString());
+									progressDialog.setMessage(getString(R.string.getting_subcats));
+									progressDialog.setIndeterminate(true);
 									progressDialog.show();
 								}
 							}
@@ -137,6 +127,7 @@ public class CategoriesActivity extends HFR4droidListActivity<Category>
 							@Override
 							protected List<SubCategory> doInBackground(Category... cat)
 							{
+								setThreadId();
 								List<SubCategory> subCats = null;
 								try
 								{

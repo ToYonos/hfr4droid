@@ -7,6 +7,7 @@ import info.toyonos.hfr4droid.core.bean.Profile;
 import info.toyonos.hfr4droid.core.data.HFRDataRetriever;
 import info.toyonos.hfr4droid.core.data.MDDataRetriever;
 import info.toyonos.hfr4droid.core.message.HFRMessageSender;
+import info.toyonos.hfr4droid.core.utils.HttpClientHelper;
 
 import java.io.File;
 import java.io.FileFilter;
@@ -36,7 +37,6 @@ public class HFR4droidApplication extends Application
 	public static final String PREF_TYPE_DRAPEAU			= "PrefTypeDrapeau";
 	public static final String PREF_SIGNATURE_ENABLE		= "PrefSignatureEnable";
 	public static final String PREF_DBLTAP_ENABLE			= "PrefDblTapEnable";
-	public static final String PREF_COMPRESS_GZIP			= "PrefCompressGzip";
 	public static final String PREF_OVERRIDE_LIGHT_MODE		= "PrefOverrideLightMode";
 	public static final String PREF_FULLSCREEN_ENABLE		= "PrefFullscreenEnable";
 	public static final String PREF_THEME					= "PrefTheme";
@@ -49,6 +49,7 @@ public class HFR4droidApplication extends Application
 	
 	public static final String TAG = "HFR4droid";
 	
+	private HttpClientHelper httpClientHelper;
 	private MDDataRetriever dataRetriever;
 	private HFRAuthentication auth;
 	private HFRMessageSender msgSender;
@@ -59,12 +60,18 @@ public class HFR4droidApplication extends Application
 	public void onCreate()
 	{
 		super.onCreate();
-		dataRetriever = new HFRDataRetriever(this);
+		httpClientHelper = new HttpClientHelper();
+		dataRetriever = new HFRDataRetriever(this, httpClientHelper);
 		if (new File(HFRAuthentication.OLD_COOKIES_FILE_NAME).exists()) new File(HFRAuthentication.OLD_COOKIES_FILE_NAME).delete();
 		profiles = new HashMap<String, Profile>();
 		isMonoCore = getNumCores() == 1;
 	}
 
+	public HttpClientHelper getHttpClientHelper()
+	{
+		return httpClientHelper;
+	}
+	
 	public MDDataRetriever getDataRetriever()
 	{
 		return dataRetriever;
@@ -86,13 +93,13 @@ public class HFR4droidApplication extends Application
 	public boolean login(String user, String password) throws AuthenticationException
 	{
 		boolean fromCache = user == null && password == null;
-		auth = fromCache ? new HFRAuthentication(this) : new HFRAuthentication(this, user, password);
+		auth = fromCache ? new HFRAuthentication(this, httpClientHelper) : new HFRAuthentication(this, httpClientHelper, user, password);
 
 		boolean isLoggedIn = auth.getCookies() != null;
 		if (isLoggedIn)
 		{
-			msgSender = new HFRMessageSender(this, auth);
-			dataRetriever = new HFRDataRetriever(this, auth, !fromCache);
+			msgSender = new HFRMessageSender(this, httpClientHelper, auth);
+			dataRetriever = new HFRDataRetriever(this, httpClientHelper, auth, !fromCache);
 		}
 		return isLoggedIn;
 	}
@@ -118,7 +125,7 @@ public class HFR4droidApplication extends Application
 			auth.clearCache();
 			auth = null;
 			msgSender = null;
-			dataRetriever = new HFRDataRetriever(this, true);
+			dataRetriever = new HFRDataRetriever(this, httpClientHelper, true);
 		}
 	}
 
@@ -176,12 +183,6 @@ public class HFR4droidApplication extends Application
 	{
 		SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(this);
 		return settings.getBoolean(PREF_DBLTAP_ENABLE, Boolean.parseBoolean(getString(R.string.pref_dbltap_enable_default)));
-	}
-	
-	public boolean isCompressGzipEnable()
-	{
-		SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(this);
-		return settings.getBoolean(PREF_COMPRESS_GZIP, Boolean.parseBoolean(getString(R.string.pref_compress_gzip_enable_default)));
 	}
 	
 	public boolean isOverrideLightModeEnable()

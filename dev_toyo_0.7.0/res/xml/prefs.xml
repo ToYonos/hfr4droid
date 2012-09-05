@@ -37,12 +37,7 @@
 			android:key="PrefDblTapEnable"
 			android:summary="@string/pref_dbltap_enable_summary"
 			android:title="@string/pref_dbltap_enable_title"
-			android:defaultValue="@string/pref_dbltap_enable_default" />			
-		<CheckBoxPreference
-			android:key="PrefCompressGzip"
-			android:summary="@string/pref_compress_gzip_enable_summary"
-			android:title="@string/pref_compress_gzip_enable_title"
-			android:defaultValue="@string/pref_compress_gzip_enable_default" />
+			android:defaultValue="@string/pref_dbltap_enable_default" />
 		<CheckBoxPreference
 			android:key="PrefOverrideLightMode"
 			android:summary="@string/pref_override_light_mode_enable_summary"

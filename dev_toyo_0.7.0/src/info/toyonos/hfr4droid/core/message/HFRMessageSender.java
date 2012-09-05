@@ -26,7 +26,6 @@ import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.protocol.ClientContext;
-import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.params.HttpProtocolParams;
 import org.apache.http.protocol.BasicHttpContext;
@@ -63,15 +62,14 @@ public class HFRMessageSender
 	};
 
 	private HFR4droidApplication context;
+	private HttpClientHelper httpClientHelper;
 	private HFRAuthentication auth;
-	
-	private DefaultHttpClient client;
 
-	public HFRMessageSender(HFR4droidApplication context, HFRAuthentication auth)
+	public HFRMessageSender(HFR4droidApplication context, HttpClientHelper httpClientHelper, HFRAuthentication auth)
 	{
 		this.context = context;
+		this.httpClientHelper = httpClientHelper;
 		this.auth = auth;
-		this.client = HttpClientHelper.getHttpClient(context);
 	}
 
 	public ResponseCode postMessage(Topic t, String hashCheck, String message, boolean signature) throws MessageSenderException
@@ -405,12 +403,12 @@ public class HFRMessageSender
 		Log.d(HFR4droidApplication.TAG, "Posting " + url);
 		HttpContext ctx = new BasicHttpContext();
 		ctx.setAttribute(ClientContext.COOKIE_STORE, auth.getCookies());
-		HttpProtocolParams.setUseExpectContinue(client.getParams(), false);
+		HttpProtocolParams.setUseExpectContinue(httpClientHelper.getHttpClient().getParams(), false);
 		HttpPost post = new HttpPost(url);
 		post.setHeader("User-Agent", "Mozilla /4.0 (compatible; MSIE 6.0; Windows CE; IEMobile 7.6) Vodafone/1.0/SFR_v1615/1.56.163.8.39");
 		post.setEntity(new UrlEncodedFormEntity(params, HTTP.UTF_8));
 		StringBuilder sb = new StringBuilder("");
-		HttpResponse rep = client.execute(post, ctx);
+		HttpResponse rep = httpClientHelper.getHttpClient().execute(post, ctx);
 		Log.d(HFR4droidApplication.TAG, "Status : " + rep.getStatusLine().getStatusCode() + ", " + rep.getStatusLine().getReasonPhrase());
 		InputStream is = rep.getEntity().getContent();
 		BufferedReader reader = new BufferedReader(new InputStreamReader(is));
@@ -429,11 +427,11 @@ public class HFRMessageSender
 		Log.d(HFR4droidApplication.TAG, "Posting " + url);
 		HttpContext ctx = new BasicHttpContext();
 		ctx.setAttribute(ClientContext.COOKIE_STORE, auth.getCookies());
-		HttpProtocolParams.setUseExpectContinue(client.getParams(), false);
+		HttpProtocolParams.setUseExpectContinue(httpClientHelper.getHttpClient().getParams(), false);
 		HttpGet get = new HttpGet(url);
 		get.setHeader("User-Agent", "Mozilla /4.0 (compatible; MSIE 6.0; Windows CE; IEMobile 7.6) Vodafone/1.0/SFR_v1615/1.56.163.8.39");
 		StringBuilder sb = new StringBuilder("");
-		HttpResponse rep = client.execute(get, ctx);
+		HttpResponse rep = httpClientHelper.getHttpClient().execute(get, ctx);
 		Log.d(HFR4droidApplication.TAG, "Status : " + rep.getStatusLine().getStatusCode() + ", " + rep.getStatusLine().getReasonPhrase());
 		InputStream is = rep.getEntity().getContent();
 		BufferedReader reader = new BufferedReader(new InputStreamReader(is));

@@ -46,6 +46,7 @@ import android.content.Context;
 public class HFRAuthentication
 {
 	private HFR4droidApplication context;
+	private HttpClientHelper httpClientHelper;
 	private String userName = null;
 	private String userPassword = null;
 	private String passHash = null;
@@ -67,9 +68,10 @@ public class HFRAuthentication
 	 * 			Le mot de passe
 	 * 
 	 */
-	public HFRAuthentication(HFR4droidApplication context, String user, String password) throws AuthenticationException
+	public HFRAuthentication(HFR4droidApplication context, HttpClientHelper httpClientHelper, String user, String password) throws AuthenticationException
 	{
 		this.context = context;
+		this.httpClientHelper = httpClientHelper;
 		userName = user;
 		userPassword = password;
 		
@@ -84,10 +86,11 @@ public class HFRAuthentication
 		}
 	}
 
-	public HFRAuthentication(HFR4droidApplication context) throws AuthenticationException
+	public HFRAuthentication(HFR4droidApplication context, HttpClientHelper httpClientHelper) throws AuthenticationException
 	{        
 		this.context = context;
-		
+		this.httpClientHelper = httpClientHelper;
+
 		try
 		{
 			cookieStore = deserializeCookies();
@@ -151,7 +154,7 @@ public class HFRAuthentication
 		CookieStore cs = null;
 		HttpPost post = new HttpPost(AUTH_FORM_URL);
 		post.setHeader("User-Agent", "Mozilla /4.0 (compatible; MSIE 6.0; Windows CE; IEMobile 7.6) Vodafone/1.0/SFR_v1615/1.56.163.8.39");
-		DefaultHttpClient client = HttpClientHelper.getHttpClient(context);
+		DefaultHttpClient client = httpClientHelper.getHttpClient();
 		HttpProtocolParams.setUseExpectContinue(client.getParams(), false);
 		List<NameValuePair> params = new ArrayList<NameValuePair>();
 		params.add(new BasicNameValuePair("pseudo", userName));

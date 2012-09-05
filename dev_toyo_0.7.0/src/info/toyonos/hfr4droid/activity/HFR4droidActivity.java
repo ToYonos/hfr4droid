@@ -13,9 +13,9 @@ import info.toyonos.hfr4droid.core.bean.Topic.TopicType;
 import info.toyonos.hfr4droid.core.data.DataRetrieverException;
 import info.toyonos.hfr4droid.core.data.MDDataRetriever;
 import info.toyonos.hfr4droid.core.message.HFRMessageSender;
-import info.toyonos.hfr4droid.core.utils.HttpClientHelper;
 import info.toyonos.hfr4droid.service.MpCheckService;
 import info.toyonos.hfr4droid.service.MpTimerCheckService;
+import info.toyonos.hfr4droid.util.asynctask.ProgressDialogAsyncTask;
 import info.toyonos.hfr4droid.util.asynctask.DataRetrieverAsyncTask;
 
 import java.util.ArrayList;
@@ -24,7 +24,6 @@ import java.util.List;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.NotificationManager;
-import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.DialogInterface.OnCancelListener;
@@ -32,7 +31,6 @@ import android.content.DialogInterface.OnClickListener;
 import android.content.Intent;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager.NameNotFoundException;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.KeyEvent;
@@ -239,7 +237,7 @@ public abstract class HFR4droidActivity extends Activity
 	protected void onDestroy()
 	{
 		super.onDestroy();
-		HttpClientHelper.closeExpiredConnections();
+		getHFR4droidApplication().getHttpClientHelper().closeExpiredConnections();
 	}
 
 	@Override
@@ -396,7 +394,7 @@ public abstract class HFR4droidActivity extends Activity
 		currentTheme.setProfileText2Color(getColorByKey(themeKey, "profile_text2"));
 	}
 
-	protected HFR4droidApplication getHFR4droidApplication()
+	public HFR4droidApplication getHFR4droidApplication()
 	{
 		return (HFR4droidApplication) getApplication();
 	}
@@ -517,20 +515,21 @@ public abstract class HFR4droidActivity extends Activity
 			{  
 				public void onClick(DialogInterface dialog, int whichButton)
 				{
-					final ProgressDialog progressDialog = new ProgressDialog(HFR4droidActivity.this);
-					progressDialog.setMessage(getString(R.string.login_loading));
-					progressDialog.setIndeterminate(true);
-					new AsyncTask<Void, Void, Boolean>()
+					new ProgressDialogAsyncTask<Void, Void, Boolean>(HFR4droidActivity.this)
 					{
 						@Override
 						protected void onPreExecute() 
 						{
+							super.onPreExecute();
+							progressDialog.setMessage(getString(R.string.login_loading));
+							progressDialog.setIndeterminate(true);
 							progressDialog.show();
 						}
 
 						@Override
 						protected Boolean doInBackground(Void... params)
 						{
+							setThreadId();
 							Boolean isLoggedIn = null;
 							try
 							{
@@ -711,9 +710,9 @@ public abstract class HFR4droidActivity extends Activity
 		DataRetrieverAsyncTask<Topic, Category> task = new DataRetrieverAsyncTask<Topic, Category>(this)
 		{
 			@Override
-			protected void onCancel()
+			protected void onCancelled()
 			{
-				super.onCancel();
+				super.onCancelled();
 				if (HFR4droidActivity.this instanceof TopicsActivity)
 				{
 					rollbackAction((TopicsActivity) HFR4droidActivity.this);
@@ -947,11 +946,6 @@ public abstract class HFR4droidActivity extends Activity
 	public boolean isDblTapEnable()
 	{
 		return getHFR4droidApplication().isDblTapEnable();
-	}
-	
-	public boolean isCompressGzipEnable()
-	{
-		return getHFR4droidApplication().isCompressGzipEnable();
 	}
 	
 	public boolean isFullscreenEnable()

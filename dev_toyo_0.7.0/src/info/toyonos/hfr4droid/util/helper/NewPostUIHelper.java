@@ -5,11 +5,11 @@ import info.toyonos.hfr4droid.activity.HFR4droidActivity;
 import info.toyonos.hfr4droid.activity.ImagePicker;
 import info.toyonos.hfr4droid.core.bean.Theme;
 import info.toyonos.hfr4droid.core.data.DataRetrieverException;
+import info.toyonos.hfr4droid.util.asynctask.ProgressDialogAsyncTask;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Color;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.text.Html;
 import android.view.View;
@@ -156,10 +156,7 @@ public abstract class NewPostUIHelper
 				InputMethodManager imm = (InputMethodManager) context.getSystemService(Context.INPUT_METHOD_SERVICE);
 				imm.hideSoftInputFromWindow(((EditText) layout.findViewById(R.id.InputSmileyTag)).getWindowToken(), 0);
 
-				final ProgressDialog progressDialog = new ProgressDialog(context);
-				progressDialog.setMessage(context.getString(R.string.getting_smilies));
-				progressDialog.setIndeterminate(true);
-				new AsyncTask<Void, Void, String>()
+				new ProgressDialogAsyncTask<Void, Void, String>(context)
 				{
 					protected WebView getWebView(final ViewGroup layout, final ViewGroup smiliesLayout, String smiliesData)
 					{
@@ -228,12 +225,17 @@ public abstract class NewPostUIHelper
 					@Override
 					protected void onPreExecute() 
 					{
+						progressDialog = new ProgressDialog(context);
+						progressDialog.setMessage(context.getString(R.string.getting_smilies));
+						progressDialog.setIndeterminate(true);
+						super.onPreExecute();
 						progressDialog.show();
 					}
 
 					@Override
 					protected String doInBackground(Void... params)
 					{
+						setThreadId();
 						String data = "";
 						try
 						{

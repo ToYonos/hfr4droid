@@ -100,7 +100,7 @@ public class DragableSpace extends ViewGroup {
                 //Log.i(LOG_TAG, "xDiff " + xDiff + " - yDiff " + yDiff);
 
                 // To be sure that x scroll doesn't parasitize y scroll
-                if (yDiff > 20) return false;
+                if (yDiff > 10) return false;
                 
                 boolean xMoved = xDiff > mTouchSlop;
 

@@ -48,15 +48,12 @@ import java.util.regex.Pattern;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 
-import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.CookieStore;
-import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpHead;
 import org.apache.http.client.params.HttpClientParams;
 import org.apache.http.client.protocol.ClientContext;
 import org.apache.http.impl.client.BasicCookieStore;
-import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.impl.cookie.BasicClientCookie;
 import org.apache.http.params.BasicHttpParams;
 import org.apache.http.params.HttpParams;
@@ -111,29 +108,28 @@ public class HFRDataRetriever implements MDDataRetriever
 	public static final String FAKE_ACCOUNT_MD5_PASS = "57e2d4c435b8aeea182d5126be1c46b4";
 	
 	private HFR4droidApplication context;
+	private HttpClientHelper httpClientHelper;
 	private HFRAuthentication auth;
-	
-	DefaultHttpClient client;
 	
 	private String hashCheck;
 	private Map<Category, List<SubCategory>> cats;
 	private CookieStore fakeCs = null;
 
-	public HFRDataRetriever(HFR4droidApplication context)
+	public HFRDataRetriever(HFR4droidApplication context, HttpClientHelper httpClientHelper)
 	{
-		this(context, null, false);
+		this(context, httpClientHelper, null, false);
 	}
 	
-	public HFRDataRetriever(HFR4droidApplication context, boolean clearCache)
+	public HFRDataRetriever(HFR4droidApplication context, HttpClientHelper httpClientHelper, boolean clearCache)
 	{
-		this(context, null, clearCache);
+		this(context, httpClientHelper, null, clearCache);
 	}
 
-	public HFRDataRetriever(HFR4droidApplication context, HFRAuthentication auth, boolean clearCache)
+	public HFRDataRetriever(HFR4droidApplication context, HttpClientHelper httpClientHelper, HFRAuthentication auth, boolean clearCache)
 	{
 		this.context = context;
 		this.auth = auth;
-		this.client = HttpClientHelper.getHttpClient(context);
+		this.httpClientHelper = httpClientHelper;
 		
 		hashCheck = null;
 		cats = null;
@@ -169,6 +165,7 @@ public class HFRDataRetriever implements MDDataRetriever
 			try
 			{
 				content = getAsString(CATS_URL);
+				if (content == null) return null;
 			}
 			catch (Exception e)
 			{
@@ -212,6 +209,7 @@ public class HFRDataRetriever implements MDDataRetriever
 			try
 			{
 				content = getAsString(CATS_URL);
+				if (content == null) return null;
 			}
 			catch (Exception e)
 			{
@@ -297,6 +295,7 @@ public class HFRDataRetriever implements MDDataRetriever
 				{
 					String url = SUBCATS_URL.replaceFirst("\\{\\$cat\\}", keyCat.getRealId());
 					content = getAsString(url);
+					if (content == null) return null;
 				}
 				catch (Exception e)
 				{
@@ -381,6 +380,7 @@ public class HFRDataRetriever implements MDDataRetriever
 		try
 		{
 			content = getAsString(url);
+			if (content == null) return null;
 		}
 		catch (Exception e)
 		{
@@ -500,7 +500,7 @@ public class HFRDataRetriever implements MDDataRetriever
 				httpContext.setAttribute(ClientContext.COOKIE_STORE, auth.getCookies());
 			}
 			
-			HttpResponse response = client.execute(method, httpContext);
+			HttpResponse response = httpClientHelper.getHttpClient().execute(method, httpContext);
 			Log.d(HFR4droidApplication.TAG, "Status : " + response.getStatusLine().getStatusCode() + ", " + response.getStatusLine().getReasonPhrase());
 			return response.getStatusLine().getStatusCode() == 200;
 		}
@@ -531,6 +531,7 @@ public class HFRDataRetriever implements MDDataRetriever
 		try
 		{
 			content = getAsString(url, false, useFakeAccount);
+			if (content == null) return null;
 		}
 		catch (Exception e)
 		{
@@ -623,6 +624,7 @@ public class HFRDataRetriever implements MDDataRetriever
 		try
 		{
 			content = getAsString(url);
+			if (content == null) return null;
 		}
 		catch (Exception e)
 		{
@@ -701,6 +703,7 @@ public class HFRDataRetriever implements MDDataRetriever
 		try
 		{
 			content = getAsString(MPS_URL);
+			if (content == null) return 0;
 		}
 		catch (Exception e)
 		{
@@ -764,7 +767,8 @@ public class HFRDataRetriever implements MDDataRetriever
 		String url = SMILIES_URL.replaceFirst("\\{\\$tag\\}",  encodedTag);
 		try
 		{
-			return getAsString(url);
+			String content = getAsString(url);
+			return content != null ? content : null;
 		}
 		catch (Exception e)
 		{
@@ -801,6 +805,7 @@ public class HFRDataRetriever implements MDDataRetriever
 		try
 		{
 			content = getAsString(url, true, false);
+			if (content == null) return null;
 		}
 		catch (Exception e)
 		{
@@ -839,6 +844,7 @@ public class HFRDataRetriever implements MDDataRetriever
 		try
 		{
 			content = getAsString(url, true, false);
+			if (content == null) return null;
 		}
 		catch (Exception e)
 		{
@@ -870,6 +876,7 @@ public class HFRDataRetriever implements MDDataRetriever
 		try
 		{
 			content = getAsString(url);
+			if (content == null) return null;
 		}
 		catch (Exception e)
 		{
@@ -944,7 +951,7 @@ public class HFRDataRetriever implements MDDataRetriever
 	{
 		ArrayList<AlertQualitay> alerts = new ArrayList<AlertQualitay>();
 		String url = AQ_BY_TOPIC_URL.replaceFirst("\\{\\$topic\\}", String.valueOf(topic.getId()));
-		HttpClient<Document> client = new HttpClient<Document>()
+		HttpClient<Document> client = new HttpClient<Document>(httpClientHelper)
 		{		
 			@Override
 			protected Document transformStream(InputStream is) throws TransformStreamException
@@ -965,6 +972,7 @@ public class HFRDataRetriever implements MDDataRetriever
 		try
 		{
 			Document dom = client.getResponse(url);
+			if (dom == null) return null;
 			Element root = dom.getDocumentElement();
 			NodeList items = root.getElementsByTagName("alerte");
 			for (int i = 0; i < items.getLength(); i++)
@@ -1008,8 +1016,8 @@ public class HFRDataRetriever implements MDDataRetriever
 			
 			// We disable redirecting
 			HttpClientParams.setRedirecting(params, false);
-			client.setParams(params);
-			HttpResponse response = client.execute(method);
+			httpClientHelper.getHttpClient().setParams(params);
+			HttpResponse response = httpClientHelper.getHttpClient().execute(method);
 			if (response.getStatusLine().getStatusCode() == 301)
 			{
 				String rewrittenUrl = BASE_URL + response.getFirstHeader("Location").getValue();
@@ -1030,7 +1038,7 @@ public class HFRDataRetriever implements MDDataRetriever
 		{
 			// We re-enable redirecting
 			HttpClientParams.setRedirecting(params, true);
-			client.setParams(params);
+			httpClientHelper.getHttpClient().setParams(params);
 		}
 	}
 
@@ -1042,7 +1050,7 @@ public class HFRDataRetriever implements MDDataRetriever
 	 * @throws URISyntaxException Si l'url est foireuse
 	 * @throws ServerMaintenanceException Si le forum est en maintenance
 	 */
-	private String getAsString(String url) throws IOException, URISyntaxException, ServerMaintenanceException, NoSuchTopicException
+	private String getAsString(String url) throws IOException, URISyntaxException, TransformStreamException, ServerMaintenanceException, NoSuchTopicException
 	{
 		return getAsString(url, false, false); 
 	}
@@ -1057,54 +1065,42 @@ public class HFRDataRetriever implements MDDataRetriever
 	 * @throws URISyntaxException Si l'url est foireuse
 	 * @throws ServerMaintenanceException Si le forum est en maintenance
 	 */
-	private String getAsString(String url, boolean cr, boolean useFakeAccount) throws IOException, URISyntaxException, ServerMaintenanceException, NoSuchTopicException
+	private String getAsString(String url, final boolean cr, boolean useFakeAccount) throws IOException, URISyntaxException, TransformStreamException, ServerMaintenanceException, NoSuchTopicException
 	{
 		Log.d(HFR4droidApplication.TAG, "Retrieving " + url);
 
-		InputStream data = null;
-		URI uri = new URI(url);
-		HttpGet method = new HttpGet(uri);
-		method.setHeader("User-Agent", "Mozilla /4.0 (compatible; MSIE 6.0; Windows CE; IEMobile 7.6) Vodafone/1.0/SFR_v1615/1.56.163.8.39");
-		HttpContext httpContext = new BasicHttpContext();
+		HttpClient<String> client = new HttpClient<String>(httpClientHelper)
+		{		
+			@Override
+			protected String transformStream(InputStream is) throws TransformStreamException
+			{
+				try
+				{
+					return streamToString(is, cr);
+				}
+				catch (IOException e)
+				{
+					throw new TransformStreamException(e);
+				}
+			}
+		};
+
+		String content = "";
 		if (auth != null && auth.getCookies() != null && fakeCs != null)
 		{
-			httpContext.setAttribute(ClientContext.COOKIE_STORE, useFakeAccount ? fakeCs : auth.getCookies());
+			content = client.getResponse(url, useFakeAccount ? fakeCs : auth.getCookies());
 		}
-
-		/* Proxy de merde */		
-		//HttpHost proxy = new HttpHost("192.168.3.108", 8080);
-		//client.getParams().setParameter(ConnRoutePNames.DEFAULT_PROXY, proxy);
-		/* -------------- */
-
-		HttpResponse response = client.execute(method, httpContext);
-		Log.d(HFR4droidApplication.TAG, "Status : " + response.getStatusLine().getStatusCode() + ", " + response.getStatusLine().getReasonPhrase());
-		HttpEntity entity = response.getEntity();
-		String content = "";
-		if (entity != null)
+		else
 		{
-			try
-			{
-				data = entity.getContent();
-				content = streamToString(data, cr);
-			}
-			catch (IOException e)
-			{
-				throw e;
-			}
-			catch (RuntimeException e)
-			{
-				method.abort();
-				throw e;
-			}
-			finally
-			{
-				if (entity != null) entity.consumeContent();
-			}
+			content =  client.getResponse(url);
 		}
-
-		if  (content.contains(MAINTENANCE)) throw new ServerMaintenanceException(context.getString(R.string.server_maintenance));
-		if  (content.contains(TOPIC_DELETED)) throw new NoSuchTopicException(context.getString(R.string.no_such_topic));
-		Log.d(HFR4droidApplication.TAG, "GET OK for " + url);
+		
+		if (content != null)
+		{
+			if  (content.contains(MAINTENANCE)) throw new ServerMaintenanceException(context.getString(R.string.server_maintenance));
+			if  (content.contains(TOPIC_DELETED)) throw new NoSuchTopicException(context.getString(R.string.no_such_topic));
+			Log.d(HFR4droidApplication.TAG, "GET OK for " + url);
+		}
 		return content;
 	}
 
