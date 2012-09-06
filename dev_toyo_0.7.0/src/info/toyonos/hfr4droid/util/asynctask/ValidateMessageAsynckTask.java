@@ -28,7 +28,6 @@ public abstract class ValidateMessageAsynckTask extends ProgressDialogAsyncTask<
 	{
 		super.onPreExecute();
 		progressDialog.setMessage(context.getString(R.string.post_loading));
-		progressDialog.setIndeterminate(true);
 		if (canExecute())
 		{
 			progressDialog.show();

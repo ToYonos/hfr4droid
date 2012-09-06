@@ -47,6 +47,7 @@ public class HttpClientHelper
 		HttpParams parameters = new BasicHttpParams();
 		HttpProtocolParams.setVersion(parameters, HttpVersion.HTTP_1_1);
 		HttpProtocolParams.setContentCharset(parameters, HTTP.UTF_8);
+		HttpProtocolParams.setUseExpectContinue(parameters, false);
 		ConnPerRoute connPerRoute = new ConnPerRouteBean(50);
 		ConnManagerParams.setMaxConnectionsPerRoute(parameters, connPerRoute); 
 		ConnManagerParams.setMaxTotalConnections(parameters, 50); 
@@ -56,6 +57,9 @@ public class HttpClientHelper
 		ClientConnectionManager conMgr = new ThreadSafeClientConnManager(parameters, schReg);
 
 		client = new DefaultHttpClient(conMgr, parameters);
+		
+		//HttpHost proxy = new HttpHost("192.168.3.108", 8080);
+		//client.getParams().setParameter(ConnRoutePNames.DEFAULT_PROXY, proxy);
 		
 		// @see http://stackoverflow.com/a/6797742
 		client.addRequestInterceptor(new HttpRequestInterceptor()
@@ -111,24 +115,25 @@ public class HttpClientHelper
 		{
 			HttpResponse response = context != null ? client.execute(request, context) : client.execute(request);
 			Log.d(HFR4droidApplication.TAG, "Response received for the thread #" + threadId);
-			if (requests.remove(threadId).isCancelled())
-			{
-				Log.d(HFR4droidApplication.TAG, "Request to " + request.getURI() + " has been tardily cancelled");
-				return null;
-			}
+			if (isCancelled(threadId)) return null;
 			return response;
 		}
 		catch (IOException e)
 		{
-			if (requests.get(threadId) != null)
-			{
-				// Ok, on annule la requête, exception attendue
-				Log.d(HFR4droidApplication.TAG, "Request to " + request.getURI() + " has been cancelled");
-				requests.remove(threadId);
-				return null;
-			}
+			if (isCancelled(threadId)) return null;
 			throw e;
 		}
+	}
+	
+	private boolean isCancelled(long threadId)
+	{
+		HttpUriRequestWrapper request = requests.remove(threadId);
+		if (request != null && request.isCancelled())
+		{
+			Log.d(HFR4droidApplication.TAG, "Request to " + request.get().getURI() + " has been cancelled");
+			return true;
+		}
+		return false;
 	}
 
 	public void abortRequest(long threadId)

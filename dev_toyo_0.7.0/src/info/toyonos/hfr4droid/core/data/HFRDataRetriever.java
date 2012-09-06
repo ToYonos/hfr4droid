@@ -971,7 +971,7 @@ public class HFRDataRetriever implements MDDataRetriever
 		
 		try
 		{
-			Document dom = client.getResponse(url);
+			Document dom = client.doGet(url);
 			if (dom == null) return null;
 			Element root = dom.getDocumentElement();
 			NodeList items = root.getElementsByTagName("alerte");
@@ -1088,11 +1088,11 @@ public class HFRDataRetriever implements MDDataRetriever
 		String content = "";
 		if (auth != null && auth.getCookies() != null && fakeCs != null)
 		{
-			content = client.getResponse(url, useFakeAccount ? fakeCs : auth.getCookies());
+			content = client.doGet(url, useFakeAccount ? fakeCs : auth.getCookies());
 		}
 		else
 		{
-			content =  client.getResponse(url);
+			content =  client.doGet(url);
 		}
 		
 		if (content != null)

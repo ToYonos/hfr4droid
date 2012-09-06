@@ -22,7 +22,6 @@ import org.apache.http.cookie.Cookie;
 import org.apache.http.impl.client.BasicCookieStore;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.message.BasicNameValuePair;
-import org.apache.http.params.HttpProtocolParams;
 import org.apache.http.protocol.HTTP;
 
 import android.content.Context;
@@ -155,7 +154,6 @@ public class HFRAuthentication
 		HttpPost post = new HttpPost(AUTH_FORM_URL);
 		post.setHeader("User-Agent", "Mozilla /4.0 (compatible; MSIE 6.0; Windows CE; IEMobile 7.6) Vodafone/1.0/SFR_v1615/1.56.163.8.39");
 		DefaultHttpClient client = httpClientHelper.getHttpClient();
-		HttpProtocolParams.setUseExpectContinue(client.getParams(), false);
 		List<NameValuePair> params = new ArrayList<NameValuePair>();
 		params.add(new BasicNameValuePair("pseudo", userName));
 		params.add(new BasicNameValuePair("password", userPassword));

@@ -522,7 +522,6 @@ public abstract class HFR4droidActivity extends Activity
 						{
 							super.onPreExecute();
 							progressDialog.setMessage(getString(R.string.login_loading));
-							progressDialog.setIndeterminate(true);
 							progressDialog.show();
 						}
 
@@ -777,7 +776,7 @@ public abstract class HFR4droidActivity extends Activity
 				else if (HFR4droidActivity.this instanceof TopicsActivity && sameActivity)
 				{
 					TopicsActivity ta = (TopicsActivity) HFR4droidActivity.this;
-					((PullToRefreshListView) ta.getListView()).onRefreshComplete();
+					if (ta.getListView() != null) ((PullToRefreshListView) ta.getListView()).onRefreshComplete();
 					if (ta.getType() != TopicType.ALL && !(cat instanceof SubCategory))
 					{
 						loadCats(false);

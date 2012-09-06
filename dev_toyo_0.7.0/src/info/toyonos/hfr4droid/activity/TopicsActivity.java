@@ -620,6 +620,7 @@ public class TopicsActivity extends HFR4droidMultiListActivity<ArrayAdapter<Topi
 	
 	protected void applyTheme(Theme theme, ListView mainList, boolean listOnly)
 	{
+		if (mainList == null) return;
 		if (!listOnly) ((LinearLayout) mainList.getParent().getParent()).setBackgroundColor(theme.getListBackgroundColor());
 		mainList.setDivider(new ColorDrawable(theme.getListDividerColor()));
 		mainList.setDividerHeight(1);
@@ -903,7 +904,7 @@ public class TopicsActivity extends HFR4droidMultiListActivity<ArrayAdapter<Topi
 			}
 			getDatasource().notifyDataSetChanged();
 			updateButtonsStates();
-			getListView().setSelection(0);
+			if (getListView() != null) getListView().setSelection(0);
 		}
 	}
 

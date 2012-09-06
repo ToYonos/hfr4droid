@@ -80,7 +80,6 @@ public abstract class DataRetrieverAsyncTask<E, P> extends ProgressDialogAsyncTa
 		super.onPreExecute();
 		progressDialog.setTitle(progressTitle != null ? progressTitle : context.getString(R.string.loading));
 		progressDialog.setMessage(progressContent);
-		progressDialog.setIndeterminate(true);
 		if (displayLoading) progressDialog.show();
 	}
 

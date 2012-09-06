@@ -22,7 +22,6 @@ public abstract class MessageResponseAsyncTask extends ProgressDialogAsyncTask<V
 	protected void onPreExecute() 
 	{
 		super.onPreExecute();
-		progressDialog.setIndeterminate(true);
 		progressDialog.setMessage(message);
 		progressDialog.show();
 	}

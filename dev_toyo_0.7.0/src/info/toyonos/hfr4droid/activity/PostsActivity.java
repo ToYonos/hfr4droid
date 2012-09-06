@@ -22,10 +22,10 @@ import info.toyonos.hfr4droid.core.utils.HttpClient;
 import info.toyonos.hfr4droid.core.utils.PatchInputStream;
 import info.toyonos.hfr4droid.core.utils.TransformStreamException;
 import info.toyonos.hfr4droid.service.MpNotifyService;
-import info.toyonos.hfr4droid.util.asynctask.ProgressDialogAsyncTask;
 import info.toyonos.hfr4droid.util.asynctask.DataRetrieverAsyncTask;
 import info.toyonos.hfr4droid.util.asynctask.MessageResponseAsyncTask;
 import info.toyonos.hfr4droid.util.asynctask.PreLoadingAsyncTask;
+import info.toyonos.hfr4droid.util.asynctask.ProgressDialogAsyncTask;
 import info.toyonos.hfr4droid.util.asynctask.ValidateMessageAsynckTask;
 import info.toyonos.hfr4droid.util.dialog.PageNumberDialog;
 import info.toyonos.hfr4droid.util.helper.NewPostUIHelper;
@@ -58,7 +58,6 @@ import org.apache.http.util.ByteArrayBuffer;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
-import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.DialogInterface.OnDismissListener;
@@ -491,6 +490,7 @@ public class PostsActivity extends HFR4droidMultiListActivity<List<Post>>
 			restoreViews();
 			preloadPosts(true);
 		}
+		if (currentQAwindow != null) currentQAwindow.dismiss();
 	}
 
 	@Override
@@ -959,7 +959,6 @@ public class PostsActivity extends HFR4droidMultiListActivity<List<Post>>
     							{
     								super.onPreExecute();
     	    						progressDialog.setMessage(getString(R.string.save_image));
-    	    						progressDialog.setIndeterminate(true);
 									progressDialog.show();
     							}
 
@@ -976,7 +975,7 @@ public class PostsActivity extends HFR4droidMultiListActivity<List<Post>>
 	                        			
     									if (compressToPng)
 										{
-											Bitmap imgBitmap = imgBitmapHttpClient.getResponse(url[0]);
+											Bitmap imgBitmap = imgBitmapHttpClient.doGet(url[0]);
 											if (imgBitmap == null) return null;
 		                        			String newFileName = originalFileName + ".png";
 		                        			if (originalFileName.lastIndexOf('.') != -1)
@@ -990,7 +989,7 @@ public class PostsActivity extends HFR4droidMultiListActivity<List<Post>>
 										}
 										else
 										{											
-											ByteArrayInputStream input = imgHttpClient.getResponse(url[0]);
+											ByteArrayInputStream input = imgHttpClient.doGet(url[0]);
 											if (input == null) return null;
 											ByteArrayBuffer baf = new ByteArrayBuffer(50);
 											int current = 0;
@@ -1274,7 +1273,7 @@ public class PostsActivity extends HFR4droidMultiListActivity<List<Post>>
 			@SuppressWarnings("unused")
 			public void openQuickActionWindow(final long postId, final boolean isMine, final int yOffset)
 			{
-				if (yOffset >= 0)
+				if (yOffset >= 0 && (currentQAwindow == null || !currentQAwindow.isShowing()))
 				{
 					runOnUiThread(new Runnable()
 					{
@@ -1287,6 +1286,7 @@ public class PostsActivity extends HFR4droidMultiListActivity<List<Post>>
 							configuration.put(QuickActionWindow.Config.ITEM_ICON, R.id.QuickActionIcon);
 							configuration.put(QuickActionWindow.Config.WINDOW_ANIMATION_STYLE, R.style.Animation_QuickActionWindow);
 							configuration.put(QuickActionWindow.Config.ARROW_OFFSET, -2);
+							if (currentQAwindow != null) currentQAwindow.dismiss();
 							currentQAwindow = HFR4droidQuickActionWindow.getWindow(PostsActivity.this, configuration);
 							
 							addQuickActionWindowItems(currentQAwindow, postId, isMine);
@@ -1446,7 +1446,6 @@ public class PostsActivity extends HFR4droidMultiListActivity<List<Post>>
 								}
 							});
 							
-							
 							smileysWebView.loadData("<html><head>" + uiHelper.fixHTML(css.toString()) + "</head>" +
 							"<body>" + uiHelper.fixHTML(smiliesData.toString()) + "</body></html>", "text/html", "UTF-8");
 							profileView.addView(smileysWebView);
@@ -1455,7 +1454,6 @@ public class PostsActivity extends HFR4droidMultiListActivity<List<Post>>
 							{
 								public void onDismiss()
 								{
-									super.onDismiss();
 									smileysWebView.destroy();
 								}
 							});
@@ -1492,7 +1490,8 @@ public class PostsActivity extends HFR4droidMultiListActivity<List<Post>>
 							pw.setOnDismissListener(new ProfileDismissListenner());
 							profileTask = new AsyncTask<String, Void, Profile>()
 							{
-								ImageView wait = null;
+								private ImageView wait = null;
+								private long backgroundThreadId = -1;
 								
 								@Override
 								protected void onPreExecute()
@@ -1509,15 +1508,22 @@ public class PostsActivity extends HFR4droidMultiListActivity<List<Post>>
 								}
 	
 								@Override
+								protected void onCancelled()
+								{
+									getHFR4droidApplication().getHttpClientHelper().abortRequest(backgroundThreadId);
+								}
+								
+								@Override
 								protected Profile doInBackground(String... pseudo)
 								{
+									backgroundThreadId = Thread.currentThread().getId();
 									Profile profile = null;
 									try
 									{
 										profile = getDataRetriever().getProfile(pseudo[0]);
 										if (profile.getAvatarUrl() != null)
 										{
-											profile.setAvatarBitmap(imgBitmapHttpClient.getResponse(profile.getAvatarUrl()));
+											profile.setAvatarBitmap(imgBitmapHttpClient.doGet(profile.getAvatarUrl()));
 										}
 										getHFR4droidApplication().setProfile(pseudo[0], profile);
 									}
@@ -1533,6 +1539,7 @@ public class PostsActivity extends HFR4droidMultiListActivity<List<Post>>
 								{	
 									//wait.clearAnimation();
 									pw.setOnDismissListener(null);
+									profileTask = null;
 									pw.dismiss();
 	
 									if (profile != null)
@@ -1606,7 +1613,6 @@ public class PostsActivity extends HFR4droidMultiListActivity<List<Post>>
 					{
 						super.onPreExecute();
 						progressDialog.setMessage(getString(R.string.getting_keywords, code));
-						progressDialog.setIndeterminate(true);
 						progressDialog.show();
 					}
 
@@ -1916,7 +1922,7 @@ public class PostsActivity extends HFR4droidMultiListActivity<List<Post>>
 					protected String doActionInBackground(Post p) throws DataRetrieverException, MessageSenderException
 					{
 						String content = getDataRetriever().getPostContent(p);
-						return content.substring(0, content.length() - 1);
+						return content != null ? content.substring(0, content.length() - 1) : null;
 					}
 
 					@Override
@@ -2144,7 +2150,6 @@ public class PostsActivity extends HFR4droidMultiListActivity<List<Post>>
 						{
 							super.onPreExecute();
 							progressDialog.setMessage(getString(R.string.aq_loading));
-							progressDialog.setIndeterminate(true);
 							progressDialog.show();
 						}
 	
@@ -2672,7 +2677,6 @@ public class PostsActivity extends HFR4droidMultiListActivity<List<Post>>
 			{
 				super.onPreExecute();
 				progressDialog.setMessage(getString(type.getKey() + "_loading"));
-				progressDialog.setIndeterminate(true);
 				progressDialog.show();
 			}
 		}

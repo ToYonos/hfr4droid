@@ -119,7 +119,6 @@ public class CategoriesActivity extends HFR4droidListActivity<Category>
 									super.onPreExecute();
 									progressDialog.setTitle(cat.toString());
 									progressDialog.setMessage(getString(R.string.getting_subcats));
-									progressDialog.setIndeterminate(true);
 									progressDialog.show();
 								}
 							}

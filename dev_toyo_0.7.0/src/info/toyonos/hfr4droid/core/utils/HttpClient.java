@@ -6,13 +6,19 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.List;
 
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
+import org.apache.http.NameValuePair;
 import org.apache.http.client.CookieStore;
+import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.client.protocol.ClientContext;
 import org.apache.http.protocol.BasicHttpContext;
+import org.apache.http.protocol.HTTP;
 import org.apache.http.protocol.HttpContext;
 
 import android.util.Log;
@@ -33,9 +39,9 @@ public abstract class HttpClient<T>
 	 * @throws IOException Si un problème intervient durant la requête
 	 * @throws URISyntaxException Si l'url est foireuse
 	 */
-	public T getResponse(String url) throws IOException, URISyntaxException, TransformStreamException
+	public T doGet(String url) throws IOException, URISyntaxException, TransformStreamException
 	{
-		return getResponse(url, null);
+		return doGet(url, null);
 	}
 	
 	/**
@@ -46,26 +52,46 @@ public abstract class HttpClient<T>
 	 * @throws IOException Si un problème intervient durant la requête
 	 * @throws URISyntaxException Si l'url est foireuse
 	 */
-	public T getResponse(String url, CookieStore cs) throws IOException, URISyntaxException, TransformStreamException
+	public T doGet(String url, CookieStore cs) throws IOException, URISyntaxException, TransformStreamException
 	{
-		InputStream data = null;
 		URI uri = new URI(url);
 		HttpGet method = new HttpGet(uri);
 		method.setHeader("User-Agent", "Mozilla /4.0 (compatible; MSIE 6.0; Windows CE; IEMobile 7.6) Vodafone/1.0/SFR_v1615/1.56.163.8.39");
-
-		//HttpHost proxy = new HttpHost("192.168.3.108", 8080);
-		//client.getParams().setParameter(ConnRoutePNames.DEFAULT_PROXY, proxy);
+		return getResponse(method, cs);
+	}
+	
+	/**
+	 * Effectue une requête HTTP POST et récupère un <code>T</code> en retour
+	 * @param url L'url concernée
+	 * @param cs Le <code>CookieStore</code> à utiliser
+	 * @param params Les paramètres à passer à la requête
+	 * @return Un <code>T</code> contenant la réponse
+	 * @throws IOException Si un problème intervient durant la requête
+	 * @throws URISyntaxException Si l'url est foireuse
+	 */
+	public T doPost(String url, CookieStore cs, List<NameValuePair> params) throws IOException, URISyntaxException, TransformStreamException
+	{
+		URI uri = new URI(url);
+		HttpPost method = new HttpPost(uri);
+		method.setHeader("User-Agent", "Mozilla /4.0 (compatible; MSIE 6.0; Windows CE; IEMobile 7.6) Vodafone/1.0/SFR_v1615/1.56.163.8.39");
+		method.setEntity(new UrlEncodedFormEntity(params, HTTP.UTF_8));
+		return getResponse(method, cs);
+	}
+	
+	private T getResponse(HttpUriRequest request, CookieStore cs) throws IOException, TransformStreamException
+	{
+		InputStream data = null;
 		
 		HttpResponse response = null;
 		if (cs != null)
 		{
 			HttpContext httpContext = new BasicHttpContext();
 			httpContext.setAttribute(ClientContext.COOKIE_STORE, cs);
-			response = httpClientHelper.execute(method, httpContext);
+			response = httpClientHelper.execute(request, httpContext);
 		}
 		else
 		{
-			response = httpClientHelper.execute(method);
+			response = httpClientHelper.execute(request);
 		}
 		
 		if (response == null) return null;

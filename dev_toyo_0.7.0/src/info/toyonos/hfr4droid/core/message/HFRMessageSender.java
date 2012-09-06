@@ -8,31 +8,19 @@ import info.toyonos.hfr4droid.core.bean.Post;
 import info.toyonos.hfr4droid.core.bean.Topic;
 import info.toyonos.hfr4droid.core.bean.Topic.TopicType;
 import info.toyonos.hfr4droid.core.data.HFRDataRetriever;
+import info.toyonos.hfr4droid.core.utils.HttpClient;
 import info.toyonos.hfr4droid.core.utils.HttpClientHelper;
+import info.toyonos.hfr4droid.core.utils.TransformStreamException;
 
-import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.apache.http.HttpResponse;
 import org.apache.http.NameValuePair;
-import org.apache.http.client.entity.UrlEncodedFormEntity;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.client.protocol.ClientContext;
 import org.apache.http.message.BasicNameValuePair;
-import org.apache.http.params.HttpProtocolParams;
-import org.apache.http.protocol.BasicHttpContext;
-import org.apache.http.protocol.HTTP;
-import org.apache.http.protocol.HttpContext;
-
-import android.util.Log;
 
 public class HFRMessageSender
 {	 
@@ -62,14 +50,28 @@ public class HFRMessageSender
 	};
 
 	private HFR4droidApplication context;
-	private HttpClientHelper httpClientHelper;
 	private HFRAuthentication auth;
+	private HttpClient<String> client;
 
 	public HFRMessageSender(HFR4droidApplication context, HttpClientHelper httpClientHelper, HFRAuthentication auth)
 	{
 		this.context = context;
-		this.httpClientHelper = httpClientHelper;
 		this.auth = auth;
+		client = new HttpClient<String>(httpClientHelper)
+		{		
+			@Override
+			protected String transformStream(InputStream is) throws TransformStreamException
+			{
+				try
+				{
+					return HFRDataRetriever.streamToString(is, false);
+				}
+				catch (IOException e)
+				{
+					throw new TransformStreamException(e);
+				}
+			}
+		};
 	}
 
 	public ResponseCode postMessage(Topic t, String hashCheck, String message, boolean signature) throws MessageSenderException
@@ -89,7 +91,7 @@ public class HFRMessageSender
 		String response = null;
 		try
 		{
-			response = innerGetResponse(FORM_URI, params);
+			response = client.doPost(FORM_URI, auth.getCookies(), params);
 		}
 		catch (Exception e)
 		{
@@ -115,7 +117,7 @@ public class HFRMessageSender
 		String response = null;
 		try
 		{
-			response = innerGetResponse(FORM_URI, params);
+			response = client.doPost(FORM_URI, auth.getCookies(), params);
 		}
 		catch (Exception e)
 		{
@@ -150,7 +152,7 @@ public class HFRMessageSender
 		String response = null;
 		try
 		{
-			response = innerGetResponse(FORM_EDIT_URI, params);
+			response = client.doPost(FORM_EDIT_URI, auth.getCookies(), params);
 		}
 		catch (Exception e)
 		{
@@ -172,7 +174,7 @@ public class HFRMessageSender
 		String response = null;
 		try
 		{
-			response = innerGetResponse(FORM_EDIT_URI, params);
+			response = client.doPost(FORM_EDIT_URI, auth.getCookies(), params);
 		}
 		catch (Exception e)
 		{
@@ -203,7 +205,7 @@ public class HFRMessageSender
 		String response = null;
 		try
 		{
-			response = innerGetResponse(FORM_EDIT_KEYWORDS_URI, params);
+			response = client.doPost(FORM_EDIT_KEYWORDS_URI, auth.getCookies(), params);
 		}
 		catch (Exception e)
 		{
@@ -230,7 +232,7 @@ public class HFRMessageSender
 		String response = null;
 		try
 		{
-			response = innerGetResponse(url);
+			response = client.doGet(url, auth.getCookies());
 		}
 		catch (Exception e)
 		{
@@ -256,7 +258,7 @@ public class HFRMessageSender
 		String response = null;
 		try
 		{
-			response = innerGetResponse(url);
+			response = client.doGet(url, auth.getCookies());
 		}
 		catch (Exception e)
 		{
@@ -290,7 +292,7 @@ public class HFRMessageSender
 		String response = null;
 		try
 		{
-			response = innerGetResponse(UNFLAG_URI.replaceFirst("\\{\\$cat\\}", t.getCategory().getRealId()), params);
+			response = client.doPost(UNFLAG_URI.replaceFirst("\\{\\$cat\\}", t.getCategory().getRealId()), auth.getCookies(), params);
 		}
 		catch (Exception e)
 		{
@@ -318,7 +320,7 @@ public class HFRMessageSender
 		String response = null;
 		try
 		{
-			response = innerGetResponse(DELETE_MP_URI.replaceFirst("\\{\\$cat\\}", t.getCategory().getRealId()), params);
+			response = client.doPost(DELETE_MP_URI.replaceFirst("\\{\\$cat\\}", t.getCategory().getRealId()), auth.getCookies(), params);
 		}
 		catch (Exception e)
 		{
@@ -358,7 +360,7 @@ public class HFRMessageSender
 		String response = null;
 		try
 		{
-			response = innerGetResponse(AQ_URI, params);
+			response = client.doPost(AQ_URI, auth.getCookies(), params);
 		}
 		catch (Exception e)
 		{
@@ -396,53 +398,6 @@ public class HFRMessageSender
 			default:
 				return context.getString(R.string.aq_ko);
 		}
-	}
-
-	private String innerGetResponse(String url, List<NameValuePair> params) throws UnsupportedEncodingException, IOException
-	{
-		Log.d(HFR4droidApplication.TAG, "Posting " + url);
-		HttpContext ctx = new BasicHttpContext();
-		ctx.setAttribute(ClientContext.COOKIE_STORE, auth.getCookies());
-		HttpProtocolParams.setUseExpectContinue(httpClientHelper.getHttpClient().getParams(), false);
-		HttpPost post = new HttpPost(url);
-		post.setHeader("User-Agent", "Mozilla /4.0 (compatible; MSIE 6.0; Windows CE; IEMobile 7.6) Vodafone/1.0/SFR_v1615/1.56.163.8.39");
-		post.setEntity(new UrlEncodedFormEntity(params, HTTP.UTF_8));
-		StringBuilder sb = new StringBuilder("");
-		HttpResponse rep = httpClientHelper.getHttpClient().execute(post, ctx);
-		Log.d(HFR4droidApplication.TAG, "Status : " + rep.getStatusLine().getStatusCode() + ", " + rep.getStatusLine().getReasonPhrase());
-		InputStream is = rep.getEntity().getContent();
-		BufferedReader reader = new BufferedReader(new InputStreamReader(is));
-		String repHtml = reader.readLine();
-		while (repHtml != null)
-		{
-			sb.append(repHtml);
-			repHtml = reader.readLine();
-		}
-		rep.getEntity().consumeContent();
-		return sb.toString();		
-	}
-	
-	private String innerGetResponse(String url) throws IOException
-	{
-		Log.d(HFR4droidApplication.TAG, "Posting " + url);
-		HttpContext ctx = new BasicHttpContext();
-		ctx.setAttribute(ClientContext.COOKIE_STORE, auth.getCookies());
-		HttpProtocolParams.setUseExpectContinue(httpClientHelper.getHttpClient().getParams(), false);
-		HttpGet get = new HttpGet(url);
-		get.setHeader("User-Agent", "Mozilla /4.0 (compatible; MSIE 6.0; Windows CE; IEMobile 7.6) Vodafone/1.0/SFR_v1615/1.56.163.8.39");
-		StringBuilder sb = new StringBuilder("");
-		HttpResponse rep = httpClientHelper.getHttpClient().execute(get, ctx);
-		Log.d(HFR4droidApplication.TAG, "Status : " + rep.getStatusLine().getStatusCode() + ", " + rep.getStatusLine().getReasonPhrase());
-		InputStream is = rep.getEntity().getContent();
-		BufferedReader reader = new BufferedReader(new InputStreamReader(is));
-		String repHtml = reader.readLine();
-		while (repHtml != null)
-		{
-			sb.append(repHtml);
-			repHtml = reader.readLine();
-		}
-		rep.getEntity().consumeContent();
-		return sb.toString();		
 	}
 
 	private ResponseCode getResponseCode(String response)
