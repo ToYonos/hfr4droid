@@ -208,6 +208,34 @@
 		<item>2</item>
 		<item>3</item>
 	</string-array>
+
+	<string-array name="swipe_values">
+		<item>Très peu sensible</item>
+		<item>Peu sensible</item>
+		<item>Normal</item>
+		<item>Sensible</item>
+		<item>Très sensible</item>
+	</string-array>
+
+	<string-array name="swipe_keys">
+		<item>0.33</item>
+		<item>0.66</item>
+		<item>1</item>
+		<item>2</item>
+		<item>3</item>
+	</string-array>
+	
+		<string-array name="preloading_callback_values">
+		<item>Aucune</item>
+		<item>Légère vibration</item>
+		<item>Changement de page automatique</item>
+	</string-array>
+
+	<string-array name="preloading_callback_keys">
+		<item>-1</item>
+		<item>0</item>
+		<item>1</item>
+	</string-array>
 	
 	<string-array name="theme_values">
     	<item>Défaut</item>

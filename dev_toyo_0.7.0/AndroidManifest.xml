@@ -2,7 +2,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
 	package="info.toyonos.hfr4droid"
 	android:versionCode="070"
-	android:versionName="0.7.0 BETA3"
+	android:versionName="0.7.0 BETA4"
 	android:installLocation="auto">
 
 	<uses-permission android:name="android.permission.INTERNET" />

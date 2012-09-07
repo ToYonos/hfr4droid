@@ -3,25 +3,67 @@ package info.toyonos.hfr4droid.util.asynctask;
 import info.toyonos.hfr4droid.HFR4droidApplication;
 import info.toyonos.hfr4droid.R;
 import info.toyonos.hfr4droid.activity.HFR4droidMultiListActivity;
+import info.toyonos.hfr4droid.util.view.DragableSpace;
 
 import java.util.List;
+import java.util.Timer;
+import java.util.TimerTask;
 
+import android.content.Context;
+import android.os.Vibrator;
 import android.util.Log;
 import android.view.View;
 
 public abstract class PreLoadingAsyncTask<E, P, DS> extends DataRetrieverAsyncTask<E, P>
 {
+	public final static PreLoadingCompleteListener[] PRELOADING_COMPLETE_LISTENERS = new PreLoadingCompleteListener[]
+	{
+		new PreLoadingCompleteListener()
+		{
+			public void onPreLoadingComplete(PreLoadingAsyncTask<?, ?, ?> currentTask)
+			{
+				Vibrator v = (Vibrator) currentTask.getContext().getSystemService(Context.VIBRATOR_SERVICE);
+				v.vibrate(50);
+			}
+		},
+		new PreLoadingCompleteListener()
+		{
+			public void onPreLoadingComplete(final PreLoadingAsyncTask<?, ?, ?> currentTask)
+			{
+				final HFR4droidMultiListActivity<?> context = (HFR4droidMultiListActivity<?>) currentTask.getContext();
+				new Timer().schedule(new TimerTask()
+				{
+					public void run()
+					{
+						context.runOnUiThread(new Runnable()
+						{
+							public void run()
+							{
+								DragableSpace space = context.getSpace();
+								int targetScreen = currentTask.getPageNumber() > context.getCurrentPageNumber() ? space.getCurrentScreen() + 1 : space.getCurrentScreen() - 1;
+								space.snapToScreen(targetScreen);
+							}
+						});
+					}
+				}, 500);
+			}
+		}
+	};
+	
 	private boolean loadPreviousPage = false;
-	protected PreLoadingAsyncTask<E, P, DS> task; 
+	protected PreLoadingAsyncTask<E, P, DS> task;
+	private PreLoadingCompleteListener preLoadingCompleteListener = null;
+	private boolean pageChangeRequested = false;
 	
 	public PreLoadingAsyncTask(HFR4droidMultiListActivity<DS> context)
 	{
 		super(context);
+		setPreLoadingCompleteListener(context.getPreloadingCallback());
 	}
 	
 	public PreLoadingAsyncTask(HFR4droidMultiListActivity<DS> context, PreLoadingAsyncTask<E, P, DS> task, boolean loadPreviousPage)
 	{
-		super(context);
+		this(context);
 		this.task = task;
 		this.loadPreviousPage = loadPreviousPage;
 	}
@@ -68,8 +110,7 @@ public abstract class PreLoadingAsyncTask<E, P, DS> extends DataRetrieverAsyncTa
 		}
 
 		Log.i(HFR4droidApplication.TAG, context.getString(R.string.preloading_ok, getPageNumber()));
-		//Vibrator v = (Vibrator) context.getSystemService(Context.VIBRATOR_SERVICE);
-		//v.vibrate(50);
+		if (preLoadingCompleteListener != null && pageChangeRequested) preLoadingCompleteListener.onPreLoadingComplete(this);
 		
 		// On charge aussi la page n-2, typiquement quand on arrive directement sur une page qui n'est pas la page 1
 		if (loadPreviousPage) loadPreviousPage();
@@ -79,5 +120,25 @@ public abstract class PreLoadingAsyncTask<E, P, DS> extends DataRetrieverAsyncTa
 	protected void onPostExecuteOtherActivity(List<E> elements)
 	{
 		throw new UnsupportedOperationException("You can't use " + getClass().getSimpleName() + " when sameActivity is false");
+	}
+	
+	public void setPreLoadingCompleteListener(PreLoadingCompleteListener preLoadingCompleteListener)
+	{
+		this.preLoadingCompleteListener = preLoadingCompleteListener;
+	}
+
+	public boolean isPageChangeRequested()
+	{
+		return pageChangeRequested;
+	}
+	
+	public void setPageChangeRequested(boolean pageChangeRequested)
+	{
+		this.pageChangeRequested = pageChangeRequested;
+	}
+
+	public interface PreLoadingCompleteListener 
+	{
+		public void onPreLoadingComplete(PreLoadingAsyncTask<?, ?, ?> currentTask);
 	}
 }

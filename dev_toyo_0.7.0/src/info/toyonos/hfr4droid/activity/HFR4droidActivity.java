@@ -15,6 +15,7 @@ import info.toyonos.hfr4droid.core.data.MDDataRetriever;
 import info.toyonos.hfr4droid.core.message.HFRMessageSender;
 import info.toyonos.hfr4droid.service.MpCheckService;
 import info.toyonos.hfr4droid.service.MpTimerCheckService;
+import info.toyonos.hfr4droid.util.asynctask.PreLoadingAsyncTask.PreLoadingCompleteListener;
 import info.toyonos.hfr4droid.util.asynctask.ProgressDialogAsyncTask;
 import info.toyonos.hfr4droid.util.asynctask.DataRetrieverAsyncTask;
 
@@ -226,6 +227,15 @@ public abstract class HFR4droidActivity extends Activity
 			{
 				pa.currentImgsDisplayType = getImgsDisplayType();
 				redrawPage = true;
+			}
+		}
+		
+		if (this instanceof HFR4droidMultiListActivity<?>)
+		{
+			HFR4droidMultiListActivity<?> mla = (HFR4droidMultiListActivity<?>) this;
+			if (mla.getSpace().getSwipeSensibility() != getSwipe())
+			{
+				mla.getSpace().setSwipeSensibility(getSwipe());
 			}
 		}
 		
@@ -945,6 +955,16 @@ public abstract class HFR4droidActivity extends Activity
 	public boolean isDblTapEnable()
 	{
 		return getHFR4droidApplication().isDblTapEnable();
+	}
+	
+	public float getSwipe()
+	{
+		return getHFR4droidApplication().getSwipe();
+	}
+	
+	public PreLoadingCompleteListener getPreloadingCallback()
+	{
+		return getHFR4droidApplication().getPreloadingCallback();
 	}
 	
 	public boolean isFullscreenEnable()

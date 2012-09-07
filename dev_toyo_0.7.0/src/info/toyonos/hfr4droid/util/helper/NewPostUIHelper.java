@@ -6,7 +6,6 @@ import info.toyonos.hfr4droid.activity.ImagePicker;
 import info.toyonos.hfr4droid.core.bean.Theme;
 import info.toyonos.hfr4droid.core.data.DataRetrieverException;
 import info.toyonos.hfr4droid.util.asynctask.ProgressDialogAsyncTask;
-import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Color;
@@ -225,10 +224,8 @@ public abstract class NewPostUIHelper
 					@Override
 					protected void onPreExecute() 
 					{
-						progressDialog = new ProgressDialog(context);
-						progressDialog.setMessage(context.getString(R.string.getting_smilies));
-						progressDialog.setIndeterminate(true);
 						super.onPreExecute();
+						progressDialog.setMessage(context.getString(R.string.getting_smilies));
 						progressDialog.show();
 					}
 

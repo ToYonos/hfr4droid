@@ -17,7 +17,7 @@ import android.widget.Toast;
  * @param <E> le type de source de données
  */
 public abstract class HFR4droidMultiListActivity<DS> extends HFR4droidActivity
-{
+{	
 	protected DragableSpace space = null;
 	private DS dataSources[] = null;
 	private View views[] = null;
@@ -39,6 +39,11 @@ public abstract class HFR4droidMultiListActivity<DS> extends HFR4droidActivity
 		dataSources = null;
 	}
 	
+	public DragableSpace getSpace()
+	{
+		return space;
+	}
+
 	protected int getCurrentIndex()
 	{
 		return space.getCurrentScreen();
@@ -122,6 +127,7 @@ public abstract class HFR4droidMultiListActivity<DS> extends HFR4droidActivity
 	{
 		if (task != null && task.getStatus() == Status.RUNNING)
 		{
+			task.setPageChangeRequested(true);
 			Toast.makeText(HFR4droidMultiListActivity.this, getString(R.string.page_loading, task.getPageNumber()), Toast.LENGTH_SHORT).show();
 		}
 	}

@@ -108,6 +108,7 @@ import android.view.animation.Animation.AnimationListener;
 import android.view.animation.AnimationUtils;
 import android.view.animation.LinearInterpolator;
 import android.view.animation.RotateAnimation;
+import android.view.inputmethod.InputMethodManager;
 import android.webkit.WebChromeClient;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
@@ -136,6 +137,8 @@ import com.naholyr.android.ui.QuickActionWindow.Item;
  * @author ToYonos
  *
  */
+
+// TODO page suivante auto si next ou back une fois
 
 @SuppressWarnings("deprecation")
 public class PostsActivity extends HFR4droidMultiListActivity<List<Post>>
@@ -209,6 +212,7 @@ public class PostsActivity extends HFR4droidMultiListActivity<List<Post>>
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.posts);
 		space = (DragableSpace) findViewById(R.id.Space);
+		space.setSwipeSensibility(getHFR4droidApplication().getSwipe());
 		applyTheme(currentTheme);
 		
 		attachEvents();
@@ -1916,7 +1920,7 @@ public class PostsActivity extends HFR4droidMultiListActivity<List<Post>>
 		{
 			if (isMine)
 			{
-				QuickActionWindow.Item edit = new QuickActionWindow.Item(PostsActivity.this, "", android.R.drawable.ic_menu_edit, new PostCallBack(PostCallBackType.EDIT, currentPostId, true) 
+				QuickActionWindow.Item edit = new QuickActionWindow.Item(PostsActivity.this, "", R.drawable.ic_menu_edit, new PostCallBack(PostCallBackType.EDIT, currentPostId, true) 
 				{
 					@Override
 					protected String doActionInBackground(Post p) throws DataRetrieverException, MessageSenderException
@@ -1933,7 +1937,7 @@ public class PostsActivity extends HFR4droidMultiListActivity<List<Post>>
 				});
 				window.addItem(edit);	
 
-				QuickActionWindow.Item delete = new QuickActionWindow.Item(PostsActivity.this, "", android.R.drawable.ic_menu_delete, new PostCallBack(PostCallBackType.DELETE, currentPostId, true, true)
+				QuickActionWindow.Item delete = new QuickActionWindow.Item(PostsActivity.this, "", R.drawable.ic_menu_delete, new PostCallBack(PostCallBackType.DELETE, currentPostId, true, true)
 				{									
 					@Override
 					protected String doActionInBackground(Post p) throws DataRetrieverException, MessageSenderException
@@ -2043,7 +2047,7 @@ public class PostsActivity extends HFR4droidMultiListActivity<List<Post>>
 		});							
 		if (isLoggedIn()) window.addItem(addFavorite);
 		
-		QuickActionWindow.Item aqLink = new QuickActionWindow.Item(PostsActivity.this, "", android.R.drawable.ic_menu_compass, new QuickActionWindow.Item.Callback()
+		QuickActionWindow.Item aqLink = new QuickActionWindow.Item(PostsActivity.this, "", R.drawable.ic_menu_notifications, new QuickActionWindow.Item.Callback()
 		{
 			private void showAlerts()
 			{
@@ -2237,7 +2241,7 @@ public class PostsActivity extends HFR4droidMultiListActivity<List<Post>>
 				
 		window.addItem(copyContent);
 		
-		QuickActionWindow.Item shareLink = new QuickActionWindow.Item(PostsActivity.this, "", android.R.drawable.ic_menu_share, new QuickActionWindow.Item.Callback()
+		QuickActionWindow.Item shareLink = new QuickActionWindow.Item(PostsActivity.this, "", R.drawable.ic_menu_share, new QuickActionWindow.Item.Callback()
 		{	
 			public void onClick(QuickActionWindow window, Item item, View anchor)
 			{
@@ -2374,6 +2378,8 @@ public class PostsActivity extends HFR4droidMultiListActivity<List<Post>>
 							@Override
 							protected boolean handleCodeResponse(ResponseCode code)
 							{
+								InputMethodManager imm = (InputMethodManager) context.getSystemService(Context.INPUT_METHOD_SERVICE);
+								imm.hideSoftInputFromWindow(postContent.getWindowToken(), 0);
 								if (!super.handleCodeResponse(code))
 								{
 									switch (code)

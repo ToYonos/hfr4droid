@@ -36,6 +36,8 @@ public class DragableSpace extends ViewGroup {
     
     private OnScreenChangeListener onScreenChangeListener = null;
 
+    private float swipeSensibility = 1;
+    
     public DragableSpace(Context context) {
         super(context);
         mScroller = new Scroller(context);
@@ -100,7 +102,8 @@ public class DragableSpace extends ViewGroup {
                 //Log.i(LOG_TAG, "xDiff " + xDiff + " - yDiff " + yDiff);
 
                 // To be sure that x scroll doesn't parasitize y scroll
-                if (yDiff > 10) return false;
+                float sensibility = 10 * swipeSensibility;
+                if (yDiff > sensibility) return false;
                 
                 boolean xMoved = xDiff > mTouchSlop;
 
@@ -326,5 +329,15 @@ public class DragableSpace extends ViewGroup {
 	public void setOnScreenChangeListener(OnScreenChangeListener onScreenChangeListener)
 	{
 		this.onScreenChangeListener = onScreenChangeListener;
+	}
+
+	public float getSwipeSensibility()
+	{
+		return swipeSensibility;
+	}
+
+	public void setSwipeSensibility(float swipeSensibility)
+	{
+		this.swipeSensibility = swipeSensibility;
 	}
 }

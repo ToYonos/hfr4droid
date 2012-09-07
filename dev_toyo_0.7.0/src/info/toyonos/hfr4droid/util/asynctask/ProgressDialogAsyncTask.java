@@ -21,6 +21,7 @@ public abstract class ProgressDialogAsyncTask<P, G, R> extends AsyncTask<P, G, R
 	protected void onPreExecute() 
 	{
 		progressDialog = new ProgressDialog(context);
+		progressDialog.setIndeterminate(true);
 		progressDialog.setOnCancelListener(new OnCancelListener()
 		{
 			public void onCancel(DialogInterface dialog)
@@ -39,5 +40,10 @@ public abstract class ProgressDialogAsyncTask<P, G, R> extends AsyncTask<P, G, R
 	protected void setThreadId()
 	{
 		backgroundThreadId = Thread.currentThread().getId();
+	}
+
+	public HFR4droidActivity getContext()
+	{
+		return context;
 	}
 }

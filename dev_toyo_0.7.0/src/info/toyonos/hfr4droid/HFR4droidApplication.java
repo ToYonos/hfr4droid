@@ -8,6 +8,8 @@ import info.toyonos.hfr4droid.core.data.HFRDataRetriever;
 import info.toyonos.hfr4droid.core.data.MDDataRetriever;
 import info.toyonos.hfr4droid.core.message.HFRMessageSender;
 import info.toyonos.hfr4droid.core.utils.HttpClientHelper;
+import info.toyonos.hfr4droid.util.asynctask.PreLoadingAsyncTask;
+import info.toyonos.hfr4droid.util.asynctask.PreLoadingAsyncTask.PreLoadingCompleteListener;
 
 import java.io.File;
 import java.io.FileFilter;
@@ -38,6 +40,8 @@ public class HFR4droidApplication extends Application
 	public static final String PREF_SIGNATURE_ENABLE		= "PrefSignatureEnable";
 	public static final String PREF_DBLTAP_ENABLE			= "PrefDblTapEnable";
 	public static final String PREF_OVERRIDE_LIGHT_MODE		= "PrefOverrideLightMode";
+	public static final String PREF_SWIPE					= "PrefSwipe";
+	public static final String PREF_PRELOADING_CALLBACK		= "PrefPreloadingCallback";
 	public static final String PREF_FULLSCREEN_ENABLE		= "PrefFullscreenEnable";
 	public static final String PREF_THEME					= "PrefTheme";
 	public static final String PREF_POLICE_SIZE				= "PrefPoliceSize";
@@ -191,6 +195,19 @@ public class HFR4droidApplication extends Application
 		return settings.getBoolean(PREF_OVERRIDE_LIGHT_MODE, Boolean.parseBoolean(getString(R.string.pref_override_light_mode_enable_default)));
 	}
 	
+    public float getSwipe()
+    {
+            SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(this);
+            return Float.parseFloat(settings.getString(PREF_SWIPE, getString(R.string.pref_swipe_default)));
+    }
+	
+    public PreLoadingCompleteListener getPreloadingCallback()
+    {
+    	SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(this);
+        int ind = Integer.parseInt(settings.getString(PREF_PRELOADING_CALLBACK, getString(R.string.pref_preloading_callback_default)));
+        return ind != -1 ? PreLoadingAsyncTask.PRELOADING_COMPLETE_LISTENERS[ind] : null;
+    }
+    
 	public boolean isFullscreenEnable()
 	{
 		SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(this);

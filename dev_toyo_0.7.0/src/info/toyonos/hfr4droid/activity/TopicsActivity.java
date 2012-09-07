@@ -85,6 +85,7 @@ public class TopicsActivity extends HFR4droidMultiListActivity<ArrayAdapter<Topi
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.topics);
 		space = (DragableSpace) findViewById(R.id.Space);
+		space.setSwipeSensibility(getHFR4droidApplication().getSwipe());
 		
 		LayoutInflater inflater = (LayoutInflater) getApplicationContext().getSystemService(LAYOUT_INFLATER_SERVICE);
 		PullToRefreshListView topicsView = (PullToRefreshListView) inflater.inflate(R.layout.topics_dragable, null);
@@ -166,7 +167,14 @@ public class TopicsActivity extends HFR4droidMultiListActivity<ArrayAdapter<Topi
 
 			public void onFailRearward()
 			{
-				displayPreloadingToast(preLoadingTopicsAsyncTask);
+				if (currentPageNumber == 1)
+				{
+					reloadPage();
+				}
+				else
+				{
+					displayPreloadingToast(preLoadingTopicsAsyncTask);
+				}
 			}
 		});
 

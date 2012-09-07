@@ -4,5 +4,5 @@
 		android:title="@string/menu_add_topic"
 		android:id="@+id/MenuAddTopic"
 		android:orderInCategory="2"
-		android:icon="@android:drawable/ic_menu_add" />
+		android:icon="@drawable/ic_menu_add" />
 </menu>
