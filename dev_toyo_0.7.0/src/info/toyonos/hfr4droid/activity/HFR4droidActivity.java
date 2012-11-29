@@ -386,7 +386,8 @@ public abstract class HFR4droidActivity extends Activity
 		currentTheme = new Theme(themeKey);
 		currentTheme.setListBackgroundColor(getColorByKey(themeKey, "list_background"));
 		currentTheme.setListDividerColor(getColorByKey(themeKey, "list_divider"));
-		currentTheme.setPostHeaderData(getString(getKeyByTheme(themeKey, R.string.class, "post_header_data"))); 
+		currentTheme.setPostHeaderData(getString(getKeyByTheme(themeKey, R.string.class, "post_header_data")));
+		currentTheme.setPostHeaderColor(getColorByKey(themeKey, "post_header"));
 		currentTheme.setPostPseudoColor(getColorByKey(themeKey, "post_pseudo"));
 		currentTheme.setPostDateColor(getColorByKey(themeKey, "post_date"));
 		currentTheme.setPostTextColor(getColorByKey(themeKey, "text1"));
@@ -865,6 +866,11 @@ public abstract class HFR4droidActivity extends Activity
 				else
 				{
 					activity.setPageNumber(getPageNumber());
+					if (currentPageNumber < activity.topic.getNbPages()) // Le topic a pris une page le temps qu'on post
+					{
+						Log.d(HFR4droidApplication.TAG, "New page during the new post publication, force preloading");
+						activity.preloadPosts();
+					}
 				}
 				setTitle();
 				activity.displayPosts(posts);
@@ -1030,12 +1036,16 @@ public abstract class HFR4droidActivity extends Activity
 		switch (getPoliceSize())
 		{
 			case 2:
-				newSize = (int)Math.round(normalSize * 1.2);
+				newSize = (int)Math.round(normalSize * 1.25);
 				break;
 				
 			case 3:
-				newSize = (int)Math.round(normalSize * 1.4);
+				newSize = (int)Math.round(normalSize * 1.5);
 				break;
+				
+			case 4:
+				newSize = (int)Math.round(normalSize * 1.75);
+				break;				
 	
 			default:
 				newSize = normalSize;

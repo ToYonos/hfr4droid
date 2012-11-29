@@ -293,7 +293,7 @@ public class ImagePicker extends Activity implements Runnable{
 	 * @return
 	 */
 	private String getUrl(String line) {
-		Pattern p = Pattern.compile("<code>\\[img\\]http://hfr-rehost.net/preview/http://self/pic/.*</code>");
+		Pattern p = Pattern.compile("<code>\\[img\\]http://hfr-rehost.net/preview/self/.*</code>");
 		Matcher m = p.matcher(line);
 		String match = null;
 		if(m.matches()) {

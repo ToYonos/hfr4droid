@@ -255,7 +255,13 @@ public class HFR4droidApplication extends Application
 	
 	public boolean isLightMode()
 	{
-		return isMonoCore && !isOverrideLightModeEnable();
+		// return isMonoCore && !isOverrideLightModeEnable();
+		return !isOverrideLightModeEnable();
+	}
+	
+	public boolean isMonoCore()
+	{
+		return isMonoCore;
 	}
 	
 	/**

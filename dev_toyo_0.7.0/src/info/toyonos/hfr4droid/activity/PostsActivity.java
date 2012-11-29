@@ -1525,7 +1525,7 @@ public class PostsActivity extends HFR4droidMultiListActivity<List<Post>>
 									try
 									{
 										profile = getDataRetriever().getProfile(pseudo[0]);
-										if (profile.getAvatarUrl() != null)
+										if (profile != null && profile.getAvatarUrl() != null)
 										{
 											profile.setAvatarBitmap(imgBitmapHttpClient.doGet(profile.getAvatarUrl()));
 										}
@@ -1726,9 +1726,39 @@ public class PostsActivity extends HFR4droidMultiListActivity<List<Post>>
 		css.append("ol.olcode { font-size: 0.7em; }");
 		css.append("body { margin:0; padding:0; background-color:" + currentTheme.getListBackgroundColorAsString() + "; }");
 		css.append(".HFR4droid_posts_container { min-height:100%; }");
-		css.append(".HFR4droid_header { width:100%; background: url(\"" + currentTheme.getPostHeaderData() + "\"); height: 50px; text-align: right; }");
+		css.append(".HFR4droid_header { width:100%; ");
+		switch (getPoliceSize())
+		{
+			case 3:
+				css.append("background: " + currentTheme.getPostHeaderColorAsString() + " repeat-x bottom; height: 70px;");
+				break;
+				
+			case 4:
+				css.append("background: " + currentTheme.getPostHeaderColorAsString() + " repeat-x bottom; height: 90px;");
+				break;
+				
+			default:
+				css.append("background: url(\"" + currentTheme.getPostHeaderData() + "\") repeat-x bottom; height: 50px;");
+				break;
+		}
+		css.append(" text-align: right; }");
 		css.append(".HFR4droid_header div { position: absolute; margin: 5px 0 0 5px; width:90%; text-align: left; }");
-		css.append(".HFR4droid_header div img { float: left; max-width:60px; max-height:40px; margin-right:5px; }");
+		css.append(".HFR4droid_header div img { float: left; max-width:60px; max-height:");
+		switch (getPoliceSize())
+		{
+			case 3:
+				css.append("55");
+				break;
+				
+			case 4:
+				css.append("70");
+				break;
+				
+			default:
+				css.append("40");
+				break;
+		}
+		css.append("px; margin-right:5px; }");
 		css.append(".HFR4droid_header span.pseudo { color:" + currentTheme.getPostPseudoColorAsString() + "; font-size: " + getTextSize(16) + "px; font-weight:bold; }");
 		css.append(".HFR4droid_header span.date { display: block; font-style:italic; color:" + currentTheme.getPostDateColorAsString() + "; font-size: " + getTextSize(12) + "px; margin: ");
 		switch (getPoliceSize())
@@ -1738,6 +1768,7 @@ public class PostsActivity extends HFR4droidMultiListActivity<List<Post>>
 				break;
 
 			case 3:
+			case 4:
 				css.append("0");
 				break;
 				
@@ -2442,7 +2473,7 @@ public class PostsActivity extends HFR4droidMultiListActivity<List<Post>>
 			case POST_ADD_OK: // New post ok
 				topic.setLastReadPost(NewPostUIHelper.BOTTOM_PAGE_ID);
 				if (currentPageNumber == topic.getNbPages()) reloadPage();
-				if (currentPageNumber == topic.getNbPages() - 1
+				if (currentPageNumber == topic.getNbPages() - 1 // On est sur la page n-1, on rafraichit la dernière page
 				&& getCurrentIndex() < 2 && getView(getCurrentIndex() + 1) != null && getDatasource(getCurrentIndex() + 1) != null)
 				{
 					removeView(getCurrentIndex() + 1);
@@ -2762,9 +2793,9 @@ public class PostsActivity extends HFR4droidMultiListActivity<List<Post>>
 		@Override
 		protected List<Post> retrieveDataInBackground(Topic... topics) throws DataRetrieverException
 		{
-			// Si on s'apprête à précharger une page encore jamais lu, on la note, uniquement si on est connecté
+			// Si on s'apprête à précharger une page encore jamais lu, on la note, uniquement si on est connecté et si ce n'est pas la cat modo
 			boolean useFakeAccount = false;
-			if (topic.getLastReadPage() != -1 && getPageNumber() > topic.getLastReadPage() && isLoggedIn())
+			if (topic.getLastReadPage() != -1 && getPageNumber() > topic.getLastReadPage() && isLoggedIn() && !isModoCat(topics[0].getCategory()))
 			{
 				pageToBeSetToRead = getPageNumber();
 				useFakeAccount = true;

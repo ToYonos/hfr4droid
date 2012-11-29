@@ -122,7 +122,7 @@
 	<string name="aq_list_title">Alertes du topic</string>
 	
 	<string name="pref_warning">Attention !</string>
-	<string name="pref_override_light_mode_message">Activer cette option peut ralentir considérablement l\'application sur un appareil mono CPU. Elle n\'a aucun effet si vous possédez au moins un dual core.</string>
+	<string name="pref_disabled">Opération impossible !</string>
 	
 	<string name="error_splash_title">Une erreur est survenue</string>
 	<string name="error_splash_retry">Réessayer</string>
@@ -252,13 +252,15 @@
 	<string-array name="police_size_values">
     	<item>Normal</item>
     	<item>Plus grand</item>
-    	<item>Gros bigleux :o</item> 
+    	<item>Gros bigleux :o</item>
+    	<item>Ultimate blindness</item> 
 	</string-array>
 	
 	<string-array name="police_size_keys">
 		<item>1</item>
 		<item>2</item>
 		<item>3</item>
+		<item>4</item>
 	</string-array>
 	
 	<string-array name="drawable_values">

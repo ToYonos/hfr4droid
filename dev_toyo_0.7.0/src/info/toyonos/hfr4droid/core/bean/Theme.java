@@ -13,6 +13,7 @@ public class Theme
 	private int listBackgroundColor;
 	private int listDividerColor;
 	private String postHeaderData;
+	private int postHeaderColor;
 	private int postPseudoColor;
 	private int postDateColor;
 	private int postTextColor;
@@ -35,6 +36,7 @@ public class Theme
 		this.listBackgroundColor = -1;
 		this.listDividerColor = -1;
 		this.postHeaderData = null;
+		this.postHeaderColor = -1;
 		this.postPseudoColor = -1;
 		this.postDateColor = -1;
 		this.postTextColor = -1;
@@ -77,6 +79,11 @@ public class Theme
 		this.postHeaderData = postHeaderData;
 	}
 
+	public void setPostHeaderColor(int postHeaderColor)
+	{
+		this.postHeaderColor = postHeaderColor;
+	}
+	
 	public void setPostPseudoColor(int postPseudoColor)
 	{
 		this.postPseudoColor = postPseudoColor;
@@ -131,6 +138,11 @@ public class Theme
 	{
 		return postHeaderData;
 	}
+	
+	public int getPostHeaderColor()
+	{
+		return postHeaderColor;
+	}
 
 	public int getPostPseudoColor()
 	{
@@ -180,6 +192,11 @@ public class Theme
 	public String getListDividerColorAsString()
 	{
 		return "#" + Integer.toHexString(listDividerColor).substring(2);
+	}
+	
+	public String getPostHeaderColorAsString()
+	{
+		return "#" + Integer.toHexString(postHeaderColor).substring(2);
 	}
 
 	public String getPostPseudoColorAsString()

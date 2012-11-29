@@ -57,6 +57,20 @@ public class HFR4droidPrefs extends PreferenceActivity
 		{
 			public boolean onPreferenceChange(Preference preference, Object newValue)
 			{
+				// Option only available for multicore processors
+				if (((HFR4droidApplication) getApplication()).isMonoCore())
+				{
+					new AlertDialog.Builder(HFR4droidPrefs.this)
+					.setTitle(R.string.pref_disabled)
+					.setMessage(R.string.pref_override_light_mode_disabled)
+					.setPositiveButton(R.string.button_ok,  new DialogInterface.OnClickListener()
+					{
+						public void onClick(DialogInterface dialog, int which) {}
+					})
+					.show();
+					return false;
+				}
+						
 				if ((Boolean) newValue)
 				{
 					new AlertDialog.Builder(HFR4droidPrefs.this)
