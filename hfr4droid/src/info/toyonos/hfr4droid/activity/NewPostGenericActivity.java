@@ -2,8 +2,10 @@ package info.toyonos.hfr4droid.activity;
 
 import info.toyonos.hfr4droid.R;
 import info.toyonos.hfr4droid.core.bean.Theme;
+import info.toyonos.hfr4droid.util.helper.NewPostUIHelper;
 import android.app.Dialog;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.content.DialogInterface.OnDismissListener;
 import android.os.Bundle;
 import android.view.KeyEvent;
@@ -11,6 +13,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
+import android.widget.Button;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 
@@ -20,17 +23,23 @@ import android.widget.LinearLayout;
  * @author ToYonos
  *
  */
-public abstract class NewPostGenericActivity extends NewPostUIActivity
+public abstract class NewPostGenericActivity extends HFR4droidActivity
 {	
 	/**
 	 * La fenêtre de dialog pour choisir les smilies
 	 */
 	private Dialog smiliesDialog; 
 	
+	/**
+	 * le helper pour gérer le comportement de l'interface
+	 */
+	protected NewPostUIHelper uiHelper;
+	
 	@Override
 	protected void onCreate(Bundle savedInstanceState)
 	{
 		super.onCreate(savedInstanceState);
+		uiHelper = getNewPostUIHelper();
 	}
 	
 	@Override
@@ -55,7 +64,7 @@ public abstract class NewPostGenericActivity extends NewPostUIActivity
 			ViewGroup layout = (ViewGroup) findViewById(R.id.PostContainer);
 			if (layout.findViewById(R.id.SmileySearch).getVisibility() == View.VISIBLE)
 			{
-				hideWikiSmiliesSearch(layout);
+				uiHelper.hideWikiSmiliesSearch(layout);
 				return true;
 			}
 		}
@@ -63,9 +72,10 @@ public abstract class NewPostGenericActivity extends NewPostUIActivity
 	}
 	
 	@Override
-	protected void onRehostOk(String url)
+	protected void onActivityResult(int requestCode, int resultCode, Intent data)
 	{
-		insertBBCode((EditText) findViewById(R.id.InputPostContent), url, "");
+		super.onActivityResult(requestCode, resultCode, data);
+		uiHelper.onActivityResult(requestCode, resultCode, data);
 	}
 
 	@Override
@@ -79,47 +89,6 @@ public abstract class NewPostGenericActivity extends NewPostUIActivity
 	{
 		loadCats(false);
 	}
-
-	@Override
-	protected ViewGroup getSmiliesLayout()
-	{
-		if (smiliesDialog == null)
-		{
-			smiliesDialog = new Dialog(this);
-			smiliesDialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
-			LayoutInflater inflater = (LayoutInflater) getApplicationContext().getSystemService(LAYOUT_INFLATER_SERVICE);
-			final ViewGroup layout = (ViewGroup) inflater.inflate(R.layout.smilies, null);
-			smiliesDialog.setContentView(layout);
-			applyThemeForSmilies(currentTheme);
-			
-			smiliesDialog.setOnDismissListener(new OnDismissListener()
-			{
-				public void onDismiss(DialogInterface dialog)
-				{
-					NewPostGenericActivity.super.hideWikiSmiliesResults(layout);
-				}
-			});
-			
-			return layout;
-		}
-		else
-		{
-			return (ViewGroup) smiliesDialog.findViewById(R.id.SmiliesContainer);
-		}
-	}
-
-	@Override
-	protected void showWikiSmiliesResults(ViewGroup layout)
-	{
-		smiliesDialog.show();
-	}
-	
-	@Override
-	protected void hideWikiSmiliesResults(ViewGroup layout)
-	{
-		smiliesDialog.dismiss();
-		super.hideWikiSmiliesResults(layout);
-	}
 	
 	@Override
 	protected void applyTheme(Theme theme)
@@ -127,7 +96,7 @@ public abstract class NewPostGenericActivity extends NewPostUIActivity
 		LinearLayout root = (LinearLayout) findViewById(R.id.NewPostGenericRoot);
 		root.setBackgroundColor(theme.getListBackgroundColor());
 		
-		applyTheme(theme, (ViewGroup) findViewById(R.id.PostContainer).getParent());
+		uiHelper.applyTheme(theme, (ViewGroup) findViewById(R.id.PostContainer).getParent());
 		
 		if (smiliesDialog != null) applyThemeForSmilies(theme);
 	}
@@ -136,5 +105,67 @@ public abstract class NewPostGenericActivity extends NewPostUIActivity
 	{
 		LinearLayout smilies = (LinearLayout) smiliesDialog.findViewById(R.id.SmiliesContainer);
 		smilies.setBackgroundColor(theme.getListBackgroundColor());
+	}
+	
+	protected abstract void setOkButtonClickListener(Button okButton);
+	
+	private NewPostUIHelper getNewPostUIHelper()
+	{
+		return new NewPostUIHelper()
+		{
+			@Override
+			protected void showWikiSmiliesResults(ViewGroup layout)
+			{
+				smiliesDialog.show();
+			}
+			
+			@Override
+			public void hideWikiSmiliesResults(ViewGroup layout)
+			{
+				smiliesDialog.dismiss();
+				destroyWikiSmiliesResults(layout);
+			}
+
+			@Override
+			protected void setOkButtonClickListener(Button okButton)
+			{
+				NewPostGenericActivity.this.setOkButtonClickListener(okButton);
+			}
+			
+			@Override
+			protected void onRehostOk(String url)
+			{
+				insertBBCode((EditText) findViewById(R.id.InputPostContent), url, "");
+			}
+
+			
+			@Override
+			public ViewGroup getSmiliesLayout()
+			{
+				if (smiliesDialog == null)
+				{
+					smiliesDialog = new Dialog(NewPostGenericActivity.this);
+					smiliesDialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
+					LayoutInflater inflater = (LayoutInflater) getApplicationContext().getSystemService(LAYOUT_INFLATER_SERVICE);
+					final ViewGroup layout = (ViewGroup) inflater.inflate(R.layout.smilies, null);
+					smiliesDialog.setContentView(layout);
+					applyThemeForSmilies(currentTheme);
+					
+					smiliesDialog.setOnDismissListener(new OnDismissListener()
+					{
+						public void onDismiss(DialogInterface dialog)
+						{
+							destroyWikiSmiliesResults(layout);
+						}
+					});
+					
+					return layout;
+				}
+				else
+				{
+					return (ViewGroup) smiliesDialog.findViewById(R.id.SmiliesContainer);
+				}
+			}
+		};
 	}
 }

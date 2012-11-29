@@ -1,7 +1,9 @@
 package info.toyonos.hfr4droid.core.data;
 
+import info.toyonos.hfr4droid.core.bean.AlertQualitay;
 import info.toyonos.hfr4droid.core.bean.Category;
 import info.toyonos.hfr4droid.core.bean.Post;
+import info.toyonos.hfr4droid.core.bean.Profile;
 import info.toyonos.hfr4droid.core.bean.SubCategory;
 import info.toyonos.hfr4droid.core.bean.Topic;
 import info.toyonos.hfr4droid.core.bean.Topic.TopicType;
@@ -32,6 +34,12 @@ public interface MDDataRetriever
 	 * @return L'url de base du forum sous forme de <code>String</code>
 	 */
 	public String getBaseUrl();
+	
+	/**
+	 * Récupère l'url des images perso du forum
+	 * @return L'url des images perso du forum sous forme de <code>String</code>
+	 */
+	public String getImgPersoUrl();
 
 	/**
 	 * Récupère les catégories
@@ -101,7 +109,26 @@ public interface MDDataRetriever
 	public List<Topic> getTopics(Category cat, TopicType type, int pageNumber) throws DataRetrieverException;
 
 	/**
+	 * Marque une page de topic comme lu
+	 * @param topic Le <code>Topic</code> désiré
+	 * @param pageNumber Le numéro de la page
+	 * @return true si tout s'est bien passé, false sinon
+	 * @throws DataRetrieverException
+	 */
+	public boolean setPostsAsRead(Topic topic, int pageNumber) throws DataRetrieverException;
+	
+	/**
 	 * Récupère les posts de la page donnée d'un topic
+	 * @param topic Le <code>Topic</code> désiré
+	 * @param pageNumber Le numéro de la page
+	 * @param useFakeAccount Utiliser ou pas un faux compte pour ne pas altérer les drapeaux
+	 * @return Une <code>List</code> de <code>Post</code>
+	 * @throws DataRetrieverException Si un problème survient
+	 */
+	public List<Post> getPosts(Topic topic, int pageNumber, boolean useFakeAccount) throws DataRetrieverException;
+	
+	/**
+	 * Récupère les posts de la page donnée d'un topic en utilisant le vrai compte de l'utilisateur
 	 * @param topic Le <code>Topic</code> désiré
 	 * @param pageNumber Le numéro de la page
 	 * @return Une <code>List</code> de <code>Post</code>
@@ -159,4 +186,28 @@ public interface MDDataRetriever
 	 * @throws DataRetrieverException Si un problème survient
 	 */
 	public String getKeywords(String code) throws DataRetrieverException;
+	
+	/**
+	 * Récupère le profil d'un utilisateur
+	 * @param pseudo son pseudo
+	 * @return Le <code>Profile</code> de l'utilisateur
+	 * @throws DataRetrieverException Si un problème survient
+	 */
+	public Profile getProfile(String pseudo) throws DataRetrieverException;
+	
+	/**
+	 * Récupère la vraie url rewrittée par le forum (suite à un code 301)
+	 * @param url L'url de base
+	 * @return L'url vers laquelle on est redirigé, ou null si on obtient un code différent de 301
+	 * @throws DataRetrieverException
+	 */
+	public String getRealUrl(String url) throws DataRetrieverException;
+	
+	/**
+	 * Récupère les alertes qualitaÿ d'un topic donné
+	 * @param topic Le topic concerné
+	 * @return  Une <code>List</code> d'<code>AlertQualitay</code>
+	 * @throws DataRetrieverException
+	 */
+	public List<AlertQualitay> getAlertsByTopic(Topic topic) throws DataRetrieverException;
 }

@@ -1,5 +1,6 @@
 package info.toyonos.hfr4droid.activity;
 
+import info.toyonos.hfr4droid.HFR4droidApplication;
 import info.toyonos.hfr4droid.R;
 
 import java.io.BufferedReader;
@@ -17,9 +18,6 @@ import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.mime.MultipartEntity;
 import org.apache.http.entity.mime.content.ContentBody;
 import org.apache.http.entity.mime.content.FileBody;
-import org.apache.http.impl.client.DefaultHttpClient;
-import org.apache.http.params.BasicHttpParams;
-import org.apache.http.params.HttpParams;
 
 import android.app.Activity;
 import android.app.ProgressDialog;
@@ -39,6 +37,7 @@ import android.widget.Toast;
  * @author fred
  *
  */
+@SuppressWarnings("deprecation")
 public class ImagePicker extends Activity implements Runnable{
 	
 	private static final String LOG_TAG = ImagePicker.class.getSimpleName();
@@ -200,7 +199,7 @@ public class ImagePicker extends Activity implements Runnable{
     	Log.d(LOG_TAG, "Filename is " + name);
     	return name;
     }
-    
+
     private void setClipboardText(String text) {
     	ClipboardManager cm = (ClipboardManager)getSystemService(CLIPBOARD_SERVICE);
     	Log.d(LOG_TAG, "Setting text on clipboard : " + text);
@@ -242,13 +241,8 @@ public class ImagePicker extends Activity implements Runnable{
 		
 		String imgUrl = null;
 		HttpPost post;
-		
-		HttpParams httpParameters = new BasicHttpParams();		
-		HttpClient httpClient = new DefaultHttpClient(httpParameters);
-		/* Proxy de merde */		
-		//HttpHost proxy = new HttpHost("192.168.3.108", 8080);
-		//httpClient.getParams().setParameter(ConnRoutePNames.DEFAULT_PROXY, proxy);
-		/* -------------- */
+		HttpClient httpClient = ((HFR4droidApplication) getApplication()).getHttpClientHelper().getHttpClient();
+
 		try {
 			httpClient.getParams().setParameter("http.socket.timeout", new Integer(90000)); // 90 second
 			post = new HttpPost(new URI(UPLOAD_URL));
@@ -272,8 +266,6 @@ public class ImagePicker extends Activity implements Runnable{
 		} catch (Exception ex) {
 			Log.e(LOG_TAG, "Exception : " + ex.getMessage());
 			ex.printStackTrace();
-		} finally {
-			httpClient.getConnectionManager().shutdown();
 		}
 		return imgUrl;
 	}
@@ -301,7 +293,7 @@ public class ImagePicker extends Activity implements Runnable{
 	 * @return
 	 */
 	private String getUrl(String line) {
-		Pattern p = Pattern.compile("<code>\\[img\\]http://hfr-rehost.net/preview/http://self/pic/.*</code>");
+		Pattern p = Pattern.compile("<code>\\[img\\]http://hfr-rehost.net/preview/self/.*</code>");
 		Matcher m = p.matcher(line);
 		String match = null;
 		if(m.matches()) {

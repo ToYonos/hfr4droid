@@ -5,4 +5,5 @@
 	<item type="id" name="SaveImagePng" />
 	<item type="id" name="ShareImage" />
 	<item type="id" name="OpenImage" />
+	<item type="id" name="GetExif" />
 </resources>

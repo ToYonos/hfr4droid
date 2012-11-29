@@ -1,6 +1,8 @@
 package info.toyonos.hfr4droid.core.auth;
 
+import info.toyonos.hfr4droid.HFR4droidApplication;
 import info.toyonos.hfr4droid.R;
+import info.toyonos.hfr4droid.core.utils.HttpClientHelper;
 
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -20,7 +22,6 @@ import org.apache.http.cookie.Cookie;
 import org.apache.http.impl.client.BasicCookieStore;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.message.BasicNameValuePair;
-import org.apache.http.params.HttpProtocolParams;
 import org.apache.http.protocol.HTTP;
 
 import android.content.Context;
@@ -43,7 +44,8 @@ import android.content.Context;
  */
 public class HFRAuthentication
 {
-	private Context context;
+	private HFR4droidApplication context;
+	private HttpClientHelper httpClientHelper;
 	private String userName = null;
 	private String userPassword = null;
 	private String passHash = null;
@@ -65,9 +67,10 @@ public class HFRAuthentication
 	 * 			Le mot de passe
 	 * 
 	 */
-	public HFRAuthentication(Context context, String user, String password) throws AuthenticationException
+	public HFRAuthentication(HFR4droidApplication context, HttpClientHelper httpClientHelper, String user, String password) throws AuthenticationException
 	{
 		this.context = context;
+		this.httpClientHelper = httpClientHelper;
 		userName = user;
 		userPassword = password;
 		
@@ -82,10 +85,11 @@ public class HFRAuthentication
 		}
 	}
 
-	public HFRAuthentication(Context context) throws AuthenticationException
+	public HFRAuthentication(HFR4droidApplication context, HttpClientHelper httpClientHelper) throws AuthenticationException
 	{        
 		this.context = context;
-		
+		this.httpClientHelper = httpClientHelper;
+
 		try
 		{
 			cookieStore = deserializeCookies();
@@ -149,8 +153,7 @@ public class HFRAuthentication
 		CookieStore cs = null;
 		HttpPost post = new HttpPost(AUTH_FORM_URL);
 		post.setHeader("User-Agent", "Mozilla /4.0 (compatible; MSIE 6.0; Windows CE; IEMobile 7.6) Vodafone/1.0/SFR_v1615/1.56.163.8.39");
-		DefaultHttpClient client = new DefaultHttpClient();
-		HttpProtocolParams.setUseExpectContinue(client.getParams(), false);
+		DefaultHttpClient client = httpClientHelper.getHttpClient();
 		List<NameValuePair> params = new ArrayList<NameValuePair>();
 		params.add(new BasicNameValuePair("pseudo", userName));
 		params.add(new BasicNameValuePair("password", userPassword));
@@ -163,8 +166,6 @@ public class HFRAuthentication
 			cs = client.getCookieStore();
 			serializeCookies(cs);
 		}
-
-		client.getConnectionManager().shutdown();
 
 		return cs;
 	}

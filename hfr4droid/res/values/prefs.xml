@@ -24,16 +24,21 @@
 	
 	<string name="pref_dbltap_enable_title">Activer le refresh sur double tap</string>
 	<string name="pref_dbltap_enable_summary">Permettre de rafraîchir la page d\'un topic en double tapant sur l\'écran</string>
-	<string name="pref_dbltap_enable_default">true</string>	
+	<string name="pref_dbltap_enable_default">true</string>
+
+	<string name="pref_override_light_mode_enable_title">Désactiver le mode Light</string>
+	<string name="pref_override_light_mode_enable_summary">Uniquement pour les CPU multi-core (+ d\'infos dans la documentation)</string>
+	<string name="pref_override_light_mode_enable_default">false</string>
 	
 	<string name="pref_swipe_title">Sensibilité du swipe</string>
-	<string name="pref_swipe_summary">Régler la sensibilité du swipe (glissement du doigt sur l\'écran)</string>
+    <string name="pref_swipe_summary">Régler la sensibilité du swipe (changement de page par glissement)</string>
 	<string name="pref_swipe_default">1</string>
 	
-	<string name="pref_preloading_enable_title">Activer le préchargement des pages</string>
-	<string name="pref_preloading_enable_summary">Préchargement des pages afin de fluidifier la navigation (peut perturber les drapeaux)</string>
-	<string name="pref_preloading_enable_default">false</string>
-	
+	<string name="pref_preloading_callback_title">Action sur page préchargée</string>
+    <string name="pref_preloading_callback_summary">A effectuer quand une demande de changement de page a été faite, après le chargement de celle-ci</string>
+	<string name="pref_preloading_callback_default">-1</string>
+
+
 	<string name="pref_affichage_title">Affichage</string>
 	
 	<string name="pref_fullscreen_enable_title">Afficher en plein écran</string>

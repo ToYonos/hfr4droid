@@ -1,21 +1,15 @@
 package info.toyonos.hfr4droid.core.data;
 
-import info.toyonos.hfr4droid.activity.PostsActivity;
 import info.toyonos.hfr4droid.core.bean.BasicElement;
 import info.toyonos.hfr4droid.core.bean.Category;
 import info.toyonos.hfr4droid.core.bean.Topic;
 import info.toyonos.hfr4droid.core.bean.Topic.TopicType;
+import info.toyonos.hfr4droid.util.helper.NewPostUIHelper;
 
-import java.io.IOException;
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.apache.http.client.CircularRedirectException;
-import org.apache.http.client.ClientProtocolException;
-import org.apache.http.client.methods.HttpHead;
-import org.apache.http.impl.client.DefaultHttpClient;
+import android.os.StrictMode;
 
 /**
  * <p>Implémentation pour le forum de Hardware.fr du <code>MDUrlParser</code></p>
@@ -112,6 +106,11 @@ public class HFRUrlParser implements MDUrlParser
 				return true;
 			}			
 		}
+		else if (url.matches(BASE_URL_REGEXP + "hfr/carte.*?"))
+		{
+			// C'est une carte, pas géré
+			return false;
+		}
 		else
 		{
 			// C'est un topic
@@ -161,7 +160,13 @@ public class HFRUrlParser implements MDUrlParser
 			if (numReponse != null && !numReponse.equals("0"))
 			{
 				// Cas spécifique, on récupère la vraie url
-				String realUrl = getRealUrl(url) + "#t" + numReponse;
+				// Pour éviter la NetworkOnMainThreadException
+				StrictMode.ThreadPolicy oldPolicy = StrictMode.getThreadPolicy(); 
+				StrictMode.ThreadPolicy newPolicy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
+		        StrictMode.setThreadPolicy(newPolicy);
+				String realUrl = dataRetriever.getRealUrl(url);
+				StrictMode.setThreadPolicy(oldPolicy);
+				if (realUrl == null) return false;
 				return parseUrl(realUrl);
 			}
 			else
@@ -196,34 +201,8 @@ public class HFRUrlParser implements MDUrlParser
 	{
 		if (content != null)
 		{
-			return content.equals("bas") ? PostsActivity.BOTTOM_PAGE_ID : Long.parseLong(content);	
+			return content.equals("bas") ? NewPostUIHelper.BOTTOM_PAGE_ID : Long.parseLong(content);	
 		}
 		return -1;
-	}
-	
-	public static String getRealUrl(String url)
-	{
-		DefaultHttpClient client = new DefaultHttpClient();
-		try
-		{
-			URI uri = new URI(url);
-			HttpHead method = new HttpHead(uri);
-			method.setHeader("User-Agent", "Mozilla /4.0 (compatible; MSIE 6.0; Windows CE; IEMobile 7.6) Vodafone/1.0/SFR_v1615/1.56.163.8.39");
-			client.execute(method);
-		}
-		catch (ClientProtocolException e)
-		{
-			if (e.getCause() instanceof CircularRedirectException)
-			{
-				return HFRDataRetriever.getSingleElement("(http://.*?)'$", ((CircularRedirectException) e.getCause()).getMessage());
-			}
-		}
-		catch (IOException e) {}
-		catch (URISyntaxException e){}
-		finally
-		{
-			client.getConnectionManager().shutdown();
-		}
-		return url;
 	}
 }

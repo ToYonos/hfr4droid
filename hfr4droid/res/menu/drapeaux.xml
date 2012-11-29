@@ -4,7 +4,7 @@
 		android:title="@string/menu_drapeaux"
 		android:id="@+id/MenuDrapeaux"
 		android:orderInCategory="2"
-		android:icon="@android:drawable/ic_menu_myplaces">
+		android:icon="@drawable/ic_menu_myplaces">
 		<menu>
 			<item
 				android:title="@string/menu_drapeaux_all"

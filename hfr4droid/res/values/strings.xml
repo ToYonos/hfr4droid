@@ -97,6 +97,7 @@
 	<string name="save_image_png_item">Sauvegarder au format PNG</string>
 	<string name="share_image_item">Partager l\'image</string>
 	<string name="open_image_item">Ouvrir l\'image en taille réelle</string>
+	<string name="get_exif_item">Données EXIF</string>
 	<string name="share_image">Partager via :</string>
 
 	<string name="keywords_title">Edition des mots clés du smiley %s</string>
@@ -106,9 +107,69 @@
 	<string name="button_yes">Oui</string>
 	<string name="button_no">Non</string>
 	<string name="button_validate_post">Valider</string>
+	<string name="button_copy_to_clip">Copier</string>
+	<string name="button_close">Fermer</string>
 	
 	<string name="search_posts_word_hint">Mot</string>
 	<string name="search_posts_pseudo_hint">Pseudo</string>
+	
+	<string name="aq_name_hint">Nom de l\'alerte</string>
+	<string name="aq_comment_hint">Commentaire (facultatif)</string>
+	<string name="aq_new">-- Nouvelle alerte --</string>
+	<string name="aq_new_title">Nouvelle alerte qualitaÿ</string>
+	<string name="aq_sent">Envoyer</string>
+	<string name="aq_sent_loading">Envoi de l\'alerte...</string>
+	<string name="aq_list_title">Alertes du topic</string>
+	
+	<string name="pref_warning">Attention !</string>
+	<string name="pref_disabled">Opération impossible !</string>
+	
+	<string name="error_splash_title">Une erreur est survenue</string>
+	<string name="error_splash_retry">Réessayer</string>
+	<string name="error_splash_cancel">Quitter</string>
+	
+	<string name="profile_age">%s ans</string>
+	<string name="profile_age_birthday">%s ans aujourd\'hui !</string>
+	<string name="profile_default_age">âge non précisé</string>
+	<string name="profile_default_location">Ville non précisée</string>
+	<string name="profile_seniority_man">Inscrit le %s</string>
+	<string name="profile_seniority_woman">Inscrite le %s</string>
+	<string name="profile_seniority_angel">Inscrit(e) le %s</string>
+	<plurals name="profile_posts">
+	    <item quantity="zero">%d post</item>
+        <item quantity="one">%d post</item>
+        <item quantity="other">%d posts</item>
+    </plurals>
+    <string name="profile_last_post">Dernier post il y a %s</string>
+    <string name="profile_last_post_inf5min">moins de 5 min</string>
+    <string name="profile_last_post_min"> %d min</string>
+    <string name="profile_last_post_hour">%d h</string>
+    <plurals name="profile_last_post_day">
+        <item quantity="one">%d jour</item>
+        <item quantity="other">%d jours</item>
+    </plurals>
+    
+    <string name="exif_data">Données EXIF de l\'image</string>
+    <string name="exif_date">Date : %s</string>
+    <string name="exif_reso">Résolution : %s</string>
+    <string name="exif_orientation">Orientation : %s</string>
+    <string name="exif_orientation_flip_horizontal">Miroir horizontal</string>	
+    <string name="exif_orientation_flip_vertical">Miroir vertical</string> 	
+    <string name="exif_orientation_normal">Normale</string> 	
+    <string name="exif_orientation_rotate_180">Rotation de 180°</string> 	
+    <string name="exif_orientation_rotate_270">Rotation de 270°</string> 	
+    <string name="exif_orientation_rotate_90">Rotation de 90°</string> 	
+    <string name="exif_orientation_transpose">Transposée</string>	
+    <string name="exif_orientation_transverse">Transversale</string> 	
+    <string name="exif_orientation_undefined">Non définie</string>
+        
+    <string name="exif_flash">Avec flash : %s</string>
+    <string name="exif_make">Fabriquant : %s</string>
+    <string name="exif_model">Modèle : %s</string>
+    <string name="exif_focal">Focal : %s</string>
+    <string name="exif_aperture">Ouverture : %s</string>
+    <string name="exif_exposure">Temps d\'exposition : %s\"</string>
+    <string name="exif_iso">ISO : %s</string>
 	
 	<string-array name="welcome_screen_values">
     	<item>Les catégories</item>
@@ -147,17 +208,33 @@
 		<item>2</item>
 		<item>3</item>
 	</string-array>
-	
+
 	<string-array name="swipe_values">
-    	<item>Normal</item>
-    	<item>Sensible</item>
-    	<item>Très sensible</item> 
+		<item>Très peu sensible</item>
+		<item>Peu sensible</item>
+		<item>Normal</item>
+		<item>Sensible</item>
+		<item>Très sensible</item>
 	</string-array>
-	
+
 	<string-array name="swipe_keys">
+		<item>0.33</item>
+		<item>0.66</item>
 		<item>1</item>
 		<item>2</item>
 		<item>3</item>
+	</string-array>
+	
+		<string-array name="preloading_callback_values">
+		<item>Aucune</item>
+		<item>Légère vibration</item>
+		<item>Changement de page automatique</item>
+	</string-array>
+
+	<string-array name="preloading_callback_keys">
+		<item>-1</item>
+		<item>0</item>
+		<item>1</item>
 	</string-array>
 	
 	<string-array name="theme_values">
@@ -175,13 +252,15 @@
 	<string-array name="police_size_values">
     	<item>Normal</item>
     	<item>Plus grand</item>
-    	<item>Gros bigleux :o</item> 
+    	<item>Gros bigleux :o</item>
+    	<item>Ultimate blindness</item> 
 	</string-array>
 	
 	<string-array name="police_size_keys">
 		<item>1</item>
 		<item>2</item>
 		<item>3</item>
+		<item>4</item>
 	</string-array>
 	
 	<string-array name="drawable_values">

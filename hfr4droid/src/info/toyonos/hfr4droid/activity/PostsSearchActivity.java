@@ -7,6 +7,8 @@ import info.toyonos.hfr4droid.core.data.DataRetrieverException;
 import info.toyonos.hfr4droid.core.data.HFRUrlParser;
 import info.toyonos.hfr4droid.core.data.MDUrlParser;
 import info.toyonos.hfr4droid.core.message.HFRMessageSender.ResponseCode;
+import info.toyonos.hfr4droid.util.helper.NewPostUIHelper;
+import info.toyonos.hfr4droid.util.listener.OnScreenChangeListener;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -49,6 +51,22 @@ public class PostsSearchActivity extends PostsActivity
 	@Override
 	protected void onCreateInit(Bundle bundle)
 	{
+		// Listener pour le changement de view dans le composant DragableSpace
+		space.setOnScreenChangeListener(new OnScreenChangeListener()
+		{
+			public void onScreenChange(int oldIndex, int newIndex){}
+			
+			public void onFailRearward()
+			{
+				if (currentPageNumber != 1) loadPreviousPage();
+			}
+			
+			public void onFailForward()
+			{
+				loadNextPage();
+			}
+		});
+		
 		fromPosts = new ArrayList<Post>();
 		Post fromPost = bundle != null ? (Post) bundle.getSerializable("fromPost") : new Post(0);
 		currentPageNumber = 1;
@@ -59,7 +77,7 @@ public class PostsSearchActivity extends PostsActivity
 		
 		if (bundle != null && bundle.getSerializable("posts") != null)
 		{
-			posts = (List<Post>) bundle.getSerializable("posts");
+			List<Post> posts = setDatasource((List<Post>) bundle.getSerializable("posts"));
 			if (posts != null && posts.size() > 0)
 			{
 				topic = posts.get(0).getTopic();
@@ -210,7 +228,7 @@ public class PostsSearchActivity extends PostsActivity
 				break;
 
 			case POST_ADD_OK: // New post ok
-				topic.setLastReadPost(BOTTOM_PAGE_ID);
+				topic.setLastReadPost(NewPostUIHelper.BOTTOM_PAGE_ID);
 				loadPosts(topic, topic.getNbPages(), false);
 				break;
 		}
@@ -278,5 +296,11 @@ public class PostsSearchActivity extends PostsActivity
 		
 		final TextView topicTitle = (TextView) findViewById(R.id.TopicTitle);
 		topicTitle.setOnLongClickListener(null);
+	}
+	
+	@Override
+	public void preloadPosts(boolean verify)
+	{
+		// Rien à faire ici
 	}
 }

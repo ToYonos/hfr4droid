@@ -37,19 +37,26 @@
 			android:key="PrefDblTapEnable"
 			android:summary="@string/pref_dbltap_enable_summary"
 			android:title="@string/pref_dbltap_enable_title"
-			android:defaultValue="@string/pref_dbltap_enable_default" />			
+			android:defaultValue="@string/pref_dbltap_enable_default" />
 		<CheckBoxPreference
-			android:key="PrefPreloadingEnable"
-			android:summary="@string/pref_preloading_enable_summary"
-			android:title="@string/pref_preloading_enable_title"
-			android:defaultValue="@string/pref_preloading_enable_default" />
-		<ListPreference
-			android:key="PrefSwipe"
-			android:summary="@string/pref_swipe_summary"
-			android:title="@string/pref_swipe_title"
-			android:defaultValue="@string/pref_swipe_default"
-			android:entries="@array/swipe_values"
-            android:entryValues="@array/swipe_keys" />			        
+			android:key="PrefOverrideLightMode"
+			android:summary="@string/pref_override_light_mode_enable_summary"
+			android:title="@string/pref_override_light_mode_enable_title"
+			android:defaultValue="@string/pref_override_light_mode_enable_default" />
+   		<ListPreference
+            android:key="PrefSwipe"
+            android:summary="@string/pref_swipe_summary"
+            android:title="@string/pref_swipe_title"
+            android:defaultValue="@string/pref_swipe_default"
+            android:entries="@array/swipe_values"
+			android:entryValues="@array/swipe_keys" />
+   		<ListPreference
+            android:key="PrefPreloadingCallback"
+            android:summary="@string/pref_preloading_callback_summary"
+            android:title="@string/pref_preloading_callback_title"
+            android:defaultValue="@string/pref_preloading_callback_default"
+            android:entries="@array/preloading_callback_values"
+			android:entryValues="@array/preloading_callback_keys" />
 	</PreferenceCategory>
 
 	<PreferenceCategory

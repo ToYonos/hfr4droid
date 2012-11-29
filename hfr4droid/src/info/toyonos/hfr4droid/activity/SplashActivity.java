@@ -1,16 +1,18 @@
 package info.toyonos.hfr4droid.activity;
 
-import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.Locale;
-
+import info.toyonos.hfr4droid.HFR4droidApplication;
 import info.toyonos.hfr4droid.R;
 import info.toyonos.hfr4droid.core.bean.Category;
 import info.toyonos.hfr4droid.core.bean.Theme;
 import info.toyonos.hfr4droid.core.bean.Topic.TopicType;
 import info.toyonos.hfr4droid.util.asynctask.DataRetrieverAsyncTask;
+
+import java.text.SimpleDateFormat;
+import java.util.Date;
+
 import android.content.res.Configuration;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.Display;
 import android.view.KeyEvent;
 import android.view.animation.Animation;
@@ -20,9 +22,16 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
+/**
+ * <p>Splash screen de l'application</p>
+ * 
+ * @author ToYonos
+ *
+ */
 public class SplashActivity extends HFR4droidActivity
 {
 	private DataRetrieverAsyncTask<?, ?> task = null;
+	private Thread waitingThread = null;
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState)
@@ -37,39 +46,10 @@ public class SplashActivity extends HFR4droidActivity
 		anim.setDuration(700);
 
 		ImageView splash = (ImageView) findViewById(R.id.SplashAnimation);
+		splash.setBackgroundResource(getDrawableKey(currentTheme.getSpinner()));
 		splash.startAnimation(anim);
 		
-		new Thread(new Runnable()
-		{	
-			public void run()
-			{
-				try
-				{
-					Thread.sleep(1000);
-				}
-				catch (InterruptedException e)
-				{
-					error(e, true);
-				}
-				runOnUiThread(new Runnable()
-				{	
-					public void run()
-					{
-						int welcomeScreen = getWelcomeScreen();
-						if (welcomeScreen > 0 && isLoggedIn())
-						{
-							task = loadTopics(Category.ALL_CATS, TopicType.fromInt(welcomeScreen), 1, false, false);
-						}
-						else
-						{
-							task = loadCats(false, false);
-						}
-					}
-				});
-			}
-		}).start();
-
-		
+		run();
 	}
 
 	@Override
@@ -77,6 +57,41 @@ public class SplashActivity extends HFR4droidActivity
 	{
 		super.onStart();
 		updateLogo();
+	}
+	
+	public void run()
+	{
+		waitingThread = new Thread(new Runnable()
+		{	
+			public void run()
+			{
+				try
+				{
+					Thread.sleep(1000);
+					runOnUiThread(new Runnable()
+					{	
+						public void run()
+						{
+							int welcomeScreen = getWelcomeScreen();
+							if (welcomeScreen > 0 && isLoggedIn())
+							{
+								task = loadTopics(Category.ALL_CATS, TopicType.fromInt(welcomeScreen), 1, false, false);
+							}
+							else
+							{
+								task = loadCats(false, false);
+							}
+						}
+					});
+				}
+				catch (InterruptedException e)
+				{
+					Log.d(HFR4droidApplication.TAG, "Launch cancelled");
+					finish();
+				}
+			}
+		});
+		waitingThread.start();
 	}
 
 	@Override
@@ -104,7 +119,12 @@ public class SplashActivity extends HFR4droidActivity
 	{
 		if (keyCode == KeyEvent.KEYCODE_BACK)
 		{
-			if (task != null) task.cancel(true);
+			if (task != null)
+			{
+				task.cancel(true);
+				task = null;
+			}
+			waitingThread.interrupt();
 		}
 		return super.onKeyDown(keyCode, event);
 	}

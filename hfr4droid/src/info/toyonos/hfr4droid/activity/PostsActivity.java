@@ -1,10 +1,13 @@
 package info.toyonos.hfr4droid.activity;
 
+import info.toyonos.hfr4droid.HFR4droidApplication;
 import info.toyonos.hfr4droid.HFR4droidException;
 import info.toyonos.hfr4droid.R;
+import info.toyonos.hfr4droid.core.bean.AlertQualitay;
 import info.toyonos.hfr4droid.core.bean.BasicElement;
 import info.toyonos.hfr4droid.core.bean.Category;
 import info.toyonos.hfr4droid.core.bean.Post;
+import info.toyonos.hfr4droid.core.bean.Profile;
 import info.toyonos.hfr4droid.core.bean.Theme;
 import info.toyonos.hfr4droid.core.bean.Topic;
 import info.toyonos.hfr4droid.core.bean.Topic.TopicStatus;
@@ -17,12 +20,18 @@ import info.toyonos.hfr4droid.core.message.HFRMessageSender.ResponseCode;
 import info.toyonos.hfr4droid.core.message.MessageSenderException;
 import info.toyonos.hfr4droid.core.utils.HttpClient;
 import info.toyonos.hfr4droid.core.utils.PatchInputStream;
+import info.toyonos.hfr4droid.core.utils.TransformStreamException;
 import info.toyonos.hfr4droid.service.MpNotifyService;
 import info.toyonos.hfr4droid.util.asynctask.DataRetrieverAsyncTask;
 import info.toyonos.hfr4droid.util.asynctask.MessageResponseAsyncTask;
+import info.toyonos.hfr4droid.util.asynctask.PreLoadingAsyncTask;
+import info.toyonos.hfr4droid.util.asynctask.ProgressDialogAsyncTask;
 import info.toyonos.hfr4droid.util.asynctask.ValidateMessageAsynckTask;
 import info.toyonos.hfr4droid.util.dialog.PageNumberDialog;
-import info.toyonos.hfr4droid.util.listener.SimpleNavOnGestureListener;
+import info.toyonos.hfr4droid.util.helper.NewPostUIHelper;
+import info.toyonos.hfr4droid.util.listener.OnScreenChangeListener;
+import info.toyonos.hfr4droid.util.view.DragableSpace;
+import info.toyonos.hfr4droid.util.view.NonLeakingWebView;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -33,41 +42,52 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Calendar;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.TreeSet;
 
 import org.apache.http.util.ByteArrayBuffer;
 
+import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
-import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
-import android.content.DialogInterface.OnCancelListener;
 import android.content.DialogInterface.OnDismissListener;
 import android.content.Intent;
 import android.content.res.Configuration;
 import android.graphics.Bitmap;
 import android.graphics.Bitmap.CompressFormat;
 import android.graphics.BitmapFactory;
+import android.graphics.drawable.BitmapDrawable;
+import android.media.ExifInterface;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.net.Uri;
 import android.os.AsyncTask;
+import android.os.AsyncTask.Status;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.text.ClipboardManager;
+import android.text.Html;
 import android.text.Selection;
 import android.text.TextUtils.TruncateAt;
+import android.util.Log;
 import android.util.SparseIntArray;
 import android.view.ContextMenu;
 import android.view.ContextMenu.ContextMenuInfo;
 import android.view.Display;
 import android.view.GestureDetector;
+import android.view.GestureDetector.SimpleOnGestureListener;
+import android.view.Gravity;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -86,15 +106,20 @@ import android.view.WindowManager;
 import android.view.animation.Animation;
 import android.view.animation.Animation.AnimationListener;
 import android.view.animation.AnimationUtils;
+import android.view.animation.LinearInterpolator;
+import android.view.animation.RotateAnimation;
+import android.view.inputmethod.InputMethodManager;
 import android.webkit.WebChromeClient;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebView.HitTestResult;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.PopupWindow;
 import android.widget.ProgressBar;
 import android.widget.SlidingDrawer;
 import android.widget.SlidingDrawer.OnDrawerCloseListener;
@@ -112,10 +137,16 @@ import com.naholyr.android.ui.QuickActionWindow.Item;
  * @author ToYonos
  *
  */
-public class PostsActivity extends NewPostUIActivity
+
+// TODO page suivante auto si next ou back une fois
+
+@SuppressWarnings("deprecation")
+public class PostsActivity extends HFR4droidMultiListActivity<List<Post>>
 {
 	private static final String POST_LOADING 	= ">¤>¤>¤>¤>¤...post_loading...<¤<¤<¤<¤<¤";
 	private static final String DOWNLOAD_DIR 	= "/HFR4droid/";
+	
+	private static Boolean oldCitation = null;
 
 	public static enum PostCallBackType
 	{
@@ -125,7 +156,8 @@ public class PostsActivity extends NewPostUIActivity
 		DELETE("delete"),
 		MULTIQUOTE_ADD("multiquote_add"),
 		MULTIQUOTE_REMOVE("multiquote_remove"),
-		FAVORITE("favorite");
+		FAVORITE("favorite"),
+		COPY_CONTENT("copy_content");
 
 		private final String key;
 
@@ -141,7 +173,6 @@ public class PostsActivity extends NewPostUIActivity
 	};
 
 	protected Topic topic;
-	protected List<Post> posts;
 	private TopicType fromType;
 	private boolean fromAllCats;
 
@@ -149,10 +180,11 @@ public class PostsActivity extends NewPostUIActivity
 	private int currentScrollY;
 
 	private Dialog postDialog;
+	private NewPostUIHelper uiHelper;
+	private long postId;
 
 	protected Map<Long, String> quotes;
-	protected boolean lockQuickAction;
-	
+
 	protected DrawableDisplayType currentAvatarsDisplayType = null;
 	protected DrawableDisplayType currentSmileysDisplayType = null;
 	protected DrawableDisplayType currentImgsDisplayType = null;
@@ -161,44 +193,34 @@ public class PostsActivity extends NewPostUIActivity
 	private boolean isSmileysEnable = true;
 	private boolean isImgsEnable = true;
 	
-	private final HttpClient<Bitmap> imgBitmapHttpClient = new HttpClient<Bitmap>()
-	{		
-		@Override
-		protected Bitmap transformStream(InputStream is) throws IOException
-		{
-			return BitmapFactory.decodeStream(new PatchInputStream(is));
-		}
-	};
+	private HFR4droidQuickActionWindow currentQAwindow = null;
 	
-	private final HttpClient<ByteArrayInputStream> imgHttpClient = new HttpClient<ByteArrayInputStream>()
-	{		
-		@Override
-		protected ByteArrayInputStream transformStream(InputStream is) throws IOException
-		{
-		    ByteArrayOutputStream baos = new ByteArrayOutputStream();
-		    byte[] buffer = new byte[1024];
-		    int len;
-		    while ((len = is.read(buffer)) > 0 )
-		    {
-		        baos.write(buffer, 0, len);
-		    }
-		    baos.flush();
-		    return new ByteArrayInputStream(baos.toByteArray()); 
-		}
-	};
+	protected PreLoadingPostsAsyncTask preLoadingPostsAsyncTask = null;
+	private int pageToBeSetToRead = -1;
+	private AsyncTask<String, Void, Profile> profileTask = null;
+	private Timer timerOnPause = null;
+	
+	private List<AlertQualitay> alertsQualitay = null;
+	
+	private HttpClient<Bitmap> imgBitmapHttpClient = null;
+	
+	private HttpClient<ByteArrayInputStream> imgHttpClient = null;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState)
 	{
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.posts);
+		space = (DragableSpace) findViewById(R.id.Space);
+		space.setSwipeSensibility(getHFR4droidApplication().getSwipe());
 		applyTheme(currentTheme);
+		
 		attachEvents();
 
 		currentScrollY = -1;
 		postDialog = null;
 		quotes = Collections.synchronizedMap(new HashMap<Long, String>());
-		lockQuickAction = true;
+		uiHelper = getNewPostUIHelper();
 
 		currentAvatarsDisplayType = getAvatarsDisplayType();
 		currentSmileysDisplayType = getSmileysDisplayType();
@@ -212,7 +234,6 @@ public class PostsActivity extends NewPostUIActivity
 		if (topic != null)
 		{
 			setTitle();
-			updateButtonsStates();
 			if (topic.getCategory().equals(Category.MPS_CAT))
 			{
 				clearNotifications();
@@ -223,34 +244,8 @@ public class PostsActivity extends NewPostUIActivity
 			}
 		}
 
-		gestureDetector = new GestureDetector(new SimpleNavOnGestureListener(this)
+		gestureDetector = new GestureDetector(new SimpleOnGestureListener()
 		{
-			@Override
-			protected void onLeftToRight(MotionEvent e1, MotionEvent e2)
-			{
-				if (currentPageNumber != 1)
-				{
-					loadPreviousPage();
-				}
-				else
-				{
-					reloadPage();
-				}
-			}
-
-			@Override
-			protected void onRightToLeft(MotionEvent e1, MotionEvent e2)
-			{
-				if (currentPageNumber != topic.getNbPages())
-				{
-					loadNextPage();
-				}
-				else
-				{
-					reloadPage();
-				}
-			}
-			
 			@Override
 			public boolean onDoubleTap(MotionEvent e)
 			{
@@ -259,6 +254,40 @@ public class PostsActivity extends NewPostUIActivity
 				return true;
 			}
 		});
+		
+		imgBitmapHttpClient = new HttpClient<Bitmap>(getHFR4droidApplication().getHttpClientHelper())
+		{
+			@Override
+			protected Bitmap transformStream(InputStream is) throws TransformStreamException
+			{
+				return BitmapFactory.decodeStream(new PatchInputStream(is));
+			}
+		};
+
+		imgHttpClient = new HttpClient<ByteArrayInputStream>(getHFR4droidApplication().getHttpClientHelper())
+		{		
+			@Override
+			protected ByteArrayInputStream transformStream(InputStream is) throws TransformStreamException
+			{
+				try
+				{
+				    ByteArrayOutputStream baos = new ByteArrayOutputStream();
+				    byte[] buffer = new byte[1024];
+				    int len;
+				    while ((len = is.read(buffer)) > 0 )
+				    {
+				        baos.write(buffer, 0, len);
+				    }
+				    baos.flush();
+				    return new ByteArrayInputStream(baos.toByteArray());
+				}
+				catch (IOException e)
+				{
+					throw new TransformStreamException(e);
+				}
+			}
+		};
+				
 	}
 	
 	@SuppressWarnings("unchecked")
@@ -266,13 +295,13 @@ public class PostsActivity extends NewPostUIActivity
 	{
 		if (bundle != null && bundle.getSerializable("posts") != null)
 		{
-			posts = (List<Post>) bundle.getSerializable("posts");
+			List<Post> posts = setDatasource((List<Post>) bundle.getSerializable("posts"));
 			if (posts != null && posts.size() > 0)
 			{
 				topic = posts.get(0).getTopic();
-				if (isPreloadingEnable()) preLoadPosts(topic, currentPageNumber);
 				displayPosts(posts);
 			}
+			preloadPosts();
 		}
 		else
 		{
@@ -282,17 +311,144 @@ public class PostsActivity extends NewPostUIActivity
 			}
 			if (topic != null) loadPosts(topic, currentPageNumber);
 		}
+		
+		// Listener pour le changement de view dans le composant DragableSpace
+		space.setOnScreenChangeListener(new OnScreenChangeListener()
+		{
+			public void onScreenChange(final int oldIndex, final int newIndex)
+			{
+				if (oldIndex == newIndex) return;
+				
+				if (preLoadingPostsAsyncTask != null)
+				{
+					if (preLoadingPostsAsyncTask.getStatus() != Status.FINISHED)
+					{
+						Log.d(HFR4droidApplication.TAG, "Cancelling preLoadingPostsAsyncTask...");
+						preLoadingPostsAsyncTask.cancel(true);
+					}
+					preLoadingPostsAsyncTask = null;
+				}
+				findViewById(R.id.PostsProgressBar).setVisibility(View.GONE);
+				
+				boolean forward = oldIndex < newIndex;
+				int targetPageNumber = -1;
+				if (forward)
+				{
+					currentPageNumber++;
+					if (currentPageNumber != topic.getNbPages() && (newIndex != 1 || getView(2) == null || getDatasource(2) == null))
+					{
+						targetPageNumber = currentPageNumber + 1;
+					}
+				}
+				else
+				{
+					currentPageNumber--;
+					if (currentPageNumber != 1 && (newIndex != 1 || getView(0) == null || getDatasource(0) == null))
+					{
+						targetPageNumber = currentPageNumber - 1;
+					}
+				}
+				
+				// On marque comme lu la page courante si elle a été marqué ainsi
+				if (currentPageNumber == pageToBeSetToRead)
+				{
+					pageToBeSetToRead = -1;
+					new AsyncTask<Void, Void, Boolean>()
+					{
+						@Override
+						protected Boolean doInBackground(Void... params)
+						{
+							try
+							{
+								return getDataRetriever().setPostsAsRead(topic, currentPageNumber);
+							}
+							catch (DataRetrieverException e)
+							{
+								error(e, true, true);
+								return false;
+							}
+						}
+
+						@Override
+						protected void onPostExecute(Boolean ok)
+						{
+							topic.setLastReadPage(pageToBeSetToRead);
+							if (ok) Log.i(HFR4droidApplication.TAG, getString(R.string.set_posts_as_read_ok, currentPageNumber));
+							else Log.w(HFR4droidApplication.TAG, getString(R.string.set_posts_as_read_ko, currentPageNumber));
+						}
+					}.execute();
+				}
+				
+				if (targetPageNumber != -1)
+				{
+					preLoadingPostsAsyncTask = new PreLoadingPostsAsyncTask(PostsActivity.this);
+					preLoadingPostsAsyncTask.execute(targetPageNumber, topic);
+				}
+
+				// Pour éviter une surchage du cpu, on n'utilise qu'une seule webview, que l'on supprime et recrée dynamiquement
+				if (getHFR4droidApplication().isLightMode())
+				{
+					new Timer().schedule(new TimerTask()
+					{
+						public void run()
+						{
+							runOnUiThread(new Runnable()
+							{
+								public void run()
+								{
+									removeView(newIndex);
+									restoreView(newIndex);
+									
+									removeView(oldIndex);
+									restoreView(oldIndex);
+								}
+							});
+						}
+					}, 500);
+				}
+				
+				updateButtonsStates();
+				setTitle();
+			}
+			
+			public void onFailForward()
+			{
+				if (currentPageNumber == topic.getNbPages())
+				{
+					reloadPage();
+				}
+				else
+				{
+					displayPreloadingToast(preLoadingPostsAsyncTask);
+				}
+			}
+
+			public void onFailRearward()
+			{
+				if (currentPageNumber == 1)
+				{
+					reloadPage();
+				}
+				else
+				{
+					displayPreloadingToast(preLoadingPostsAsyncTask);
+				}
+			}
+		});
 	}
 
 	@Override
 	protected void onDestroy()
 	{
 		super.onDestroy();
-		WebView postsWV = getWebView();
-		if (postsWV != null) postsWV.destroy();
-		((WebView) findViewById(R.id.loading)).destroy();
-		if (posts != null) posts.clear();
-		super.hideWikiSmiliesResults(getSmiliesLayout());
+		timerOnPause.cancel();
+		uiHelper.destroyWikiSmiliesResults(uiHelper.getSmiliesLayout());
+		if (preLoadingPostsAsyncTask != null)
+		{
+			preLoadingPostsAsyncTask.cancel(true);
+			preLoadingPostsAsyncTask = null;
+		}
+		System.gc();
 	}
 
 	@Override
@@ -300,8 +456,47 @@ public class PostsActivity extends NewPostUIActivity
 	{
 		super.onPause();
 		if (postDialog != null) postDialog.dismiss();
+
+		timerOnPause = new Timer();
+		timerOnPause.schedule(new TimerTask()
+		{
+			public void run()
+			{
+				runOnUiThread(new Runnable()
+				{
+					public void run()
+					{
+						// On detruit les webviews pour éviter qu'elle consomme du CPU quand l'appli est en background
+						Log.d(HFR4droidApplication.TAG, "Destroying webviews...");
+						if (preLoadingPostsAsyncTask != null)
+						{
+							preLoadingPostsAsyncTask.cancel(true);
+							preLoadingPostsAsyncTask = null;
+						}
+						WebView webView = getWebView();
+						if (webView != null) currentScrollY = webView.getScrollY();
+						removeViews();
+					}
+				});
+			}
+		}, 1000);
 	}
 	
+	@Override
+	protected void onResume()
+	{
+		super.onResume();
+		
+		if (timerOnPause != null) timerOnPause.cancel();
+		if (isViewsHasToBeRestore())
+		{
+			Log.d(HFR4droidApplication.TAG, "Restoring webviews...");
+			restoreViews();
+			preloadPosts(true);
+		}
+		if (currentQAwindow != null) currentQAwindow.dismiss();
+	}
+
 	@Override
 	protected void onRestart()
 	{
@@ -324,6 +519,13 @@ public class PostsActivity extends NewPostUIActivity
 	}
 
 	@Override
+	protected void onActivityResult(int requestCode, int resultCode, Intent data)
+	{
+		super.onActivityResult(requestCode, resultCode, data);
+		uiHelper.onActivityResult(requestCode, resultCode, data);
+	}
+
+	@Override
 	public boolean onKeyDown(int keyCode, KeyEvent event) 
 	{
 		if (keyCode == KeyEvent.KEYCODE_SEARCH)
@@ -335,8 +537,7 @@ public class PostsActivity extends NewPostUIActivity
 
 	private WebView getWebView()
 	{
-		LinearLayout parent = ((LinearLayout) findViewById(R.id.PostsLayout));
-		return ((WebView) parent.getChildAt(4));
+		return (WebView) getView();
 	}
 
 	@Override
@@ -434,7 +635,7 @@ public class PostsActivity extends NewPostUIActivity
 
 	public void setPosts(List<Post> posts)
 	{
-		this.posts = posts;
+		setDatasource(posts);
 	}
 	
 	@Override
@@ -459,13 +660,20 @@ public class PostsActivity extends NewPostUIActivity
 	@Override
 	protected void loadFirstPage()
 	{
-		loadPosts(topic, 1);
+		if (currentPageNumber == 2)
+		{
+			snapToScreen(getCurrentIndex() - 1, preLoadingPostsAsyncTask);
+		}
+		else
+		{
+			loadPosts(topic, 1, false);
+		}
 	}
 
 	@Override
 	protected void loadPreviousPage()
 	{
-		loadPosts(topic, currentPageNumber - 1);	
+		snapToScreen(getCurrentIndex() - 1, preLoadingPostsAsyncTask);	
 	}
 
 	@Override
@@ -475,7 +683,14 @@ public class PostsActivity extends NewPostUIActivity
 		{
 			protected void onValidate(int pageNumber)
 			{
-				loadPosts(topic, pageNumber);
+				if (Math.abs(pageNumber - currentPage) == 1)
+				{
+					snapToScreen(getCurrentIndex() + (pageNumber - currentPage), preLoadingPostsAsyncTask);
+				}
+				else
+				{
+					loadPosts(topic, pageNumber, false);
+				}
 			}
 		}.show();
 	}
@@ -483,13 +698,20 @@ public class PostsActivity extends NewPostUIActivity
 	@Override
 	protected void loadNextPage()
 	{
-		loadPosts(topic, currentPageNumber + 1);
+		snapToScreen(getCurrentIndex() + 1, preLoadingPostsAsyncTask);
 	}
 
 	@Override
 	protected void loadLastPage()
 	{
-		loadPosts(topic, topic.getNbPages());
+		if (currentPageNumber == (topic.getNbPages() - 1))
+		{
+			snapToScreen(getCurrentIndex() + 1, preLoadingPostsAsyncTask);
+		}
+		else
+		{
+			loadPosts(topic, topic.getNbPages(), false);
+		}
 	}
 
 	@Override
@@ -498,14 +720,6 @@ public class PostsActivity extends NewPostUIActivity
 		WebView webView = getWebView();
 		if (webView != null) currentScrollY = webView.getScrollY();
 		loadPosts(topic, currentPageNumber);
-	}
-	
-	@Override
-	protected void redrawPage()
-	{
-		WebView webView = getWebView();
-		if (webView != null) currentScrollY = webView.getScrollY();
-		displayPosts(posts);
 	}
 	
 	@Override
@@ -638,28 +852,62 @@ public class PostsActivity extends NewPostUIActivity
 			{
 				EditText pseudo = (EditText) findViewById(R.id.SearchPostsPseudo);
 				EditText word = (EditText) findViewById(R.id.SearchPostsWord);
-				Post fromPost = PostsActivity.this instanceof PostsSearchActivity ? null : posts.get(0);
-				searchPosts(topic, pseudo.getText().toString(), word.getText().toString(), fromPost, false);
+				Post fromPost = PostsActivity.this instanceof PostsSearchActivity ? null : getDatasource().get(0);
+				searchPosts(topic, pseudo.getText().toString().trim(), word.getText().toString().trim(), fromPost, false);
 			}
 		});
 	}
-
-	public void refreshPosts(List<Post> posts)
+	
+	public void preloadPosts()
 	{
-		innerDisplayPosts(posts, true);
+		preloadPosts(false);
+	}
+	
+	public void preloadPosts(boolean verify)
+	{
+		boolean forceLoadingPreviousPage = false;
+		if (verify)
+		{
+			if (isNextPageLoaded())
+			{
+				Log.d(HFR4droidApplication.TAG, "Next page in Dragable space is loaded");
+				if (currentPageNumber != 1) forceLoadingPreviousPage = true;
+				if (isPreviousPageLoaded() || currentPageNumber == 1)
+				{
+					Log.d(HFR4droidApplication.TAG, "Previous page in Dragable space is loaded");
+					return;
+				}
+			}
+			else if (currentPageNumber == topic.getNbPages() && isPreviousPageLoaded())
+			{
+				Log.d(HFR4droidApplication.TAG, "Previous page in Dragable space is loaded");
+				return;
+			}
+		}
+		// Préchargement de la page suivante dans le composant DragableSpace 
+		if (topic.getNbPages() > 1)
+		{			
+			boolean loadPreviousPage = currentPageNumber != 1;
+			int targetPageNumber = currentPageNumber + 1;
+			if (forceLoadingPreviousPage || currentPageNumber == topic.getNbPages())
+			{
+				targetPageNumber = currentPageNumber - 1;
+				loadPreviousPage = false;
+			}
+			
+			preLoadingPostsAsyncTask = new PreLoadingPostsAsyncTask(this, preLoadingPostsAsyncTask, loadPreviousPage);
+			preLoadingPostsAsyncTask.execute(targetPageNumber, topic);
+		}
 	}
 
-	protected void displayPosts(List<Post> posts)
+	protected WebView displayPosts(List<Post> posts)
 	{
-		innerDisplayPosts(posts, false);
+		return displayPosts(posts, false);
 	}
 
-	private void innerDisplayPosts(List<Post> posts, boolean refresh)
+	protected WebView displayPosts(List<Post> posts, final boolean preloading)
 	{
-		final LinearLayout parent = ((LinearLayout) findViewById(R.id.PostsLayout));
-		WebView oldWebView = getWebView();
-
-	    final WebView webView = new WebView(this)
+		final WebView webView = new NonLeakingWebView(this)
         {
             @Override
             public boolean onTouchEvent(MotionEvent ev)
@@ -675,7 +923,8 @@ public class PostsActivity extends NewPostUIActivity
                 }
                 catch (NullPointerException e)
                 {
-                	error(e);
+                	// NullPointerException ignorée car le double tap est malgré tout bien supporté
+                	// E/webview(16784): Got null mVelocityTracker when mPreventDefault = 0 mDeferTouchProcess = false mTouchMode = 1
                 }
                 return result;
             }
@@ -707,28 +956,20 @@ public class PostsActivity extends NewPostUIActivity
                     {
                 		private void saveImage(final String url, final boolean compressToPng, final ImageCallback callback)
                 		{                    		
-    						final ProgressDialog progressDialog = new ProgressDialog(PostsActivity.this);
-    						progressDialog.setMessage(getString(R.string.save_image));
-    						progressDialog.setIndeterminate(true);
-    						new AsyncTask<String, Void, File>()
+    						new ProgressDialogAsyncTask<String, Void, File>(PostsActivity.this)
     						{
     							@Override
     							protected void onPreExecute() 
     							{
-									progressDialog.setCancelable(true);
-									progressDialog.setOnCancelListener(new OnCancelListener()
-									{
-										public void onCancel(DialogInterface dialog)
-										{
-											cancel(true);
-										}
-									});
+    								super.onPreExecute();
+    	    						progressDialog.setMessage(getString(R.string.save_image));
 									progressDialog.show();
     							}
 
     							@Override
     							protected File doInBackground(String... url)
     							{
+    								setThreadId();
     								try
 									{
 	                        			File dir = new File(Environment.getExternalStorageDirectory() + DOWNLOAD_DIR);
@@ -738,8 +979,13 @@ public class PostsActivity extends NewPostUIActivity
 	                        			
     									if (compressToPng)
 										{
-											Bitmap imgBitmap = imgBitmapHttpClient.getResponse(url[0]);
-		                        			String newFileName = originalFileName.substring(0, originalFileName.lastIndexOf('.')) + ".png";
+											Bitmap imgBitmap = imgBitmapHttpClient.doGet(url[0]);
+											if (imgBitmap == null) return null;
+		                        			String newFileName = originalFileName + ".png";
+		                        			if (originalFileName.lastIndexOf('.') != -1)
+		                        			{
+		                        				newFileName = originalFileName.substring(0, originalFileName.lastIndexOf('.')) + ".png";
+		                        			}
 		                        			imgFile = new File(Environment.getExternalStorageDirectory() + DOWNLOAD_DIR, newFileName);
 		                        	        OutputStream fos = new FileOutputStream(imgFile);
 		                        	        imgBitmap.compress(CompressFormat.PNG, 90, fos);
@@ -747,13 +993,15 @@ public class PostsActivity extends NewPostUIActivity
 										}
 										else
 										{											
-											ByteArrayInputStream input = imgHttpClient.getResponse(url[0]);
+											ByteArrayInputStream input = imgHttpClient.doGet(url[0]);
+											if (input == null) return null;
 											ByteArrayBuffer baf = new ByteArrayBuffer(50);
 											int current = 0;
 											while ((current = input.read()) != -1)
 											{
 												baf.append((byte) current);
 											}
+		                        			if (originalFileName.lastIndexOf('.') == -1) originalFileName += ".jpg";
 											imgFile = new File(Environment.getExternalStorageDirectory() + DOWNLOAD_DIR, originalFileName);
 											FileOutputStream fos = new FileOutputStream(imgFile);
 											fos.write(baf.toByteArray());
@@ -765,7 +1013,7 @@ public class PostsActivity extends NewPostUIActivity
 									}
 									catch (Exception e)
 									{
-										error(getString(R.string.save_image_failed), e, true, false);
+										error(getString(R.string.save_image_failed), e, true, true);
 										return null;
 									}
     							}
@@ -777,6 +1025,131 @@ public class PostsActivity extends NewPostUIActivity
                         	        if (callback != null) callback.run(imageFile);
     							}
     						}.execute(url);
+                		}
+                		
+                		private String[] getExif(String path)
+                		{
+                			if (Build.VERSION.SDK_INT < 5) return null;
+                			
+                			String[] result = null;
+                			try
+                			{
+	                			ExifInterface exif = new ExifInterface(path);
+	                			List<String> data = new ArrayList<String>();
+	                			
+	                			// Date du cliché
+	                			String date = exif.getAttribute(ExifInterface.TAG_DATETIME);
+	                			if (date != null) data.add(getString(R.string.exif_date, date));
+
+	                			// Résolution du cliché
+	                			String width = exif.getAttribute(ExifInterface.TAG_IMAGE_WIDTH);
+	                			String lenght = exif.getAttribute(ExifInterface.TAG_IMAGE_LENGTH);
+	                			if (width != null && lenght != null)
+	                			{
+	                				int mp = (Integer.parseInt(width) * Integer.parseInt(lenght) / 1000000);
+	                				data.add(getString(R.string.exif_reso,
+	                				width + " x " + lenght + " (" + (mp == 0 ? "< 1 Mp" : mp + " Mp") + ")"));
+	                			}
+
+	                			// Orientation
+	                			String orientation = exif.getAttribute(ExifInterface.TAG_ORIENTATION);
+	                			if (orientation != null)
+	                			{
+	                				String orientationLbl = getString(R.string.exif_orientation_undefined);
+	                				switch (Integer.valueOf(orientation))
+									{
+										case ExifInterface.ORIENTATION_FLIP_HORIZONTAL:
+											orientationLbl = getString(R.string.exif_orientation_flip_horizontal);
+											break;
+
+										case ExifInterface.ORIENTATION_FLIP_VERTICAL:
+											orientationLbl = getString(R.string.exif_orientation_flip_vertical);
+											break;
+
+										case ExifInterface.ORIENTATION_NORMAL:
+											orientationLbl = getString(R.string.exif_orientation_normal);
+											break;
+
+										case ExifInterface.ORIENTATION_ROTATE_180:
+											orientationLbl = getString(R.string.exif_orientation_rotate_180);
+											break;
+											
+										case ExifInterface.ORIENTATION_ROTATE_270:
+											orientationLbl = getString(R.string.exif_orientation_rotate_270);
+											break;
+
+										case ExifInterface.ORIENTATION_ROTATE_90:
+											orientationLbl = getString(R.string.exif_orientation_rotate_90);
+											break;
+
+										case ExifInterface.ORIENTATION_TRANSPOSE:
+											orientationLbl = getString(R.string.exif_orientation_transpose);
+											break;
+											
+										case ExifInterface.ORIENTATION_TRANSVERSE:
+											orientationLbl = getString(R.string.exif_orientation_transverse);
+											break;
+
+										default:
+											orientationLbl = getString(R.string.exif_orientation_undefined);
+											break;
+									}
+	                				data.add(getString(R.string.exif_orientation, orientationLbl));
+	                			}
+
+	                			// Pris avec Flash ?
+	                			String flash = exif.getAttribute(ExifInterface.TAG_FLASH);
+	                			if (flash != null)
+	                			{
+	                				data.add(getString(R.string.exif_flash, flash.equals("1") ? getString(R.string.button_yes) : getString(R.string.button_no)));
+	                			}
+
+	                			// Model de l'appareil 
+	                			String make = exif.getAttribute(ExifInterface.TAG_MAKE);
+	                			String model = exif.getAttribute(ExifInterface.TAG_MODEL);
+	                			if (make != null && (model == null || !model.toLowerCase().contains(make.toLowerCase()))) data.add(getString(R.string.exif_make, make));
+	                			if (model != null) data.add(getString(R.string.exif_model, model));
+	                			
+	                			if (Build.VERSION.SDK_INT >= 8)
+	                			{
+		                			// Focale
+		                			String focal = exif.getAttribute(ExifInterface.TAG_FOCAL_LENGTH);
+		                			if (focal != null) data.add(getString(R.string.exif_focal, focal));
+		                			
+		                			if (Build.VERSION.SDK_INT >= 11)
+		                			{
+			                			// Ouverture
+			                			String aperture = exif.getAttribute(ExifInterface.TAG_APERTURE);
+			                			if (aperture != null) data.add(getString(R.string.exif_aperture, aperture));
+			                			
+			                			// Temps d'exposition
+			                			String exposure = exif.getAttribute(ExifInterface.TAG_EXPOSURE_TIME);
+			                			try
+			                			{
+			                				float exposureAsF = Float.parseFloat(exposure);
+			                				if (exposureAsF < 0.33)
+			                				{
+			                					exposure = "1/" + String.valueOf(((int) (1 / exposureAsF)));
+			                				}
+			                			}
+			                			catch (Exception e) {}
+			                			 
+			                			if (exposure != null) data.add(getString(R.string.exif_exposure, exposure));
+			                			
+			                			// ISO
+			                			String iso = exif.getAttribute(ExifInterface.TAG_ISO);
+			                			if (iso != null) data.add(getString(R.string.exif_iso, iso));
+		                			}
+	                			}
+	                			
+	                			result = new String[data.size()];
+	                			data.toArray(result);
+                			}
+                			catch (IOException e)
+                			{
+								error(e, true);
+							}
+                			return result;
                 		}
                 		
                         public boolean onMenuItemClick(MenuItem item)
@@ -830,6 +1203,56 @@ public class PostsActivity extends NewPostUIActivity
                 					Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
                 					startActivity(intent);
                 					break;
+                					
+                				case R.id.GetExif:
+                					if (Build.VERSION.SDK_INT < 5)
+                					{
+                						Toast.makeText(PostsActivity.this, getString(R.string.exif_version_too_low), Toast.LENGTH_LONG).show();
+                					}
+                					else
+                					{
+	                					saveImage(url, false, new ImageCallback()
+										{
+											public void run()
+											{
+												if (image != null)
+												{
+													String[] exifData = getExif(image.getAbsolutePath());
+													if (exifData != null)
+													{
+														if (exifData.length > 0)
+														{
+															final StringBuilder message = new StringBuilder("");
+															for(String data : exifData) message.append(data + "\n");
+															new AlertDialog.Builder(PostsActivity.this)
+															.setTitle(R.string.exif_data)
+															.setMessage(message)
+															.setPositiveButton(R.string.button_copy_to_clip, new DialogInterface.OnClickListener()
+															{
+																public void onClick(DialogInterface dialog,	int which)
+																{
+																	ClipboardManager clipboard = (ClipboardManager) getSystemService(CLIPBOARD_SERVICE); 
+																	clipboard.setText(message);
+																	Toast.makeText(PostsActivity.this, getString(R.string.copy_exif_data), Toast.LENGTH_LONG).show();
+																}
+															})
+															.setNegativeButton(R.string.button_close, new DialogInterface.OnClickListener()
+															{
+																public void onClick(DialogInterface dialog, int which) {}
+															})
+															.create()
+															.show();
+														}
+														else
+														{
+															Toast.makeText(PostsActivity.this, getString(R.string.exif_no_data), Toast.LENGTH_LONG).show();
+														}
+													}
+												}
+											}
+										});
+                					}
+                					break;
                 			}
                 			return true;
                         }
@@ -840,6 +1263,7 @@ public class PostsActivity extends NewPostUIActivity
                     menu.add(0, R.id.SaveImagePng, 0, R.string.save_image_png_item).setOnMenuItemClickListener(handler);
                     menu.add(0, R.id.ShareImage, 0, R.string.share_image_item).setOnMenuItemClickListener(handler);
                     menu.add(0, R.id.OpenImage, 0, R.string.open_image_item).setOnMenuItemClickListener(handler);
+                    menu.add(0, R.id.GetExif, 0, R.string.get_exif_item).setOnMenuItemClickListener(handler);
                 }
 			}
 		});
@@ -853,7 +1277,7 @@ public class PostsActivity extends NewPostUIActivity
 			@SuppressWarnings("unused")
 			public void openQuickActionWindow(final long postId, final boolean isMine, final int yOffset)
 			{
-				if (yOffset >= 0 && !lockQuickAction)
+				if (yOffset >= 0 && (currentQAwindow == null || !currentQAwindow.isShowing()))
 				{
 					runOnUiThread(new Runnable()
 					{
@@ -866,15 +1290,271 @@ public class PostsActivity extends NewPostUIActivity
 							configuration.put(QuickActionWindow.Config.ITEM_ICON, R.id.QuickActionIcon);
 							configuration.put(QuickActionWindow.Config.WINDOW_ANIMATION_STYLE, R.style.Animation_QuickActionWindow);
 							configuration.put(QuickActionWindow.Config.ARROW_OFFSET, -2);
-							HFR4droidQuickActionWindow window = HFR4droidQuickActionWindow.getWindow(PostsActivity.this, configuration);
+							if (currentQAwindow != null) currentQAwindow.dismiss();
+							currentQAwindow = HFR4droidQuickActionWindow.getWindow(PostsActivity.this, configuration);
 							
-							addQuickActionWindowItems(window, postId, isMine);
+							addQuickActionWindowItems(currentQAwindow, postId, isMine);
 							View spp = findViewById(R.id.SearchPostsPanel);
 							View anchor = spp.getVisibility() == View.VISIBLE ? spp : ((LinearLayout) findViewById(R.id.TopicTitle).getParent());
-							window.show(anchor, Math.round(yOffset * webView.getScale()));
+							currentQAwindow.show(anchor, Math.round(yOffset * webView.getScale()));
 						}
 					});
 				}
+			}
+			
+			@SuppressWarnings("unused")
+			public void openProfileWindow(final String pseudo)
+			{
+				runOnUiThread(new Runnable()
+				{
+					class ProfileDismissListenner implements PopupWindow.OnDismissListener
+					{
+						public void onDismiss()
+						{
+							if (profileTask != null)
+							{
+								profileTask.cancel(true);
+								profileTask = null;
+							}
+						}
+					}
+					
+					private void displayProfile(final PopupWindow pw, Profile profile)
+					{
+						Display display = ((WindowManager) getSystemService(Context.WINDOW_SERVICE)).getDefaultDisplay();
+						final LayoutInflater inflater = (LayoutInflater) getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+						final LinearLayout profileView =  (LinearLayout) inflater.inflate(R.layout.profile_popup, null, false);
+						pw.setContentView(profileView);
+						profileView.setBackgroundResource(getKeyByTheme(getThemeKey(), R.drawable.class, "profile_popup_background"));
+						float scale = getResources().getDisplayMetrics().density;
+						float dip = 5;
+						int pixel = (int) (dip * scale + 0.5f);
+						profileView.setPadding(pixel, pixel, pixel, pixel);
+
+						ImageView avatar = (ImageView) profileView.findViewById(R.id.ProfileAvatar);
+						avatar.setScaleType(ImageView.ScaleType.CENTER_CROP);
+						if (profile.getAvatarUrl() != null && profile.getAvatarBitmap() != null)
+						{
+							avatar.setImageBitmap(profile.getAvatarBitmap());
+							int newWidth = Math.min(display.getWidth(), display.getHeight()) / 4;
+							int orgWidth = avatar.getDrawable().getIntrinsicWidth();
+							if (newWidth < orgWidth)
+							{
+								int orgHeight = avatar.getDrawable().getIntrinsicHeight();
+								int newHeight = (int) Math.floor((orgHeight * newWidth) / orgWidth);
+
+								LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(newWidth, newHeight);
+								avatar.setLayoutParams(params);
+							}
+						}
+						else
+						{
+							avatar.setImageResource(R.drawable.no_avatar);
+						}
+						
+						TextView pseudo = (TextView) profileView.findViewById(R.id.ProfilePseudo);
+						pseudo.setText(profile.getPseudo());
+						pseudo.setTextColor(currentTheme.getProfileText1Color());
+						pseudo.setTextSize(getTextSize(18));
+
+						TextView type = (TextView) profileView.findViewById(R.id.ProfileType);
+						type.setTextColor(currentTheme.getProfileText2Color());
+						type.setTextSize(getTextSize(12));
+						type.setText(profile.getType().getLabel());
+						
+						TextView sexAndAge = (TextView) profileView.findViewById(R.id.ProfileSexAndAge);
+						sexAndAge.setTextColor(currentTheme.getProfileText2Color());
+						sexAndAge.setTextSize(getTextSize(12));
+						if (profile.getBirthDate() != null)
+						{
+							Calendar now = Calendar.getInstance();
+							Calendar birth = Calendar.getInstance();
+							birth.setTime(profile.getBirthDate());
+							boolean birthday = now.get(Calendar.DAY_OF_YEAR) == birth.get(Calendar.DAY_OF_YEAR);
+							int age = now.get(Calendar.YEAR) - birth.get(Calendar.YEAR);
+							now.add(Calendar.YEAR, -age);
+							if(birth.after(now)) age--;
+							sexAndAge.setText(Html.fromHtml(profile.getGender().getLabel() + ", " +
+							(birthday ? "<font color=\"red\">" + getString(R.string.profile_age_birthday, age) + "</font>" : getString(R.string.profile_age, age))));
+						}
+						else
+						{
+							sexAndAge.setText(profile.getGender().getLabel() + ", " + getString(R.string.profile_default_age));
+						}
+						
+						TextView location = (TextView) profileView.findViewById(R.id.ProfileLocation);
+						String city = profile.getCity() != null ? profile.getCity() : getString(R.string.profile_default_location);
+						String locationStr = "";
+						for (int i = 0; i < (profile.getLocation().length < 2 ? profile.getLocation().length : 2); i++)
+						{
+							locationStr += i != 0 ? ", " + profile.getLocation()[i] : profile.getLocation()[i];
+						}
+						location.setText(city + " (" + locationStr + ")");
+						location.setTextColor(currentTheme.getProfileText2Color());
+						location.setTextSize(getTextSize(10));
+					
+						TextView seniorityAndPosts = (TextView) profileView.findViewById(R.id.ProfileSeniorityAndPosts);
+						seniorityAndPosts.setTextColor(currentTheme.getProfileText2Color());
+						seniorityAndPosts.setTextSize(getTextSize(10));
+						SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
+						String  seniority = getString("profile_seniority_" + profile.getGender().toString().toLowerCase(), sdf.format(profile.getRegistrationDate()));
+						String posts = getResources().getQuantityString(R.plurals.profile_posts, profile.getNbPosts(), profile.getNbPosts());
+						seniorityAndPosts.setText(seniority + ", " + posts);
+						
+						if (profile.getLastPostDate() != null)
+						{
+							long seconds = (new Date().getTime() - profile.getLastPostDate().getTime()) / 1000;
+							String delta = "";
+							if (seconds <= 300) delta = getString(R.string.profile_last_post_inf5min);
+							else if (seconds < 3600) delta =  getString(R.string.profile_last_post_min, ((int) seconds / 60)); // Moins d'une heure
+							else if (seconds < 86400) delta = getString(R.string.profile_last_post_hour, ((int) seconds / 3600)); // Moins d'une journée
+							else delta = getResources().getQuantityString(R.plurals.profile_last_post_day, ((int) seconds / 86400), ((int) seconds / 86400));
+						
+							TextView lastPost = (TextView) profileView.findViewById(R.id.ProfileLastPost);
+							lastPost.setTextColor(currentTheme.getProfileText2Color());
+							lastPost.setTextSize(getTextSize(10));
+							lastPost.setText(getString(R.string.profile_last_post, delta));
+						}
+
+						if (profile.getSmileysUrls().length > 0)
+						{
+							//final WebView smileysWebView = new WebView(PostsActivity.this);
+							final WebView smileysWebView = new NonLeakingWebView(PostsActivity.this);
+							
+							int maxWidth = display.getWidth() / 5 * 4;
+							// Smiley 70px + (2 * 5px de margin) + 10 en plus , avec mise à l'échelle * nb de smileys
+							int targetWidth = (int) (10 + (profile.getSmileysUrls().length * 80 * smileysWebView.getScale()));
+							Log.d(HFR4droidApplication.TAG, "max : " + maxWidth + " / calculated : " + targetWidth);
+							smileysWebView.setLayoutParams(new LayoutParams(targetWidth < maxWidth ? targetWidth : maxWidth, LayoutParams.WRAP_CONTENT));
+							smileysWebView.setBackgroundColor(0);
+
+							StringBuffer css = new StringBuffer("<style type=\"text/css\">");
+							css.append("body { margin: 0; padding: 0; } img { margin: 5px }");
+							css.append("</style>");
+							StringBuffer smiliesData = new StringBuffer();
+							for (String smiley : profile.getSmileysUrls())
+							{
+								smiliesData.append("<img src=\"")
+								.append(getDataRetriever().getImgPersoUrl())
+								.append(smiley)
+								.append("\" />");
+							}
+							smileysWebView.setWebChromeClient(new WebChromeClient()
+							{
+								public void onProgressChanged(WebView view, int progress)
+								{
+									if (progress > 33)
+									{
+										pw.showAtLocation(findViewById(R.id.PostsLayout), Gravity.LEFT, 0, 0);
+									}
+								}
+							});
+							
+							smileysWebView.loadData("<html><head>" + uiHelper.fixHTML(css.toString()) + "</head>" +
+							"<body>" + uiHelper.fixHTML(smiliesData.toString()) + "</body></html>", "text/html", "UTF-8");
+							profileView.addView(smileysWebView);
+							
+							pw.setOnDismissListener(new ProfileDismissListenner()
+							{
+								public void onDismiss()
+								{
+									smileysWebView.destroy();
+								}
+							});
+						}
+						else
+						{	
+							pw.showAtLocation(findViewById(R.id.PostsLayout), Gravity.LEFT, 0, 0);
+						}
+					}
+
+					public void run()
+					{
+						final LayoutInflater inflater = (LayoutInflater) getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+						final View waitingView =  inflater.inflate(R.layout.profile_popup_loading, null, false);
+						final PopupWindow pw = new PopupWindow(waitingView, ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT, true);
+						pw.setBackgroundDrawable(new BitmapDrawable());
+						pw.setOutsideTouchable(true);
+						pw.setAnimationStyle(R.style.Animation_ProfilPopup);
+						
+						waitingView.setBackgroundResource(getKeyByTheme(getThemeKey(), R.drawable.class, "profile_popup_background"));
+						float scale = getResources().getDisplayMetrics().density;
+						float dip = 20;
+						int pixel = (int) (dip * scale + 0.5f);
+						waitingView.setPadding(pixel, pixel, pixel, pixel);
+						
+
+						Profile profile = getHFR4droidApplication().getProfile(pseudo);
+						if (profile != null)
+						{
+							displayProfile(pw, profile);
+						}
+						else
+						{
+							pw.setOnDismissListener(new ProfileDismissListenner());
+							profileTask = new AsyncTask<String, Void, Profile>()
+							{
+								private ImageView wait = null;
+								private long backgroundThreadId = -1;
+								
+								@Override
+								protected void onPreExecute()
+								{
+									RotateAnimation anim = new RotateAnimation(0f, 350f, Animation.RELATIVE_TO_SELF, 0.5f, Animation.RELATIVE_TO_SELF, 0.5f);
+									anim.setInterpolator(new LinearInterpolator());
+									anim.setRepeatCount(Animation.INFINITE);
+									anim.setDuration(700);
+	
+									pw.showAtLocation(findViewById(R.id.PostsLayout), Gravity.LEFT, 0, 0);
+									wait = (ImageView) waitingView.findViewById(R.id.WaitAnimation);
+									wait.setBackgroundResource(getDrawableKey(currentTheme.getProfileSpinner()));
+									wait.startAnimation(anim);
+								}
+	
+								@Override
+								protected void onCancelled()
+								{
+									getHFR4droidApplication().getHttpClientHelper().abortRequest(backgroundThreadId);
+								}
+								
+								@Override
+								protected Profile doInBackground(String... pseudo)
+								{
+									backgroundThreadId = Thread.currentThread().getId();
+									Profile profile = null;
+									try
+									{
+										profile = getDataRetriever().getProfile(pseudo[0]);
+										if (profile != null && profile.getAvatarUrl() != null)
+										{
+											profile.setAvatarBitmap(imgBitmapHttpClient.doGet(profile.getAvatarUrl()));
+										}
+										getHFR4droidApplication().setProfile(pseudo[0], profile);
+									}
+									catch (Exception e)
+									{
+										error(e, true, true);
+									}
+									return profile;
+								}
+								
+								@Override
+								protected void onPostExecute(final Profile profile)
+								{	
+									//wait.clearAnimation();
+									pw.setOnDismissListener(null);
+									profileTask = null;
+									pw.dismiss();
+	
+									if (profile != null)
+									{
+										displayProfile(pw, profile);
+									}
+								}
+							}.execute(pseudo);
+						}
+					}
+				});
 			}
 
 			@SuppressWarnings("unused")
@@ -930,22 +1610,13 @@ public class PostsActivity extends NewPostUIActivity
 			@SuppressWarnings("unused")
 			public void editKeywords(final String code)
 			{
-				final ProgressDialog progressDialog = new ProgressDialog(PostsActivity.this);
-				progressDialog.setMessage(getString(R.string.getting_keywords, code));
-				progressDialog.setIndeterminate(true);
-				new AsyncTask<String, Void, String>()
+				new ProgressDialogAsyncTask<String, Void, String>(PostsActivity.this)
 				{
 					@Override
 					protected void onPreExecute() 
 					{
-						progressDialog.setCancelable(true);
-						progressDialog.setOnCancelListener(new OnCancelListener()
-						{
-							public void onCancel(DialogInterface dialog)
-							{
-								cancel(true);
-							}
-						});
+						super.onPreExecute();
+						progressDialog.setMessage(getString(R.string.getting_keywords, code));
 						progressDialog.show();
 					}
 
@@ -1015,16 +1686,12 @@ public class PostsActivity extends NewPostUIActivity
 			}
 		}, "HFR4Droid");
 
-		final WebView loading = (WebView) findViewById(R.id.loading);
-		//loading.setBackgroundColor(currentTheme.getListBackgroundColor());
-		loading.setVisibility(View.VISIBLE);
-		if (!refresh) loadLoadingWebView(loading);
-
 		StringBuffer js = new StringBuffer("<script type=\"text/javascript\">");
 		js.append("function swap_spoiler_states(obj){var div=obj.getElementsByTagName('div');if(div[0]){if(div[0].style.visibility==\"visible\"){div[0].style.visibility='hidden';}else if(div[0].style.visibility==\"hidden\"||!div[0].style.visibility){div[0].style.visibility='visible';}}}");
 		js.append("function scrollToElement(id) {var elem = document.getElementById(id); var x = 0; var y = 0; while (elem != null) { x += elem.offsetLeft; y += elem.offsetTop; elem = elem.offsetParent; } window.scrollTo(x, y); }");
 		js.append("function removePost(id) { var header = document.getElementById(id); header.parentNode.removeChild(header.nextSibling); if (header.nextSibling.className == 'HFR4droid_post') header.parentNode.removeChild(header.nextSibling); header.parentNode.removeChild(header); };");
 		js.append("function openQuickActionWindow(postId, isMine) {var elem = document.getElementById(postId); var yOffset = 0; while (elem != null) { yOffset += elem.offsetTop; elem = elem.offsetParent; } window.HFR4Droid.openQuickActionWindow(postId, isMine, yOffset - window.scrollY); }");
+		js.append("function openProfileWindow(pseudo) { event.stopPropagation(); window.HFR4Droid.openProfileWindow(pseudo); }");
 		js.append("var loadDynamicCss = function(width) { var headID = document.getElementsByTagName('head')[0]; var styles = headID.getElementsByTagName('style'); for (var i=1;i<styles.length;i++) headID.removeChild(styles[i]); var cssNode = document.createElement('style'); cssNode.type = 'text/css'; cssNode.appendChild(document.createTextNode('");
 		js.append("ol { width:' + (Math.round(width * 0.80) - 40) + 'px; }");
 		js.append(".citation p, .oldcitation p, .quote p, .oldquote p, .fixed p, .code p, .spoiler p, .oldspoiler p { width:' + Math.round(width * 0.80) + 'px; }");
@@ -1034,7 +1701,7 @@ public class PostsActivity extends NewPostUIActivity
 		js.append("')); headID.appendChild(cssNode); };");
 		if (topic.getLastReadPost() != -1 || topic.getStatus() == TopicStatus.NEW_MP)
 		{
-			js.append("window.onload = function () { scrollToElement(\'" + (topic.getStatus() == TopicStatus.NEW_MP ? BOTTOM_PAGE_ID : topic.getLastReadPost()) + "\'); }");
+			js.append("window.onload = function () { scrollToElement(\'" + (topic.getStatus() == TopicStatus.NEW_MP ? NewPostUIHelper.BOTTOM_PAGE_ID : topic.getLastReadPost()) + "\'); }");
 			topic.setLastReadPost(-1);
 		}
 		js.append("</script>");
@@ -1059,9 +1726,39 @@ public class PostsActivity extends NewPostUIActivity
 		css.append("ol.olcode { font-size: 0.7em; }");
 		css.append("body { margin:0; padding:0; background-color:" + currentTheme.getListBackgroundColorAsString() + "; }");
 		css.append(".HFR4droid_posts_container { min-height:100%; }");
-		css.append(".HFR4droid_header { width:100%; background: url(\"" + currentTheme.getPostHeaderData() + "\"); height: 50px; text-align: right; }");
+		css.append(".HFR4droid_header { width:100%; ");
+		switch (getPoliceSize())
+		{
+			case 3:
+				css.append("background: " + currentTheme.getPostHeaderColorAsString() + " repeat-x bottom; height: 70px;");
+				break;
+				
+			case 4:
+				css.append("background: " + currentTheme.getPostHeaderColorAsString() + " repeat-x bottom; height: 90px;");
+				break;
+				
+			default:
+				css.append("background: url(\"" + currentTheme.getPostHeaderData() + "\") repeat-x bottom; height: 50px;");
+				break;
+		}
+		css.append(" text-align: right; }");
 		css.append(".HFR4droid_header div { position: absolute; margin: 5px 0 0 5px; width:90%; text-align: left; }");
-		css.append(".HFR4droid_header div img { float: left; max-width:60px; max-height:40px; margin-right:5px; }");
+		css.append(".HFR4droid_header div img { float: left; max-width:60px; max-height:");
+		switch (getPoliceSize())
+		{
+			case 3:
+				css.append("55");
+				break;
+				
+			case 4:
+				css.append("70");
+				break;
+				
+			default:
+				css.append("40");
+				break;
+		}
+		css.append("px; margin-right:5px; }");
 		css.append(".HFR4droid_header span.pseudo { color:" + currentTheme.getPostPseudoColorAsString() + "; font-size: " + getTextSize(16) + "px; font-weight:bold; }");
 		css.append(".HFR4droid_header span.date { display: block; font-style:italic; color:" + currentTheme.getPostDateColorAsString() + "; font-size: " + getTextSize(12) + "px; margin: ");
 		switch (getPoliceSize())
@@ -1071,6 +1768,7 @@ public class PostsActivity extends NewPostUIActivity
 				break;
 
 			case 3:
+			case 4:
 				css.append("0");
 				break;
 				
@@ -1102,9 +1800,9 @@ public class PostsActivity extends NewPostUIActivity
 			SimpleDateFormat check = new SimpleDateFormat("ddMMyyyy");
 			boolean today = check.format(new Date()).equals(check.format(p.getDate()));
 			String date = today ? todaySdf.format(p.getDate()) : "Le " + sdf.format(p.getDate());
-			String avatar = p.getAvatarUrl() != null && isAvatarsEnable ? "<img alt=\"avatar\" title=\"" + p.getPseudo() + "\" src=\"" + p.getAvatarUrl() + "\" />" : "";
-			String pseudoSpan = "<span class=\"pseudo\">" + p.getPseudo() + "</span>";
-			String dateSpan = "<span class=\"date\">" + date + "</span>";
+			String avatar = p.getAvatarUrl() != null && isAvatarsEnable ? "<img alt=\"avatar\" title=\"" + p.getPseudo() + "\" src=\"" + p.getAvatarUrl() + "\" onclick=\"openProfileWindow('" + p.getPseudo().replace("'", "\\'") + "')\" />" : "";
+			String pseudoSpan = "<span class=\"pseudo\" onclick=\"openProfileWindow('" + p.getPseudo().replace("'", "\\'") + "')\">" + p.getPseudo() + "</span>";
+			String dateSpan = "<span class=\"date\" onclick=\"openQuickActionWindow(" + p.getId() + ", " + p.isMine() + ")\">" + date + "</span>";
 			StringBuilder editQuoteDiv = new StringBuilder("");
 			if (p.getLastEdition() != null || p.getNbCitations() > 0)
 			{
@@ -1126,7 +1824,14 @@ public class PostsActivity extends NewPostUIActivity
 			content = "<div class=\"HFR4droid_post";
 			if (p.isModo()) content += " modo_post";
 			content += "\">" + editQuoteDiv + "<div class=\"HFR4droid_content\"";
-			content += ">" + p.getContent() + "</div></div>";
+			String postContent = p.getContent();
+			if (preloading && oldCitation != null && !oldCitation)
+			{
+				postContent = postContent.replaceAll("</p><hr size=\"1\" />", "<br /><br />");
+				postContent = postContent.replaceAll("<hr size=\"1\" />", "");
+				postContent = postContent.replaceAll("\"oldcitation\">", "\"citation\">");
+			}
+			content += ">" + postContent + "</div></div>";
 			content = content.replaceAll("onload=\"md_verif_size\\(this,'Cliquez pour agrandir','[0-9]+','[0-9]+'\\)\"", "onclick=\"return true;\"");
 			content = content.replaceAll("<b\\s*class=\"s1\"><a href=\"(.*?)\".*?>(.*?)</a></b>", "<b onclick=\"window.HFR4Droid.handleUrl('" + getDataRetriever().getBaseUrl() + "$1');\" class=\"s1\">$2</b>");
 			content = content.replaceAll("<a\\s*href=\"(http://forum\\.hardware\\.fr.*?)\"\\s*target=\"_blank\"\\s*class=\"cLink\">", "<a onclick=\"window.HFR4Droid.handleUrl('$1');\" class=\"cLink\">");			
@@ -1136,8 +1841,17 @@ public class PostsActivity extends NewPostUIActivity
 			content = content.replaceAll("ondblclick=\".*?\"", "");
 			postsContent.append(header);
 			postsContent.append(content);
+			if (oldCitation == null)
+			{
+				// Si citation il y a...
+				if (p.getContent().indexOf("citation\">") != -1)
+				{
+					// On mémorise le type de citation
+					oldCitation = p.getContent().indexOf("\"oldcitation\">") != -1;
+				}
+			}
 		}
-		postsContent.append("<div class=\"HFR4droid_footer_space\"></div></div><div id=\"" + BOTTOM_PAGE_ID + "\" class=\"HFR4droid_footer\" />");
+		postsContent.append("<div class=\"HFR4droid_footer_space\"></div></div><div id=\"" + NewPostUIHelper.BOTTOM_PAGE_ID + "\" class=\"HFR4droid_footer\" />");
 		WebSettings settings = webView.getSettings();
 		settings.setDefaultTextEncodingName("UTF-8");
 		settings.setJavaScriptEnabled(true);
@@ -1149,71 +1863,101 @@ public class PostsActivity extends NewPostUIActivity
 		//getApplicationContext().deleteDatabase("webviewCache.db");
 		//webView.clearCache(true);
 		//settings.setCacheMode(WebSettings.LOAD_NO_CACHE);
-		final ProgressBar progressBar = (ProgressBar) findViewById(R.id.PostsProgressBar);
-		progressBar.setVisibility(View.VISIBLE);
-		webView.setWebChromeClient(new WebChromeClient()
+		if (!preloading)
 		{
-			public void onProgressChanged(WebView view, int progress)
-			{
-				progressBar.setProgress(progress);
-				if (progress > 15 && loading.getVisibility() == View.VISIBLE)
+			final ProgressBar progressBar = (ProgressBar) findViewById(R.id.PostsProgressBar);
+			progressBar.setVisibility(View.VISIBLE);
+			webView.setWebChromeClient(new WebChromeClient()
+			{				
+				public void onProgressChanged(WebView view, int progress)
 				{
-					loading.setVisibility(View.GONE);
-					parent.addView(webView);
-				}
-				if (progress == 100)
-				{
-					if (currentScrollY != -1)
+					progressBar.setProgress(progress);
+					if (progress == 100)
 					{
-						view.scrollTo(0, currentScrollY);
-						currentScrollY = -1;
-					}
-					lockQuickAction = false;
-					Animation anim = AnimationUtils.loadAnimation(PostsActivity.this, R.anim.hide_progress_bar);
-					anim.setAnimationListener(new AnimationListener()
-					{
-						public void onAnimationStart(Animation animation) {}
-
-						public void onAnimationRepeat(Animation animation) {}
-
-						public void onAnimationEnd(Animation animation)
+						if (currentQAwindow != null) currentQAwindow.dismiss();
+						scrollToLastPos();
+						Animation anim = AnimationUtils.loadAnimation(PostsActivity.this, R.anim.hide_progress_bar);
+						anim.setAnimationListener(new AnimationListener()
 						{
-							progressBar.setVisibility(View.GONE);
-						}
-					});
-					progressBar.startAnimation(anim);
+							public void onAnimationStart(Animation animation) {}
+	
+							public void onAnimationRepeat(Animation animation) {}
+	
+							public void onAnimationEnd(Animation animation)
+							{
+								progressBar.setVisibility(View.GONE);
+							}
+						});
+						progressBar.startAnimation(anim);
+					}
 				}
-			}
-		});
-		//webView.loadData("<html><head>" + fixHTML(js.toString()) + css + fixHTML(js2.toString()) + "</head><body>" + fixHTML(postsContent.toString()) + "</body></html>", "text/html", "UTF-8");
-		webView.loadDataWithBaseURL(getDataRetriever().getBaseUrl(), "<html><head>" + js.toString() + css.toString() + js2.toString() + "</head><body>" + postsContent.toString() + "</body></html>", "text/html", "UTF-8", null);
-		if (oldWebView != null)
-		{
-			oldWebView.destroy();
-			parent.removeView(oldWebView);
+			});
 		}
-		if (refresh) updateButtonsStates();
+		else
+		{
+			webView.setWebChromeClient(new WebChromeClient()
+			{				
+				public void onProgressChanged(WebView view, int progress)
+				{
+					if (progress == 100) scrollToLastPos();
+				}
+			});
+		}
+		
+		if (!preloading) setView(webView);
+		webView.loadDataWithBaseURL(getDataRetriever().getBaseUrl(), "<html><head>" + js.toString() + css.toString() + js2.toString() + "</head><body>" + postsContent.toString() + "</body></html>", "text/html", "UTF-8", null);
+		updateButtonsStates();
+
+		return webView;
 	}
 	
-	protected void addQuickActionWindowItems(HFR4droidQuickActionWindow window, final long currentPostId, boolean isMine)
+	private void scrollToLastPos()
+	{
+		Timer timer = new Timer();
+		timer.schedule(new TimerTask()
+		{
+			public void run()
+			{
+				runOnUiThread(new Runnable()
+				{
+					public void run()
+					{
+						if (currentScrollY != -1)
+						{
+							if (getWebView() != null) getWebView().scrollTo(0, currentScrollY);
+							currentScrollY = -1;
+						}
+					}
+				});
+			}
+		}, 500);
+	}
+	
+	private String getPostUrl(long postId)
 	{
 		final StringBuilder postLink = new StringBuilder(getDataRetriever().getBaseUrl() + "/forum2.php?config=hfr.inc");
 		postLink.append("&cat=").append(topic.getCategory().getId());
 		postLink.append("&post=").append(topic.getId());
 		postLink.append("&page=").append(currentPageNumber);
-		postLink.append("#t").append(currentPostId);
-		
+		postLink.append("#t").append(postId);
+		return postLink.toString();
+	}
+
+	protected void addQuickActionWindowItems(HFR4droidQuickActionWindow window, final long currentPostId, boolean isMine)
+	{
+		final String postLink = getPostUrl(currentPostId);
+
 		if (topic.getStatus() != TopicStatus.LOCKED)
 		{
 			if (isMine)
 			{
-				QuickActionWindow.Item edit = new QuickActionWindow.Item(PostsActivity.this, "", android.R.drawable.ic_menu_edit, new PostCallBack(PostCallBackType.EDIT, currentPostId, true) 
+				QuickActionWindow.Item edit = new QuickActionWindow.Item(PostsActivity.this, "", R.drawable.ic_menu_edit, new PostCallBack(PostCallBackType.EDIT, currentPostId, true) 
 				{
 					@Override
 					protected String doActionInBackground(Post p) throws DataRetrieverException, MessageSenderException
 					{
 						String content = getDataRetriever().getPostContent(p);
-						return content.substring(0, content.length() - 1);
+						return content != null ? content.substring(0, content.length() - 1) : null;
 					}
 
 					@Override
@@ -1224,7 +1968,7 @@ public class PostsActivity extends NewPostUIActivity
 				});
 				window.addItem(edit);	
 
-				QuickActionWindow.Item delete = new QuickActionWindow.Item(PostsActivity.this, "", android.R.drawable.ic_menu_delete, new PostCallBack(PostCallBackType.DELETE, currentPostId, true, true)
+				QuickActionWindow.Item delete = new QuickActionWindow.Item(PostsActivity.this, "", R.drawable.ic_menu_delete, new PostCallBack(PostCallBackType.DELETE, currentPostId, true, true)
 				{									
 					@Override
 					protected String doActionInBackground(Post p) throws DataRetrieverException, MessageSenderException
@@ -1263,7 +2007,7 @@ public class PostsActivity extends NewPostUIActivity
 					showAddPostDialog(PostCallBackType.QUOTE, data);
 				}
 			});							
-			window.addItem(quote);
+			if (isLoggedIn()) window.addItem(quote);
 
 			boolean quoteExists = quotes.get(currentPostId) != null;
 			QuickActionWindow.Item multiQuote = new QuickActionWindow.Item(PostsActivity.this, "",
@@ -1315,7 +2059,7 @@ public class PostsActivity extends NewPostUIActivity
 					}
 				}								
 			});
-			window.addItem(multiQuote);
+			if (isLoggedIn()) window.addItem(multiQuote);
 		}
 		
 		QuickActionWindow.Item addFavorite = new QuickActionWindow.Item(PostsActivity.this, "", R.drawable.ic_menu_star, new PostCallBack(PostCallBackType.FAVORITE, currentPostId, true)
@@ -1334,6 +2078,152 @@ public class PostsActivity extends NewPostUIActivity
 		});							
 		if (isLoggedIn()) window.addItem(addFavorite);
 		
+		QuickActionWindow.Item aqLink = new QuickActionWindow.Item(PostsActivity.this, "", R.drawable.ic_menu_notifications, new QuickActionWindow.Item.Callback()
+		{
+			private void showAlerts()
+			{
+				if (alertsQualitay != null)
+				{					
+					final List<AlertQualitay> alerts = new ArrayList<AlertQualitay>(alertsQualitay);
+					alerts.add(0, new AlertQualitay(-1, getString(R.string.aq_new), null, null, new Long[0]));
+					ArrayAdapter<AlertQualitay> adapter = new ArrayAdapter<AlertQualitay>(PostsActivity.this, R.layout.select_dialog_singlechoice, alerts);
+
+					int preselectedAlert = 0;
+					for (AlertQualitay alert : alerts)
+					{
+						if (Arrays.asList(alert.getPostIds()).indexOf(currentPostId) != -1)
+						{
+							preselectedAlert = alerts.indexOf(alert);
+							break;
+						}
+					}
+					new AlertDialog.Builder(PostsActivity.this)
+					.setTitle(R.string.aq_list_title)
+					.setSingleChoiceItems(adapter, preselectedAlert, new DialogInterface.OnClickListener()
+					{
+						public void onClick(DialogInterface dialog, int which)
+						{
+							dialog.dismiss();
+							final AlertQualitay selectedAlert = alerts.get(which);
+							
+							LayoutInflater inflater = (LayoutInflater) PostsActivity.this.getSystemService(Activity.LAYOUT_INFLATER_SERVICE);
+							final View layout = inflater.inflate(R.layout.alerte_qualitay, null);
+							if (selectedAlert.getAlertQualitayId() != -1) layout.findViewById(R.id.AQ_name).setVisibility(View.GONE);
+
+							final AlertDialog d = new AlertDialog.Builder(PostsActivity.this)
+							.setTitle(R.string.aq_new_title)
+							.setView(layout)
+							.setPositiveButton(R.string.aq_sent, new DialogInterface.OnClickListener()
+							{
+								public void onClick(DialogInterface dialog, int which) {}
+							})
+							.setNegativeButton(PostsActivity.this.getString(R.string.button_cancel), new DialogInterface.OnClickListener()
+							{
+								public void onClick(DialogInterface dialog, int which) {}
+							})
+							.create();
+							
+							d.setOnShowListener(new DialogInterface.OnShowListener()
+							{
+							    public void onShow(DialogInterface dialog)
+							    {
+							    	d.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(new View.OnClickListener()
+							        {
+							            public void onClick(View view)
+							            {
+											final String name = ((EditText) layout.findViewById(R.id.AQ_name)).getText().toString().trim();
+											final String comment =  ((EditText) layout.findViewById(R.id.AQ_comment)).getText().toString().trim();
+											if (selectedAlert.getAlertQualitayId() == -1 && name.isEmpty())
+											{
+												Toast.makeText(PostsActivity.this, getString(R.string.aq_name_mandatory), Toast.LENGTH_SHORT).show();
+												return;
+											}
+
+											new MessageResponseAsyncTask(PostsActivity.this, getString(R.string.aq_sent_loading))
+											{
+												@Override
+												protected HFRMessageResponse executeInBackground() throws HFR4droidException
+												{
+													Post p = new Post(currentPostId);
+													p.setTopic(topic);
+													
+													return getMessageSender().alertPost(
+														selectedAlert.getAlertQualitayId(),
+														selectedAlert.getAlertQualitayId() == -1 ? name : null,
+														p,
+														postLink,
+														!comment.isEmpty() ? comment : null);
+												}
+
+												@Override
+												protected void onActionFinished(String message)
+												{
+													Toast.makeText(PostsActivity.this, message, Toast.LENGTH_SHORT).show();	
+												}	
+											}.execute();
+											d.dismiss();
+							            }
+							        });
+							    }
+							});
+							
+							d.show();
+						}
+					})
+					.show();
+				}
+			}
+			
+			public void onClick(QuickActionWindow window, Item item, View anchor)
+			{
+				if (alertsQualitay == null)
+				{
+					new ProgressDialogAsyncTask<Topic, Void, List<AlertQualitay>>(PostsActivity.this)
+					{
+						@Override
+						protected void onPreExecute() 
+						{
+							super.onPreExecute();
+							progressDialog.setMessage(getString(R.string.aq_loading));
+							progressDialog.show();
+						}
+	
+						@Override
+						protected List<AlertQualitay> doInBackground(Topic... params)
+						{
+							setThreadId();
+							try
+							{
+								return getDataRetriever().getAlertsByTopic(params[0]);
+							}
+							catch (DataRetrieverException e)
+							{
+								error(e, true, true);
+								return null;
+							}
+						}
+	
+						@Override
+						protected void onPostExecute(List<AlertQualitay> alerts)
+						{
+							progressDialog.dismiss();
+							if (alerts != null)
+							{
+								alertsQualitay = new ArrayList<AlertQualitay>();
+								alertsQualitay.addAll(alerts);
+								showAlerts();
+							}
+						}
+					}.execute(topic);
+				}
+				else
+				{
+					showAlerts();
+				}
+			}
+		});					
+		if (isLoggedIn()) window.addItem(aqLink);
+		
 		if (!isMine)
 		{
 			QuickActionWindow.Item sendMP = new QuickActionWindow.Item(PostsActivity.this, "", R.drawable.ic_menu_messages, new QuickActionWindow.Item.Callback()
@@ -1351,7 +2241,7 @@ public class PostsActivity extends NewPostUIActivity
 			});					
 			window.addItem(sendMP);
 		}
-		
+
 		QuickActionWindow.Item copyLink = new QuickActionWindow.Item(PostsActivity.this, "", R.drawable.ic_menu_link, new QuickActionWindow.Item.Callback()
 		{	
 			public void onClick(QuickActionWindow window, Item item, View anchor)
@@ -1363,28 +2253,26 @@ public class PostsActivity extends NewPostUIActivity
 		});					
 		window.addItem(copyLink);
 		
-		QuickActionWindow.Item copyContent = new QuickActionWindow.Item(PostsActivity.this, "", R.drawable.ic_menu_copy, new QuickActionWindow.Item.Callback()
-		{	
-			public void onClick(QuickActionWindow window, Item item, View anchor)
+		QuickActionWindow.Item copyContent = new QuickActionWindow.Item(PostsActivity.this, "", R.drawable.ic_menu_copy, new PostCallBack(PostCallBackType.COPY_CONTENT, currentPostId, true)
+		{
+			@Override
+			protected String doActionInBackground(Post p) throws DataRetrieverException, MessageSenderException
 			{
-				Post p = getPostById(currentPostId);
-				String bbCode;
-				try
-				{
-					bbCode = getDataRetriever().getPostContent(p);
-					ClipboardManager clipboard = (ClipboardManager) getSystemService(CLIPBOARD_SERVICE); 
-					clipboard.setText(cleanBBCode(bbCode));
-					Toast.makeText(PostsActivity.this, getText(R.string.copy_post_content), Toast.LENGTH_SHORT).show();
-				}
-				catch (DataRetrieverException e)
-				{
-					error(e, true);
-				}
+				return getDataRetriever().getPostContent(p);
 			}
-		});					
+
+			@Override
+			protected void onActionExecute(String data)
+			{
+				ClipboardManager clipboard = (ClipboardManager) getSystemService(CLIPBOARD_SERVICE); 
+				clipboard.setText(cleanBBCode(data));
+				Toast.makeText(PostsActivity.this, getText(R.string.copy_post_content), Toast.LENGTH_SHORT).show();
+			}
+		});
+				
 		window.addItem(copyContent);
 		
-		QuickActionWindow.Item shareLink = new QuickActionWindow.Item(PostsActivity.this, "", android.R.drawable.ic_menu_share, new QuickActionWindow.Item.Callback()
+		QuickActionWindow.Item shareLink = new QuickActionWindow.Item(PostsActivity.this, "", R.drawable.ic_menu_share, new QuickActionWindow.Item.Callback()
 		{	
 			public void onClick(QuickActionWindow window, Item item, View anchor)
 			{
@@ -1395,11 +2283,6 @@ public class PostsActivity extends NewPostUIActivity
 			}
 		});					
 		window.addItem(shareLink);
-	}
-	
-	private void loadLoadingWebView(WebView loading)
-	{
-		loading.loadData("<html><body style=\"text-align: center; margin-top: 150px; background-color:" + currentTheme.getListBackgroundColorAsString() + ";\"><img src=\"data:image/gif;base64,R0lGODlhKwALAPEAAP%2F%2F%2FwAAAIKCggAAACH%2FC05FVFNDQVBFMi4wAwEAAAAh%2FhpDcmVhdGVkIHdpdGggYWpheGxvYWQuaW5mbwAh%2BQQJCgAAACwAAAAAKwALAAACMoSOCMuW2diD88UKG95W88uF4DaGWFmhZid93pq%2BpwxnLUnXh8ou%2BsSz%2BT64oCAyTBUAACH5BAkKAAAALAAAAAArAAsAAAI9xI4IyyAPYWOxmoTHrHzzmGHe94xkmJifyqFKQ0pwLLgHa82xrekkDrIBZRQab1jyfY7KTtPimixiUsevAAAh%2BQQJCgAAACwAAAAAKwALAAACPYSOCMswD2FjqZpqW9xv4g8KE7d54XmMpNSgqLoOpgvC60xjNonnyc7p%2BVKamKw1zDCMR8rp8pksYlKorgAAIfkECQoAAAAsAAAAACsACwAAAkCEjgjLltnYmJS6Bxt%2Bsfq5ZUyoNJ9HHlEqdCfFrqn7DrE2m7Wdj%2F2y45FkQ13t5itKdshFExC8YCLOEBX6AhQAADsAAAAAAAAAAAA%3D\" alt=\"loading\" /></body></html>", "text/html", "UTF-8");
 	}
 
 	private void showAddPostDialog(PostCallBackType type, String data)
@@ -1417,8 +2300,8 @@ public class PostsActivity extends NewPostUIActivity
 			LayoutInflater inflater = (LayoutInflater) getApplicationContext().getSystemService(LAYOUT_INFLATER_SERVICE);
 			final ViewGroup layout = (ViewGroup) inflater.inflate(R.layout.new_post_content, null);
 			postDialog.setContentView(layout);
-			applyTheme(currentTheme, (ViewGroup) postDialog.findViewById(R.id.PostContainer).getParent());
-			addPostButtons(layout);
+			uiHelper.applyTheme(currentTheme, (ViewGroup) postDialog.findViewById(R.id.PostContainer).getParent());
+			uiHelper.addPostButtons(this, layout);
 			((EditText) postDialog.findViewById(R.id.InputPostContent)).setTextSize(getTextSize(14));
 
 			postDialog.setOnKeyListener(new DialogInterface.OnKeyListener()
@@ -1432,12 +2315,12 @@ public class PostsActivity extends NewPostUIActivity
 						{
 							if (firstChild instanceof WebView)
 							{
-								hideWikiSmiliesResults(layout);
+								uiHelper.hideWikiSmiliesResults(layout);
 								return true;
 							}
 							else if (postDialog.findViewById(R.id.SmileySearch).getVisibility() == View.VISIBLE)
 							{
-								hideWikiSmiliesSearch(layout);
+								uiHelper.hideWikiSmiliesSearch(layout);
 								return true;
 							}
 						}
@@ -1469,99 +2352,114 @@ public class PostsActivity extends NewPostUIActivity
 		postDialog.show();		
 	}
 	
-	protected ViewGroup getSmiliesLayout()
+	private NewPostUIHelper getNewPostUIHelper()
 	{
-		return postDialog != null ? (ViewGroup) postDialog.findViewById(R.id.PostContainer).getParent() : null;
+		return new NewPostUIHelper()
+		{
+			@Override
+			protected void showWikiSmiliesResults(ViewGroup layout)
+			{
+				layout.findViewById(R.id.PostContainer).setVisibility(View.GONE);	
+			}
+			
+			@Override
+			public void hideWikiSmiliesResults(ViewGroup layout)
+			{
+				destroyWikiSmiliesResults(layout);
+				if (layout != null) layout.findViewById(R.id.PostContainer).setVisibility(View.VISIBLE);	
+			}
+			
+			@Override
+			protected void setOkButtonClickListener(Button okButton)
+			{
+				okButton.setOnClickListener(new OnClickListener()
+				{
+					public void onClick(View v)
+					{
+						final EditText postContent = (EditText) postDialog.findViewById(R.id.InputPostContent);
+						new ValidateMessageAsynckTask(PostsActivity.this, postId)
+						{
+							@Override
+							protected boolean canExecute()
+							{
+								if (postContent.getText().length() == 0)
+								{
+									Toast.makeText(PostsActivity.this, R.string.missing_post_content, Toast.LENGTH_SHORT).show();
+									return false;
+								}
+
+								return true;
+							}
+
+							@Override
+							protected ResponseCode validateMessage() throws MessageSenderException, DataRetrieverException
+							{
+								if (postId != -1)
+								{
+									Post p = new Post(postId);
+									p.setTopic(topic);
+									return getMessageSender().editMessage(p, getDataRetriever().getHashCheck(), postContent.getText().toString(), isSignatureEnable());
+								}
+								else
+								{
+									return getMessageSender().postMessage(topic, getDataRetriever().getHashCheck(), postContent.getText().toString(), isSignatureEnable());
+								}
+							}
+
+							@Override
+							protected boolean handleCodeResponse(ResponseCode code)
+							{
+								InputMethodManager imm = (InputMethodManager) context.getSystemService(Context.INPUT_METHOD_SERVICE);
+								imm.hideSoftInputFromWindow(postContent.getWindowToken(), 0);
+								if (!super.handleCodeResponse(code))
+								{
+									switch (code)
+									{	
+										case POST_EDIT_OK: // Edit ok
+											postContent.setText("");
+											postDialog.dismiss();
+											topic.setLastReadPost(postId);
+											onPostingOk(code, postId);
+											return true;									
+				
+										case POST_ADD_OK: // New post ok
+											postContent.setText("");
+											postDialog.dismiss();
+											onPostingOk(code, postId);
+											return true;
+										
+										default:
+											return false;
+									}							
+								}
+								else
+								{
+									return true;
+								}
+							}
+						}.execute();
+					}
+				});	
+			}
+			
+			@Override
+			protected void onRehostOk(String url)
+			{
+				insertBBCode((EditText) postDialog.findViewById(R.id.InputPostContent), url, "");
+				postDialog.show();	
+			}
+			
+			@Override
+			public ViewGroup getSmiliesLayout()
+			{
+				return postDialog != null ? (ViewGroup) postDialog.findViewById(R.id.PostContainer).getParent() : null;
+			}
+		};
 	}
 	
 	protected void showWikiSmiliesResults(ViewGroup layout)
 	{
 		layout.findViewById(R.id.PostContainer).setVisibility(View.GONE);
-	}
-	
-	@Override
-	protected void hideWikiSmiliesResults(ViewGroup layout)
-	{
-		super.hideWikiSmiliesResults(layout);
-		layout.findViewById(R.id.PostContainer).setVisibility(View.VISIBLE);
-	}
-	
-	@Override
-	protected void onRehostOk(String url)
-	{
-		insertBBCode((EditText) postDialog.findViewById(R.id.InputPostContent), url, "");
-		postDialog.show();
-	}
-
-	@Override
-	protected void setOkButtonClickListener(Button okButton)
-	{
-		okButton.setOnClickListener(new OnClickListener()
-		{
-			public void onClick(View v)
-			{
-				final EditText postContent = (EditText) postDialog.findViewById(R.id.InputPostContent);
-				new ValidateMessageAsynckTask(PostsActivity.this, postId)
-				{
-					@Override
-					protected boolean canExecute()
-					{
-						if (postContent.getText().length() == 0)
-						{
-							Toast.makeText(PostsActivity.this, R.string.missing_post_content, Toast.LENGTH_SHORT).show();
-							return false;
-						}
-
-						return true;
-					}
-
-					@Override
-					protected ResponseCode validateMessage() throws MessageSenderException, DataRetrieverException
-					{
-						if (postId != -1)
-						{
-							Post p = new Post(postId);
-							p.setTopic(topic);
-							return getMessageSender().editMessage(p, getDataRetriever().getHashCheck(), postContent.getText().toString(), isSignatureEnable());
-						}
-						else
-						{
-							return getMessageSender().postMessage(topic, getDataRetriever().getHashCheck(), postContent.getText().toString(), isSignatureEnable());
-						}
-					}
-
-					@Override
-					protected boolean handleCodeResponse(ResponseCode code)
-					{
-						if (!super.handleCodeResponse(code))
-						{
-							switch (code)
-							{	
-								case POST_EDIT_OK: // Edit ok
-									postContent.setText("");
-									postDialog.dismiss();
-									topic.setLastReadPost(postId);
-									onPostingOk(code, postId);
-									return true;									
-		
-								case POST_ADD_OK: // New post ok
-									postContent.setText("");
-									postDialog.dismiss();
-									onPostingOk(code, postId);
-									return true;
-								
-								default:
-									return false;
-							}							
-						}
-						else
-						{
-							return true;
-						}
-					}
-				}.execute();
-			}
-		});
 	}
 	
 	protected void onPostingOk(ResponseCode code, long postId)
@@ -1573,8 +2471,15 @@ public class PostsActivity extends NewPostUIActivity
 				break;
 
 			case POST_ADD_OK: // New post ok
-				topic.setLastReadPost(BOTTOM_PAGE_ID);
+				topic.setLastReadPost(NewPostUIHelper.BOTTOM_PAGE_ID);
 				if (currentPageNumber == topic.getNbPages()) reloadPage();
+				if (currentPageNumber == topic.getNbPages() - 1 // On est sur la page n-1, on rafraichit la dernière page
+				&& getCurrentIndex() < 2 && getView(getCurrentIndex() + 1) != null && getDatasource(getCurrentIndex() + 1) != null)
+				{
+					removeView(getCurrentIndex() + 1);
+					preLoadingPostsAsyncTask = new PreLoadingPostsAsyncTask(PostsActivity.this);
+					preLoadingPostsAsyncTask.execute(topic.getNbPages(), topic);
+				}
 				break;
 		}
 	}
@@ -1623,23 +2528,12 @@ public class PostsActivity extends NewPostUIActivity
 		LinearLayout postLayout = (LinearLayout) findViewById(R.id.PostsLayout);
 		FrameLayout root = (FrameLayout) postLayout.getParent();
 		root.setBackgroundColor(theme.getListBackgroundColor());
-		
-		WebView loading = (WebView) findViewById(R.id.loading);
-		if (loading != null)
-		{
-			loading.destroy();
-			postLayout.removeView(loading);
-		}
-		loading = new WebView(this);
-		loading.setId(R.id.loading);
-		loading.setLayoutParams(new LayoutParams(LayoutParams.FILL_PARENT, LayoutParams.FILL_PARENT));
-		loading.setBackgroundColor(currentTheme.getListBackgroundColor());
-		loading.setVisibility(View.VISIBLE);
-		postLayout.addView(loading, 2);
+
+		root.setBackgroundResource(getDrawableKey(currentTheme.getPostLoading()));
 		
 		if (postDialog != null)
 		{
-			applyTheme(theme, (ViewGroup) postDialog.findViewById(R.id.PostContainer).getParent());
+			uiHelper.applyTheme(theme, (ViewGroup) postDialog.findViewById(R.id.PostContainer).getParent());
 		}
 	}
 	
@@ -1675,7 +2569,7 @@ public class PostsActivity extends NewPostUIActivity
 		searchPosts(topic, pseudo, word, fromPost, true);
 	}
 
-	protected void searchPosts(final Topic topic, final String pseudo, final String word, final Post fromPost, final boolean sameActivity)
+	protected void searchPosts(Topic topic, final String pseudo, final String word, final Post fromPost, boolean sameActivity)
 	{
 		String progressTitle = topic.toString();
 		String paginationSuffix = sameActivity && ((PostsSearchActivity) this).getCurrentFromPost().getId() < fromPost.getId() ? "_up" : "_down";
@@ -1708,7 +2602,7 @@ public class PostsActivity extends NewPostUIActivity
 				}
 				activity.setPageNumberFromPost(fromPost);
 				setTitle();
-				activity.refreshPosts(posts);
+				activity.displayPosts(posts);
 			}
 
 			@Override
@@ -1731,7 +2625,8 @@ public class PostsActivity extends NewPostUIActivity
 
 	protected Post getPostById(long postId)
 	{
-		for (Post p : posts)
+		if (getDatasource() == null) return null;
+		for (Post p : getDatasource())
 		{
 			if (p.getId() == postId) return p;
 		}
@@ -1748,24 +2643,32 @@ public class PostsActivity extends NewPostUIActivity
 		return fromAllCats;
 	}
 	
-	
 	private String cleanBBCode(String bbCode)
 	{
 		return bbCode.replaceAll("\\[\\/?(?:b|i|u|strike|quote|fixed|code|url|img|\\*|spoiler)*?.*?\\]", "");
 	}
+	
+	@Override
+	public void destroyView(View v)
+	{
+		if (v != null && v instanceof WebView)
+		{
+			((WebView) v).destroy();
+		}
+	}
 
 	/* Classes internes */
 
-	private abstract class PostCallBack extends AsyncTask<Void, Void, String> implements QuickActionWindow.Item.Callback
+	private abstract class PostCallBack extends ProgressDialogAsyncTask<Void, Void, String> implements QuickActionWindow.Item.Callback
 	{
 		protected PostCallBackType type;
 		protected long postId;
 		private boolean progress;
 		private boolean confirm;
-		private ProgressDialog progressDialog;
 
 		public PostCallBack(PostCallBackType type, long postId, boolean progress)
 		{
+			super(PostsActivity.this);
 			this.type = type;
 			this.postId = postId;
 			this.progress = progress;
@@ -1809,17 +2712,8 @@ public class PostsActivity extends NewPostUIActivity
 		{
 			if (progress)
 			{
-				progressDialog = new ProgressDialog(PostsActivity.this);
+				super.onPreExecute();
 				progressDialog.setMessage(getString(type.getKey() + "_loading"));
-				progressDialog.setIndeterminate(true);
-				progressDialog.setCancelable(true);
-				progressDialog.setOnCancelListener(new OnCancelListener()
-				{
-					public void onCancel(DialogInterface dialog)
-					{
-						cancel(true);
-					}
-				});
 				progressDialog.show();
 			}
 		}
@@ -1827,6 +2721,7 @@ public class PostsActivity extends NewPostUIActivity
 		@Override
 		protected String doInBackground(Void... params)
 		{
+			setThreadId();
 			String data = "";
 			try
 			{
@@ -1851,5 +2746,63 @@ public class PostsActivity extends NewPostUIActivity
 			}
 			if (progress) progressDialog.dismiss();
 		}
+	}
+	
+	@Override
+	public View buildView(List<Post> posts)
+	{
+		return getHFR4droidApplication().isLightMode() ? new View(this) : displayPosts(posts, true);
+	}
+	
+	@Override
+	protected void restoreView(int index)
+	{
+		if (getDatasource(index) != null)
+		{
+			View v = index == getCurrentIndex() ? displayPosts(getDatasource(index), true) : buildView(getDatasource(index));
+			setView(index, v);
+			space.addView(v, index);
+		}
+	}
+	
+	protected class PreLoadingPostsAsyncTask extends PreLoadingAsyncTask<Post, Topic, List<Post>>
+	{
+		public PreLoadingPostsAsyncTask(HFR4droidMultiListActivity<List<Post>> context)
+		{
+			super(context);
+		}
+
+		public PreLoadingPostsAsyncTask(HFR4droidMultiListActivity<List<Post>> context, PreLoadingPostsAsyncTask task, boolean loadPreviousPage)
+		{
+			super(context, task, loadPreviousPage);
+		}
+
+		@Override
+		protected List<Post> getDatasource(List<Post> posts)
+		{
+			return posts;
+		}
+
+		@Override
+		protected void loadPreviousPage()
+		{
+			task = new PreLoadingPostsAsyncTask(PostsActivity.this);
+			task.execute(getPageNumber() - 2, topic);
+		}
+
+		@Override
+		protected List<Post> retrieveDataInBackground(Topic... topics) throws DataRetrieverException
+		{
+			// Si on s'apprête à précharger une page encore jamais lu, on la note, uniquement si on est connecté et si ce n'est pas la cat modo
+			boolean useFakeAccount = false;
+			if (topic.getLastReadPage() != -1 && getPageNumber() > topic.getLastReadPage() && isLoggedIn() && !isModoCat(topics[0].getCategory()))
+			{
+				pageToBeSetToRead = getPageNumber();
+				useFakeAccount = true;
+			}
+
+			return getDataRetriever().getPosts(topics[0],getPageNumber(), useFakeAccount);
+		}
+
 	}
 }

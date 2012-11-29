@@ -2,27 +2,21 @@ package info.toyonos.hfr4droid.util.asynctask;
 
 import info.toyonos.hfr4droid.HFR4droidException;
 import info.toyonos.hfr4droid.R;
-import info.toyonos.hfr4droid.activity.NewPostUIActivity;
+import info.toyonos.hfr4droid.activity.HFR4droidActivity;
 import info.toyonos.hfr4droid.core.data.DataRetrieverException;
-import info.toyonos.hfr4droid.core.message.MessageSenderException;
 import info.toyonos.hfr4droid.core.message.HFRMessageSender.ResponseCode;
-import android.app.ProgressDialog;
-import android.os.AsyncTask;
+import info.toyonos.hfr4droid.core.message.MessageSenderException;
 import android.widget.Toast;
 
-public abstract class ValidateMessageAsynckTask extends AsyncTask<Void, Void, ResponseCode>
+public abstract class ValidateMessageAsynckTask extends ProgressDialogAsyncTask<Void, Void, ResponseCode>
 {
-	private NewPostUIActivity context;
-	private long postId;
-	private ProgressDialog progressDialog;
+	protected long postId;
 	
-	public ValidateMessageAsynckTask(NewPostUIActivity context, long postId)
+	public ValidateMessageAsynckTask(HFR4droidActivity context, long postId)
 	{
+		super(context);
 		this.context = context;
 		this.postId = postId;
-		progressDialog = new ProgressDialog(context);
-		progressDialog.setMessage(context.getString(R.string.post_loading));
-		progressDialog.setIndeterminate(true);
 	}
 	
 	protected abstract boolean canExecute(); 
@@ -32,6 +26,8 @@ public abstract class ValidateMessageAsynckTask extends AsyncTask<Void, Void, Re
 	@Override
 	protected void onPreExecute() 
 	{
+		super.onPreExecute();
+		progressDialog.setMessage(context.getString(R.string.post_loading));
 		if (canExecute())
 		{
 			progressDialog.show();
@@ -45,6 +41,7 @@ public abstract class ValidateMessageAsynckTask extends AsyncTask<Void, Void, Re
 	@Override
 	protected ResponseCode doInBackground(Void... params)
 	{
+		setThreadId();
 		ResponseCode code = ResponseCode.POST_KO_EXCEPTION;
 		try
 		{

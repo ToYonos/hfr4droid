@@ -1,5 +1,6 @@
 package info.toyonos.hfr4droid.core.message;
 
+import info.toyonos.hfr4droid.HFR4droidApplication;
 import info.toyonos.hfr4droid.R;
 import info.toyonos.hfr4droid.core.auth.HFRAuthentication;
 import info.toyonos.hfr4droid.core.bean.Category;
@@ -7,32 +8,19 @@ import info.toyonos.hfr4droid.core.bean.Post;
 import info.toyonos.hfr4droid.core.bean.Topic;
 import info.toyonos.hfr4droid.core.bean.Topic.TopicType;
 import info.toyonos.hfr4droid.core.data.HFRDataRetriever;
+import info.toyonos.hfr4droid.core.utils.HttpClient;
+import info.toyonos.hfr4droid.core.utils.HttpClientHelper;
+import info.toyonos.hfr4droid.core.utils.TransformStreamException;
 
-import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.apache.http.HttpResponse;
 import org.apache.http.NameValuePair;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.entity.UrlEncodedFormEntity;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.client.protocol.ClientContext;
-import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.message.BasicNameValuePair;
-import org.apache.http.params.HttpProtocolParams;
-import org.apache.http.protocol.BasicHttpContext;
-import org.apache.http.protocol.HTTP;
-import org.apache.http.protocol.HttpContext;
-
-import android.content.Context;
 
 public class HFRMessageSender
 {	 
@@ -43,6 +31,7 @@ public class HFRMessageSender
 	private static final String UNREAD_URI = "http://forum.hardware.fr/user/nonlu.php?config=hfr.inc&cat={$cat}&post={$topic}";
 	private static final String UNFLAG_URI = "http://forum.hardware.fr/modo/manageaction.php?config=hfr.inc&cat={$cat}&type_page=forum1&moderation=0";
 	private static final String DELETE_MP_URI = "http://forum.hardware.fr/modo/manageaction.php?config=hfr.inc&cat={$cat}&type_page=forum1&moderation=0";
+	private static final String AQ_URI = "http://alerte-qualitay.toyonos.info/api/addAlerte.php5";
 
 	/**
 	 * Les codes des réponses
@@ -60,13 +49,29 @@ public class HFRMessageSender
 		POST_KO_EXCEPTION;
 	};
 
-	private Context context;
+	private HFR4droidApplication context;
 	private HFRAuthentication auth;
+	private HttpClient<String> client;
 
-	public HFRMessageSender(Context context, HFRAuthentication auth)
+	public HFRMessageSender(HFR4droidApplication context, HttpClientHelper httpClientHelper, HFRAuthentication auth)
 	{
 		this.context = context;
 		this.auth = auth;
+		client = new HttpClient<String>(httpClientHelper)
+		{		
+			@Override
+			protected String transformStream(InputStream is) throws TransformStreamException
+			{
+				try
+				{
+					return HFRDataRetriever.streamToString(is, false);
+				}
+				catch (IOException e)
+				{
+					throw new TransformStreamException(e);
+				}
+			}
+		};
 	}
 
 	public ResponseCode postMessage(Topic t, String hashCheck, String message, boolean signature) throws MessageSenderException
@@ -86,7 +91,7 @@ public class HFRMessageSender
 		String response = null;
 		try
 		{
-			response = innerGetResponse(FORM_URI, params);
+			response = client.doPost(FORM_URI, auth.getCookies(), params);
 		}
 		catch (Exception e)
 		{
@@ -112,7 +117,7 @@ public class HFRMessageSender
 		String response = null;
 		try
 		{
-			response = innerGetResponse(FORM_URI, params);
+			response = client.doPost(FORM_URI, auth.getCookies(), params);
 		}
 		catch (Exception e)
 		{
@@ -147,7 +152,7 @@ public class HFRMessageSender
 		String response = null;
 		try
 		{
-			response = innerGetResponse(FORM_EDIT_URI, params);
+			response = client.doPost(FORM_EDIT_URI, auth.getCookies(), params);
 		}
 		catch (Exception e)
 		{
@@ -169,7 +174,7 @@ public class HFRMessageSender
 		String response = null;
 		try
 		{
-			response = innerGetResponse(FORM_EDIT_URI, params);
+			response = client.doPost(FORM_EDIT_URI, auth.getCookies(), params);
 		}
 		catch (Exception e)
 		{
@@ -200,7 +205,7 @@ public class HFRMessageSender
 		String response = null;
 		try
 		{
-			response = innerGetResponse(FORM_EDIT_KEYWORDS_URI, params);
+			response = client.doPost(FORM_EDIT_KEYWORDS_URI, auth.getCookies(), params);
 		}
 		catch (Exception e)
 		{
@@ -227,7 +232,7 @@ public class HFRMessageSender
 		String response = null;
 		try
 		{
-			response = innerGetResponse(url);
+			response = client.doGet(url, auth.getCookies());
 		}
 		catch (Exception e)
 		{
@@ -253,7 +258,7 @@ public class HFRMessageSender
 		String response = null;
 		try
 		{
-			response = innerGetResponse(url);
+			response = client.doGet(url, auth.getCookies());
 		}
 		catch (Exception e)
 		{
@@ -287,7 +292,7 @@ public class HFRMessageSender
 		String response = null;
 		try
 		{
-			response = innerGetResponse(UNFLAG_URI.replaceFirst("\\{\\$cat\\}", t.getCategory().getRealId()), params);
+			response = client.doPost(UNFLAG_URI.replaceFirst("\\{\\$cat\\}", t.getCategory().getRealId()), auth.getCookies(), params);
 		}
 		catch (Exception e)
 		{
@@ -315,7 +320,7 @@ public class HFRMessageSender
 		String response = null;
 		try
 		{
-			response = innerGetResponse(DELETE_MP_URI.replaceFirst("\\{\\$cat\\}", t.getCategory().getRealId()), params);
+			response = client.doPost(DELETE_MP_URI.replaceFirst("\\{\\$cat\\}", t.getCategory().getRealId()), auth.getCookies(), params);
 		}
 		catch (Exception e)
 		{
@@ -326,52 +331,73 @@ public class HFRMessageSender
 			response.matches(".*Action effectuée avec succès.*"),
 			HFRDataRetriever.getSingleElement("<div\\s*class=\"hop\">\\s*(.*?)\\s*</div>", response));
 	}
-
-	private String innerGetResponse(String url, List<NameValuePair> params) throws UnsupportedEncodingException, IOException
+	
+	/**
+	 * Fait une alerte qualitaÿ sur le post concerné
+	 * @param alertId l'id de l'alerte existante en cas de +1, -1 si nouvelle alerte
+	 * @param alertName le nom de l'alerte si nouvelle alerte
+	 * @param p le post concerné
+	 * @param postUrl son url
+	 * @param comment l'éventuel commentaire
+	 * @return Si l'opération s'est bien passée et le message correspondant
+	 * @throws MessageSenderException
+	 */
+	public HFRMessageResponse alertPost(long alertId, String alertName, Post p, String postUrl, String comment) throws MessageSenderException
 	{
-		HttpContext ctx = new BasicHttpContext();
-		ctx.setAttribute(ClientContext.COOKIE_STORE, auth.getCookies());
-		HttpClient client = new DefaultHttpClient();
-		HttpProtocolParams.setUseExpectContinue(client.getParams(), false);
-		HttpPost post = new HttpPost(url);
-		post.setHeader("User-Agent", "Mozilla /4.0 (compatible; MSIE 6.0; Windows CE; IEMobile 7.6) Vodafone/1.0/SFR_v1615/1.56.163.8.39");
-		post.setEntity(new UrlEncodedFormEntity(params, HTTP.UTF_8));
-		StringBuilder sb = new StringBuilder("");
-		HttpResponse rep = client.execute(post, ctx);
-		InputStream is = rep.getEntity().getContent();
-		BufferedReader reader = new BufferedReader(new InputStreamReader(is));
-		String repHtml = reader.readLine();
-		while (repHtml != null)
+		List<NameValuePair> params = new ArrayList<NameValuePair>();
+		params.add(new BasicNameValuePair("alerte_qualitay_id", String.valueOf(alertId)));
+		if (alertId == -1)
 		{
-			sb.append(repHtml);
-			repHtml = reader.readLine();
+			params.add(new BasicNameValuePair("nom", alertName));
+			params.add(new BasicNameValuePair("topic_id", String.valueOf(p.getTopic().getId())));
+			params.add(new BasicNameValuePair("topic_titre", p.getTopic().getName()));
 		}
-		rep.getEntity().consumeContent();
-		client.getConnectionManager().shutdown();
-		return sb.toString();		
+		params.add(new BasicNameValuePair("pseudo", auth.getUser()));
+		params.add(new BasicNameValuePair("post_id", String.valueOf(p.getId())));
+		params.add(new BasicNameValuePair("post_url", postUrl));
+		if (comment != null && !comment.equals("")) params.add(new BasicNameValuePair("commentaire", comment));
+	
+		String response = null;
+		try
+		{
+			response = client.doPost(AQ_URI, auth.getCookies(), params);
+		}
+		catch (Exception e)
+		{
+			throw new MessageSenderException(context.getString(R.string.alert_post_failed), e);
+		}
+		
+		int code = -1;
+		try
+		{
+			code = Integer.parseInt(response);
+		}
+		catch (NumberFormatException e){} // Reste en -1 : erreur		
+
+		return new HFRMessageResponse(
+			code == 1,
+			getAQResponseAsString(code));
 	}
 	
-	private String innerGetResponse(String url) throws IOException
+	private String getAQResponseAsString(int code)
 	{
-		HttpContext ctx = new BasicHttpContext();
-		ctx.setAttribute(ClientContext.COOKIE_STORE, auth.getCookies());
-		HttpClient client = new DefaultHttpClient();
-		HttpProtocolParams.setUseExpectContinue(client.getParams(), false);
-		HttpGet get = new HttpGet(url);
-		get.setHeader("User-Agent", "Mozilla /4.0 (compatible; MSIE 6.0; Windows CE; IEMobile 7.6) Vodafone/1.0/SFR_v1615/1.56.163.8.39");
-		StringBuilder sb = new StringBuilder("");
-		HttpResponse rep = client.execute(get, ctx);
-		InputStream is = rep.getEntity().getContent();
-		BufferedReader reader = new BufferedReader(new InputStreamReader(is));
-		String repHtml = reader.readLine();
-		while (repHtml != null)
+		switch (code)
 		{
-			sb.append(repHtml);
-			repHtml = reader.readLine();
+			case 1:
+				return context.getString(R.string.aq_ok);
+				
+			case -2:
+				return context.getString(R.string.aq_not_found);
+				
+			case -3:
+				return context.getString(R.string.aq_missing_parameter);
+				
+			case -4:
+				return context.getString(R.string.aq_already_report);
+
+			default:
+				return context.getString(R.string.aq_ko);
 		}
-		rep.getEntity().consumeContent();
-		client.getConnectionManager().shutdown();
-		return sb.toString();		
 	}
 
 	private ResponseCode getResponseCode(String response)

@@ -2,15 +2,21 @@ package info.toyonos.hfr4droid.core.data;
 
 import info.toyonos.hfr4droid.HFR4droidApplication;
 import info.toyonos.hfr4droid.R;
-import info.toyonos.hfr4droid.activity.HFR4droidActivity;
 import info.toyonos.hfr4droid.core.auth.HFRAuthentication;
+import info.toyonos.hfr4droid.core.bean.AlertQualitay;
 import info.toyonos.hfr4droid.core.bean.Category;
 import info.toyonos.hfr4droid.core.bean.Post;
 import info.toyonos.hfr4droid.core.bean.PostFromSearch;
+import info.toyonos.hfr4droid.core.bean.Profile;
+import info.toyonos.hfr4droid.core.bean.Profile.Gender;
+import info.toyonos.hfr4droid.core.bean.Profile.ProfileType;
 import info.toyonos.hfr4droid.core.bean.SubCategory;
 import info.toyonos.hfr4droid.core.bean.Topic;
 import info.toyonos.hfr4droid.core.bean.Topic.TopicStatus;
 import info.toyonos.hfr4droid.core.bean.Topic.TopicType;
+import info.toyonos.hfr4droid.core.utils.HttpClient;
+import info.toyonos.hfr4droid.core.utils.HttpClientHelper;
+import info.toyonos.hfr4droid.core.utils.TransformStreamException;
 import info.toyonos.hfr4droid.service.MpNotifyService;
 
 import java.io.BufferedReader;
@@ -27,7 +33,11 @@ import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URLEncoder;
+import java.text.ParsePosition;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Collections;
 import java.util.GregorianCalendar;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -35,18 +45,27 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.apache.http.HttpEntity;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+
 import org.apache.http.HttpResponse;
-import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.CookieStore;
+import org.apache.http.client.methods.HttpHead;
+import org.apache.http.client.params.HttpClientParams;
 import org.apache.http.client.protocol.ClientContext;
-import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.impl.client.BasicCookieStore;
+import org.apache.http.impl.cookie.BasicClientCookie;
+import org.apache.http.params.BasicHttpParams;
+import org.apache.http.params.HttpParams;
 import org.apache.http.protocol.BasicHttpContext;
 import org.apache.http.protocol.HttpContext;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.NamedNodeMap;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
 
-import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
-import android.preference.PreferenceManager;
 import android.text.Html;
 import android.util.Log;
 
@@ -62,7 +81,9 @@ public class HFRDataRetriever implements MDDataRetriever
 	private static final String CATS_CACHE_FILE_NAME = "hfr4droid_cats.dat";
 	
 	public static final String BASE_URL			= "http://forum.hardware.fr";
-	//public static final String BASE_URL		= "http://192.168.0.2/hfr-dev";
+	//public static final String BASE_URL		= "http://192.168.1.2/hfr-dev";
+	public static final String IMG_URL			= "http://forum-images.hardware.fr";
+
 	public static final String CATS_URL			= BASE_URL + "/";
 	public static final String SUBCATS_URL		= BASE_URL + "/message.php?&config=hfr.inc&cat={$cat}";
 	public static final String TOPICS_URL		= BASE_URL + "/forum1.php?config=hfr.inc&cat={$cat}&subcat={$subcat}&page={$page}&owntopic={$type}";
@@ -74,31 +95,62 @@ public class HFRDataRetriever implements MDDataRetriever
 	public static final String EDIT_URL			= BASE_URL + "/message.php?config=hfr.inc&cat={$cat}&post={$topic}&numreponse={$post}";
 	public static final String KEYWORDS_URL		= BASE_URL + "/wikismilies.php?config=hfr.inc&detail={$code}";
 	public static final String MPS_URL			= BASE_URL + "/forum1.php?config=hfr.inc&cat=1&page=500000&owntopic=0";
+	public static final String PROFILE_URL		= BASE_URL + "/profilebdd.php?config=hfr.inc&pseudo={$pseudo}";
 
-	public static final String MAINTENANCE 		= "Serveur en cours de maintenance. <br /><br />Veuillez nous excuser pour la gène occasionnée";
+	public static final String IMG_PERSO_URL	= IMG_URL + "/images/perso/";
 	
-	private Context context;
+	public static final String AQ_BY_TOPIC_URL	= "http://alerte-qualitay.toyonos.info/api/getAlertesByTopic.php5?topic_id={$topic}";
+	
+	public static final String MAINTENANCE 		= "Serveur en cours de maintenance. <br /><br />Veuillez nous excuser pour la gène occasionnée";
+	public static final String TOPIC_DELETED	= "Désolé, ce sujet n'existe pas";
+	
+	public static final String FAKE_ACCOUNT_USER = "hfr4droid";
+	public static final String FAKE_ACCOUNT_MD5_PASS = "57e2d4c435b8aeea182d5126be1c46b4";
+	
+	private HFR4droidApplication context;
+	private HttpClientHelper httpClientHelper;
 	private HFRAuthentication auth;
+	
 	private String hashCheck;
 	private Map<Category, List<SubCategory>> cats;
+	private CookieStore fakeCs = null;
 
-	public HFRDataRetriever(Context context)
+	public HFRDataRetriever(HFR4droidApplication context, HttpClientHelper httpClientHelper)
 	{
-		this(context, null, false);
+		this(context, httpClientHelper, null, false);
 	}
 	
-	public HFRDataRetriever(Context context, boolean clearCache)
+	public HFRDataRetriever(HFR4droidApplication context, HttpClientHelper httpClientHelper, boolean clearCache)
 	{
-		this(context, null, clearCache);
+		this(context, httpClientHelper, null, clearCache);
 	}
 
-	public HFRDataRetriever(Context context, HFRAuthentication auth, boolean clearCache)
+	public HFRDataRetriever(HFR4droidApplication context, HttpClientHelper httpClientHelper, HFRAuthentication auth, boolean clearCache)
 	{
 		this.context = context;
 		this.auth = auth;
+		this.httpClientHelper = httpClientHelper;
+		
 		hashCheck = null;
 		cats = null;
 		if (clearCache) clearCache();
+		
+		if(auth != null)
+		{
+			fakeCs = new BasicCookieStore();
+			GregorianCalendar calendar = new GregorianCalendar();
+			calendar.add(Calendar.YEAR, 10);
+			BasicClientCookie user = new BasicClientCookie("md_user", FAKE_ACCOUNT_USER);
+			user.setDomain(".hardware.fr");
+			user.setExpiryDate(calendar.getTime());
+			user.setPath("/");
+			BasicClientCookie pass = new BasicClientCookie("md_passs", FAKE_ACCOUNT_MD5_PASS);
+			pass.setDomain(".hardware.fr");
+			pass.setExpiryDate(calendar.getTime());
+			pass.setPath("/");
+			fakeCs.addCookie(user);
+			fakeCs.addCookie(pass);
+		}
 	}
 
 	/**
@@ -113,6 +165,7 @@ public class HFRDataRetriever implements MDDataRetriever
 			try
 			{
 				content = getAsString(CATS_URL);
+				if (content == null) return null;
 			}
 			catch (Exception e)
 			{
@@ -134,6 +187,14 @@ public class HFRDataRetriever implements MDDataRetriever
 	/**
 	 * {@inheritDoc}
 	 */
+	public String getImgPersoUrl()
+	{
+		return IMG_PERSO_URL;
+	}
+	
+	/**
+	 * {@inheritDoc}
+	 */
 	public List<Category> getCats() throws DataRetrieverException
 	{	
 		ArrayList<Category> tmpCats = new ArrayList<Category>();
@@ -148,6 +209,7 @@ public class HFRDataRetriever implements MDDataRetriever
 			try
 			{
 				content = getAsString(CATS_URL);
+				if (content == null) return null;
 			}
 			catch (Exception e)
 			{
@@ -233,6 +295,7 @@ public class HFRDataRetriever implements MDDataRetriever
 				{
 					String url = SUBCATS_URL.replaceFirst("\\{\\$cat\\}", keyCat.getRealId());
 					content = getAsString(url);
+					if (content == null) return null;
 				}
 				catch (Exception e)
 				{
@@ -317,6 +380,7 @@ public class HFRDataRetriever implements MDDataRetriever
 		try
 		{
 			content = getAsString(url);
+			if (content == null) return null;
 		}
 		catch (Exception e)
 		{
@@ -414,11 +478,50 @@ public class HFRDataRetriever implements MDDataRetriever
 			return TopicStatus.NONE;	
 		}
 	}
+	
+	/**
+	 * {@inheritDoc}
+	 */
+	public boolean setPostsAsRead(Topic topic, int pageNumber) throws DataRetrieverException
+	{
+		String url = POSTS_URL.replaceFirst("\\{\\$cat\\}", topic.getCategory().getRealId())
+		.replaceFirst("\\{\\$topic\\}", String.valueOf(topic.getId()))
+		.replaceFirst("\\{\\$page\\}", String.valueOf(pageNumber));
+		
+		Log.d(HFR4droidApplication.TAG, "Retrieving " + url);
+		try
+		{
+			URI uri = new URI(url);
+			HttpHead method = new HttpHead(uri);
+			method.setHeader("User-Agent", "Mozilla /4.0 (compatible; MSIE 6.0; Windows CE; IEMobile 7.6) Vodafone/1.0/SFR_v1615/1.56.163.8.39");
+			HttpContext httpContext = new BasicHttpContext();
+			if (auth != null && auth.getCookies() != null && fakeCs != null)
+			{
+				httpContext.setAttribute(ClientContext.COOKIE_STORE, auth.getCookies());
+			}
+			
+			HttpResponse response = httpClientHelper.getHttpClient().execute(method, httpContext);
+			Log.d(HFR4droidApplication.TAG, "Status : " + response.getStatusLine().getStatusCode() + ", " + response.getStatusLine().getReasonPhrase());
+			return response.getStatusLine().getStatusCode() == 200;
+		}
+		catch (Exception e)
+		{
+			throw new DataRetrieverException(context.getString(R.string.error_dr_topics), e);
+		}
+	}
 
 	/**
 	 * {@inheritDoc}
 	 */
 	public List<Post> getPosts(Topic topic, int pageNumber) throws DataRetrieverException
+	{
+		return getPosts(topic, pageNumber, false);
+	}
+	
+	/**
+	 * {@inheritDoc}
+	 */
+	public List<Post> getPosts(Topic topic, int pageNumber, boolean useFakeAccount) throws DataRetrieverException
 	{
 		ArrayList<Post> posts = new ArrayList<Post>();
 		String url = POSTS_URL.replaceFirst("\\{\\$cat\\}", topic.getCategory().getRealId())
@@ -427,7 +530,8 @@ public class HFRDataRetriever implements MDDataRetriever
 		String content = null;
 		try
 		{
-			content = getAsString(url);
+			content = getAsString(url, false, useFakeAccount);
+			if (content == null) return null;
 		}
 		catch (Exception e)
 		{
@@ -441,6 +545,7 @@ public class HFRDataRetriever implements MDDataRetriever
 			"(?:(?:<div\\s*class=\"avatar_center\".*?><img src=\"(.*?)\"\\s*alt=\".*?\"\\s*/></div>)|</td>).*?" +
 			"<div.*?class=\"left\">Posté le ([0-9]+)-([0-9]+)-([0-9]+).*?([0-9]+):([0-9]+):([0-9]+).*?" +
 			"<div.*?id=\"para[0-9]+\">(.*?)<div style=\"clear: both;\">\\s*</div></p>" +
+			// "<div.*?id=\"para[0-9]+\">(.*?)<div class=\"clear\">\\s*</div></p>" + => nouvelle version
 			"(?:<div\\s*class=\"edited\">)?(?:<a.*?>Message cité ([0-9]+) fois</a>)?(?:<br\\s*/>Message édité par .*? le ([0-9]+)-([0-9]+)-([0-9]+).*?([0-9]+):([0-9]+):([0-9]+)</div>)?.*?" +
 			"</div></td></tr></table>)"
 			, Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
@@ -485,7 +590,7 @@ public class HFRDataRetriever implements MDDataRetriever
 		String nbPages = getSingleElement("([0-9]+)</(?:a|b)></div><div\\s*class=\"pagepresuiv\"", content);
 		if (nbPages != null) topic.setNbPages(Integer.parseInt(nbPages));
 
-		hashCheck = getSingleElement("<input\\s*type=\"hidden\"\\s*name=\"hash_check\"\\s*value=\"(.+?)\" />", content);
+		if (!useFakeAccount) hashCheck = getSingleElement("<input\\s*type=\"hidden\"\\s*name=\"hash_check\"\\s*value=\"(.+?)\" />", content);
 		
 		String subCat = getSingleElement("<input\\s*type=\"hidden\"\\s*name=\"subcat\"\\s*value=\"([0-9]+)\"\\s*/>", content);
 		if (subCat != null) topic.setSubCategory(new SubCategory(topic.getCategory(), Integer.parseInt(subCat)));
@@ -494,7 +599,7 @@ public class HFRDataRetriever implements MDDataRetriever
 		if (topic.getName() == null)
 		{
 			//String topicTitle = getSingleElement("<input\\s*type=\"hidden\"\\s*name=\"sujet\"\\s*value=\"(.+?)\"\\s*/>", content);
-			String topicTitle =  HFRDataRetriever.getSingleElement("(?:&nbsp;)*(.*)", HFRDataRetriever.getSingleElement("([^>]+)(?:</a>)?</h1>", content));
+			String topicTitle =  HFRDataRetriever.getSingleElement("<h3>(.*)</h3>", content);
 			if (topicTitle != null) topic.setName(topicTitle);
 			if (getSingleElement("(repondre\\.gif)", content) == null) topic.setStatus(TopicStatus.LOCKED);
 		}
@@ -519,6 +624,7 @@ public class HFRDataRetriever implements MDDataRetriever
 		try
 		{
 			content = getAsString(url);
+			if (content == null) return null;
 		}
 		catch (Exception e)
 		{
@@ -597,6 +703,7 @@ public class HFRDataRetriever implements MDDataRetriever
 		try
 		{
 			content = getAsString(MPS_URL);
+			if (content == null) return 0;
 		}
 		catch (Exception e)
 		{
@@ -625,13 +732,13 @@ public class HFRDataRetriever implements MDDataRetriever
 				topic.setCategory(Category.MPS_CAT);		
 			}
 		}
-		Log.d(HFR4droidApplication.TAG, "User have " + count + " new mp(s)");
+		Log.i(HFR4droidApplication.TAG, context.getString(R.string.new_mp_count, count));
 		return count;
 	}
 
 	private void checkNewMps(String content) throws DataRetrieverException
 	{
-		if (isCheckMpsEnable())
+		if (context.isCheckMpsEnable())
 		{
 			Topic mp = new Topic(-1, null);
 			int nbMps = innterCountNewMps(content, mp);
@@ -640,12 +747,6 @@ public class HFRDataRetriever implements MDDataRetriever
 			intent.putExtra("mp", mp);
 			context.startService(intent);
 		}
-	}
-
-	private boolean isCheckMpsEnable()
-	{
-		SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(context);
-		return settings.getBoolean(HFR4droidActivity.PREF_CHECK_MPS_ENABLE, Boolean.parseBoolean(context.getString(R.string.pref_check_mps_enable_default)));
 	}
 
 	/**
@@ -666,7 +767,8 @@ public class HFRDataRetriever implements MDDataRetriever
 		String url = SMILIES_URL.replaceFirst("\\{\\$tag\\}",  encodedTag);
 		try
 		{
-			return getAsString(url);
+			String content = getAsString(url);
+			return content != null ? content : null;
 		}
 		catch (Exception e)
 		{
@@ -702,7 +804,8 @@ public class HFRDataRetriever implements MDDataRetriever
 		String content = null;
 		try
 		{
-			content = getAsString(url, true);
+			content = getAsString(url, true, false);
+			if (content == null) return null;
 		}
 		catch (Exception e)
 		{
@@ -740,7 +843,8 @@ public class HFRDataRetriever implements MDDataRetriever
 		String content = null;
 		try
 		{
-			content = getAsString(url, true);
+			content = getAsString(url, true, false);
+			if (content == null) return null;
 		}
 		catch (Exception e)
 		{
@@ -750,6 +854,193 @@ public class HFRDataRetriever implements MDDataRetriever
 		String keywords = getSingleElement("name=\"keywords0\"\\s*value=\"(.*?)\"\\s*onkeyup", content);
 		return keywords;
 	}
+	
+	/**
+	 * {@inheritDoc}
+	 */
+	public Profile getProfile(String pseudo) throws DataRetrieverException
+	{
+		String encodedPseudo = pseudo;
+		try
+		{
+			encodedPseudo = URLEncoder.encode(pseudo, "UTF-8");
+		}
+		catch (UnsupportedEncodingException e1)
+		{
+			Log.w(HFR4droidApplication.TAG, e1);
+		}
+		String url = PROFILE_URL.replaceFirst("\\{\\$pseudo\\}", encodedPseudo);
+		
+		Profile profile = null;
+		String content = null;
+		try
+		{
+			content = getAsString(url);
+			if (content == null) return null;
+		}
+		catch (Exception e)
+		{
+			throw new DataRetrieverException(context.getString(R.string.error_dr_profile), e);
+		}
+
+		Pattern p = Pattern.compile(
+			"<td\\s*class=\"profilCase4\"\\s*rowspan=\"8\"\\s*style=\"text-align:center\">\\s*" +
+			"(?:(?:<div\\s*class=\"avatar_center\"\\s*style=\"clear:both\"><img\\s*src=\"(.*?)\")|</td>).*?" + 
+			"<td\\s*class=\"profilCase2\">Date de naissance.*?</td>\\s*<td\\s*class=\"profilCase3\">(.*?)</td>.*?" + 
+			"<td\\s*class=\"profilCase2\">Carte.*?</td>\\s*<td\\s*class=\"profilCase3\">(.*?)</td>.*?" +
+			"<td\\s*class=\"profilCase2\">sexe.*?</td>\\s*<td\\s*class=\"profilCase3\">(.*?)</td>.*?" +
+			"<td\\s*class=\"profilCase2\">ville.*?</td>\\s*<td\\s*class=\"profilCase3\">(.*?)</td>.*?" +
+			"<td\\s*class=\"profilCase2\">Statut.*?</td>\\s*<td\\s*class=\"profilCase3\">(.*?)</td>.*?" +
+			"<td\\s*class=\"profilCase2\">Nombre de messages postés.*?</td>\\s*<td\\s*class=\"profilCase3\">([0-9]+)</td>.*?" +
+			"<td\\s*class=\"profilCase4\"\\s*rowspan=\"[0-9]\">(.*?)</td>.*?" +
+			"<td\\s*class=\"profilCase2\">Date d'arrivée sur le forum.*?</td>\\s*<td\\s*class=\"profilCase3\">(.*?)</td>.*?" +
+			"<td\\s*class=\"profilCase2\">Date du dernier message.*?</td>\\s*<td\\s*class=\"profilCase3\">(.*?)</td>"			
+			, Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
+
+		Log.d(HFR4droidApplication.TAG,  "Matching informations about " + pseudo);
+		Matcher m = p.matcher(content);
+		if (m.find())
+		{
+			SimpleDateFormat sdf1 = new SimpleDateFormat("dd/MM/yyyy");
+			SimpleDateFormat sdf2 = new SimpleDateFormat("dd-MM-yyyy'&nbsp;à&nbsp;'HH:mm");
+			
+			String locationContent = m.group(3);
+			Pattern p2 = Pattern.compile("<a\\s*class=\"cLink\"\\s*href=\"/hfr/carte/.*?\">(.*?)</a>");
+			Matcher m2 = p2.matcher(locationContent);
+			List<String> location = new ArrayList<String>();
+			while (m2.find())
+			{
+				location.add(m2.group(1));
+			}
+			String[] locationArray = new String[location.size()];
+			Collections.reverse(location);
+			location.toArray(locationArray);
+			
+			String smileysContent = m.group(8);
+			Pattern p3 = Pattern.compile("<img\\s*src=\"http://forum\\-images\\.hardware\\.fr/images/perso/((?:[0-9]/)?.*?)\"");
+			Matcher m3 = p3.matcher(smileysContent);
+			List<String> smileys = new ArrayList<String>();
+			while (m3.find())
+			{
+				smileys.add(m3.group(1));
+			}
+			String[] smileysArray = new String[smileys.size()];
+			smileys.toArray(smileysArray);
+
+			profile = new Profile(
+				pseudo,
+				sdf1.parse(m.group(2).trim(), new ParsePosition(0)), // Date de naissance
+				locationArray,
+				m.group(5).trim().equals("") ? null : m.group(5).trim(), // Ville
+				Gender.fromString(m.group(4).trim()),
+				Integer.parseInt(m.group(7)), // Nb messages postés 
+				ProfileType.fromString(m.group(6).trim()),
+				sdf2.parse(m.group(10).trim(), new ParsePosition(0)), // Date du dernier message
+				sdf1.parse(m.group(9).trim(), new ParsePosition(0)), // Date d'arrivée
+				m.group(1),
+				smileysArray);
+		}
+
+		return profile;
+	}
+	
+	/**
+	 * {@inheritDoc}
+	 */
+	public List<AlertQualitay> getAlertsByTopic(Topic topic) throws DataRetrieverException
+	{
+		ArrayList<AlertQualitay> alerts = new ArrayList<AlertQualitay>();
+		String url = AQ_BY_TOPIC_URL.replaceFirst("\\{\\$topic\\}", String.valueOf(topic.getId()));
+		HttpClient<Document> client = new HttpClient<Document>(httpClientHelper)
+		{		
+			@Override
+			protected Document transformStream(InputStream is) throws TransformStreamException
+			{
+				try
+				{
+					DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+					DocumentBuilder builder = factory.newDocumentBuilder();
+					return builder.parse(is);
+				}
+				catch (Exception e)
+				{
+					throw new TransformStreamException(e);
+				}
+			}
+		};
+		
+		try
+		{
+			Document dom = client.doGet(url);
+			if (dom == null) return null;
+			Element root = dom.getDocumentElement();
+			NodeList items = root.getElementsByTagName("alerte");
+			for (int i = 0; i < items.getLength(); i++)
+			{
+				Node item = items.item(i);
+				NamedNodeMap atts = item.getAttributes();
+				SimpleDateFormat sdf = new SimpleDateFormat("dd-MM-yyyy");
+				
+				String[] postsIdsStr = atts.getNamedItem("postsIds").getNodeValue().split(",");
+				Long[] postsIds = new Long[postsIdsStr.length];
+				for (int j = 0; j < postsIdsStr.length; j++) postsIds[j] = Long.parseLong(postsIdsStr[j]); 
+
+				AlertQualitay alert = new AlertQualitay(
+					Long.parseLong(atts.getNamedItem("id").getNodeValue()),
+					atts.getNamedItem("nom").getNodeValue(),
+					atts.getNamedItem("pseudoInitiateur").getNodeValue(),
+					sdf.parse(atts.getNamedItem("date").getNodeValue()),
+					postsIds);
+				alerts.add(alert);	
+			}
+		}
+		catch (Exception e)
+		{
+			throw new DataRetrieverException(context.getString(R.string.error_dr_aqs), e);
+		}
+
+		return alerts;
+	}
+	
+	/**
+	 * {@inheritDoc}
+	 */
+	public String getRealUrl(String url) throws DataRetrieverException
+	{
+		HttpParams params = new BasicHttpParams();
+		try
+		{
+			URI uri = new URI(url);
+			HttpHead method = new HttpHead(uri);
+			method.setHeader("User-Agent", "Mozilla /4.0 (compatible; MSIE 6.0; Windows CE; IEMobile 7.6) Vodafone/1.0/SFR_v1615/1.56.163.8.39");
+			
+			// We disable redirecting
+			HttpClientParams.setRedirecting(params, false);
+			httpClientHelper.getHttpClient().setParams(params);
+			HttpResponse response = httpClientHelper.getHttpClient().execute(method);
+			if (response.getStatusLine().getStatusCode() == 301)
+			{
+				String rewrittenUrl = BASE_URL + response.getFirstHeader("Location").getValue();
+				Log.d(HFR4droidApplication.TAG, "Rewritten url found : " + rewrittenUrl);
+				return rewrittenUrl;
+			}
+			else
+			{
+				Log.e(HFR4droidApplication.TAG, "Unexpected " + response.getStatusLine().getStatusCode() + " code !");
+				return null;
+			}
+		}
+		catch (Exception e)
+		{
+			throw new DataRetrieverException(e.getMessage(), e);
+		}
+		finally
+		{
+			// We re-enable redirecting
+			HttpClientParams.setRedirecting(params, true);
+			httpClientHelper.getHttpClient().setParams(params);
+		}
+	}
 
 	/**
 	 * Effectue une requête HTTP GET et récupère un flux en retour
@@ -759,67 +1050,57 @@ public class HFRDataRetriever implements MDDataRetriever
 	 * @throws URISyntaxException Si l'url est foireuse
 	 * @throws ServerMaintenanceException Si le forum est en maintenance
 	 */
-	private String getAsString(String url) throws IOException, URISyntaxException, ServerMaintenanceException
+	private String getAsString(String url) throws IOException, URISyntaxException, TransformStreamException, ServerMaintenanceException, NoSuchTopicException
 	{
-		return getAsString(url, false); 
+		return getAsString(url, false, false); 
 	}
 
 	/**
 	 * Effectue une requête HTTP GET et récupère un flux en retour
 	 * @param url L'url concernée
 	 * @param cr Conserver les retours charriot
+	 * @param useFakeAccount Utiliser ou pas un faux compte pour ne pas altérer les drapeaux
 	 * @return Un <code>InputStream</code> contenant le résultat
 	 * @throws IOException Si un problème intervient durant la requête
 	 * @throws URISyntaxException Si l'url est foireuse
 	 * @throws ServerMaintenanceException Si le forum est en maintenance
 	 */
-	private String getAsString(String url, boolean cr) throws IOException, URISyntaxException, ServerMaintenanceException
+	private String getAsString(String url, final boolean cr, boolean useFakeAccount) throws IOException, URISyntaxException, TransformStreamException, ServerMaintenanceException, NoSuchTopicException
 	{
 		Log.d(HFR4droidApplication.TAG, "Retrieving " + url);
-		DefaultHttpClient client = new DefaultHttpClient();
-		InputStream data = null;
-		URI uri = new URI(url);
-		HttpGet method = new HttpGet(uri);
-		method.setHeader("User-Agent", "Mozilla /4.0 (compatible; MSIE 6.0; Windows CE; IEMobile 7.6) Vodafone/1.0/SFR_v1615/1.56.163.8.39");
-		HttpContext httpContext = new BasicHttpContext();
-		if (auth != null && auth.getCookies() != null)
-		{
-			httpContext.setAttribute(ClientContext.COOKIE_STORE, auth.getCookies());
-		}
 
-		/* Proxy de merde */		
-		//HttpHost proxy = new HttpHost("192.168.3.108", 8080);
-		//client.getParams().setParameter(ConnRoutePNames.DEFAULT_PROXY, proxy);
-		/* -------------- */
+		HttpClient<String> client = new HttpClient<String>(httpClientHelper)
+		{		
+			@Override
+			protected String transformStream(InputStream is) throws TransformStreamException
+			{
+				try
+				{
+					return streamToString(is, cr);
+				}
+				catch (IOException e)
+				{
+					throw new TransformStreamException(e);
+				}
+			}
+		};
 
-		HttpResponse response = client.execute(method, httpContext);
-		HttpEntity entity = response.getEntity();
 		String content = "";
-		if (entity != null)
+		if (auth != null && auth.getCookies() != null && fakeCs != null)
 		{
-			try
-			{
-				data = entity.getContent();
-				content = streamToString(data, cr);
-			}
-			catch (IOException e)
-			{
-				throw e;
-			}
-			catch (RuntimeException e)
-			{
-				method.abort();
-				throw e;
-			}
-			finally
-			{
-				if (entity != null) entity.consumeContent();
-				client.getConnectionManager().shutdown();	
-			}
+			content = client.doGet(url, useFakeAccount ? fakeCs : auth.getCookies());
 		}
-
-		if  (content.matches(MAINTENANCE)) throw new ServerMaintenanceException(context.getString(R.string.server_maintenance));
-		Log.d(HFR4droidApplication.TAG, "GET OK for " + url);
+		else
+		{
+			content =  client.doGet(url);
+		}
+		
+		if (content != null)
+		{
+			if  (content.contains(MAINTENANCE)) throw new ServerMaintenanceException(context.getString(R.string.server_maintenance));
+			if  (content.contains(TOPIC_DELETED)) throw new NoSuchTopicException(context.getString(R.string.no_such_topic));
+			Log.d(HFR4droidApplication.TAG, "GET OK for " + url);
+		}
 		return content;
 	}
 

@@ -6,32 +6,27 @@ import info.toyonos.hfr4droid.core.data.DataRetrieverException;
 
 import java.util.List;
 
-import android.app.ProgressDialog;
-import android.content.DialogInterface;
-import android.content.DialogInterface.OnCancelListener;
-import android.os.AsyncTask;
 import android.widget.Toast;
 
-public abstract class DataRetrieverAsyncTask<E, P> extends AsyncTask<P, Void, List<E>>
+public abstract class DataRetrieverAsyncTask<E, P> extends ProgressDialogAsyncTask<P, Void, List<E>>
 {
-	private HFR4droidActivity context;
-	private ProgressDialog progressDialog;
 	private boolean sameActivity;
 	private boolean displayLoading;
 	private String noElementMsg;
-	
-
+	protected int pageNumber;
+	private String progressTitle;
+	private String progressContent;
 
 	public DataRetrieverAsyncTask(HFR4droidActivity context)
 	{
-		this.context = context;
+		super(context);
 	}
 
-	protected void onCancel()
+	public int getPageNumber()
 	{
-		cancel(true);
+		return pageNumber;
 	}
-	
+
 	protected abstract List<E> retrieveDataInBackground(P... params) throws DataRetrieverException;
 
 	protected abstract void onPostExecuteSameActivity(List<E> elements) throws ClassCastException;
@@ -48,40 +43,50 @@ public abstract class DataRetrieverAsyncTask<E, P> extends AsyncTask<P, Void, Li
 		context.error(e, true, true);
 	}
 
-	public void execute(final String progressTitle, final String progressContent, final String noElementMsg, final boolean sameActivity, P... params)
+	public void execute(int pageNumber, P... params)
 	{
-		execute(progressTitle, progressContent, noElementMsg, sameActivity, true, params);
+		execute(null, null, null, true, pageNumber, false, params);
+	}
+
+	public void execute(String progressTitle, String progressContent, String noElementMsg, boolean sameActivity, int pageNumber, P... params)
+	{
+		execute(progressTitle, progressContent, noElementMsg, sameActivity, pageNumber, true, params);
+	}
+
+	public void execute(String progressTitle, String progressContent, String noElementMsg, boolean sameActivity, P... params)
+	{
+		execute(progressTitle, progressContent, noElementMsg, sameActivity, -1, true, params);
 	}
 	
-	public void execute(final String progressTitle, final String progressContent, final String noElementMsg, final boolean sameActivity, final boolean displayLoading, P... params)
+	public void execute(String progressTitle, String progressContent, String noElementMsg, boolean sameActivity, boolean displayLoading, P... params)
 	{
-		progressDialog = new ProgressDialog(context);
-		progressDialog.setTitle(progressTitle != null ? progressTitle : context.getString(R.string.loading));
-		progressDialog.setMessage(progressContent);
-		progressDialog.setIndeterminate(true);
+		execute(progressTitle, progressContent, noElementMsg, sameActivity, -1, displayLoading, params);
+	}
+	
+	public void execute(String progressTitle, String progressContent, String noElementMsg, boolean sameActivity, int pageNumber, boolean displayLoading, P... params)
+	{
 		this.noElementMsg = noElementMsg;
 		this.sameActivity = sameActivity;
 		this.displayLoading = displayLoading;
+		this.pageNumber = pageNumber;
+		this.progressTitle = progressTitle;
+		this.progressContent = progressContent;
 		execute(params);
 	}
 
 	@Override
 	protected void onPreExecute() 
 	{
-		progressDialog.setCancelable(true);
-		progressDialog.setOnCancelListener(new OnCancelListener()
-		{
-			public void onCancel(DialogInterface dialog)
-			{
-				DataRetrieverAsyncTask.this.onCancel();
-			}
-		});
+		super.onPreExecute();
+		progressDialog.setTitle(progressTitle != null ? progressTitle : context.getString(R.string.loading));
+		progressDialog.setMessage(progressContent);
 		if (displayLoading) progressDialog.show();
 	}
 
 	@Override
 	protected List<E> doInBackground(final P... params)
 	{
+		setThreadId();
 		List<E> elements = null;
 		try
 		{

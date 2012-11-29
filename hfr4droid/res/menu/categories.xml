@@ -4,10 +4,10 @@
 		android:title="@string/menu_info"
 		android:id="@+id/MenuInfo"
 		android:orderInCategory="5"
-		android:icon="@android:drawable/ic_menu_info_details" />
+		android:icon="@drawable/ic_menu_info_details" />
 	<item
 		android:title="@string/menu_quit"
 		android:id="@+id/MenuQuit"
 		android:orderInCategory="6"
-		android:icon="@android:drawable/ic_menu_close_clear_cancel" />
+		android:icon="@drawable/ic_menu_close_clear_cancel" />
 </menu>

@@ -9,6 +9,7 @@
     <string name="error_dispatching_url">Erreur lors de l\'analyse de l\'url</string>
     <string name="invalid_url">Cette url du forum est invalide !</string>
     <string name="server_maintenance">Serveur en cours de maintenance !</string>
+    <string name="no_such_topic">Le topic recherché n\'existe pas (ou plus) !</string>
     <string name="error_dr_hash_check">Une erreur s\'est produite lors de la récupération du hash check</string>
     <string name="error_dr_cats">Une erreur s\'est produite lors de la récupération des catégories</string>
     <string name="error_dr_subcats">Une erreur s\'est produite lors de la récupération des sous-catégories</string>
@@ -18,6 +19,8 @@
     <string name="error_dr_smilies">Une erreur s\'est produite lors de la récupération des smileys</string>
     <string name="error_dr_bbcode">Une erreur s\'est produite lors de la récupération du BBCode</string>
     <string name="error_dr_keywords">Une erreur s\'est produite lors de la récupération des mots-clés</string>
+    <string name="error_dr_profile">Une erreur s\'est produite lors de la récupération du profil</string>
+    <string name="error_dr_aqs">Une erreur s\'est produite lors de la récupération des alertes qualitaÿ du topic</string>
     <string name="error_serializing_cats">Une erreur s\'est produite lors de la mise en cache des catégories</string>
     <string name="error_deserializing_cats">Une erreur s\'est produite lors de la récupération des catégories dans le cache</string>
     <string name="warning_allcats_topicall">Vous ne pouvez pas consulter tous les drapeaux de toutes les catégories. Faites un appui long pour sélectionner un type de drapeau.</string>
@@ -56,6 +59,7 @@
     <string name="edit_loading">Edition du message...</string>
     <string name="delete_loading">Supression du message...</string>
     <string name="delete_failed">Impossible de supprimer ce message !</string>
+    <string name="alert_post_failed">Impossible d\'alerter ce post !</string>
     <string name="post_loading">Validation du message...</string>
     <string name="post_add_failed">Impossible de poster ce message !</string>
     <string name="post_edit_failed">Impossible de modifier ce message !</string>
@@ -72,6 +76,8 @@
     <string name="keywords_failed">Impossible de modifier les mots clés !</string>
     <string name="favorite_loading">Ajout du favori...</string>
     <string name="favorite_failed">Impossible de poser le favori !</string>
+    <string name="copy_content_loading">Copie du contenu du post...</string>
+    <string name="aq_loading">Récupérations des alertes qualitaÿ du topic</string>
     <string name="unread_loading">Marquage en non lu...</string>
     <string name="unread_failed">Impossible de mettre ce message en non lu !</string>
     <string name="unflag_loading">Suppression du drapeau...</string>
@@ -84,6 +90,29 @@
     <string name="save_image">Sauvegarde de l\'image en cours...</string>
     <string name="save_image_ok">Image sauvegardée avec succès dans %s</string>
     <string name="save_image_failed">Impossible de sauvegarder cette image</string>
+    <string name="exif_version_too_low">Votre version d\'Android ne supporte pas l\'affiche des données EXIF de cette image.</string>
+    <string name="exif_no_data">Aucune donnée EXIF à afficher !</string>
+    <string name="copy_exif_data">Les données EXIF ont été copié dans le presse-papier.</string>
+    <string name="page_loading">Page %d en cours de chargement...</string>
+    
+    <string name="pref_override_light_mode_message">Activer cette option peut ralentir l\'application et réduire considérablement son autonomie. Elle améliore l\'affichage d\'un topic quand vous changez de page.</string>
+    <string name="pref_override_light_mode_disabled">Vous ne pouvez pas désactiver le light mode sur un appareil doté d\'un CPU mono-core !</string>
+    
+    <!-- Alerte Qualitaÿ -->
+    <string name="aq_ok">Ce post a été signalé avec succès.</string>
+    <string name="aq_not_found">L\'alerte spécifiée est inexistante !</string>
+    <string name="aq_missing_parameter">Un ou plusieurs paramètres d\'appel sont manquants !</string>
+    <string name="aq_already_report">Vous avez déjà signalé cette qualitaÿ !</string>
+    <string name="aq_ko">Une erreur imprévue est survenue durant la signalisation de ce post !</string>
+    <string name="aq_name_mandatory">"Le nom de l'alerte est obligatoire !</string>
+    
+    
+    <!-- LOG INFO -->
+    <string name="set_posts_as_read_ok">La page %d a été marquée comme lu avec succès</string>
+    <string name="set_posts_as_read_ko">La page %d n\'a pas été marquée comme lu</string>
+	<string name="preloading_begin">[Préchargement] Chargement de la page %d...</string>
+    <string name="preloading_ok">[Préchargement] Page %d chargée !</string>
+    <string name="new_mp_count">L\'utilisateur a %d nouveau(x) message(s)</string>
 
     <plurals name="mp_notification_content">
         <item quantity="one">Vous avez 1 nouveau message privé.</item>
