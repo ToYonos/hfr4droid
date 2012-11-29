@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<resources>
+	<!-- Thème par défaut -->
+
+	<color name="default_list_background">#F7F7F7</color>
+	<color name="default_list_divider">#C0C0C0</color>
+	<color name="default_text1">#000000</color>
+	<color name="default_text2">#9A9A9A</color>
+	<color name="default_text_focused">#F7F7F7</color>
+	
+	<string name="default_post_header_data">data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAAyCAIAAAASmSbdAAAACXBIWXMAAAsSAAALEgHS3X78AAAAr0lEQVR42i3D61IBYQCA4fc%2B%2FMNiR2qVU7sxzbgFHZaEQU27qG6hf7ElRDmMQ5juilvp%2B%2BKZeQibL5w%2F%2F5J6WpN6XO02liTFs%2FrPf6O%2BwKgt0O05ujXj1JqSkB%2BmxO8nxOS7MVExUh0RqQw5KX9zXP5Ck0sDtGKfo8Inh4UeodseB%2Fmu2CF4I%2BY%2BUHNt1KxovhMw3%2FBfO%2FjkKwflsoVy0cQrZ17x7LszTVxpm8128wedbTsQqibZlwAAAABJRU5ErkJggg%3D%3D</string>
+	<color name="default_post_header">#306196</color>
+	<color name="default_post_pseudo">#FFFFFF</color>
+	<color name="default_post_date">#CDCDCD</color>
+	<color name="default_post_link">#000080</color>
+	<color name="default_post_edit_quote_background">#DEDFDE</color>
+	<color name="default_post_edit_quote_text">#555555</color>
+	<color name="default_post_block_background">#FFFFFF</color>
+	<color name="default_post_modo_background">#FFEEEE</color>
+	
+	<string name="default_inverse_progress">false</string>
+	
+	<color name="default_splash_title">#1A3A60</color>
+	<string name="default_spinner">spinner</string>
+	
+	<string name="default_post_loading">loading</string>
+	
+	<string name="default_profile_spinner">dark_spinner</string>
+	<color name="default_profile_text1">#F7F7F7</color>
+	<color name="default_profile_text2">#DADADA</color>
+
+	<!-- Thème "dark" -->
+	
+	<color name="dark_list_background">#303030</color>
+	<color name="dark_list_divider">#676767</color>
+	<color name="dark_text1">#F7F7F7</color>
+	<color name="dark_text2">#DADADA</color>
+	<color name="dark_text_focused">#000000</color>
+	
+	<string name="dark_post_header_data">data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAAyCAIAAAASmSbdAAAACXBIWXMAAAsSAAALEgHS3X78AAAAoElEQVR42h3NwapEAABA0fvRVoQQIoQQGkKIEBPi86b3Fmd9KIqC933%2FPc%2FDfd9c18V5nny%2FX47jYN93tm1jXVeWZWGeZ6ZpYhxHhmGg73u6rqNtW5qmoa5rqqri8%2FlQliV%2FR57nZFlGmqYkSUIcx0RRRBiGBEGA7%2Ft4nofrujiOg23bWJaFaZoYhoGu62iahqqqKIqCLMtIkoQoigiC8ANwt1mVLwpzywAAAABJRU5ErkJggg%3D%3D</string>
+	<color name="dark_post_header">#969696</color>
+	<color name="dark_post_pseudo">#000000</color>
+	<color name="dark_post_date">#323232</color>
+	<color name="dark_post_link">#B0B0FF</color>
+	<color name="dark_post_edit_quote_background">#454545</color>
+	<color name="dark_post_edit_quote_text">#DADADA</color>
+	<color name="dark_post_block_background">#606060</color>
+	<color name="dark_post_modo_background">#666666</color>
+	
+	<string name="dark_inverse_progress">true</string>
+	
+	<color name="dark_splash_title">#F7F7F7</color>
+	<string name="dark_spinner">dark_spinner</string>
+	
+	<string name="dark_post_loading">dark_loading</string>
+	
+	<string name="dark_profile_spinner">spinner</string>
+	<color name="dark_profile_text1">#000000</color>
+	<color name="dark_profile_text2">#9A9A9A</color>
+	
+
+	<!-- Thème gris (HFR 2011) -->
+
+	<color name="gray_list_background">#F7F7F7</color>
+	<color name="gray_list_divider">#C0C0C0</color>
+	<color name="gray_text1">#000000</color>
+	<color name="gray_text2">#9A9A9A</color>
+	<color name="gray_text_focused">#F7F7F7</color>
+	
+	<string name="gray_post_header_data">data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAAyCAIAAAASmSbdAAAACXBIWXMAAAsSAAALEgHS3X78AAAAnklEQVR42h3MxRHCUABAwVcGBxgkLj%2FuChHc%2Bx9ohQyHvS4i3VKM7798eJH3T7L%2BQdbdSXc3ku11ciFuz8TNiag%2BEtYHwmpPUI4ExYBf9Hh5h5ftcKfPTVucpEHENSKqsKMSOyywghzTzyYphpdguDG6E6E5IZoIUG0f1fJQLBfZdJANgaTbE4uNZrJWDdaKzkrRWMkqS0lhNl%2Fw%2BX5%2BP6Mgam%2BbFuAAAAAASUVORK5CYII%3D</string>
+	<color name="gray_post_header">#2c333a</color>
+	<color name="gray_post_pseudo">#FFFFFF</color>
+	<color name="gray_post_date">#CDCDCD</color>
+	<color name="gray_post_link">#000080</color>
+	<color name="gray_post_edit_quote_background">#DEDFDE</color>
+	<color name="gray_post_edit_quote_text">#555555</color>
+	<color name="gray_post_block_background">#FFFFFF</color>
+	<color name="gray_post_modo_background">#FFEEEE</color>
+	
+	<string name="gray_inverse_progress">false</string>
+	
+	<color name="gray_splash_title">#1A3A60</color>
+	<string name="gray_spinner">spinner</string>
+	
+	<string name="gray_post_loading">loading</string>
+	
+	<string name="gray_profile_spinner">dark_spinner</string>
+	<color name="gray_profile_text1">#F7F7F7</color>
+	<color name="gray_profile_text2">#DADADA</color>
+</resources>
