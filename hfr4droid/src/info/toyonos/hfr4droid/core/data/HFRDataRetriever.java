@@ -1088,6 +1088,7 @@ public class HFRDataRetriever implements MDDataRetriever
 		String content = "";
 		if (auth != null && auth.getCookies() != null && fakeCs != null)
 		{
+			Log.d(HFR4droidApplication.TAG, "CPU usage : " + context.getCPUUsage() + "%");
 			content = client.doGet(url, useFakeAccount ? fakeCs : auth.getCookies());
 		}
 		else

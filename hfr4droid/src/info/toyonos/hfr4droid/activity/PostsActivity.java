@@ -419,6 +419,7 @@ public class PostsActivity extends HFR4droidMultiListActivity<List<Post>>
 				}
 				else
 				{
+					inverseTask(currentPageNumber + 1);
 					displayPreloadingToast(preLoadingPostsAsyncTask);
 				}
 			}
@@ -431,7 +432,29 @@ public class PostsActivity extends HFR4droidMultiListActivity<List<Post>>
 				}
 				else
 				{
+					inverseTask(currentPageNumber - 1);
 					displayPreloadingToast(preLoadingPostsAsyncTask);
+				}
+			}
+
+			/**
+			 * Permet de changer l'ordre de chargement des pages
+			 * @param targetPageNumber
+			 */
+			private void inverseTask(int targetPageNumber)
+			{
+				// Si une tâche est en cours
+				if (preLoadingPostsAsyncTask != null && preLoadingPostsAsyncTask.getStatus() == Status.RUNNING)
+				{
+					// si la page précédente n'est en cours de chargement
+					if (preLoadingPostsAsyncTask.getPageNumber() != targetPageNumber)
+					{
+						// Sinon on force le chargement de la page précédente
+						int interruptedPageNumber = preLoadingPostsAsyncTask.getPageNumber();
+						preLoadingPostsAsyncTask.cancel(true);
+						preLoadingPostsAsyncTask = new PreLoadingPostsAsyncTask(PostsActivity.this, interruptedPageNumber);
+						preLoadingPostsAsyncTask.execute(targetPageNumber, topic);
+					}
 				}
 			}
 		});
@@ -662,7 +685,7 @@ public class PostsActivity extends HFR4droidMultiListActivity<List<Post>>
 	{
 		if (currentPageNumber == 2)
 		{
-			snapToScreen(getCurrentIndex() - 1, preLoadingPostsAsyncTask);
+			space.snapToScreen(getCurrentIndex() - 1);
 		}
 		else
 		{
@@ -673,7 +696,7 @@ public class PostsActivity extends HFR4droidMultiListActivity<List<Post>>
 	@Override
 	protected void loadPreviousPage()
 	{
-		snapToScreen(getCurrentIndex() - 1, preLoadingPostsAsyncTask);	
+		space.snapToScreen(getCurrentIndex() - 1);
 	}
 
 	@Override
@@ -685,7 +708,7 @@ public class PostsActivity extends HFR4droidMultiListActivity<List<Post>>
 			{
 				if (Math.abs(pageNumber - currentPage) == 1)
 				{
-					snapToScreen(getCurrentIndex() + (pageNumber - currentPage), preLoadingPostsAsyncTask);
+					space.snapToScreen(getCurrentIndex() + (pageNumber - currentPage));
 				}
 				else
 				{
@@ -698,7 +721,7 @@ public class PostsActivity extends HFR4droidMultiListActivity<List<Post>>
 	@Override
 	protected void loadNextPage()
 	{
-		snapToScreen(getCurrentIndex() + 1, preLoadingPostsAsyncTask);
+		space.snapToScreen(getCurrentIndex() + 1);
 	}
 
 	@Override
@@ -706,7 +729,7 @@ public class PostsActivity extends HFR4droidMultiListActivity<List<Post>>
 	{
 		if (currentPageNumber == (topic.getNbPages() - 1))
 		{
-			snapToScreen(getCurrentIndex() + 1, preLoadingPostsAsyncTask);
+			space.snapToScreen(getCurrentIndex() + 1);
 		}
 		else
 		{
@@ -887,15 +910,17 @@ public class PostsActivity extends HFR4droidMultiListActivity<List<Post>>
 		// Préchargement de la page suivante dans le composant DragableSpace 
 		if (topic.getNbPages() > 1)
 		{			
-			boolean loadPreviousPage = currentPageNumber != 1;
 			int targetPageNumber = currentPageNumber + 1;
+			Integer previousPageNumber = currentPageNumber != 1 ? currentPageNumber - 1 : null;
 			if (forceLoadingPreviousPage || currentPageNumber == topic.getNbPages())
 			{
 				targetPageNumber = currentPageNumber - 1;
-				loadPreviousPage = false;
+				previousPageNumber = null;
 			}
 			
-			preLoadingPostsAsyncTask = new PreLoadingPostsAsyncTask(this, preLoadingPostsAsyncTask, loadPreviousPage);
+			preLoadingPostsAsyncTask = previousPageNumber != null ?
+					new PreLoadingPostsAsyncTask(this, previousPageNumber) :
+					new PreLoadingPostsAsyncTask(this);
 			preLoadingPostsAsyncTask.execute(targetPageNumber, topic);
 		}
 	}
@@ -2772,9 +2797,9 @@ public class PostsActivity extends HFR4droidMultiListActivity<List<Post>>
 			super(context);
 		}
 
-		public PreLoadingPostsAsyncTask(HFR4droidMultiListActivity<List<Post>> context, PreLoadingPostsAsyncTask task, boolean loadPreviousPage)
+		public PreLoadingPostsAsyncTask(HFR4droidMultiListActivity<List<Post>> context, int... otherPageNumbers)
 		{
-			super(context, task, loadPreviousPage);
+			super(context, otherPageNumbers);
 		}
 
 		@Override
@@ -2784,10 +2809,10 @@ public class PostsActivity extends HFR4droidMultiListActivity<List<Post>>
 		}
 
 		@Override
-		protected void loadPreviousPage()
+		protected void loadAnotherPage(int pageNumber)
 		{
-			task = new PreLoadingPostsAsyncTask(PostsActivity.this);
-			task.execute(getPageNumber() - 2, topic);
+			preLoadingPostsAsyncTask = new PreLoadingPostsAsyncTask(PostsActivity.this);
+			preLoadingPostsAsyncTask.execute(pageNumber, topic);
 		}
 
 		@Override

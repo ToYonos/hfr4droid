@@ -117,11 +117,6 @@ public abstract class HFR4droidMultiListActivity<DS> extends HFR4droidActivity
 				views != null && views[currentIndex - 1] != null &&
 				space.getChildAt(currentIndex - 1) != null;
 	}
-	
-	protected void snapToScreen(int newIndex, PreLoadingAsyncTask<?, ?, ?> task)
-	{
-		if (!space.snapToScreen(newIndex)) displayPreloadingToast(task);
-	}
 
 	protected void displayPreloadingToast(PreLoadingAsyncTask<?, ?, ?> task)
 	{

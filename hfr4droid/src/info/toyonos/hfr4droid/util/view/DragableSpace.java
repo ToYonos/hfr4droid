@@ -248,9 +248,10 @@ public class DragableSpace extends ViewGroup {
         snapToScreen(whichScreen);
     }
 
-    public boolean snapToScreen(int whichScreen)
+    public void snapToScreen(int whichScreen)
     {
-    	if (whichScreen < 0 || whichScreen > getChildCount() - 1) return false;
+    	if (whichScreen < 0 && onScreenChangeListener != null) onScreenChangeListener.onFailRearward();
+    	if (whichScreen > getChildCount() - 1 && onScreenChangeListener != null) onScreenChangeListener.onFailForward();
 
         Log.i(LOG_TAG, "snap To Screen " + whichScreen);
         int oldScreen = mCurrentScreen;
@@ -260,7 +261,6 @@ public class DragableSpace extends ViewGroup {
         mScroller.startScroll(mScrollX, 0, delta, 0, Math.abs(delta) * 2);             
         invalidate();
         if (onScreenChangeListener != null) onScreenChangeListener.onScreenChange(oldScreen, whichScreen);
-        return true;
     }
 
     public void setToScreen(int whichScreen) {

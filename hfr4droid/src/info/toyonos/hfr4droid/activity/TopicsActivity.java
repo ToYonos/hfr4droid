@@ -207,16 +207,23 @@ public class TopicsActivity extends HFR4droidMultiListActivity<ArrayAdapter<Topi
 			public void onItemClick(AdapterView<?> a, View v, int position, long id)
 			{	
 				Topic topic = (Topic) lv.getItemAtPosition(position);
-				if (topic != null && topic.getId() != -1)
+				if (topic != null)
 				{
-					int page = topic.getLastReadPage() != -1 ? topic.getLastReadPage() : 1;
-					loadPosts(topic, page, false);
+					if (topic.getId() != -1)
+					{
+						int page = topic.getLastReadPage() != -1 ? topic.getLastReadPage() : 1;
+						loadPosts(topic, page, false);
+					}
+					else
+					{
+						previousCat = cat;
+						cat = topic.getCategory();
+						loadTopics(topic.getCategory(), type);
+					}
 				}
 				else
 				{
-					previousCat = cat;
-					cat = topic.getCategory();
-					loadTopics(topic.getCategory(), type);
+					lv.onRefresh();
 				}
 			}
 		});
@@ -653,7 +660,7 @@ public class TopicsActivity extends HFR4droidMultiListActivity<ArrayAdapter<Topi
 	{
 		if (currentPageNumber == 2)
 		{
-			snapToScreen(getCurrentIndex() - 1, preLoadingTopicsAsyncTask);
+			space.snapToScreen(getCurrentIndex() - 1);
 		}
 		else
 		{
@@ -664,7 +671,7 @@ public class TopicsActivity extends HFR4droidMultiListActivity<ArrayAdapter<Topi
 	@Override
 	protected void loadPreviousPage()
 	{
-		snapToScreen(getCurrentIndex() - 1, preLoadingTopicsAsyncTask);	
+		space.snapToScreen(getCurrentIndex() - 1);	
 	}
 
 	@Override
@@ -676,7 +683,7 @@ public class TopicsActivity extends HFR4droidMultiListActivity<ArrayAdapter<Topi
 			{
 				if (Math.abs(pageNumber - currentPage) == 1)
 				{
-					snapToScreen(getCurrentIndex() + (pageNumber - currentPage), preLoadingTopicsAsyncTask);
+					space.snapToScreen(getCurrentIndex() + (pageNumber - currentPage));
 				}
 				else
 				{
@@ -689,7 +696,7 @@ public class TopicsActivity extends HFR4droidMultiListActivity<ArrayAdapter<Topi
 	@Override
 	protected void loadNextPage()
 	{
-		snapToScreen(getCurrentIndex() + 1, preLoadingTopicsAsyncTask);
+		space.snapToScreen(getCurrentIndex() + 1);
 	}
 
 	@Override
@@ -895,7 +902,9 @@ public class TopicsActivity extends HFR4droidMultiListActivity<ArrayAdapter<Topi
 		// Préchargement de la page suivante dans le composant DragableSpace 
 		if (type == TopicType.ALL)
 		{
-			preLoadingTopicsAsyncTask = new PreLoadingTopicsAsyncTask(this, preLoadingTopicsAsyncTask, currentPageNumber != 1);
+			preLoadingTopicsAsyncTask = currentPageNumber != 1 ? 
+					new PreLoadingTopicsAsyncTask(this, currentPageNumber - 1) :
+					new PreLoadingTopicsAsyncTask(this);
 			preLoadingTopicsAsyncTask.execute(currentPageNumber + 1, cat);
 		}
 	}
@@ -1075,9 +1084,9 @@ public class TopicsActivity extends HFR4droidMultiListActivity<ArrayAdapter<Topi
 			super(context);
 		}
 
-		public PreLoadingTopicsAsyncTask(HFR4droidMultiListActivity<ArrayAdapter<Topic>> context, PreLoadingTopicsAsyncTask task, boolean loadPreviousPage)
+		public PreLoadingTopicsAsyncTask(HFR4droidMultiListActivity<ArrayAdapter<Topic>> context, int... otherPageNumbers)
 		{
-			super(context, task, loadPreviousPage);
+			super(context, otherPageNumbers);
 		}
 
 		@Override
@@ -1095,10 +1104,10 @@ public class TopicsActivity extends HFR4droidMultiListActivity<ArrayAdapter<Topi
 		}
 
 		@Override
-		protected void loadPreviousPage()
+		protected void loadAnotherPage(int pageNumber)
 		{
-			task = new PreLoadingTopicsAsyncTask(TopicsActivity.this);
-			task.execute(getPageNumber() - 2, cat);		
+			preLoadingTopicsAsyncTask = new PreLoadingTopicsAsyncTask(TopicsActivity.this);
+			preLoadingTopicsAsyncTask.execute(pageNumber, cat);		
 		}
 
 		@Override

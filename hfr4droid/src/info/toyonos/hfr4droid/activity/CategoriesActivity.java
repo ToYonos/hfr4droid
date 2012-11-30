@@ -187,25 +187,7 @@ public class CategoriesActivity extends HFR4droidListActivity<Category>
 			{
 				int position = lv.pointToPosition((int) me.getX(), (int) me.getY());
 				Category cat = (Category) lv.getItemAtPosition(position);
-				if (cat == null) return false;
-
-				if (isLoggedIn() && !isMpsCat(cat))
-				{
-					TopicType type = TopicType.fromInt(getTypeDrapeau());
-					if (isAllCatsCat(cat) && type == TopicType.ALL)
-					{
-						Toast.makeText(CategoriesActivity.this, R.string.warning_allcats_topicall, Toast.LENGTH_LONG).show();
-					}
-					else
-					{
-						loadTopics(cat, type, false);
-					}
-				}
-				else
-				{
-					loadTopics(cat, TopicType.ALL, 1, false);
-				}
-				return true;
+				return openCategory(cat);
 			}
 		});
 
@@ -217,6 +199,18 @@ public class CategoriesActivity extends HFR4droidListActivity<Category>
 			}
 		});
 
+		// TODO éviter le doublon
+		/*
+		lv.setOnItemClickListener(new OnItemClickListener()
+		{
+			public void onItemClick(AdapterView<?> a, View v, int position, long id)
+			{	
+				Category cat = (Category) lv.getItemAtPosition(position);
+				openCategory(cat);
+			}
+		});
+		*/
+		
 		lv.setOnCreateContextMenuListener(new OnCreateContextMenuListener()
 		{
 			public void onCreateContextMenu(ContextMenu menu, View v, ContextMenuInfo menuInfo)
@@ -233,6 +227,29 @@ public class CategoriesActivity extends HFR4droidListActivity<Category>
 
 		startMpTimerCheckService();
 		startMpCheckService();
+	}
+	
+	private boolean openCategory(Category cat)
+	{
+		if (cat == null) return false;
+
+		if (isLoggedIn() && !isMpsCat(cat))
+		{
+			TopicType type = TopicType.fromInt(getTypeDrapeau());
+			if (isAllCatsCat(cat) && type == TopicType.ALL)
+			{
+				Toast.makeText(CategoriesActivity.this, R.string.warning_allcats_topicall, Toast.LENGTH_LONG).show();
+			}
+			else
+			{
+				loadTopics(cat, type, false);
+			}
+		}
+		else
+		{
+			loadTopics(cat, TopicType.ALL, 1, false);
+		}
+		return true;
 	}
 
 	@Override

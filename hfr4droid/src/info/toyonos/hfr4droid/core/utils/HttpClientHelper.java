@@ -108,6 +108,10 @@ public class HttpClientHelper
 
 	public HttpResponse execute(HttpUriRequest request, HttpContext context) throws ClientProtocolException, IOException
 	{
+		if (requests.keySet().size() > 0)
+		{
+			Log.d(HFR4droidApplication.TAG, "There is still " + requests.keySet().size() + " request(s) in progress");
+		}
 		Long threadId = Thread.currentThread().getId();
 		requests.put(threadId, new HttpUriRequestWrapper(request));
 		Log.d(HFR4droidApplication.TAG, "New request to " + request.getURI() + " for the thread #" + threadId);

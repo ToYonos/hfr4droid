@@ -50,8 +50,7 @@ public abstract class PreLoadingAsyncTask<E, P, DS> extends DataRetrieverAsyncTa
 		}
 	};
 	
-	private boolean loadPreviousPage = false;
-	protected PreLoadingAsyncTask<E, P, DS> task;
+	private int[] othersPageNumbers = null;
 	private PreLoadingCompleteListener preLoadingCompleteListener = null;
 	private boolean pageChangeRequested = false;
 	
@@ -61,11 +60,10 @@ public abstract class PreLoadingAsyncTask<E, P, DS> extends DataRetrieverAsyncTa
 		setPreLoadingCompleteListener(context.getPreloadingCallback());
 	}
 	
-	public PreLoadingAsyncTask(HFR4droidMultiListActivity<DS> context, PreLoadingAsyncTask<E, P, DS> task, boolean loadPreviousPage)
+	public PreLoadingAsyncTask(HFR4droidMultiListActivity<DS> context, int... othersPageNumbers)
 	{
 		this(context);
-		this.task = task;
-		this.loadPreviousPage = loadPreviousPage;
+		this.othersPageNumbers = othersPageNumbers;
 	}
 
 	@Override
@@ -73,7 +71,7 @@ public abstract class PreLoadingAsyncTask<E, P, DS> extends DataRetrieverAsyncTa
 	
 	protected abstract DS getDatasource(List<E> elements);
 	
-	protected abstract void loadPreviousPage();
+	protected abstract void loadAnotherPage(int pageNumber);
 	
 	protected void init(View v, DS datasource) {}
 	
@@ -113,7 +111,13 @@ public abstract class PreLoadingAsyncTask<E, P, DS> extends DataRetrieverAsyncTa
 		if (preLoadingCompleteListener != null && pageChangeRequested) preLoadingCompleteListener.onPreLoadingComplete(this);
 		
 		// On charge aussi la page n-2, typiquement quand on arrive directement sur une page qui n'est pas la page 1
-		if (loadPreviousPage) loadPreviousPage();
+		if (othersPageNumbers != null)
+		{
+			for (int pageNumber : othersPageNumbers)
+			{
+				loadAnotherPage(pageNumber);
+			}
+		}
 	}
 
 	@Override
