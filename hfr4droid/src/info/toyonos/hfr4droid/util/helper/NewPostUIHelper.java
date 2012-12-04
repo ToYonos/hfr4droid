@@ -217,7 +217,7 @@ public abstract class NewPostUIHelper
 							}
 						});
 
-						webView.loadData("<html><head>" + fixHTML(js.toString()) + fixHTML(css.toString()) + "</head><body>" + fixHTML(smiliesData.toString()) + "</body></html>", "text/html", "UTF-8");
+						webView.loadData("<html><head><meta http-equiv=\"Content-Type\" content=\"text/html; charset=UTF-8\" />" + fixHTML(js.toString()) + fixHTML(css.toString()) + "</head><body>" + fixHTML(smiliesData.toString()) + "</body></html>", "text/html", "UTF-8");
 						return webView;
 					}
 					

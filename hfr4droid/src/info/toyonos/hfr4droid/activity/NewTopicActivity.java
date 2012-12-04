@@ -59,11 +59,11 @@ public class NewTopicActivity extends NewPostGenericActivity
 			cat = Category.MPS_CAT;
 			if (bundle.get(Intent.EXTRA_TEXT) != null)
 			{
-				((TextView) findViewById(R.id.InputPostContent)).setText(((String) bundle.get(Intent.EXTRA_TEXT)));
+				((TextView) findViewById(R.id.InputPostContent)).setText(bundle.get(Intent.EXTRA_TEXT).toString());
 			}
 			if (bundle.get(Intent.EXTRA_SUBJECT) != null)
 			{
-				((TextView) findViewById(R.id.inputTopicSubject)).setText(((String) bundle.get(Intent.EXTRA_SUBJECT)));
+				((TextView) findViewById(R.id.inputTopicSubject)).setText(bundle.get(Intent.EXTRA_SUBJECT).toString());
 			}
 			if (bundle.get(Intent.EXTRA_STREAM) != null)
 			{

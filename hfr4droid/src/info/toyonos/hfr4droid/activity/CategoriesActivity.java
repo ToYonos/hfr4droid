@@ -28,12 +28,14 @@ import android.view.ContextMenu;
 import android.view.ContextMenu.ContextMenuInfo;
 import android.view.GestureDetector;
 import android.view.GestureDetector.SimpleOnGestureListener;
+import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.View.OnCreateContextMenuListener;
+import android.view.View.OnKeyListener;
 import android.view.View.OnTouchListener;
 import android.view.ViewGroup;
 import android.webkit.WebSettings;
@@ -199,18 +201,22 @@ public class CategoriesActivity extends HFR4droidListActivity<Category>
 			}
 		});
 
-		// TODO éviter le doublon
-		/*
-		lv.setOnItemClickListener(new OnItemClickListener()
+		lv.setOnKeyListener(new OnKeyListener()
 		{
-			public void onItemClick(AdapterView<?> a, View v, int position, long id)
-			{	
-				Category cat = (Category) lv.getItemAtPosition(position);
-				openCategory(cat);
+			public boolean onKey(View v, int keyCode, KeyEvent event)
+			{
+				if (keyCode == KeyEvent.KEYCODE_DPAD_CENTER && event.getAction() == KeyEvent.ACTION_UP)
+				{
+					if (lv.getSelectedItem() != null)
+					{
+						Category cat = (Category) lv.getSelectedItem();
+						return openCategory(cat);
+					}
+				}
+				return false;
 			}
 		});
-		*/
-		
+
 		lv.setOnCreateContextMenuListener(new OnCreateContextMenuListener()
 		{
 			public void onCreateContextMenu(ContextMenu menu, View v, ContextMenuInfo menuInfo)
