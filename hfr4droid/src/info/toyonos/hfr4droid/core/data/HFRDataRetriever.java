@@ -396,6 +396,8 @@ public class HFRDataRetriever implements MDDataRetriever
 			"<td.*?class=\"sujetCase5\".*?(?:(?:<a\\s*href=\".*?#t([0-9]+)\"><img.*?src=\".*?([A-Za-z0-9]+)\\.gif\"\\s*title=\".*?\\(p\\.([0-9]+)\\)\".*?/></a>)|&nbsp;)</td>.*?" +
 			"<td.*?class=\"sujetCase6.*?>(?:<a\\s*rel=\"nofollow\"\\s*href=\"/profilebdd.*?>)?(.+?)(?:</a>)?</td>.*?" +
 			"<td.*?class=\"sujetCase7\".*?>(.+?)</td>.*?" +
+			"<td.*?class=\"sujetCase9.*?>.*?class=\"Tableau\">" +
+			"([0-9]+)-([0-9]+)-([0-9]+).*?([0-9]+):([0-9]+)<br /><b>(.+?)</b>.*?</td>.*?" +
 			"</tr>))"
 			, Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
         
@@ -429,6 +431,14 @@ public class HFRDataRetriever implements MDDataRetriever
 									m.group(10) != null ? Long.parseLong(m.group(10)) : -1,
 									Integer.parseInt(m.group(14)),
 									nbPages,
+									new GregorianCalendar(Integer.parseInt(m.group(17)), // Year
+											Integer.parseInt(m.group(16)) - 1, // Month
+											Integer.parseInt(m.group(15)), // Day
+											Integer.parseInt(m.group(18)), // Hour
+											Integer.parseInt(m.group(19)), // Minute
+											0  // Second
+									).getTime(),
+									m.group(20),
 									m.group(4) != null,
 									m.group(6) != null,
 									currentCat

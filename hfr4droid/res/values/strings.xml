@@ -92,6 +92,7 @@
 	<string name="mp_to_hint">Pseudo du dest.</string>
 	<string name="topic_subject_hint">Sujet du message</string>
 	<string name="send_mp">Envoyer par MP</string>
+	<string name="topic_add_infos">%1$s / %2$s</string>
 
 	<string name="save_image_item">Sauvegarder l\'image originale</string>
 	<string name="save_image_png_item">Sauvegarder au format PNG</string>

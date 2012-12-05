@@ -86,6 +86,8 @@ public abstract class HFR4droidMultiListActivity<DS> extends HFR4droidActivity
 	
 	protected void setView(View view)
 	{
+		if (view == null) return;
+
 		View oldView = views[getCurrentIndex()];
 		if (oldView != null)
 		{
@@ -159,7 +161,7 @@ public abstract class HFR4droidMultiListActivity<DS> extends HFR4droidActivity
 	
 	protected void removeView(int index)
 	{
-		if (views != null)
+		if (views != null && views.length > index)
 		{
 			destroyView(views[index]);
 			views[index] = null;
@@ -191,6 +193,8 @@ public abstract class HFR4droidMultiListActivity<DS> extends HFR4droidActivity
 	
 	public void insertAfter(DS dataSource, View view)
 	{
+		if (dataSource == null || view != null) return;
+		
 		switch (getCurrentIndex())
 		{
 			case 0:
@@ -228,6 +232,8 @@ public abstract class HFR4droidMultiListActivity<DS> extends HFR4droidActivity
 	
 	public void insertBefore(DS dataSource, View view)
 	{
+		if (dataSource == null || view != null) return;
+		
 		switch (getCurrentIndex())
 		{
 			case 0:

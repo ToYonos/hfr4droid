@@ -17,6 +17,7 @@ import info.toyonos.hfr4droid.util.dialog.PageNumberDialog;
 import info.toyonos.hfr4droid.util.listener.OnScreenChangeListener;
 import info.toyonos.hfr4droid.util.view.DragableSpace;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -33,7 +34,6 @@ import android.view.ContextMenu;
 import android.view.ContextMenu.ContextMenuInfo;
 import android.view.GestureDetector;
 import android.view.GestureDetector.SimpleOnGestureListener;
-import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -962,75 +962,82 @@ public class TopicsActivity extends HFR4droidMultiListActivity<ArrayAdapter<Topi
 		{
 			View v = super.getView(position, convertView, parent);
 			Topic t = topics.get(position);
-
-			TextView text1 = (TextView) v.findViewById(R.id.ItemContent);
-			text1.setTextSize(getTextSize(14));
-			ImageView flag = (ImageView) v.findViewById(R.id.TopicFlag);
 			boolean isDummyTopic = t.getId() == -1;
 
-			try
-			{				
-				text1.setTextColor(isDummyTopic ?
-				ColorStateList.createFromXml(getResources(), getResources().getXml(getKeyByTheme(getThemeKey(), R.color.class, "item_cat_header"))) :
-				ColorStateList.createFromXml(getResources(), getResources().getXml(getKeyByTheme(getThemeKey(), R.color.class, "item"))));
-			}
-			catch (Exception e)
-			{
-				error(e);
-			}
-
-			LinearLayout ll = (LinearLayout) text1.getParent();
-			if (isMpsCat())
-			{
-				TextView unread = (TextView) ll.findViewById(R.id.ItemUnread);
-				unread.setVisibility(t.isUnread() ? View.VISIBLE : View.GONE);
-
-				TextView author = (TextView) ll.findViewById(R.id.ItemAuthor);
-				author.setTextSize(getTextSize(14));
-				author.setText(Html.fromHtml("<b>@" + t.getAuthor() + "</b> : "));
-				try
-				{
-					author.setTextColor(ColorStateList.createFromXml(getResources(), getResources().getXml(getKeyByTheme(getThemeKey(), R.color.class, "item"))));
-				}
-				catch (Exception e)
-				{
-					error(e);
-				}
-				ll.removeView(ll.findViewById(R.id.ItemRemainingPages));
-			}
-			else
-			{
-				ll.removeView(ll.findViewById(R.id.ItemUnread));
-				ll.removeView(ll.findViewById(R.id.ItemAuthor));
-				TextView remainingPages = (TextView) ll.findViewById(R.id.ItemRemainingPages);
-				remainingPages.setVisibility(t.getLastReadPage() != -1 && (t.getNbPages() - t.getLastReadPage()) > 0 ? View.VISIBLE : View.GONE);
-				remainingPages.setText("(" + (t.getNbPages() - t.getLastReadPage()) + ")");
-				try
-				{
-					remainingPages.setTextColor(ColorStateList.createFromXml(getResources(), getResources().getXml(getKeyByTheme(getThemeKey(), R.color.class, "item2"))));
-				}
-				catch (Exception e)
-				{
-					error(e);
-				}
-			}
-
-			text1.setText(isDummyTopic ? t.getCategory().toString() : t.toString());
-			text1.setTypeface(null, isDummyTopic || t.isSticky() ? Typeface.BOLD : Typeface.NORMAL);
-			text1.setGravity(isDummyTopic ? Gravity.CENTER : Gravity.LEFT);
-			ll.setBackgroundResource(isDummyTopic ? getKeyByTheme(getThemeKey(), R.drawable.class, "selector") : 0);
+			TextView topicTitle = (TextView) v.findViewById(R.id.ItemContent);
+			ImageView flag = (ImageView) v.findViewById(R.id.TopicFlag);
+			LinearLayout topicInfos = (LinearLayout) v.findViewById(R.id.TopicInfos);
+			TextView lastPostInfos = (TextView) v.findViewById(R.id.LastPostInfos);
+			TextView catTitle = (TextView) v.findViewById(R.id.CatTitle);
+			
 			int left, right, top, bottom;
 			float scale = getResources().getDisplayMetrics().density;
-			left = right = (int) (7 * scale + 0.5f);
-			top = bottom = (int) (12 * scale + 0.5f);
-			ll.setPadding(left, top, right, bottom);
 
 			if (isDummyTopic)
 			{
 				flag.setVisibility(View.GONE);
+				topicInfos.setVisibility(View.GONE);
+				lastPostInfos.setVisibility(View.GONE);
+				catTitle.setVisibility(View.VISIBLE);
+				
+				catTitle.setText(t.getCategory().toString());
+				catTitle.setTextSize(getTextSize(14));
+				v.setBackgroundResource(getKeyByTheme(getThemeKey(), R.drawable.class, "selector"));
+				
+				try
+				{				
+					catTitle.setTextColor(ColorStateList.createFromXml(getResources(), getResources().getXml(getKeyByTheme(getThemeKey(), R.color.class, "item_cat_header"))));
+				}
+				catch (Exception e)
+				{
+					error(e);
+				}
+				
+				left = right = (int) (7 * scale + 0.5f);
+				top = bottom = (int) (12 * scale + 0.5f);
+				v.setPadding(left, top, right, bottom);
 			}
 			else
 			{
+				try
+				{				
+					topicTitle.setTextColor(ColorStateList.createFromXml(getResources(), getResources().getXml(getKeyByTheme(getThemeKey(), R.color.class, "item"))));
+				}
+				catch (Exception e)
+				{
+					error(e);
+				}
+				
+				if (isMpsCat())
+				{
+					TextView unread = (TextView) topicInfos.findViewById(R.id.ItemUnread);
+					unread.setTextSize(getTextSize(12));
+					unread.setVisibility(t.isUnread() ? View.VISIBLE : View.GONE);
+
+					TextView author = (TextView) topicInfos.findViewById(R.id.ItemAuthor);
+					author.setTextSize(getTextSize(14));
+					author.setText(Html.fromHtml("<b>@" + t.getAuthor() + "</b> : "));
+					try
+					{
+						author.setTextColor(ColorStateList.createFromXml(getResources(), getResources().getXml(getKeyByTheme(getThemeKey(), R.color.class, "item"))));
+					}
+					catch (Exception e)
+					{
+						error(e);
+					}
+				}
+				else
+				{
+					topicInfos.findViewById(R.id.ItemUnread).setVisibility(View.GONE);
+					topicInfos.findViewById(R.id.ItemAuthor).setVisibility(View.GONE);
+				}
+				
+				catTitle.setVisibility(View.GONE);
+				topicTitle.setTypeface(null, t.isSticky() ? Typeface.BOLD : Typeface.NORMAL);
+				topicTitle.setText(t.toString());
+				topicTitle.setTextSize(getTextSize(14));
+				v.setBackgroundResource(0);
+				
 				flag.setVisibility(View.VISIBLE);
 				switch (t.getStatus())
 				{			
@@ -1066,6 +1073,42 @@ public class TopicsActivity extends HFR4droidMultiListActivity<ArrayAdapter<Topi
 						flag.setBackgroundResource(R.drawable.flag_blank);
 						break;
 				}
+				
+				topicInfos.setVisibility(View.VISIBLE);
+				
+				lastPostInfos.setVisibility(View.VISIBLE);
+				lastPostInfos.setTextSize(getTextSize(11));
+				SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy à HH:mm");
+				if (t.getLastReadPage() != -1)
+				{
+					lastPostInfos.setText(Html.fromHtml(
+						"(<b>" + (t.getNbPages() - t.getLastReadPage()) + "</b>" +
+						"/" + t.getNbPages() + " p) " +
+						getString(R.string.topic_add_infos,
+							sdf.format(t.getLastPostDate()),
+							t.getLastPostPseudo())));
+				}
+				else
+				{
+					lastPostInfos.setText(
+							"(" + t.getNbPages() + " p) " +
+							getString(R.string.topic_add_infos,
+								sdf.format(t.getLastPostDate()),
+								t.getLastPostPseudo()));
+				}
+
+				try
+				{
+					lastPostInfos.setTextColor(ColorStateList.createFromXml(getResources(), getResources().getXml(getKeyByTheme(getThemeKey(), R.color.class, "item2"))));
+				}
+				catch (Exception e)
+				{
+					error(e);
+				}
+				
+				left = right = (int) (7 * scale + 0.5f);
+				top = bottom = (int) (6 * scale + 0.5f);
+				v.setPadding(left, top, right, bottom);
 			}
 			return v;
 		}

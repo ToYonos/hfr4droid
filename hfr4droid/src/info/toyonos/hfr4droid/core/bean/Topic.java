@@ -1,5 +1,7 @@
 package info.toyonos.hfr4droid.core.bean;
 
+import java.util.Date;
+
 
 /**
  * <p>Bean modélisant un topic</p>
@@ -71,6 +73,8 @@ public class Topic extends BasicElement
 	private long lastReadPost;
 	private int nbPosts;
 	private int nbPages;
+	private Date lastPostDate;
+	private String lastPostPseudo;
 	private boolean sticky;
 	private boolean unread;
 	private Category category;
@@ -85,6 +89,8 @@ public class Topic extends BasicElement
 		this.lastReadPost = -1;
 		this.nbPosts = -1;
 		this.nbPages = -1;
+		this.lastPostDate = null;
+		this.lastPostPseudo = null;
 		this.sticky = false;
 		this.unread = false;
 		this.category = null;
@@ -97,7 +103,7 @@ public class Topic extends BasicElement
 		this.name = name;
 	}
 
-	public Topic(int id, String name, String author, TopicStatus status, int lastReadPage, long lastReadPost, int nbPosts, int nbPages, boolean sticky, boolean unread, Category category)
+	public Topic(int id, String name, String author, TopicStatus status, int lastReadPage, long lastReadPost, int nbPosts, int nbPages, Date lastPostDate, String lastPostPseudo, boolean sticky, boolean unread, Category category)
 	{
 		super(id, name);
 		this.status = status;
@@ -106,6 +112,8 @@ public class Topic extends BasicElement
 		this.lastReadPost = lastReadPost;
 		this.nbPosts = nbPosts;
 		this.nbPages = nbPages;
+		this.lastPostDate = lastPostDate;
+		this.lastPostPseudo = lastPostPseudo;
 		this.sticky = sticky;
 		this.unread = unread;
 		this.category = category;
@@ -168,6 +176,26 @@ public class Topic extends BasicElement
 	public void setNbPages(int nbPages)
 	{
 		this.nbPages = nbPages;
+	}
+
+	public Date getLastPostDate()
+	{
+		return lastPostDate;
+	}
+
+	public void setLastPostDate(Date lastPostDate)
+	{
+		this.lastPostDate = lastPostDate;
+	}
+
+	public String getLastPostPseudo()
+	{
+		return lastPostPseudo;
+	}
+
+	public void setLastPostPseudo(String lastPostPseudo)
+	{
+		this.lastPostPseudo = lastPostPseudo;
 	}
 
 	public Category getCategory()
