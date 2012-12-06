@@ -1820,11 +1820,10 @@ public class PostsActivity extends HFR4droidMultiListActivity<List<Post>>
 		StringBuffer postsContent = new StringBuffer("<div class=\"HFR4droid_posts_container\">");
 		for (Post p : posts)
 		{
-			SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy à HH:mm:ss");
+			SimpleDateFormat sdf = new SimpleDateFormat("'Le' dd/MM/yyyy à HH:mm:ss");
 			SimpleDateFormat todaySdf = new SimpleDateFormat("HH:mm:ss");
-			SimpleDateFormat check = new SimpleDateFormat("ddMMyyyy");
-			boolean today = check.format(new Date()).equals(check.format(p.getDate()));
-			String date = today ? todaySdf.format(p.getDate()) : "Le " + sdf.format(p.getDate());
+			SimpleDateFormat todaySdf2 = new SimpleDateFormat("à HH:mm:ss");
+			String date = formatDate(todaySdf, sdf, p.getDate());
 			String avatar = p.getAvatarUrl() != null && isAvatarsEnable ? "<img alt=\"avatar\" title=\"" + p.getPseudo() + "\" src=\"" + p.getAvatarUrl() + "\" onclick=\"openProfileWindow('" + p.getPseudo().replace("'", "\\'") + "')\" />" : "";
 			String pseudoSpan = "<span class=\"pseudo\" onclick=\"openProfileWindow('" + p.getPseudo().replace("'", "\\'") + "')\">" + p.getPseudo() + "</span>";
 			String dateSpan = "<span class=\"date\" onclick=\"openQuickActionWindow(" + p.getId() + ", " + p.isMine() + ")\">" + date + "</span>";
@@ -1834,8 +1833,7 @@ public class PostsActivity extends HFR4droidMultiListActivity<List<Post>>
 				editQuoteDiv.append("<div class=\"HFR4droid_edit_quote\">");
 				if (p.getLastEdition() != null)
 				{
-					today = check.format(new Date()).equals(check.format(p.getLastEdition()));
-					editQuoteDiv.append("Edité " + (today ? "à " + todaySdf.format(p.getLastEdition()) : "le " + sdf.format(p.getLastEdition())));
+					editQuoteDiv.append("Edité " + formatDate(todaySdf2, sdf, p.getLastEdition()));
 				}
 				if (p.getNbCitations() > 0)
 				{

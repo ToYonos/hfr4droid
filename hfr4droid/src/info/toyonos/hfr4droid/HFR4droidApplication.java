@@ -46,6 +46,7 @@ public class HFR4droidApplication extends Application
 	public static final String PREF_FULLSCREEN_ENABLE		= "PrefFullscreenEnable";
 	public static final String PREF_THEME					= "PrefTheme";
 	public static final String PREF_POLICE_SIZE				= "PrefPoliceSize";
+	public static final String Pref_TOPIC_MORE_INFOS_ENABLE	= "PrefTopicMoreInfosEnable";
 	public static final String PREF_AVATARS_DISPLAY_TYPE	= "PrefAvatarsDisplayType";
 	public static final String PREF_SMILEYS_DISPLAY_TYPE	= "PrefSmileysDisplayType";
 	public static final String PREF_IMGS_DISPLAY_TYPE		= "PrefImgsDisplayType";
@@ -225,6 +226,12 @@ public class HFR4droidApplication extends Application
 	{
 		SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(this);
 		return Integer.parseInt(settings.getString(PREF_POLICE_SIZE, getString(R.string.pref_police_size_default)));
+	}
+	
+	public boolean isTopicMoreInfosEnable()
+	{
+		SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(this);
+		return settings.getBoolean(Pref_TOPIC_MORE_INFOS_ENABLE, Boolean.parseBoolean(getString(R.string.pref_topic_more_infos_enable_default)));
 	}
 
 	public DrawableDisplayType getAvatarsDisplayType()

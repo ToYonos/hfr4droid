@@ -77,6 +77,8 @@ public class TopicsActivity extends HFR4droidMultiListActivity<ArrayAdapter<Topi
 	// Dans le cas ou aucun élément n'est récupéré, on utilise la sauvegarde 
 	private Category previousCat = null;
 	private TopicType previousType = null;
+	
+	protected boolean moreTopicInfos;
 
 	@SuppressWarnings("unchecked")
 	@Override
@@ -91,6 +93,7 @@ public class TopicsActivity extends HFR4droidMultiListActivity<ArrayAdapter<Topi
 		PullToRefreshListView topicsView = (PullToRefreshListView) inflater.inflate(R.layout.topics_dragable, null);
 		setView(topicsView);
 
+		moreTopicInfos = isTopicMoreInfosEnable();
 		applyTheme(currentTheme);
 		attachEvents();
 
@@ -967,7 +970,10 @@ public class TopicsActivity extends HFR4droidMultiListActivity<ArrayAdapter<Topi
 			TextView topicTitle = (TextView) v.findViewById(R.id.ItemContent);
 			ImageView flag = (ImageView) v.findViewById(R.id.TopicFlag);
 			LinearLayout topicInfos = (LinearLayout) v.findViewById(R.id.TopicInfos);
+			LinearLayout topicAddInfos = (LinearLayout) v.findViewById(R.id.TopicAddInfos);
 			TextView lastPostInfos = (TextView) v.findViewById(R.id.LastPostInfos);
+			TextView pagesInfos = (TextView) v.findViewById(R.id.PagesInfos);
+			TextView remainingPages = (TextView) v.findViewById(R.id.ItemRemainingPages);
 			TextView catTitle = (TextView) v.findViewById(R.id.CatTitle);
 			
 			int left, right, top, bottom;
@@ -977,7 +983,7 @@ public class TopicsActivity extends HFR4droidMultiListActivity<ArrayAdapter<Topi
 			{
 				flag.setVisibility(View.GONE);
 				topicInfos.setVisibility(View.GONE);
-				lastPostInfos.setVisibility(View.GONE);
+				remainingPages.setVisibility(View.GONE);
 				catTitle.setVisibility(View.VISIBLE);
 				
 				catTitle.setText(t.getCategory().toString());
@@ -1075,39 +1081,56 @@ public class TopicsActivity extends HFR4droidMultiListActivity<ArrayAdapter<Topi
 				}
 				
 				topicInfos.setVisibility(View.VISIBLE);
-				
-				lastPostInfos.setVisibility(View.VISIBLE);
-				lastPostInfos.setTextSize(getTextSize(11));
-				SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy à HH:mm");
-				if (t.getLastReadPage() != -1)
+
+				if (!moreTopicInfos)
 				{
-					lastPostInfos.setText(Html.fromHtml(
-						"(<b>" + (t.getNbPages() - t.getLastReadPage()) + "</b>" +
-						"/" + t.getNbPages() + " p) " +
-						getString(R.string.topic_add_infos,
-							sdf.format(t.getLastPostDate()),
-							t.getLastPostPseudo())));
+					topicAddInfos.setVisibility(View.GONE);
+					remainingPages.setVisibility(t.getLastReadPage() != -1 && (t.getNbPages() - t.getLastReadPage()) > 0 ? View.VISIBLE : View.GONE);
+					remainingPages.setText("(" + (t.getNbPages() - t.getLastReadPage()) + ")");
+					
+					try
+					{
+						remainingPages.setTextColor(ColorStateList.createFromXml(getResources(), getResources().getXml(getKeyByTheme(getThemeKey(), R.color.class, "item2"))));
+					}
+					catch (Exception e)
+					{
+						error(e);
+					}
+					
+					top = bottom = (int) (12 * scale + 0.5f);
 				}
 				else
 				{
-					lastPostInfos.setText(
-							"(" + t.getNbPages() + " p) " +
-							getString(R.string.topic_add_infos,
-								sdf.format(t.getLastPostDate()),
-								t.getLastPostPseudo()));
+					remainingPages.setVisibility(View.GONE);
+					topicAddInfos.setVisibility(View.VISIBLE);
+					lastPostInfos.setTextSize(getTextSize(11));
+					pagesInfos.setTextSize(getTextSize(11));
+					SimpleDateFormat todaySdf = new SimpleDateFormat("HH:mm");
+					SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy à HH:mm");
+					lastPostInfos.setText(getString(R.string.last_post_infos, formatDate(todaySdf, sdf, t.getLastPostDate()), t.getLastPostPseudo()));
+					if (t.getLastReadPage() != -1)
+					{
+						pagesInfos.setText(Html.fromHtml("(<b>" + (t.getNbPages() - t.getLastReadPage()) + "</b>/" + t.getNbPages() + ")"));
+					}
+					else
+					{
+						pagesInfos.setText("(" + t.getNbPages() + ")");
+					}
+	
+					try
+					{
+						lastPostInfos.setTextColor(ColorStateList.createFromXml(getResources(), getResources().getXml(getKeyByTheme(getThemeKey(), R.color.class, "item2"))));
+						pagesInfos.setTextColor(ColorStateList.createFromXml(getResources(), getResources().getXml(getKeyByTheme(getThemeKey(), R.color.class, "item2"))));
+					}
+					catch (Exception e)
+					{
+						error(e);
+					}
+					
+					top = bottom = (int) (6 * scale + 0.5f);
 				}
 
-				try
-				{
-					lastPostInfos.setTextColor(ColorStateList.createFromXml(getResources(), getResources().getXml(getKeyByTheme(getThemeKey(), R.color.class, "item2"))));
-				}
-				catch (Exception e)
-				{
-					error(e);
-				}
-				
 				left = right = (int) (7 * scale + 0.5f);
-				top = bottom = (int) (6 * scale + 0.5f);
 				v.setPadding(left, top, right, bottom);
 			}
 			return v;

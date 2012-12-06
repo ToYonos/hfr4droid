@@ -52,6 +52,10 @@
 	<string name="pref_police_size_title">Taille de la police</string>
 	<string name="pref_police_size_summary">Taille des polices dans les écrans de l\'application</string>
 	<string name="pref_police_size_default">1</string>
+	
+	<string name="pref_topic_more_infos_enable_title">+ d\'infos sur les topics</string>
+	<string name="pref_topic_more_infos_enable_summary">Afficher un nombre plus important d\'informations sur les topics</string>
+	<string name="pref_topic_more_infos_enable_default">false</string>
 
 	<string name="pref_avatars_display_type_title">Affichage des avatars</string>
 	<string name="pref_avatars_display_type_summary">Type d\'affichage des avatars dans les posts</string>

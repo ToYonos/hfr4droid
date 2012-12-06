@@ -25,6 +25,7 @@ import org.apache.http.conn.params.ConnPerRouteBean;
 import org.apache.http.conn.scheme.PlainSocketFactory;
 import org.apache.http.conn.scheme.Scheme;
 import org.apache.http.conn.scheme.SchemeRegistry;
+import org.apache.http.conn.ssl.SSLSocketFactory;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.impl.conn.tsccm.ThreadSafeClientConnManager;
 import org.apache.http.params.BasicHttpParams;
@@ -54,6 +55,7 @@ public class HttpClientHelper
 
 		SchemeRegistry schReg = new SchemeRegistry();
 		schReg.register(new Scheme("http", PlainSocketFactory.getSocketFactory(), 80));
+		schReg.register(new Scheme("https", SSLSocketFactory.getSocketFactory(), 443));
 		ClientConnectionManager conMgr = new ThreadSafeClientConnManager(parameters, schReg);
 
 		client = new DefaultHttpClient(conMgr, parameters);

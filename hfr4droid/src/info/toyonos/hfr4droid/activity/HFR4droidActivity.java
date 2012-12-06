@@ -19,7 +19,9 @@ import info.toyonos.hfr4droid.util.asynctask.PreLoadingAsyncTask.PreLoadingCompl
 import info.toyonos.hfr4droid.util.asynctask.ProgressDialogAsyncTask;
 import info.toyonos.hfr4droid.util.asynctask.DataRetrieverAsyncTask;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 import android.app.Activity;
@@ -206,6 +208,16 @@ public abstract class HFR4droidActivity extends Activity
 		{
 			currentPoliceSize = getPoliceSize();
 			redrawPage = true;
+		}
+		
+		if (this instanceof TopicsActivity)
+		{
+			TopicsActivity ta = (TopicsActivity) this;
+			if (ta.moreTopicInfos != isTopicMoreInfosEnable())
+			{
+				ta.moreTopicInfos = isTopicMoreInfosEnable();
+				redrawPage = true;
+			}
 		}
 		
 		if (this instanceof PostsActivity)
@@ -987,6 +999,11 @@ public abstract class HFR4droidActivity extends Activity
 	{
 		return getHFR4droidApplication().getPoliceSize();
 	}
+	
+	public boolean isTopicMoreInfosEnable()
+	{
+		return getHFR4droidApplication().isTopicMoreInfosEnable();
+	}
 
 	public DrawableDisplayType getAvatarsDisplayType()
 	{
@@ -1078,5 +1095,12 @@ public abstract class HFR4droidActivity extends Activity
 		{
 			public void onClick(DialogInterface dialog, int which) {}
 		}).create();
+	}
+	
+	protected String formatDate(SimpleDateFormat todaySdf, SimpleDateFormat dateHeure, Date date)
+	{
+		SimpleDateFormat check = new SimpleDateFormat("ddMMyyyy");
+		boolean today = check.format(new Date()).equals(check.format(date));
+		return today ? todaySdf.format(date) : dateHeure.format(date);
 	}
 }

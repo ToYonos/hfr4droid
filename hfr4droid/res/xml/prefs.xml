@@ -80,6 +80,11 @@
 			android:defaultValue="@string/pref_police_size_default" 
 			android:entries="@array/police_size_values"
             android:entryValues="@array/police_size_keys" />
+ 		<CheckBoxPreference
+			android:key="PrefTopicMoreInfosEnable"
+			android:summary="@string/pref_topic_more_infos_enable_summary"
+			android:title="@string/pref_topic_more_infos_enable_title"
+			android:defaultValue="@string/pref_topic_more_infos_enable_default" />           
 		<ListPreference
 			android:key="PrefAvatarsDisplayType"
 			android:summary="@string/pref_avatars_display_type_summary"

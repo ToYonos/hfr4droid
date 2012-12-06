@@ -154,7 +154,7 @@ public class DragableSpace extends ViewGroup {
 
         switch (action) {
             case MotionEvent.ACTION_DOWN:
-                Log.i(LOG_TAG, "event : down");
+                Log.d(LOG_TAG, "event : down");
                 /*
                  * If being flinged and user touches, stop the fling. isFinished
                  * will be false if being flinged.
@@ -192,7 +192,7 @@ public class DragableSpace extends ViewGroup {
                 // }
                 break;
             case MotionEvent.ACTION_UP:
-                Log.i(LOG_TAG, "event : up");
+                Log.d(LOG_TAG, "event : up");
                 // if (mTouchState == TOUCH_STATE_SCROLLING) {
                 final VelocityTracker velocityTracker = mVelocityTracker;
                 velocityTracker.computeCurrentVelocity(1000);
@@ -233,7 +233,7 @@ public class DragableSpace extends ViewGroup {
                 mTouchState = TOUCH_STATE_REST;
                 break;
             case MotionEvent.ACTION_CANCEL:
-                Log.i(LOG_TAG, "event : cancel");
+                Log.d(LOG_TAG, "event : cancel");
                 mTouchState = TOUCH_STATE_REST;
         }
         mScrollX = this.getScrollX();
@@ -244,27 +244,35 @@ public class DragableSpace extends ViewGroup {
     private void snapToDestination() {
         final int screenWidth = getWidth();
         final int whichScreen = (mScrollX + (screenWidth / 2)) / screenWidth;
-        Log.i(LOG_TAG, "from des");
+        Log.d(LOG_TAG, "from des");
         snapToScreen(whichScreen);
     }
 
     public void snapToScreen(int whichScreen)
     {
-    	if (whichScreen < 0 && onScreenChangeListener != null) onScreenChangeListener.onFailRearward();
-    	if (whichScreen > getChildCount() - 1 && onScreenChangeListener != null) onScreenChangeListener.onFailForward();
-
-        Log.i(LOG_TAG, "snap To Screen " + whichScreen);
-        int oldScreen = mCurrentScreen;
-        mCurrentScreen = whichScreen;
-        final int newX = whichScreen * getWidth();
-        final int delta = newX - mScrollX;
-        mScroller.startScroll(mScrollX, 0, delta, 0, Math.abs(delta) * 2);             
-        invalidate();
-        if (onScreenChangeListener != null) onScreenChangeListener.onScreenChange(oldScreen, whichScreen);
+    	if (whichScreen < 0 && onScreenChangeListener != null)
+    	{
+    		onScreenChangeListener.onFailRearward();
+    	}
+    	else if (whichScreen > getChildCount() - 1 && onScreenChangeListener != null)
+    	{
+    		onScreenChangeListener.onFailForward();
+    	}
+    	else
+    	{
+	        Log.d(LOG_TAG, "snap To Screen " + whichScreen);
+	        int oldScreen = mCurrentScreen;
+	        mCurrentScreen = whichScreen;
+	        final int newX = whichScreen * getWidth();
+	        final int delta = newX - mScrollX;
+	        mScroller.startScroll(mScrollX, 0, delta, 0, Math.abs(delta) * 2);             
+	        invalidate();
+	        if (onScreenChangeListener != null) onScreenChangeListener.onScreenChange(oldScreen, whichScreen);
+    	}
     }
 
     public void setToScreen(int whichScreen) {
-        Log.i(LOG_TAG, "set To Screen " + whichScreen);
+        Log.d(LOG_TAG, "set To Screen " + whichScreen);
         mCurrentScreen = whichScreen;
         final int newX = whichScreen * getWidth();
         mScroller.startScroll(newX, 0, 0, 0, 10);             
@@ -308,7 +316,7 @@ public class DragableSpace extends ViewGroup {
         for (int i = 0; i < count; i++) {
             getChildAt(i).measure(widthMeasureSpec, heightMeasureSpec);
         }
-        Log.i(LOG_TAG, "moving to screen "+mCurrentScreen);
+        Log.d(LOG_TAG, "moving to screen "+mCurrentScreen);
         scrollTo(mCurrentScreen * width, 0);      
     }  
 
