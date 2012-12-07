@@ -1110,7 +1110,7 @@ public class TopicsActivity extends HFR4droidMultiListActivity<ArrayAdapter<Topi
 					lastPostInfos.setText(getString(R.string.last_post_infos, formatDate(todaySdf, sdf, t.getLastPostDate()), t.getLastPostPseudo()));
 					if (t.getLastReadPage() != -1)
 					{
-						pagesInfos.setText(Html.fromHtml("(<b>" + (t.getNbPages() - t.getLastReadPage()) + "</b>/" + t.getNbPages() + ")"));
+						pagesInfos.setText(Html.fromHtml("(" + t.getNbPages() + "/<b>" + (t.getNbPages() - t.getLastReadPage()) + "</b>)"));
 					}
 					else
 					{
