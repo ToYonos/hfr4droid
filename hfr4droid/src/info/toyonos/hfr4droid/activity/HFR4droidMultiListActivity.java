@@ -193,7 +193,7 @@ public abstract class HFR4droidMultiListActivity<DS> extends HFR4droidActivity
 	
 	public void insertAfter(DS dataSource, View view)
 	{
-		if (dataSource == null || view == null) return;
+		if (dataSources == null || views == null) return;
 		
 		switch (getCurrentIndex())
 		{
@@ -232,7 +232,7 @@ public abstract class HFR4droidMultiListActivity<DS> extends HFR4droidActivity
 	
 	public void insertBefore(DS dataSource, View view)
 	{
-		if (dataSource == null || view == null) return;
+		if (dataSources == null || views == null) return;
 		
 		switch (getCurrentIndex())
 		{

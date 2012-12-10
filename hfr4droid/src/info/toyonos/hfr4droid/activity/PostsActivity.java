@@ -138,8 +138,6 @@ import com.naholyr.android.ui.QuickActionWindow.Item;
  *
  */
 
-// TODO page suivante auto si next ou back une fois
-
 @SuppressWarnings("deprecation")
 public class PostsActivity extends HFR4droidMultiListActivity<List<Post>>
 {
@@ -2499,6 +2497,7 @@ public class PostsActivity extends HFR4droidMultiListActivity<List<Post>>
 				if (currentPageNumber == topic.getNbPages() - 1 // On est sur la page n-1, on rafraichit la dernière page
 				&& getCurrentIndex() < 2 && getView(getCurrentIndex() + 1) != null && getDatasource(getCurrentIndex() + 1) != null)
 				{
+					topic.setLastReadPage(-1); // On marque la dernière page en lue car un message a été posté et on ne doit pas utilisé le fake account
 					removeView(getCurrentIndex() + 1);
 					preLoadingPostsAsyncTask = new PreLoadingPostsAsyncTask(PostsActivity.this);
 					preLoadingPostsAsyncTask.execute(topic.getNbPages(), topic);
