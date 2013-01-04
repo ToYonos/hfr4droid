@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-	package="info.toyonos.hfr4droid"
+    package="info.toyonos.hfr4droid"
 	android:versionCode="071"
 	android:versionName="0.7.1"
 	android:installLocation="auto">
@@ -13,23 +13,23 @@
 	<uses-sdk android:minSdkVersion="4" android:targetSdkVersion="10" />
 	<supports-screens android:smallScreens="true" android:largeScreens="true" android:anyDensity="true"/>
 
-	<application android:icon="@drawable/icon" android:label="@string/app_name" android:name=".HFR4droidApplication" android:hardwareAccelerated="true" android:debuggable="true">
-		<activity android:label="@string/app_name" android:name=".activity.SplashActivity" android:configChanges="keyboard|keyboardHidden|orientation">
+	<application android:icon="@drawable/icon" android:label="@string/app_name" android:name="info.toyonos.hfr4droid.lib.HFR4droidApplication" android:hardwareAccelerated="true" android:debuggable="true">
+		<activity android:name="info.toyonos.hfr4droid.lib.activity.SplashActivity" android:configChanges="keyboard|keyboardHidden|orientation">
 			<intent-filter>
 				<action android:name="android.intent.action.MAIN" />
 				<category android:name="android.intent.category.LAUNCHER" />
 			</intent-filter>
 		</activity>
 
-		<activity android:name=".activity.CategoriesActivity" android:configChanges="keyboard|keyboardHidden|orientation" />		    
+		<activity android:name="info.toyonos.hfr4droid.lib.activity.CategoriesActivity" android:configChanges="keyboard|keyboardHidden|orientation" />		    
 		    
-		<activity android:name=".activity.TopicsActivity" android:configChanges="keyboard|keyboardHidden|orientation" />
+		<activity android:name="info.toyonos.hfr4droid.lib.activity.TopicsActivity" android:configChanges="keyboard|keyboardHidden|orientation" />
 
-		<activity android:name=".activity.PostsActivity" android:configChanges="keyboard|keyboardHidden|orientation" />
+		<activity android:name="info.toyonos.hfr4droid.lib.activity.PostsActivity" android:configChanges="keyboard|keyboardHidden|orientation" />
 		
-		<activity android:name=".activity.PostsSearchActivity" android:configChanges="keyboard|keyboardHidden|orientation" android:windowSoftInputMode="stateHidden" />
+		<activity android:name="info.toyonos.hfr4droid.lib.activity.PostsSearchActivity" android:configChanges="keyboard|keyboardHidden|orientation" android:windowSoftInputMode="stateHidden" />
 
-		<activity android:name=".activity.HFR4droidDispatcher" android:noHistory="true">
+		<activity android:name="info.toyonos.hfr4droid.lib.activity.HFR4droidDispatcher" android:noHistory="true">
 			<intent-filter>
 				<action android:name="android.intent.action.VIEW" />
 				<category android:name="android.intent.category.DEFAULT" />
@@ -38,7 +38,7 @@
 			</intent-filter>
 		</activity>
 
-		<activity android:name=".activity.NewTopicActivity" android:configChanges="keyboard|keyboardHidden|orientation" android:windowSoftInputMode="adjustPan">
+		<activity android:name="info.toyonos.hfr4droid.lib.activity.NewTopicActivity" android:configChanges="keyboard|keyboardHidden|orientation" android:windowSoftInputMode="adjustPan">
 			<intent-filter android:label="@string/send_mp">
 				<action android:name="android.intent.action.SEND" />
 				<category android:name="android.intent.category.DEFAULT" />
@@ -47,11 +47,11 @@
 			</intent-filter>
 		</activity>
 
-		<activity android:name=".activity.NewPostActivity" android:configChanges="keyboard|keyboardHidden|orientation" android:windowSoftInputMode="adjustPan" />
+		<activity android:name="info.toyonos.hfr4droid.lib.activity.NewPostActivity" android:configChanges="keyboard|keyboardHidden|orientation" android:windowSoftInputMode="adjustPan" />
 
-		<activity android:name=".activity.HFR4droidPrefs"/>
+		<activity android:name="info.toyonos.hfr4droid.lib.activity.HFR4droidPrefs"/>
 		
-		<activity android:name=".activity.ImagePicker" android:icon="@drawable/hfrrehostnet" android:theme="@android:style/Theme.Translucent.NoTitleBar">
+		<activity android:name="info.toyonos.hfr4droid.lib.activity.ImagePicker" android:icon="@drawable/hfrrehostnet" android:theme="@android:style/Theme.Translucent.NoTitleBar">
 			<intent-filter android:label="@string/upload_hfr_rehost">
 				<action android:name="android.intent.action.SEND" />
 				<category android:name="android.intent.category.DEFAULT" />
@@ -59,8 +59,8 @@
 			</intent-filter>
 		</activity>
 
-		<service android:name=".service.MpNotifyService" />
-		<service android:name=".service.MpCheckService" />
-		<service android:name=".service.MpTimerCheckService" />
+		<service android:name="info.toyonos.hfr4droid.lib.service.MpNotifyService" />
+		<service android:name="info.toyonos.hfr4droid.lib.service.MpCheckService" />
+		<service android:name="info.toyonos.hfr4droid.lib.service.MpTimerCheckService" />
 	</application>
 </manifest>
