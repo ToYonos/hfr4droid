@@ -86,7 +86,7 @@ public abstract class HFR4droidMultiListActivity<DS> extends HFR4droidActivity
 	
 	protected void setView(View view)
 	{
-		if (view == null) return;
+		if (views == null) return;
 
 		View oldView = views[getCurrentIndex()];
 		if (oldView != null)
