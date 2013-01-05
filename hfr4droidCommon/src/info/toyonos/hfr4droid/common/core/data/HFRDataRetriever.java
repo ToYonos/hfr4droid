@@ -1202,6 +1202,11 @@ public class HFRDataRetriever implements MDDataRetriever
 			Log.d(HFR4droidApplication.TAG, "No cache yet");
 			return false;
 		}
+		catch (ClassNotFoundException e) // Pour gérer le changement de nom des packages
+		{
+			Log.w(HFR4droidApplication.TAG, "Wrong classname for the cookies, cancelling the auto-login");
+			return false;
+		}
 		catch (Exception e) // ClassNotFoundException, IOException
 		{
 			throw new DataRetrieverException(context.getString(R.string.error_deserializing_cats), e);

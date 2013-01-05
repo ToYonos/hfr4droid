@@ -25,6 +25,7 @@ import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.protocol.HTTP;
 
 import android.content.Context;
+import android.util.Log;
 
 /**
  * <b>HfrAuthentication est la classe permettant de gérer la connexion au site http://forum.hardware.fr</b>
@@ -200,6 +201,11 @@ public class HFRAuthentication
 		}
 		catch (FileNotFoundException e)
 		{
+			return null;
+		}
+		catch (ClassNotFoundException e) // Pour gérer le changement de nom des packages
+		{
+			Log.w(HFR4droidApplication.TAG, "Wrong classname for the cookies, cancelling the auto-login");
 			return null;
 		}
 
