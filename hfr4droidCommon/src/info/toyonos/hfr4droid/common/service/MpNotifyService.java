@@ -2,7 +2,6 @@ package info.toyonos.hfr4droid.common.service;
 
 import info.toyonos.hfr4droid.common.HFR4droidApplication;
 import info.toyonos.hfr4droid.common.R;
-import info.toyonos.hfr4droid.common.activity.PostsActivity;
 import info.toyonos.hfr4droid.common.activity.TopicsActivity;
 import info.toyonos.hfr4droid.common.core.bean.Category;
 import info.toyonos.hfr4droid.common.core.bean.Topic;
@@ -119,7 +118,8 @@ public class MpNotifyService extends Service
 				PendingIntent pendingIntent = null;
 				if (nbMps == 1 && mp != null)
 				{
-					Intent intent = new Intent(MpNotifyService.this, PostsActivity.class);
+					Intent intent = new Intent();
+					intent.setClassName(MpNotifyService.this, getApplication().getClass().getPackage().getName() + ".activity.PostsActivity");
 					intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
 					Bundle bundle = new Bundle();
 					bundle.putSerializable("topic", mp);

@@ -177,7 +177,7 @@ public class PostsActivity extends HFR4droidMultiListActivity<List<Post>>
 	private GestureDetector gestureDetector;
 	private int currentScrollY;
 
-	private Dialog postDialog;
+	protected Dialog postDialog;
 	private NewPostUIHelper uiHelper;
 	private long postId;
 
@@ -2435,15 +2435,11 @@ public class PostsActivity extends HFR4droidMultiListActivity<List<Post>>
 									switch (code)
 									{	
 										case POST_EDIT_OK: // Edit ok
-											postContent.setText("");
-											postDialog.dismiss();
 											topic.setLastReadPost(postId);
 											onPostingOk(code, postId);
 											return true;									
 				
 										case POST_ADD_OK: // New post ok
-											postContent.setText("");
-											postDialog.dismiss();
 											onPostingOk(code, postId);
 											return true;
 										
@@ -2483,6 +2479,10 @@ public class PostsActivity extends HFR4droidMultiListActivity<List<Post>>
 	
 	protected void onPostingOk(ResponseCode code, long postId)
 	{
+		EditText postContent = (EditText) postDialog.findViewById(R.id.InputPostContent);
+		postContent.setText("");
+		postDialog.dismiss();
+
 		switch (code)
 		{	
 			case POST_EDIT_OK: // Edit ok

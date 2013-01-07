@@ -15,9 +15,9 @@ import info.toyonos.hfr4droid.common.core.data.MDDataRetriever;
 import info.toyonos.hfr4droid.common.core.message.HFRMessageSender;
 import info.toyonos.hfr4droid.common.service.MpCheckService;
 import info.toyonos.hfr4droid.common.service.MpTimerCheckService;
+import info.toyonos.hfr4droid.common.util.asynctask.DataRetrieverAsyncTask;
 import info.toyonos.hfr4droid.common.util.asynctask.PreLoadingAsyncTask.PreLoadingCompleteListener;
 import info.toyonos.hfr4droid.common.util.asynctask.ProgressDialogAsyncTask;
-import info.toyonos.hfr4droid.common.util.asynctask.DataRetrieverAsyncTask;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -29,7 +29,6 @@ import android.app.AlertDialog;
 import android.app.NotificationManager;
 import android.content.Context;
 import android.content.DialogInterface;
-import android.content.DialogInterface.OnCancelListener;
 import android.content.DialogInterface.OnClickListener;
 import android.content.Intent;
 import android.content.pm.PackageInfo;
@@ -673,36 +672,7 @@ public abstract class HFR4droidActivity extends Activity
 				//super.onError(e);
 				if (HFR4droidActivity.this instanceof SplashActivity)
 				{
-					runOnUiThread(new Runnable()
-					{
-						public void run()
-						{
-							new AlertDialog.Builder(HFR4droidActivity.this)
-							.setTitle(R.string.error_splash_title)
-							.setMessage(getMessage(e, null))
-							.setOnCancelListener(new OnCancelListener()
-							{
-								public void onCancel(DialogInterface dialog)
-								{
-									finish();
-								}
-							})
-							.setPositiveButton(R.string.error_splash_retry,  new DialogInterface.OnClickListener()
-							{
-								public void onClick(DialogInterface dialog, int which) 
-								{
-									((SplashActivity) HFR4droidActivity.this).run();
-								}
-							})
-							.setNegativeButton(R.string.error_splash_cancel, new DialogInterface.OnClickListener()
-							{
-								public void onClick(DialogInterface dialog, int which) 
-								{
-									finish();
-								}
-							}).show();
-						}
-					});
+					((SplashActivity) HFR4droidActivity.this).retry(e);
 				}
 			}
 		};
@@ -829,8 +799,11 @@ public abstract class HFR4droidActivity extends Activity
 			@Override
 			protected void onError(Exception e)
 			{
-				super.onError(e);
-				if (HFR4droidActivity.this instanceof SplashActivity) finish();
+				//super.onError(e);
+				if (HFR4droidActivity.this instanceof SplashActivity)
+				{
+					((SplashActivity) HFR4droidActivity.this).retry(e);
+				}
 			}
 		};
 		
@@ -901,7 +874,8 @@ public abstract class HFR4droidActivity extends Activity
 			@Override
 			protected void onPostExecuteOtherActivity(List<Post> posts)
 			{
-				Intent intent = new Intent(HFR4droidActivity.this, PostsActivity.class);
+				Intent intent = new Intent();
+				intent.setClassName(HFR4droidActivity.this, getHFR4droidApplication().getClass().getPackage().getName() + ".activity.PostsActivity");
 				if (!keepNavigationHistory) intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
 				Bundle bundle = new Bundle();
 				bundle.putSerializable("posts", new ArrayList<Post>(posts));

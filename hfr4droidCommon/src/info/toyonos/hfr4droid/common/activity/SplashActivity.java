@@ -10,6 +10,9 @@ import info.toyonos.hfr4droid.common.util.asynctask.DataRetrieverAsyncTask;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
+import android.app.AlertDialog;
+import android.content.DialogInterface;
+import android.content.DialogInterface.OnCancelListener;
 import android.content.res.Configuration;
 import android.os.Bundle;
 import android.util.Log;
@@ -92,6 +95,40 @@ public class SplashActivity extends HFR4droidActivity
 			}
 		});
 		waitingThread.start();
+	}
+	
+	public void retry(final Exception e)
+	{
+		runOnUiThread(new Runnable()
+		{
+			public void run()
+			{
+				new AlertDialog.Builder(SplashActivity.this)
+				.setTitle(R.string.error_splash_title)
+				.setMessage(getMessage(e, null))
+				.setOnCancelListener(new OnCancelListener()
+				{
+					public void onCancel(DialogInterface dialog)
+					{
+						finish();
+					}
+				})
+				.setPositiveButton(R.string.error_splash_retry,  new DialogInterface.OnClickListener()
+				{
+					public void onClick(DialogInterface dialog, int which) 
+					{
+						run();
+					}
+				})
+				.setNegativeButton(R.string.error_splash_cancel, new DialogInterface.OnClickListener()
+				{
+					public void onClick(DialogInterface dialog, int which) 
+					{
+						finish();
+					}
+				}).show();
+			}
+		});
 	}
 
 	@Override
