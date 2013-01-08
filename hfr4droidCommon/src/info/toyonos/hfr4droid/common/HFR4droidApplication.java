@@ -87,6 +87,11 @@ public class HFR4droidApplication extends Application
 	{
 		return msgSender;
 	}
+	
+	public HFRAuthentication getAuthentication()
+	{
+		return auth;
+	}
 
 	/**
 	 * Connexion au forum

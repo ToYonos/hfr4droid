@@ -55,7 +55,7 @@ import android.widget.Toast;
  */
 public class CategoriesActivity extends HFR4droidListActivity<Category>
 {
-	private AlertDialog infoDialog;
+	protected AlertDialog infoDialog;
 	private boolean isCatsLoaded;
 	private GestureDetector gestureDetector;
 	protected List<Category> expandedCats  = new ArrayList<Category>();

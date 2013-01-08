@@ -21,7 +21,7 @@
 			</intent-filter>
 		</activity>
 
-		<activity android:name="info.toyonos.hfr4droid.common.activity.CategoriesActivity" android:configChanges="keyboard|keyboardHidden|orientation" />
+		<activity android:name="info.toyonos.hfr4droid.donate.activity.CategoriesActivity" android:configChanges="keyboard|keyboardHidden|orientation" />
 		    
 		<activity android:name="info.toyonos.hfr4droid.common.activity.TopicsActivity" android:configChanges="keyboard|keyboardHidden|orientation" />
 

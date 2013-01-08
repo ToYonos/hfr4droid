@@ -657,7 +657,8 @@ public abstract class HFR4droidActivity extends Activity
 			@Override
 			protected void onPostExecuteOtherActivity(List<Category> cats)
 			{
-				Intent intent = new Intent(HFR4droidActivity.this, CategoriesActivity.class);
+				Intent intent = new Intent();
+				intent.setClassName(HFR4droidActivity.this, getHFR4droidApplication().getClass().getPackage().getName() + ".activity.CategoriesActivity");
 				intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
 				Bundle bundle = new Bundle();
 				bundle.putSerializable("cats", new ArrayList<Category>(cats));
@@ -752,9 +753,11 @@ public abstract class HFR4droidActivity extends Activity
 			protected void onPostExecuteOtherActivity(List<Topic> topics)
 			{
 				// On passe par CategoriesActivity pour garder une navigation cohérente si on l'on vient de SplashActivity
-				Class<?> dest = HFR4droidActivity.this instanceof SplashActivity ? CategoriesActivity.class : TopicsActivity.class;
-
-				Intent intent = new Intent(HFR4droidActivity.this, dest);
+				Intent intent = new Intent();
+				intent.setClassName(HFR4droidActivity.this,	HFR4droidActivity.this instanceof SplashActivity ?
+						getHFR4droidApplication().getClass().getPackage().getName() + ".activity." + CategoriesActivity.class.getSimpleName() :
+						TopicsActivity.class.getName());
+						
 				intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
 				Bundle bundle = new Bundle();
 				bundle.putSerializable("topics", new ArrayList<Topic>(topics));

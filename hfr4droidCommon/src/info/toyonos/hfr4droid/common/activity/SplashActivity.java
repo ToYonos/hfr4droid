@@ -75,15 +75,7 @@ public class SplashActivity extends HFR4droidActivity
 					{	
 						public void run()
 						{
-							int welcomeScreen = getWelcomeScreen();
-							if (welcomeScreen > 0 && isLoggedIn())
-							{
-								task = loadTopics(Category.ALL_CATS, TopicType.fromInt(welcomeScreen), 1, false, false);
-							}
-							else
-							{
-								task = loadCats(false, false);
-							}
+							doAction();
 						}
 					});
 				}
@@ -95,6 +87,19 @@ public class SplashActivity extends HFR4droidActivity
 			}
 		});
 		waitingThread.start();
+	}
+	
+	private void doAction()
+	{
+		int welcomeScreen = getWelcomeScreen();
+		if (welcomeScreen > 0 && isLoggedIn())
+		{
+			task = loadTopics(Category.ALL_CATS, TopicType.fromInt(welcomeScreen), 1, false, false);
+		}
+		else
+		{
+			task = loadCats(false, false);
+		}
 	}
 	
 	public void retry(final Exception e)
@@ -117,7 +122,7 @@ public class SplashActivity extends HFR4droidActivity
 				{
 					public void onClick(DialogInterface dialog, int which) 
 					{
-						run();
+						doAction();
 					}
 				})
 				.setNegativeButton(R.string.error_splash_cancel, new DialogInterface.OnClickListener()
