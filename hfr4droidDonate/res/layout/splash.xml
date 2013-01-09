@@ -1,42 +1,59 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:id="@+id/SplashContainer"
-    android:orientation="vertical"
-    android:layout_width="fill_parent"
-    android:layout_height="fill_parent"
-    android:gravity="center">
-    <LinearLayout
-	    android:id="@+id/SplashContainer"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+	android:id="@+id/SplashContainer"
+	android:layout_width="fill_parent"
+	android:layout_height="fill_parent">
+	<LinearLayout
 	    android:orientation="vertical"
-	    android:layout_width="wrap_content"
-	    android:layout_height="wrap_content"
-	    android:paddingBottom="30dip">
+	    android:layout_width="fill_parent"
+	    android:layout_height="fill_parent"
+	    android:gravity="center">
+	    <LinearLayout
+		    android:orientation="vertical"
+		    android:layout_width="wrap_content"
+		    android:layout_height="wrap_content"
+		    android:paddingBottom="15dip">
+		    <FrameLayout
+				android:layout_width="fill_parent"
+		    	android:layout_height="wrap_content">
+				<ImageView 
+			    	android:id="@+id/SplashLogo"
+					android:layout_width="wrap_content"
+		    		android:layout_height="wrap_content" />
+				<ImageView 
+					android:id="@+id/SplashLogoGlasses"
+			    	android:layout_gravity="top|center_horizontal"
+					android:layout_width="wrap_content"
+		    		android:layout_height="wrap_content" />
+		    </FrameLayout>	    		
+		</LinearLayout>
 		<ImageView 
-		    android:id="@+id/SplashLogo"
-			android:layout_width="wrap_content"
+		    android:id="@+id/SplashAnimation"
+		    android:gravity="center"
+		    android:layout_width="wrap_content"
 	    	android:layout_height="wrap_content" />
+		<TextView
+		    android:id="@+id/ThankYou"
+			android:layout_width="fill_parent"
+	    	android:layout_height="wrap_content"
+	    	android:gravity="center"
+			android:textSize="13dip"
+			android:paddingTop="10dip"
+			android:paddingBottom="5dip"
+			android:text="@string/thankyou"
+			android:textStyle="bold" />
+		<TextView
+		    android:id="@+id/VersionAndAuthor"
+			android:layout_width="fill_parent"
+	    	android:layout_height="wrap_content"
+	    	android:gravity="center"
+			android:textSize="13dip"
+			android:paddingTop="5dip"
+			android:textStyle="bold" />
 	</LinearLayout>
 	<ImageView 
-	    android:id="@+id/SplashAnimation"
-	    android:gravity="center"
-	    android:layout_width="wrap_content"
-    	android:layout_height="wrap_content" />
-	<TextView
-	    android:id="@+id/ThankYou"
-		android:layout_width="fill_parent"
-    	android:layout_height="wrap_content"
-    	android:gravity="center"
-		android:textSize="13dip"
-		android:paddingTop="10dip"
-		android:paddingBottom="5dip"
-		android:text="@string/thankyou"
-		android:textStyle="bold" />
-	<TextView
-	    android:id="@+id/VersionAndAuthor"
-		android:layout_width="fill_parent"
-    	android:layout_height="wrap_content"
-    	android:gravity="center"
-		android:textSize="13dip"
-		android:paddingTop="5dip"
-		android:textStyle="bold" />
-</LinearLayout>
+	 	android:id="@+id/Premium"
+	  	android:layout_gravity="top|left"
+		android:layout_width="wrap_content"
+		android:layout_height="wrap_content" />
+</FrameLayout>

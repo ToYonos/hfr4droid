@@ -143,7 +143,7 @@ public class SplashActivity extends HFR4droidActivity
 		updateLogo();
 	}
 
-	private void updateLogo()
+	protected void updateLogo()
 	{
 		Display display = getWindowManager().getDefaultDisplay();
 		boolean landscape = display.getWidth() > display.getHeight();
@@ -151,7 +151,7 @@ public class SplashActivity extends HFR4droidActivity
 		boolean december = sdf.format(new Date()).equals("12");
 		
 		ImageView logo = (ImageView) findViewById(R.id.SplashLogo);
-		logo.setBackgroundResource(landscape ? (
+		logo.setImageResource(landscape ? (
 		december ? R.drawable.logo_medium_xmas : R.drawable.logo_medium) : (
 		december ? R.drawable.logo_big_xmas : R.drawable.logo_big));
 	}
