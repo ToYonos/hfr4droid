@@ -670,10 +670,13 @@ public abstract class HFR4droidActivity extends Activity
 			@Override
 			protected void onError(final Exception e)
 			{
-				//super.onError(e);
 				if (HFR4droidActivity.this instanceof SplashActivity)
 				{
 					((SplashActivity) HFR4droidActivity.this).retry(e);
+				}
+				else
+				{
+					super.onError(e);
 				}
 			}
 		};
@@ -802,10 +805,13 @@ public abstract class HFR4droidActivity extends Activity
 			@Override
 			protected void onError(Exception e)
 			{
-				//super.onError(e);
 				if (HFR4droidActivity.this instanceof SplashActivity)
 				{
 					((SplashActivity) HFR4droidActivity.this).retry(e);
+				}
+				else
+				{
+					super.onError(e);
 				}
 			}
 		};
