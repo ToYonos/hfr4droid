@@ -1,5 +1,6 @@
 package info.toyonos.hfr4droid.donate.activity;
 
+import info.toyonos.hfr4droid.common.HFR4droidApplication;
 import info.toyonos.hfr4droid.donate.R;
 
 import java.io.File;
@@ -18,8 +19,10 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.StatFs;
+import android.util.Log;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
+import android.view.Menu;
 import android.view.View;
 import android.view.View.OnKeyListener;
 import android.view.inputmethod.InputMethodManager;
@@ -31,6 +34,8 @@ public class CategoriesActivity extends	info.toyonos.hfr4droid.common.activity.C
 {
 	private int[] sequence = new int[] {0, 0, 0, 0 ,0 ,0};
 	private AlertDialog promptDialog;
+	private int menuCount = 0;
+	private long lastMenuDate = 0;
 	
 	/** Les commandes */
 	private enum Command
@@ -228,6 +233,37 @@ public class CategoriesActivity extends	info.toyonos.hfr4droid.common.activity.C
 				Toast.makeText(CategoriesActivity.this, getString(R.string.unknowncommand, prompt.getText().toString()), Toast.LENGTH_SHORT).show();
 				hideKeyboard(prompt);
 				break;
+		}
+	}
+	
+	@Override
+	public boolean onPrepareOptionsMenu(Menu menu)
+	{
+		long now = System.currentTimeMillis();
+		long diff = now - lastMenuDate;
+		if (lastMenuDate == 0 || diff < 2000)
+		{
+			menuCount++;
+			Log.d(HFR4droidApplication.TAG, "count = " + menuCount + ", diff " + diff);
+			lastMenuDate = now;
+		}
+		else
+		{
+			menuCount = 0;
+			lastMenuDate = 0;
+		}
+		
+		if (menuCount == 3)
+		{
+			InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+	        imm.toggleSoftInput(InputMethodManager.SHOW_FORCED, 0);
+			menuCount = 0;
+			lastMenuDate = 0;
+			return false;
+		}
+		else
+		{
+			return super.onPrepareOptionsMenu(menu);
 		}
 	}
 }
