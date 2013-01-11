@@ -79,8 +79,13 @@ public class NewTopicActivity extends NewPostGenericActivity
 		{
 			finish();
 			return;
-		}		
+		}
+
 		uiHelper.addPostButtons(this, layout);
+		((EditText) layout.findViewById(R.id.InputPostContent)).setTextSize(getTextSize(14));
+		((EditText) layout.findViewById(R.id.InputSmileyTag)).setTextSize(getTextSize(14));
+		((EditText) layout.findViewById(R.id.inputMpTo)).setTextSize(getTextSize(14));
+		((EditText) layout.findViewById(R.id.inputTopicSubject)).setTextSize(getTextSize(14));
 	}
 	
 	@Override

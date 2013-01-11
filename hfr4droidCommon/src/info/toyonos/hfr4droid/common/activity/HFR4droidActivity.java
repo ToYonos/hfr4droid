@@ -320,6 +320,7 @@ public abstract class HFR4droidActivity extends Activity
 			else
 			{
 				getConfirmDialog(
+				this,
 				getString(R.string.logout_title),
 				getString(R.string.are_u_sure_message),
 				new DialogInterface.OnClickListener()
@@ -1078,16 +1079,23 @@ public abstract class HFR4droidActivity extends Activity
 		}
 	}
 	
-	protected AlertDialog getConfirmDialog(String title, String message, DialogInterface.OnClickListener listener)
+	public static AlertDialog getConfirmDialog(Activity context, String title, String message, DialogInterface.OnClickListener listenerOk)
 	{
-		return new AlertDialog.Builder(HFR4droidActivity.this)
-		.setTitle(title)
-		.setMessage(message)
-		.setPositiveButton(R.string.button_yes, listener)
-		.setNegativeButton(R.string.button_no, new DialogInterface.OnClickListener()
+		return getConfirmDialog(context, title, message, listenerOk,
+		new DialogInterface.OnClickListener()
 		{
 			public void onClick(DialogInterface dialog, int which) {}
-		}).create();
+		});
+	}
+	
+	public static AlertDialog getConfirmDialog(Activity context, String title, String message, DialogInterface.OnClickListener listenerOk, DialogInterface.OnClickListener listenerKo)
+	{
+		return new AlertDialog.Builder(context)
+		.setTitle(title)
+		.setMessage(message)
+		.setPositiveButton(R.string.button_yes, listenerOk)
+		.setNegativeButton(R.string.button_no, listenerKo)
+		.create();
 	}
 	
 	protected String formatDate(SimpleDateFormat todaySdf, SimpleDateFormat dateHeure, Date date)

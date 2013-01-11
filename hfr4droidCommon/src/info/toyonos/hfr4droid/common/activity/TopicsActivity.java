@@ -374,6 +374,7 @@ public class TopicsActivity extends HFR4droidMultiListActivity<ArrayAdapter<Topi
 		else if (aItem.getItemId() == R.id.MenuNavDeleteMP)
 		{
 			getConfirmDialog(
+			this,
 			getString(R.string.delete_mp_title),
 			getString(R.string.are_u_sure_message),
 			new DialogInterface.OnClickListener()

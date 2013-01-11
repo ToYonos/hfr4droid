@@ -62,7 +62,10 @@ public class NewPostActivity extends NewPostGenericActivity
 			finish();
 			return;
 		}
+
 		uiHelper.addPostButtons(this, layout);
+		((EditText) layout.findViewById(R.id.InputPostContent)).setTextSize(getTextSize(14));
+		((EditText) layout.findViewById(R.id.InputSmileyTag)).setTextSize(getTextSize(14));
 	}
 	
 	@Override

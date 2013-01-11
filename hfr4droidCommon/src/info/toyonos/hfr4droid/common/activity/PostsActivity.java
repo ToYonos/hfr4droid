@@ -1856,7 +1856,7 @@ public class PostsActivity extends HFR4droidMultiListActivity<List<Post>>
 			content = content.replaceAll("<a\\s*href=\"(http://forum\\.hardware\\.fr.*?)\"\\s*target=\"_blank\"\\s*class=\"cLink\">", "<a onclick=\"window.HFR4Droid.handleUrl('$1');\" class=\"cLink\">");			
 			if (!isSmileysEnable) content = content.replaceAll("<img\\s*src=\"http://forum\\-images\\.hardware\\.fr.*?\"\\s*alt=\"(.*?)\".*?/>", "$1");
 			content = content.replaceAll("<img\\s*src=\"http://forum\\-images\\.hardware\\.fr/images/perso/(.*?)\"\\s*alt=\"(.*?)\"", "<img onclick=\"window.HFR4Droid.editKeywords('$2');\" src=\"http://forum-images.hardware.fr/images/perso/$1\" alt=\"$2\"");
-			if (!isImgsEnable) content = content.replaceAll("<img\\s*src=\"http://[^\"]*?\"\\s*alt=\"http://[^\"]*?\"\\s*title=\"(http://.*?)\".*?/>", "<a href=\"$1\" target=\"_blank\" class=\"cLink\">$1</a>");
+			if (!isImgsEnable) content = content.replaceAll("<img\\s*src=\"https?://[^\"]*?\"\\s*alt=\"https?://[^\"]*?\"\\s*title=\"(https?://.*?)\".*?/>", "<a href=\"$1\" target=\"_blank\" class=\"cLink\">$1</a>");
 			content = content.replaceAll("ondblclick=\".*?\"", "");
 			postsContent.append(header);
 			postsContent.append(content);
@@ -2322,6 +2322,7 @@ public class PostsActivity extends HFR4droidMultiListActivity<List<Post>>
 			uiHelper.applyTheme(currentTheme, (ViewGroup) postDialog.findViewById(R.id.PostContainer).getParent());
 			uiHelper.addPostButtons(this, layout);
 			((EditText) postDialog.findViewById(R.id.InputPostContent)).setTextSize(getTextSize(14));
+			((EditText) postDialog.findViewById(R.id.InputSmileyTag)).setTextSize(getTextSize(14));
 
 			postDialog.setOnKeyListener(new DialogInterface.OnKeyListener()
 			{
@@ -2711,6 +2712,7 @@ public class PostsActivity extends HFR4droidMultiListActivity<List<Post>>
 			if (confirm)
 			{
 				getConfirmDialog(
+				PostsActivity.this,
 				getString(type.getKey() + "_title"),
 				getString(type.getKey() + "_message"),
 				new DialogInterface.OnClickListener()

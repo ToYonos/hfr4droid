@@ -18,6 +18,7 @@
 			<intent-filter>
 				<action android:name="android.intent.action.MAIN" />
 				<category android:name="android.intent.category.LAUNCHER" />
+				<category android:name="android.intent.category.MULTIWINDOW_LAUNCHER" />
 			</intent-filter>
 		</activity>
 
@@ -62,5 +63,12 @@
 		<service android:name="info.toyonos.hfr4droid.common.service.MpNotifyService" />
 		<service android:name="info.toyonos.hfr4droid.common.service.MpCheckService" />
 		<service android:name="info.toyonos.hfr4droid.common.service.MpTimerCheckService" />
+		
+		<uses-library required="false" name="com.sec.android.app.multiwindow" />
+        <meta-data android:name="com.sec.android.support.multiwindow" android:value="true" />
+        <meta-data android:name="com.sec.android.multiwindow.DEFAULT_SIZE_W" android:value="632.0dip" />
+        <meta-data android:name="com.sec.android.multiwindow.DEFAULT_SIZE_H" android:value="598.0dip" />
+        <meta-data android:name="com.sec.android.multiwindow.MINIMUM_SIZE_W" android:value="632.0dip" />
+        <meta-data android:name="com.sec.android.multiwindow.MINIMUM_SIZE_H" android:value="598.0dip" />
 	</application>
 </manifest>

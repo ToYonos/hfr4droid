@@ -21,6 +21,7 @@ import org.apache.http.entity.mime.content.FileBody;
 
 import android.app.Activity;
 import android.app.ProgressDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.database.Cursor;
 import android.net.Uri;
@@ -100,40 +101,58 @@ public class ImagePicker extends Activity implements Runnable{
 
     }
 
-    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+    public void onActivityResult(int requestCode, int resultCode, final Intent data) {
     	if(requestCode == CHOOSE_PICTURE) {
     		switch (resultCode) {
 			case RESULT_OK:
-
-				try
+				HFR4droidActivity.getConfirmDialog(
+				this,
+				getString(R.string.hfrrehost_title),
+				getString(R.string.are_u_sure_message),
+				new DialogInterface.OnClickListener()
 				{
-					Uri imageUri = data.getData();
-					if (imageUri.getScheme().equals("content"))
+					public void onClick(DialogInterface arg0, int arg1)
 					{
-						Cursor c = extractEntityCursor(imageUri);
-						fichierLocal = extractValue(c, MediaStore.Images.Media.DATA);
-						contentType = extractValue(c, MediaStore.Images.Media.MIME_TYPE);
-						Log.d(LOG_TAG, "Fichier local is " + fichierLocal);
-						Log.d(LOG_TAG, "Mime type is " + contentType);
-						nomFichier = getName(fichierLocal);
+						try
+						{
+							Uri imageUri = data.getData();
+							if (imageUri.getScheme().equals("content"))
+							{
+								Cursor c = extractEntityCursor(imageUri);
+								fichierLocal = extractValue(c, MediaStore.Images.Media.DATA);
+								contentType = extractValue(c, MediaStore.Images.Media.MIME_TYPE);
+								Log.d(LOG_TAG, "Fichier local is " + fichierLocal);
+								Log.d(LOG_TAG, "Mime type is " + contentType);
+								nomFichier = getName(fichierLocal);
+							}
+							else
+							{
+								fichierLocal = imageUri.getPath();
+							}
+							
+						}
+						catch (Exception e)
+						{
+							Log.d(LOG_TAG, e.getClass().getSimpleName() + (e.getMessage() != null ? " : " + e.getMessage() : ""), e);
+							setResult(RESULT_CANCELED);
+							finish();
+							return;
+						}
+						
+						dialog = ProgressDialog.show(ImagePicker.this, "", getString(R.string.loading_hfr_rehost), true);
+						new Thread(ImagePicker.this).start();
 					}
-					else
-					{
-						fichierLocal = imageUri.getPath();
-					}
-					
-				} catch (Exception e)
-				{
-					Log.d(LOG_TAG, e.getClass().getSimpleName() + (e.getMessage() != null ? " : " + e.getMessage() : ""), e);
-					setResult(RESULT_CANCELED);
-					finish();
-					return;
 				}
-				
-				dialog = ProgressDialog.show(ImagePicker.this, "", getString(R.string.loading_hfr_rehost), true);
-				new Thread(this).start();
-
+				,new DialogInterface.OnClickListener()
+				{
+					public void onClick(DialogInterface arg0, int arg1)
+					{
+						setResult(RESULT_CANCELED);
+						finish();
+					}
+				}).show();
 				break;
+
 			case RESULT_CANCELED:
 				setResult(RESULT_CANCELED);
 				finish();
