@@ -109,6 +109,7 @@ public class HFR4droidApplication extends Application
 		boolean isLoggedIn = auth.getCookies() != null;
 		if (isLoggedIn)
 		{
+			httpClientHelper.shutdown();
 			httpClientHelper = new HttpClientHelper();
 			msgSender = new HFRMessageSender(this, httpClientHelper, auth);
 			dataRetriever = new HFRDataRetriever(this, httpClientHelper, auth, !fromCache);
@@ -132,6 +133,7 @@ public class HFR4droidApplication extends Application
 	 */
 	public void logout()
 	{
+		httpClientHelper.shutdown();
 		httpClientHelper = new HttpClientHelper();
 		if (auth != null)
 		{

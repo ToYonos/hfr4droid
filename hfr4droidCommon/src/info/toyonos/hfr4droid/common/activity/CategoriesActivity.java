@@ -368,7 +368,7 @@ public class CategoriesActivity extends HFR4droidListActivity<Category>
 		WebSettings settings = webView.getSettings();
 		settings.setDefaultTextEncodingName("UTF-8");
 		webView.setScrollBarStyle(WebView.SCROLLBARS_OUTSIDE_OVERLAY);
-		webView.loadData(infoContent, "text/html", "UTF-8");
+		webView.loadDataWithBaseURL("", infoContent, "text/html", "UTF-8", null);
 		info.setView(webView);
 		info.setNeutralButton(R.string.button_ok, new OnClickListener()
 		{
