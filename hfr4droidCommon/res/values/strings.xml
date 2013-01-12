@@ -84,7 +84,7 @@
 	<string name="logout_title">Déconnexion du forum</string>
 	<string name="delete_message">Êtes-vous sûr ?</string>
 	<string name="are_u_sure_message">Êtes-vous sûr ?</string>
-	<string name="hfrrehost_title">Uploader cete image</string>
+	<string name="hfrrehost_title">Uploader cette image</string>
 
 	<string name="mp_unread">[Non lu]</string>
 	<string name="new_mp">Nouveau message privé</string>
