@@ -2,27 +2,28 @@ package info.toyonos.hfr4droid.common.core.auth;
 
 import info.toyonos.hfr4droid.common.HFR4droidApplication;
 import info.toyonos.hfr4droid.common.R;
+import info.toyonos.hfr4droid.common.core.data.HFRDataRetriever;
+import info.toyonos.hfr4droid.common.core.utils.HttpClient;
 import info.toyonos.hfr4droid.common.core.utils.HttpClientHelper;
+import info.toyonos.hfr4droid.common.core.utils.TransformStreamException;
 
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.net.URISyntaxException;
 import java.net.URLDecoder;
 import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.http.NameValuePair;
 import org.apache.http.client.CookieStore;
-import org.apache.http.client.entity.UrlEncodedFormEntity;
-import org.apache.http.client.methods.HttpPost;
 import org.apache.http.cookie.Cookie;
 import org.apache.http.impl.client.BasicCookieStore;
-import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.message.BasicNameValuePair;
-import org.apache.http.protocol.HTTP;
 
 import android.content.Context;
 import android.util.Log;
@@ -39,14 +40,13 @@ import android.util.Log;
  * Une fois la connexion effectuée, la methode getCookies() renverra un objet CookieStore contenant les cookies d'identification
  * </p>
  * 
- * @author Harkonnen
- * @version 1.0
+ * @author Harkonnen & ToYonos
  *
  */
 public class HFRAuthentication
 {
 	private HFR4droidApplication context;
-	private HttpClientHelper httpClientHelper;
+	private HttpClient<String> client;
 	private String userName = null;
 	private String userPassword = null;
 	private String passHash = null;
@@ -71,9 +71,10 @@ public class HFRAuthentication
 	public HFRAuthentication(HFR4droidApplication context, HttpClientHelper httpClientHelper, String user, String password) throws AuthenticationException
 	{
 		this.context = context;
-		this.httpClientHelper = httpClientHelper;
 		userName = user;
 		userPassword = password;
+		
+		createHttpClient(httpClientHelper);
 		
 		try
 		{
@@ -89,7 +90,7 @@ public class HFRAuthentication
 	public HFRAuthentication(HFR4droidApplication context, HttpClientHelper httpClientHelper) throws AuthenticationException
 	{        
 		this.context = context;
-		this.httpClientHelper = httpClientHelper;
+		createHttpClient(httpClientHelper);
 
 		try
 		{
@@ -102,6 +103,25 @@ public class HFRAuthentication
 		}
 	}
 
+	private void createHttpClient(HttpClientHelper httpClientHelper)
+	{
+		client = new HttpClient<String>(httpClientHelper)
+		{		
+			@Override
+			protected String transformStream(InputStream is) throws TransformStreamException
+			{
+				try
+				{
+					return HFRDataRetriever.streamToString(is, false);
+				}
+				catch (IOException e)
+				{
+					throw new TransformStreamException(e);
+				}
+			}
+		};
+	}
+	
 	/**
 	 * Retourne les cookies renvoyés par le serveur après login.
 	 * 
@@ -149,22 +169,20 @@ public class HFRAuthentication
 		}
 	}
 
-	private CookieStore login() throws IOException, ClassNotFoundException
+	private CookieStore login() throws IOException, ClassNotFoundException, TransformStreamException, URISyntaxException
 	{
 		CookieStore cs = null;
-		HttpPost post = new HttpPost(AUTH_FORM_URL);
-		post.setHeader("User-Agent", "Mozilla /4.0 (compatible; MSIE 6.0; Windows CE; IEMobile 7.6) Vodafone/1.0/SFR_v1615/1.56.163.8.39");
-		DefaultHttpClient client = httpClientHelper.getHttpClient();
 		List<NameValuePair> params = new ArrayList<NameValuePair>();
 		params.add(new BasicNameValuePair("pseudo", userName));
 		params.add(new BasicNameValuePair("password", userPassword));
-
-		post.setEntity(new UrlEncodedFormEntity(params, HTTP.UTF_8));
-		client.execute(post);
-
-		if (client.getCookieStore() != null && client.getCookieStore().getCookies().size() != 0)
+		
+		String response = client.doPost(AUTH_FORM_URL, null, params);
+		
+		if (client.getHttpClientHelper().getHttpClient().getCookieStore() != null &&
+			client.getHttpClientHelper().getHttpClient().getCookieStore().getCookies().size() != 0 &&
+			!response.matches(".*Votre mot de passe ou nom d'utilisateur n'est pas valide.*"))
 		{
-			cs = client.getCookieStore();
+			cs = client.getHttpClientHelper().getHttpClient().getCookieStore();
 			serializeCookies(cs);
 		}
 

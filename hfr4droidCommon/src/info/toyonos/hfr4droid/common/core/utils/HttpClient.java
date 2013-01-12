@@ -32,6 +32,11 @@ public abstract class HttpClient<T>
 		this.httpClientHelper = httpClientHelper;
 	}
 
+	public HttpClientHelper getHttpClientHelper()
+	{
+		return httpClientHelper;
+	}
+
 	/**
 	 * Effectue une requête HTTP GET et récupère un <code>T</code> en retour
 	 * @param url L'url concernée
