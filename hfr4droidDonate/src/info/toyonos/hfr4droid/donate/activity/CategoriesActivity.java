@@ -185,7 +185,7 @@ public class CategoriesActivity extends	info.toyonos.hfr4droid.common.activity.C
 
 			case SU:
 				hideKeyboard(prompt);
-				Toast.makeText(CategoriesActivity.this, getString("yesbutno"), Toast.LENGTH_SHORT).show();
+				Toast.makeText(CategoriesActivity.this, getString(R.string.yesbutno), Toast.LENGTH_SHORT).show();
 				break;
 				
 			case PASSWD:
