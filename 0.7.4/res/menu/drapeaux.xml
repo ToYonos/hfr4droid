@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+	<item
+		android:title="@string/menu_drapeaux"
+		android:id="@+id/MenuDrapeaux"
+		android:orderInCategory="2"
+		android:icon="@drawable/ic_menu_myplaces">
+		<menu>
+			<item
+				android:title="@string/menu_drapeaux_all"
+				android:id="@+id/MenuDrapeauxAll" />		
+			<item
+				android:title="@string/menu_drapeaux_cyan"
+				android:id="@+id/MenuDrapeauxCyan" />
+			<item
+				android:title="@string/menu_drapeaux_rouges"
+				android:id="@+id/MenuDrapeauxRouges" />
+			<item
+				android:title="@string/menu_drapeaux_favoris"
+				android:id="@+id/MenuDrapeauxFavoris" />								
+		</menu>
+	</item>
+</menu>
