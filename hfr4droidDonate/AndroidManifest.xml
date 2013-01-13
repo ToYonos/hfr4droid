@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="info.toyonos.hfr4droid.donate"
-	android:versionCode="073"
-	android:versionName="0.7.3"
+	android:versionCode="074"
+	android:versionName="0.7.4"
 	android:installLocation="auto">
 
 	<uses-permission android:name="android.permission.INTERNET" />
