@@ -15,7 +15,7 @@
 	    android:id="@+id/PromptCommand"
 	    android:background="@android:color/transparent"
 	    android:textColor="@android:color/white"
-		android:layout_width="fill_parent"
+		android:layout_width="250dip"
     	android:layout_height="wrap_content"
     	android:gravity="left"
 		android:textSize="14dip" />
