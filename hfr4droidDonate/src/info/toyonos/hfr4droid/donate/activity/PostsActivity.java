@@ -2,7 +2,7 @@ package info.toyonos.hfr4droid.donate.activity;
 
 import android.widget.EditText;
 import android.widget.Toast;
-import info.toyonos.hfr4droid.common.R;
+import info.toyonos.hfr4droid.donate.R;
 import info.toyonos.hfr4droid.common.core.message.HFRMessageSender.ResponseCode;
 
 public class PostsActivity extends info.toyonos.hfr4droid.common.activity.PostsActivity
