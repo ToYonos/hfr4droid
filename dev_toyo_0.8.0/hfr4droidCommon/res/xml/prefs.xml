@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+	<PreferenceCategory
+		android:title="@string/pref_general_title">
+		<ListPreference
+			android:key="PrefWelcomeScreen"
+			android:summary="@string/pref_welcome_screen_summary"
+			android:title="@string/pref_welcome_screen_title"
+			android:defaultValue="@string/pref_welcome_screen_default" 
+			android:entries="@array/welcome_screen_values"
+            android:entryValues="@array/welcome_screen_keys" />
+		<CheckBoxPreference
+			android:key="PrefCheckMpsEnable"
+			android:summary="@string/pref_check_mps_enable_summary"
+			android:title="@string/pref_check_mps_enable_title"
+			android:defaultValue="@string/pref_check_mps_enable_default" />
+		<ListPreference
+			android:key="PrefNotificationType"
+			android:summary="@string/pref_notification_type_summary"
+			android:title="@string/pref_notification_type_title"
+			android:defaultValue="@string/pref_notification_type_default" 
+			android:entries="@array/notification_type_values"
+            android:entryValues="@array/notification_type_keys" /> 
+		<ListPreference
+			android:key="PrefTypeDrapeau"
+			android:summary="@string/pref_type_drapeau_summary"
+			android:title="@string/pref_type_drapeau_title"
+			android:defaultValue="@string/pref_type_drapeau_default" 
+			android:entries="@array/type_drapeau_values"
+            android:entryValues="@array/type_drapeau_keys" /> 
+		<CheckBoxPreference
+			android:key="PrefSignatureEnable"
+			android:summary="@string/pref_signature_enable_summary"
+			android:title="@string/pref_signature_enable_title"
+			android:defaultValue="@string/pref_signature_enable_default" />
+		<CheckBoxPreference
+			android:key="PrefDblTapEnable"
+			android:summary="@string/pref_dbltap_enable_summary"
+			android:title="@string/pref_dbltap_enable_title"
+			android:defaultValue="@string/pref_dbltap_enable_default" />
+		<CheckBoxPreference
+			android:key="PrefOverrideLightMode"
+			android:summary="@string/pref_override_light_mode_enable_summary"
+			android:title="@string/pref_override_light_mode_enable_title"
+			android:defaultValue="@string/pref_override_light_mode_enable_default" />
+   		<ListPreference
+            android:key="PrefSwipe"
+            android:summary="@string/pref_swipe_summary"
+            android:title="@string/pref_swipe_title"
+            android:defaultValue="@string/pref_swipe_default"
+            android:entries="@array/swipe_values"
+			android:entryValues="@array/swipe_keys" />
+   		<ListPreference
+            android:key="PrefPreloadingCallback"
+            android:summary="@string/pref_preloading_callback_summary"
+            android:title="@string/pref_preloading_callback_title"
+            android:defaultValue="@string/pref_preloading_callback_default"
+            android:entries="@array/preloading_callback_values"
+			android:entryValues="@array/preloading_callback_keys" />
+	</PreferenceCategory>
+
+	<PreferenceCategory
+		android:title="@string/pref_affichage_title">
+		<CheckBoxPreference
+			android:key="PrefFullscreenEnable"
+			android:summary="@string/pref_fullscreen_enable_summary"
+			android:title="@string/pref_fullscreen_enable_title"
+			android:defaultValue="@string/pref_fullscreen_enable_default" />
+		<ListPreference
+			android:key="PrefTheme"
+			android:summary="@string/pref_theme_summary"
+			android:title="@string/pref_theme_title"
+			android:defaultValue="@string/pref_theme_default" 
+			android:entries="@array/theme_values"
+            android:entryValues="@array/theme_keys" /> 
+		<ListPreference
+			android:key="PrefPoliceSize"
+			android:summary="@string/pref_police_size_summary"
+			android:title="@string/pref_police_size_title"
+			android:defaultValue="@string/pref_police_size_default" 
+			android:entries="@array/police_size_values"
+            android:entryValues="@array/police_size_keys" />
+ 		<CheckBoxPreference
+			android:key="PrefTopicMoreInfosEnable"
+			android:summary="@string/pref_topic_more_infos_enable_summary"
+			android:title="@string/pref_topic_more_infos_enable_title"
+			android:defaultValue="@string/pref_topic_more_infos_enable_default" />           
+		<ListPreference
+			android:key="PrefAvatarsDisplayType"
+			android:summary="@string/pref_avatars_display_type_summary"
+			android:title="@string/pref_avatars_display_type_title"
+			android:defaultValue="@string/pref_avatars_display_type_default"
+			android:entries="@array/drawable_values"
+            android:entryValues="@array/drawable_keys" />
+		<ListPreference
+			android:key="PrefSmileysDisplayType"
+			android:summary="@string/pref_smileys_display_type_summary"
+			android:title="@string/pref_smileys_display_type_title"
+			android:defaultValue="@string/pref_smileys_display_type_default"
+			android:entries="@array/drawable_values"
+            android:entryValues="@array/drawable_keys" />
+		<ListPreference
+			android:key="PrefImgsDisplayType"
+			android:summary="@string/pref_imgs_display_type_summary"
+			android:title="@string/pref_imgs_display_type_title"
+			android:defaultValue="@string/pref_imgs_display_type_default"
+			android:entries="@array/drawable_values"
+            android:entryValues="@array/drawable_keys" />
+	</PreferenceCategory>	
+
+	<PreferenceCategory
+		android:title="@string/pref_srv_mps_title">
+		<CheckBoxPreference
+			android:key="PrefSrvMpsEnable"
+			android:summary="@string/pref_srv_mps_enable_summary"
+			android:title="@string/pref_srv_mps_enable_title"
+			android:defaultValue="@string/pref_srv_mps_enable_default" />
+		<EditTextPreference
+			android:key="PrefSrvMpsFreq"
+			android:summary="@string/pref_srv_mps_freq_summary"
+			android:title="@string/pref_srv_mps_freq_title"
+			android:defaultValue="@string/pref_srv_mps_freq_default" />
+	</PreferenceCategory>
+</PreferenceScreen>

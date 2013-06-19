@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+	<string name="pref_general_title">Préférences générales</string>
+	
+	<string name="pref_welcome_screen_title">Page d\'accueil</string>
+	<string name="pref_welcome_screen_summary">La page qui s\'affiche lorsque vous lancez l\'application</string>
+	<string name="pref_welcome_screen_default">-1</string>
+
+	<string name="pref_check_mps_enable_title">Vérifier les MPs</string>
+	<string name="pref_check_mps_enable_summary">Active la vérification des MPs (différent du service permanent, cf. documention)</string>
+	<string name="pref_check_mps_enable_default">1</string>
+	
+	<string name="pref_notification_type_title">Type de notification des MPs</string>
+	<string name="pref_notification_type_summary">La façon dont vous serez notifié des nouveaux MPs</string>
+	<string name="pref_notification_type_default">1</string>	
+	
+	<string name="pref_type_drapeau_title">Type de drapeau</string>
+	<string name="pref_type_drapeau_summary">Le type de drapeau qui s\'affiche par défaut dans l\'application</string>
+	<string name="pref_type_drapeau_default">1</string>
+	
+	<string name="pref_signature_enable_title">Activer sa signature</string>
+	<string name="pref_signature_enable_summary">Intégrer sa signature dans les posts</string>
+	<string name="pref_signature_enable_default">true</string>
+	
+	<string name="pref_dbltap_enable_title">Activer le refresh sur double tap</string>
+	<string name="pref_dbltap_enable_summary">Permettre de rafraîchir la page d\'un topic en double tapant sur l\'écran</string>
+	<string name="pref_dbltap_enable_default">true</string>
+
+	<string name="pref_override_light_mode_enable_title">Désactiver le mode Light</string>
+	<string name="pref_override_light_mode_enable_summary">Uniquement pour les CPU multi-core (+ d\'infos dans la documentation)</string>
+	<string name="pref_override_light_mode_enable_default">false</string>
+	
+	<string name="pref_swipe_title">Sensibilité du swipe</string>
+    <string name="pref_swipe_summary">Régler la sensibilité du swipe (changement de page par glissement)</string>
+	<string name="pref_swipe_default">1</string>
+	
+	<string name="pref_preloading_callback_title">Action sur page préchargée</string>
+    <string name="pref_preloading_callback_summary">A effectuer quand une demande de changement de page a été faite, après le chargement de celle-ci</string>
+	<string name="pref_preloading_callback_default">-1</string>
+
+
+	<string name="pref_affichage_title">Affichage</string>
+	
+	<string name="pref_fullscreen_enable_title">Afficher en plein écran</string>
+	<string name="pref_fullscreen_enable_summary">Afficher l\'application en plein écran (plus de barre de notification)</string>
+	<string name="pref_fullscreen_enable_default">false</string>
+	
+	<string name="pref_theme_title">Thème</string>
+	<string name="pref_theme_summary">Le thème de l\'application pour la personnaliser</string>
+	<string name="pref_theme_default">default</string>
+	
+	<string name="pref_police_size_title">Taille de la police</string>
+	<string name="pref_police_size_summary">Taille des polices dans les écrans de l\'application</string>
+	<string name="pref_police_size_default">1</string>
+	
+	<string name="pref_topic_more_infos_enable_title">+ d\'infos sur les topics</string>
+	<string name="pref_topic_more_infos_enable_summary">Afficher un nombre plus important d\'informations sur les topics</string>
+	<string name="pref_topic_more_infos_enable_default">false</string>
+
+	<string name="pref_avatars_display_type_title">Affichage des avatars</string>
+	<string name="pref_avatars_display_type_summary">Type d\'affichage des avatars dans les posts</string>
+	<string name="pref_avatars_display_type_default">1</string>
+
+	<string name="pref_smileys_display_type_title">Affichage des smileys</string>
+	<string name="pref_smileys_display_type_summary">Type d\'affichage des smileys dans les posts</string>
+	<string name="pref_smileys_display_type_default">1</string>
+	
+	<string name="pref_imgs_display_type_title">Affichage des images</string>
+	<string name="pref_imgs_display_type_summary">Type d\'affichage des images dans les posts</string>
+	<string name="pref_imgs_display_type_default">1</string>
+
+	<string name="pref_srv_mps_title">Service permanent de vérification des MPs</string>
+	
+	<string name="pref_srv_mps_enable_title">Activer le service</string>
+	<string name="pref_srv_mps_enable_summary">Activer le service de vérification des MPs (tourne en permanence)</string>
+	<string name="pref_srv_mps_enable_default">false</string>
+	
+	<string name="pref_srv_mps_freq_title">Fréquence de vérification (en min)</string>
+	<string name="pref_srv_mps_freq_summary">Fréquence de vérification des MPs</string>
+	<string name="pref_srv_mps_freq_default">60</string>
+</resources>
