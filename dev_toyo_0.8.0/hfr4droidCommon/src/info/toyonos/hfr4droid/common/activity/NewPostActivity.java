@@ -80,8 +80,7 @@ public class NewPostActivity extends NewPostGenericActivity
 	@Override
 	protected void setTitle()
 	{
-		final TextView postTitle = (TextView) findViewById(R.id.NewPostTitle);
-		postTitle.setText(getString(R.string.new_post, topic.getName()));
+		getSupportActionBar().setTitle(topic.getName());
 	}
 		
 	@Override

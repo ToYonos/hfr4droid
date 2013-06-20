@@ -3,6 +3,11 @@
 	<item
 		android:title="@string/menu_add_topic"
 		android:id="@+id/MenuAddTopic"
-		android:showAsAction="ifRoom"
+		android:showAsAction="never"
 		android:icon="@drawable/ic_menu_add" />
+	<item
+		android:title="@string/menu_subcat"
+		android:id="@+id/MenuNavSubCats"
+		android:showAsAction="ifRoom"
+		android:icon="@drawable/ic_menu_moreoverflow" />
 </menu>

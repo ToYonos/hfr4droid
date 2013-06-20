@@ -46,7 +46,6 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.EditText;
-import android.widget.SlidingDrawer;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -294,21 +293,6 @@ public abstract class HFR4droidActivity extends SherlockActivity
 	}
 	
 	@Override
-	public boolean onKeyDown(int keyCode, KeyEvent event) 
-	{
-		if (keyCode == KeyEvent.KEYCODE_BACK)
-		{
-			SlidingDrawer navDrawer = (SlidingDrawer) findViewById(R.id.Nav);
-			if (navDrawer != null && navDrawer.isOpened())
-			{
-				navDrawer.close();
-				return true;
-			}
-		}
-		return super.onKeyDown(keyCode, event);
-	}
-	
-	@Override
 	public boolean onPrepareOptionsMenu(Menu menu)
 	{
 		MenuItem loginLogout = menu.findItem(R.id.MenuLoginLogout);
@@ -361,6 +345,7 @@ public abstract class HFR4droidActivity extends SherlockActivity
 					{
 						logout();
 						stopMpTimerCheckService();
+						setTitle();
 						onLogout();
 					}
 				}).show();
@@ -625,6 +610,7 @@ public abstract class HFR4droidActivity extends SherlockActivity
 								{
 									startMpTimerCheckService();
 									reloadPage();
+									setTitle();
 								}
 								else
 								{

@@ -101,8 +101,7 @@ public class NewTopicActivity extends NewPostGenericActivity
 	@Override
 	protected void setTitle()
 	{
-		final TextView topicTitle = (TextView) findViewById(R.id.NewTopicTitle);
-		topicTitle.setText(isMpsCat(cat) ? getString(R.string.new_mp) : getString(R.string.new_topic, cat.getName()));
+		getSupportActionBar().setTitle(isMpsCat(cat) ? getString(R.string.new_mp) : cat.getName());
 	}
 		
 	@Override

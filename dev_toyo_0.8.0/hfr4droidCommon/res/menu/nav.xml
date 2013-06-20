@@ -7,9 +7,6 @@
 		android:icon="@drawable/ic_menu_goto">
 		<menu>
 			<item
-				android:title="@string/menu_subcats"
-				android:id="@+id/MenuNavSubCats" />
-			<item
 				android:title="@string/nav_first_page"
 				android:id="@+id/MenuNavFirstPage" />
 			<item

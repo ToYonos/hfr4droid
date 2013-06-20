@@ -38,7 +38,6 @@ import android.view.LayoutInflater;
 import android.view.MenuInflater;
 import android.view.MotionEvent;
 import android.view.View;
-import android.view.View.OnClickListener;
 import android.view.View.OnCreateContextMenuListener;
 import android.view.View.OnTouchListener;
 import android.view.ViewGroup;
@@ -428,10 +427,10 @@ public class TopicsActivity extends HFR4droidMultiListActivity<ArrayAdapter<Topi
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu)
 	{
+		getSupportMenuInflater().inflate(R.menu.topics, menu);
 		getSupportMenuInflater().inflate(R.menu.drapeaux, menu);
 		getSupportMenuInflater().inflate(R.menu.nav, menu);
 		getSupportMenuInflater().inflate(R.menu.misc, menu);
-		getSupportMenuInflater().inflate(R.menu.topics, menu);
 		getSupportMenuInflater().inflate(R.menu.common, menu);
 		SubMenu menuNav = menu.findItem(R.id.MenuNav).getSubMenu();
 		menuNav.removeItem(R.id.MenuNavLastPage);
@@ -464,12 +463,8 @@ public class TopicsActivity extends HFR4droidMultiListActivity<ArrayAdapter<Topi
 		boolean myTopics = type == TopicType.CYAN || type == TopicType.ROUGE || type == TopicType.FAVORI;
 		MenuItem menuNav = menu.findItem(R.id.MenuNav);
 
-		menuNav.setVisible(!isAllCatsCat());
-		menuNav.setEnabled(!isAllCatsCat());
-
-		MenuItem menuNavSubCats =  menuNav.getSubMenu().findItem(R.id.MenuNavSubCats);
-		menuNavSubCats.setVisible(!isMpsCat() && !isAllCatsCat());
-		menuNavSubCats.setEnabled(!isMpsCat() && !isAllCatsCat());
+		menuNav.setVisible(type == TopicType.ALL);
+		menuNav.setEnabled(type == TopicType.ALL);
 
 		MenuItem menuNavFP =  menuNav.getSubMenu().findItem(R.id.MenuNavFirstPage);
 		menuNavFP.setVisible(currentPageNumber != 1);
@@ -791,7 +786,7 @@ public class TopicsActivity extends HFR4droidMultiListActivity<ArrayAdapter<Topi
 				if (isMpsCat() || isAllCatsCat()) return;
 
 				// Gestion des sous-cats
-				menu.setHeaderTitle(R.string.menu_subcat_filter);
+				menu.setHeaderTitle(R.string.menu_subcat);
 				try
 				{
 					android.view.MenuItem itemNone = menu.add(Menu.NONE, -1, Menu.NONE, R.string.menu_subcat_none);

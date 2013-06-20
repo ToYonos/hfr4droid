@@ -21,7 +21,6 @@ import android.content.DialogInterface;
 import android.content.DialogInterface.OnClickListener;
 import android.content.Intent;
 import android.content.res.ColorStateList;
-import android.content.res.Resources;
 import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
 import android.text.Html;
@@ -386,7 +385,14 @@ public class CategoriesActivity extends HFR4droidListActivity<Category>
 	@Override
 	protected void setTitle()
 	{
-		if (isLoggedIn()) getSupportActionBar().setTitle("Bonjour " + getHFR4droidApplication().getAuthentication().getUser());
+		if (isLoggedIn())
+		{
+			getSupportActionBar().setTitle(getString(R.string.welcome_message, getHFR4droidApplication().getAuthentication().getUser()));
+		}
+		else
+		{
+			getSupportActionBar().setTitle(R.string.app_name);
+		}
 	}
 
 	@Override

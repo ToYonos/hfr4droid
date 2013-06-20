@@ -94,7 +94,6 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.View.OnCreateContextMenuListener;
-import android.view.View.OnLongClickListener;
 import android.view.ViewGroup;
 import android.view.ViewGroup.LayoutParams;
 import android.view.Window;
@@ -596,10 +595,6 @@ public class PostsActivity extends HFR4droidMultiListActivity<List<Post>>
 			MenuItem menuNavLP = subMenuNav.findItem(R.id.MenuNavLastPage);
 			menuNavLP.setVisible(currentPageNumber != topic.getNbPages());
 			menuNavLP.setEnabled(currentPageNumber != topic.getNbPages());
-			
-            MenuItem menuNavSubCats =  menuNav.getSubMenu().findItem(R.id.MenuNavSubCats);
-            menuNavSubCats.setVisible(false);
-            menuNavSubCats.setEnabled(false);
 		}
 
 		MenuItem addPost = menu.findItem(R.id.MenuAddPost);
@@ -1195,7 +1190,7 @@ public class PostsActivity extends HFR4droidMultiListActivity<List<Post>>
 							
 							addQuickActionWindowItems(currentQAwindow, postId, isMine);
 							View spp = findViewById(R.id.SearchPostsPanel);
-							View anchor = spp.getVisibility() == View.VISIBLE ? spp : getWindow().getDecorView().findViewById(android.R.id.content);
+							View anchor = spp.getVisibility() == View.VISIBLE ? spp : findViewById(R.id.PostsLayout);
 							// TODO CA VA MERDER §§§§§§§§
 							currentQAwindow.show(anchor, Math.round(yOffset * webView.getScale()));
 						}
@@ -2450,16 +2445,6 @@ public class PostsActivity extends HFR4droidMultiListActivity<List<Post>>
 				 TextView topicTitle = (TextView) v;
 				 topicTitle.setEllipsize(topicTitle.getEllipsize() == TruncateAt.MARQUEE ? TruncateAt.END : TruncateAt.MARQUEE);
 			}
-		});
-		
-		// TODO action search
-		topicTitle.setOnLongClickListener(new OnLongClickListener()
-		{
-			public boolean onLongClick(View v)
-			{
-				toggleSearchPosts();
-				return true;
-			}	
 		});
 	}
 
