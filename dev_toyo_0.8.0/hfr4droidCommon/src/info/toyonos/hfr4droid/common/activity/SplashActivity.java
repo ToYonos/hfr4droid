@@ -40,6 +40,7 @@ public class SplashActivity extends HFR4droidActivity
 	protected void onCreate(Bundle savedInstanceState)
 	{
 		super.onCreate(savedInstanceState);
+		getSupportActionBar().hide();
 		setContentView(R.layout.splash);
 		applyTheme(currentTheme);
 		

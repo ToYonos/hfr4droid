@@ -21,6 +21,7 @@ import android.content.DialogInterface;
 import android.content.DialogInterface.OnClickListener;
 import android.content.Intent;
 import android.content.res.ColorStateList;
+import android.content.res.Resources;
 import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
 import android.text.Html;
@@ -29,9 +30,7 @@ import android.view.ContextMenu.ContextMenuInfo;
 import android.view.GestureDetector;
 import android.view.GestureDetector.SimpleOnGestureListener;
 import android.view.KeyEvent;
-import android.view.Menu;
 import android.view.MenuInflater;
-import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.View.OnCreateContextMenuListener;
@@ -46,6 +45,9 @@ import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import com.actionbarsherlock.view.Menu;
+import com.actionbarsherlock.view.MenuItem;
 
 /**
  * <p>Activity listant les catégories</p>
@@ -277,7 +279,7 @@ public class CategoriesActivity extends HFR4droidListActivity<Category>
 	}
 	
 	@Override
-	public boolean onContextItemSelected(MenuItem aItem)
+	public boolean onContextItemSelected(android.view.MenuItem aItem)
 	{
 		AdapterContextMenuInfo menuInfo = (AdapterContextMenuInfo) aItem.getMenuInfo();
 		final Category currentCat = (Category) getListView().getAdapter().getItem(menuInfo.position);
@@ -311,9 +313,8 @@ public class CategoriesActivity extends HFR4droidListActivity<Category>
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu)
 	{
-		MenuInflater inflater = getMenuInflater();
-		inflater.inflate(R.menu.common, menu);
-		inflater.inflate(R.menu.categories, menu);
+		getSupportMenuInflater().inflate(R.menu.categories, menu);
+		getSupportMenuInflater().inflate(R.menu.common, menu);
 		return true;
 	}
 
@@ -383,7 +384,10 @@ public class CategoriesActivity extends HFR4droidListActivity<Category>
 	}
 
 	@Override
-	protected void setTitle(){}
+	protected void setTitle()
+	{
+		if (isLoggedIn()) getSupportActionBar().setTitle("Bonjour " + getHFR4droidApplication().getAuthentication().getUser());
+	}
 
 	@Override
 	protected void applyTheme(Theme theme)

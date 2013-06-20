@@ -15,9 +15,6 @@ import java.util.List;
 
 import android.os.Bundle;
 import android.view.KeyEvent;
-import android.view.Menu;
-import android.view.MenuItem;
-import android.view.SubMenu;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.ImageView;
@@ -25,6 +22,9 @@ import android.widget.LinearLayout;
 import android.widget.SlidingDrawer;
 import android.widget.TextView;
 
+import com.actionbarsherlock.view.Menu;
+import com.actionbarsherlock.view.MenuItem;
+import com.actionbarsherlock.view.SubMenu;
 import com.naholyr.android.ui.HFR4droidQuickActionWindow;
 import com.naholyr.android.ui.QuickActionWindow;
 import com.naholyr.android.ui.QuickActionWindow.Item;
@@ -138,10 +138,6 @@ public class PostsSearchActivity extends PostsActivity
 		MenuItem menuNavLP = subMenuNav.findItem(R.id.MenuNavLastPage);
 		menuNavLP.setVisible(false);
 		menuNavLP.setEnabled(false);
-
-		MenuItem menuNavRefresh =  menuNav.getSubMenu().findItem(R.id.MenuNavRefresh);
-		menuNavRefresh.setVisible(false);
-		menuNavRefresh.setEnabled(false);
 
 		MenuItem refresh = menu.findItem(R.id.MenuRefresh);
 		refresh.setVisible(false);

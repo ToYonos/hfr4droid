@@ -1,5 +1,24 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <resources>
+    
+	<style name="AppTheme" parent="Theme.Sherlock">
+    	<item name="actionButtonStyle">@style/MyActionButtonStyle</item>
+    	<item name="android:actionButtonStyle">@style/MyActionButtonStyle</item>
+    	
+    	<item name="actionBarStyle">@style/MyActionBarStyle</item>
+    	<item name="android:actionBarStyle">@style/MyActionBarStyle</item>
+	</style>
+
+	<style name="MyActionButtonStyle" parent="Widget.Sherlock.ActionButton">	    
+	    <item name="android:minWidth">32dip</item>
+	    <item name="android:padding">0dip</item>
+	</style>
+
+	<style name="MyActionBarStyle" parent="Widget.Sherlock.ActionBar">	
+		<item name="background">@drawable/degrad_plus</item>
+    	<item name="android:background">@drawable/degrad_plus</item>
+    </style>
+    
 	<!-- Thème par défaut -->
 
 	<color name="default_list_background">#F7F7F7</color>

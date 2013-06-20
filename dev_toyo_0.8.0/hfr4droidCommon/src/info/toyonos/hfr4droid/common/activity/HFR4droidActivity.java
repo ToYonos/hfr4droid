@@ -23,6 +23,8 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Timer;
+import java.util.TimerTask;
 
 import android.app.Activity;
 import android.app.AlertDialog;
@@ -33,20 +35,27 @@ import android.content.DialogInterface.OnClickListener;
 import android.content.Intent;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager.NameNotFoundException;
+import android.content.res.Configuration;
+import android.content.res.Resources;
+import android.graphics.Color;
+import android.graphics.Typeface;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
-import android.view.Menu;
-import android.view.MenuItem;
 import android.view.View;
-import android.view.Window;
 import android.view.WindowManager;
 import android.widget.EditText;
 import android.widget.SlidingDrawer;
+import android.widget.TextView;
 import android.widget.Toast;
 
+import com.actionbarsherlock.app.SherlockActivity;
+import com.actionbarsherlock.view.Menu;
+import com.actionbarsherlock.view.MenuItem;
 import com.markupartist.android.widget.PullToRefreshListView;
+
+
 
 /**
  * <p>Activity générique de l'application. Gère entre autres :
@@ -59,7 +68,7 @@ import com.markupartist.android.widget.PullToRefreshListView;
  * @author ToYonos
  *
  */
-public abstract class HFR4droidActivity extends Activity
+public abstract class HFR4droidActivity extends SherlockActivity
 {	
 	public static enum DrawableDisplayType
 	{
@@ -162,7 +171,7 @@ public abstract class HFR4droidActivity extends Activity
 	protected void onCreate(Bundle savedInstanceState)
 	{
 		super.onCreate(savedInstanceState);
-		requestWindowFeature(Window.FEATURE_NO_TITLE);
+
 		loadTheme(getThemeKey());
 		currentPoliceSize = getPoliceSize();
 		keepNavigationHistory = false;
@@ -171,6 +180,7 @@ public abstract class HFR4droidActivity extends Activity
 		loginDialog = null;
 		currentPageNumber = bundle != null ? bundle.getInt("pageNumber") : -1;
 		loginFromCache();
+		customizeActionBar();
 	}
 
 	@Override
@@ -261,6 +271,28 @@ public abstract class HFR4droidActivity extends Activity
 		getHFR4droidApplication().getHttpClientHelper().closeExpiredConnections();
 	}
 
+
+	@Override
+	public void onConfigurationChanged(Configuration conf)
+	{
+		super.onConfigurationChanged(conf);
+		Timer timer = new Timer();
+		timer.schedule(new TimerTask()
+		{
+			public void run()
+			{
+				runOnUiThread(new Runnable()
+				{
+					public void run()
+					{
+						customizeActionBar();
+						setTitle();
+					}
+				});
+			}
+		}, 250);
+	}
+	
 	@Override
 	public boolean onKeyDown(int keyCode, KeyEvent event) 
 	{
@@ -335,11 +367,6 @@ public abstract class HFR4droidActivity extends Activity
 			}
 			return true;
 		}
-		else if (item.getItemId() == R.id.MenuNavRefresh)
-		{
-			reloadPage();
-			return true;
-		}
 		else if (item.getItemId() == R.id.MenuNavFirstPage)
 		{
 			loadFirstPage();
@@ -383,6 +410,21 @@ public abstract class HFR4droidActivity extends Activity
 
 	protected abstract void applyTheme(Theme theme);
 
+	protected void customizeActionBar()
+	{
+		getSupportActionBar().setDisplayShowHomeEnabled(false);
+
+		int titleId = Resources.getSystem().getIdentifier("action_bar_title", "id", "android");
+		if(titleId == 0) titleId = R.id.abs__action_bar_title;
+
+		final TextView appName = (TextView) findViewById(titleId);
+		//Typeface face = Typeface.createFromAsset(getAssets(), "take_out_the_garbage.ttf");
+		//appName.setTypeface(face);
+		appName.setTextColor(Color.parseColor("#1A3A60"));
+		appName.setTypeface(null, Typeface.BOLD);
+		appName.setTextSize(15);
+	}
+	
 	@SuppressWarnings("rawtypes")
 	protected int getKeyByTheme(String themeKey, Class type, String key)
 	{

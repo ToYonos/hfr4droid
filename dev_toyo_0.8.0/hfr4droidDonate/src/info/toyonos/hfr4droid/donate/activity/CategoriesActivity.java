@@ -22,13 +22,14 @@ import android.os.StatFs;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
-import android.view.Menu;
 import android.view.View;
 import android.view.View.OnKeyListener;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import com.actionbarsherlock.view.Menu;
 
 public class CategoriesActivity extends	info.toyonos.hfr4droid.common.activity.CategoriesActivity
 {

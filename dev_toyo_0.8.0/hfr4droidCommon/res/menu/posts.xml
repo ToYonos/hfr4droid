@@ -3,6 +3,11 @@
 	<item
 		android:title="@string/menu_add_post"
 		android:id="@+id/MenuAddPost"
-		android:orderInCategory="2"
+		android:showAsAction="ifRoom"
 		android:icon="@drawable/ic_menu_add" />
+	<item
+		android:title="@string/menu_search_post"
+		android:id="@+id/MenuSearchPost"
+		android:showAsAction="ifRoom"
+		android:icon="@drawable/ic_menu_search" />
 </menu>

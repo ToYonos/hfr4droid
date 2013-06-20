@@ -90,11 +90,7 @@ import android.view.GestureDetector.SimpleOnGestureListener;
 import android.view.Gravity;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
-import android.view.Menu;
-import android.view.MenuInflater;
-import android.view.MenuItem;
 import android.view.MotionEvent;
-import android.view.SubMenu;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.View.OnCreateContextMenuListener;
@@ -121,12 +117,12 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.PopupWindow;
 import android.widget.ProgressBar;
-import android.widget.SlidingDrawer;
-import android.widget.SlidingDrawer.OnDrawerCloseListener;
-import android.widget.SlidingDrawer.OnDrawerOpenListener;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.actionbarsherlock.view.Menu;
+import com.actionbarsherlock.view.MenuItem;
+import com.actionbarsherlock.view.SubMenu;
 import com.naholyr.android.ui.HFR4droidQuickActionWindow;
 import com.naholyr.android.ui.QuickActionWindow;
 import com.naholyr.android.ui.QuickActionWindow.Item;
@@ -187,9 +183,9 @@ public class PostsActivity extends HFR4droidMultiListActivity<List<Post>>
 	protected DrawableDisplayType currentSmileysDisplayType = null;
 	protected DrawableDisplayType currentImgsDisplayType = null;
 	
-	private boolean isAvatarsEnable = true;
-	private boolean isSmileysEnable = true;
-	private boolean isImgsEnable = true;
+	private Boolean isAvatarsEnable = true;
+	private Boolean isSmileysEnable = true;
+	private Boolean isImgsEnable = true;
 	
 	private HFR4droidQuickActionWindow currentQAwindow = null;
 	
@@ -285,7 +281,6 @@ public class PostsActivity extends HFR4droidMultiListActivity<List<Post>>
 				}
 			}
 		};
-				
 	}
 	
 	@SuppressWarnings("unchecked")
@@ -404,8 +399,8 @@ public class PostsActivity extends HFR4droidMultiListActivity<List<Post>>
 						}
 					}, 500);
 				}
-				
-				updateButtonsStates();
+
+				supportInvalidateOptionsMenu();
 				setTitle();
 			}
 			
@@ -564,11 +559,10 @@ public class PostsActivity extends HFR4droidMultiListActivity<List<Post>>
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu)
 	{
-		MenuInflater inflater = getMenuInflater();
-		inflater.inflate(R.menu.common, menu);
-		inflater.inflate(R.menu.posts, menu);
-		inflater.inflate(R.menu.misc, menu);
-		inflater.inflate(R.menu.nav, menu);
+		getSupportMenuInflater().inflate(R.menu.posts, menu);
+		getSupportMenuInflater().inflate(R.menu.nav, menu);
+		getSupportMenuInflater().inflate(R.menu.misc, menu);
+		getSupportMenuInflater().inflate(R.menu.common, menu);
 		return true;
 	}
 
@@ -602,18 +596,10 @@ public class PostsActivity extends HFR4droidMultiListActivity<List<Post>>
 			MenuItem menuNavLP = subMenuNav.findItem(R.id.MenuNavLastPage);
 			menuNavLP.setVisible(currentPageNumber != topic.getNbPages());
 			menuNavLP.setEnabled(currentPageNumber != topic.getNbPages());
-
-			MenuItem menuNavRefresh =  menuNav.getSubMenu().findItem(R.id.MenuNavRefresh);
-			menuNavRefresh.setVisible(isLoggedIn() && topic.getStatus() != TopicStatus.LOCKED);
-			menuNavRefresh.setEnabled(isLoggedIn() && topic.getStatus() != TopicStatus.LOCKED);
 			
             MenuItem menuNavSubCats =  menuNav.getSubMenu().findItem(R.id.MenuNavSubCats);
             menuNavSubCats.setVisible(false);
             menuNavSubCats.setEnabled(false);
-
-			MenuItem refresh = menu.findItem(R.id.MenuRefresh);
-			refresh.setVisible(!isLoggedIn() || topic.getStatus() == TopicStatus.LOCKED);
-			refresh.setEnabled(!isLoggedIn() || topic.getStatus() == TopicStatus.LOCKED);
 		}
 
 		MenuItem addPost = menu.findItem(R.id.MenuAddPost);
@@ -643,6 +629,11 @@ public class PostsActivity extends HFR4droidMultiListActivity<List<Post>>
 				showAddPostDialog(PostCallBackType.ADD, postContent);
 				return true;
 			}
+			else if (item.getItemId() == R.id.MenuSearchPost)
+			{
+				toggleSearchPosts();
+				return true;
+			}
 			else
 			{
 				return false;
@@ -662,8 +653,8 @@ public class PostsActivity extends HFR4droidMultiListActivity<List<Post>>
 	@Override
 	protected void setTitle()
 	{
-		final TextView topicTitle = (TextView) findViewById(R.id.TopicTitle);
-		topicTitle.setTextSize(getTextSize(15));
+		final TextView topicTitle = (TextView) getSupportActionBar().getCustomView().findViewById(R.id.TopicTitle);
+		//topicTitle.setTextSize(getTextSize(15));
 		String topicName = topic.toString();
 		if (topicName == null) topicName = "";
 		int index =  topicName.indexOf(']');
@@ -673,9 +664,11 @@ public class PostsActivity extends HFR4droidMultiListActivity<List<Post>>
 		}
 		topicTitle.setText(topicName);
 		topicTitle.setSelected(true);
-		final TextView topicPageNumber = (TextView) findViewById(R.id.TopicPageNumber);
-		topicPageNumber.setTextSize(getTextSize(15));
+		final TextView topicPageNumber = (TextView) getSupportActionBar().getCustomView().findViewById(R.id.TopicPageNumber);
+		//topicPageNumber.setTextSize(getTextSize(15));
 		topicPageNumber.setText((topic.getNbPages() != -1 ? "P." + currentPageNumber + "/" + topic.getNbPages() + " " : ""));
+		
+		//getSupportActionBar().setTitle((topic.getNbPages() != -1 ? "P." + currentPageNumber + "/" + topic.getNbPages() + " " : "") + topicName);
 	}
 
 	@Override
@@ -750,122 +743,8 @@ public class PostsActivity extends HFR4droidMultiListActivity<List<Post>>
 		loadTopics(cat, fromType, 1, false);
 	}
 
-	protected void updateButtonsStates()
-	{
-		SlidingDrawer nav = (SlidingDrawer) findViewById(R.id.Nav);
-		TextView topicTitle = (TextView) findViewById(R.id.TopicTitle);
-		if (topic.getNbPages() == 1)
-		{
-			nav.setVisibility(View.GONE);
-			topicTitle.setPadding(5, 0, 5, 0);
-		}
-		else
-		{
-			nav.setVisibility(View.VISIBLE);
-			topicTitle.setPadding(5, 0, 55, 0);
-
-			ImageView buttonFP = (ImageView) findViewById(R.id.ButtonNavFirstPage);
-			buttonFP.setEnabled(currentPageNumber != 1);
-			buttonFP.setAlpha(currentPageNumber != 1 ? 255 : 105);
-
-			ImageView buttonPP = (ImageView) findViewById(R.id.ButtonNavPreviousPage);
-			buttonPP.setEnabled(currentPageNumber != 1);
-			buttonPP.setAlpha(currentPageNumber != 1 ? 255 : 105);
-
-			ImageView buttonNP = (ImageView) findViewById(R.id.ButtonNavNextPage);
-			buttonNP.setEnabled(currentPageNumber != topic.getNbPages());
-			buttonNP.setAlpha(currentPageNumber != topic.getNbPages() ? 255 : 105);
-
-			ImageView buttonLP = (ImageView) findViewById(R.id.ButtonNavLastPage);
-			buttonLP.setEnabled(currentPageNumber != topic.getNbPages());
-			buttonLP.setAlpha(currentPageNumber != topic.getNbPages() ? 255 : 105);
-		}
-	}
-
 	protected void attachEvents()
-	{
-		final TextView topicTitle = (TextView) findViewById(R.id.TopicTitle);
-		topicTitle.setOnClickListener(new OnClickListener()
-		{	
-			public void onClick(View v)
-			{
-				 TextView topicTitle = (TextView) v;
-				 topicTitle.setEllipsize(topicTitle.getEllipsize() == TruncateAt.MARQUEE ? TruncateAt.END : TruncateAt.MARQUEE);
-			}
-		});
-		
-		topicTitle.setOnLongClickListener(new OnLongClickListener()
-		{
-			public boolean onLongClick(View v)
-			{
-				toggleSearchPosts();
-				return true;
-			}	
-		});
-		
-		SlidingDrawer slidingDrawer = (SlidingDrawer) findViewById(R.id.Nav);
-		final ImageView toggleNav = (ImageView) ((LinearLayout) findViewById(R.id.NavToggle)).getChildAt(0);
-		slidingDrawer.setOnDrawerOpenListener(new OnDrawerOpenListener()
-		{
-			public void onDrawerOpened()
-			{
-				toggleNav.setImageResource(R.drawable.right_arrow);
-			}
-		});
-
-		slidingDrawer.setOnDrawerCloseListener(new OnDrawerCloseListener()
-		{
-			public void onDrawerClosed()
-			{
-				toggleNav.setImageResource(R.drawable.left_arrow);
-			}
-		});
-
-		ImageView buttonFP = (ImageView) findViewById(R.id.ButtonNavFirstPage);
-		buttonFP.setOnClickListener(new OnClickListener()
-		{
-			public void onClick(View v)
-			{
-				loadFirstPage();	
-			}
-		});
-
-		ImageView buttonPP = (ImageView) findViewById(R.id.ButtonNavPreviousPage);
-		buttonPP.setOnClickListener(new OnClickListener()
-		{
-			public void onClick(View v)
-			{
-				loadPreviousPage();	
-			}
-		});
-
-		ImageView buttonUP = (ImageView) findViewById(R.id.ButtonNavUserPage);
-		buttonUP.setOnClickListener(new OnClickListener()
-		{
-			public void onClick(View v)
-			{
-				loadUserPage();	
-			}
-		});			
-
-		ImageView buttonNP = (ImageView) findViewById(R.id.ButtonNavNextPage);
-		buttonNP.setOnClickListener(new OnClickListener()
-		{
-			public void onClick(View v)
-			{
-				loadNextPage();	
-			}
-		});
-
-		ImageView buttonLP = (ImageView) findViewById(R.id.ButtonNavLastPage);
-		buttonLP.setOnClickListener(new OnClickListener()
-		{
-			public void onClick(View v)
-			{
-				loadLastPage();	
-			}
-		});
-		
+	{		
 		Button buttonSearchPosts = (Button) findViewById(R.id.ButtonSearchPosts);
 		buttonSearchPosts.setOnClickListener(new OnClickListener()
 		{
@@ -975,7 +854,7 @@ public class PostsActivity extends HFR4droidMultiListActivity<List<Post>>
                 	final String url = result.getExtra();
                 	if (url.indexOf("http://forum-images.hardware.fr") != -1) return;
 
-                	MenuItem.OnMenuItemClickListener handler = new MenuItem.OnMenuItemClickListener()
+                	android.view.MenuItem.OnMenuItemClickListener handler = new android.view.MenuItem.OnMenuItemClickListener()
                     {
                 		private void saveImage(final String url, final boolean compressToPng, final ImageCallback callback)
                 		{                    		
@@ -1144,7 +1023,7 @@ public class PostsActivity extends HFR4droidMultiListActivity<List<Post>>
 			                			// Ouverture
 			                			String aperture = exif.getAttribute(ExifInterface.TAG_APERTURE);
 			                			if (aperture != null) data.add(getString(R.string.exif_aperture, aperture));
-			                			
+
 			                			// Temps d'exposition
 			                			String exposure = exif.getAttribute(ExifInterface.TAG_EXPOSURE_TIME);
 			                			try
@@ -1175,7 +1054,7 @@ public class PostsActivity extends HFR4droidMultiListActivity<List<Post>>
                 			return result;
                 		}
                 		
-                        public boolean onMenuItemClick(MenuItem item)
+                        public boolean onMenuItemClick(android.view.MenuItem item)
                         {
                 			if (item.getItemId() == R.id.SaveImage)
 							{
@@ -1316,7 +1195,8 @@ public class PostsActivity extends HFR4droidMultiListActivity<List<Post>>
 							
 							addQuickActionWindowItems(currentQAwindow, postId, isMine);
 							View spp = findViewById(R.id.SearchPostsPanel);
-							View anchor = spp.getVisibility() == View.VISIBLE ? spp : ((LinearLayout) findViewById(R.id.TopicTitle).getParent());
+							View anchor = spp.getVisibility() == View.VISIBLE ? spp : getWindow().getDecorView().findViewById(android.R.id.content);
+							// TODO CA VA MERDER §§§§§§§§
 							currentQAwindow.show(anchor, Math.round(yOffset * webView.getScale()));
 						}
 					});
@@ -1925,7 +1805,7 @@ public class PostsActivity extends HFR4droidMultiListActivity<List<Post>>
 		
 		if (!preloading) setView(webView);
 		webView.loadDataWithBaseURL(getDataRetriever().getBaseUrl(), "<html><head>" + js.toString() + css.toString() + js2.toString() + "</head><body>" + postsContent.toString() + "</body></html>", "text/html", "UTF-8", null);
-		updateButtonsStates();
+		supportInvalidateOptionsMenu();
 
 		return webView;
 	}
@@ -2141,7 +2021,7 @@ public class PostsActivity extends HFR4droidMultiListActivity<List<Post>>
 								public void onClick(DialogInterface dialog, int which) {}
 							})
 							.create();
-							
+
 							d.setOnShowListener(new DialogInterface.OnShowListener()
 							{
 							    public void onShow(DialogInterface dialog)
@@ -2241,7 +2121,7 @@ public class PostsActivity extends HFR4droidMultiListActivity<List<Post>>
 				}
 			}
 		});					
-		if (isLoggedIn()) window.addItem(aqLink);
+		if (isLoggedIn() && Build.VERSION.SDK_INT >= 8) window.addItem(aqLink);
 		
 		if (!isMine)
 		{
@@ -2511,36 +2391,29 @@ public class PostsActivity extends HFR4droidMultiListActivity<List<Post>>
 		NetworkInfo info = connectivityManager.getActiveNetworkInfo();
 		boolean isWifiEnable = info != null && (info.getType() == ConnectivityManager.TYPE_WIFI);
 		
-		setToggleFromPref("isAvatarsEnable", getAvatarsDisplayType(), isWifiEnable);
-		setToggleFromPref("isSmileysEnable", getSmileysDisplayType(), isWifiEnable);
-		setToggleFromPref("isImgsEnable", getImgsDisplayType(), isWifiEnable);
+		isAvatarsEnable = getToggleFromPref(getAvatarsDisplayType(), isWifiEnable);
+		isSmileysEnable = getToggleFromPref(getSmileysDisplayType(), isWifiEnable);
+		isImgsEnable = getToggleFromPref(getImgsDisplayType(), isWifiEnable);
 	}
 	
-	private void setToggleFromPref(String drawableToggle, DrawableDisplayType type, boolean isWifiEnable)
+	private boolean getToggleFromPref(DrawableDisplayType type, boolean isWifiEnable)
 	{
-		try
+		boolean drawMe;
+		switch (type)
 		{
-			boolean drawMe;
-			switch (type)
-			{
-				case NEVER_SHOW:
-					drawMe = false;
-					break;
-					
-				case SHOW_WHEN_WIFI:
-					drawMe = isWifiEnable;
-					break;
-					
-				default:
-					drawMe = true;
-					break;
-			}
-			PostsActivity.class.getDeclaredField(drawableToggle).setBoolean(this, drawMe);
+			case NEVER_SHOW:
+				drawMe = false;
+				break;
+				
+			case SHOW_WHEN_WIFI:
+				drawMe = isWifiEnable;
+				break;
+
+			default:
+				drawMe = true;
+				break;
 		}
-		catch (Exception e)
-		{
-			error(e);
-		}
+		return drawMe;
 	}
 	
 	@Override
@@ -2558,6 +2431,38 @@ public class PostsActivity extends HFR4droidMultiListActivity<List<Post>>
 		}
 	}
 	
+	@Override
+	protected void customizeActionBar()
+	{
+		getSupportActionBar().setDisplayShowHomeEnabled(false);
+		getSupportActionBar().setDisplayShowCustomEnabled(true);
+		getSupportActionBar().setDisplayShowTitleEnabled(false);
+
+		LayoutInflater inflator = (LayoutInflater)this.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+		View v = inflator.inflate(R.layout.posts_title, null);
+		getSupportActionBar().setCustomView(v);
+		
+		final TextView topicTitle = (TextView) v.findViewById(R.id.TopicTitle);
+		topicTitle.setOnClickListener(new OnClickListener()
+		{	
+			public void onClick(View v)
+			{
+				 TextView topicTitle = (TextView) v;
+				 topicTitle.setEllipsize(topicTitle.getEllipsize() == TruncateAt.MARQUEE ? TruncateAt.END : TruncateAt.MARQUEE);
+			}
+		});
+		
+		// TODO action search
+		topicTitle.setOnLongClickListener(new OnLongClickListener()
+		{
+			public boolean onLongClick(View v)
+			{
+				toggleSearchPosts();
+				return true;
+			}	
+		});
+	}
+
 	protected void toggleSearchPosts()
 	{
 		final LinearLayout searchPanel = (LinearLayout) findViewById(R.id.SearchPostsPanel);

@@ -33,6 +33,7 @@
 	<string name="menu_drapeaux_favoris">Favoris</string>
 	<string name="menu_mps">Messages privés</string>
 	<string name="menu_add_post">Poster un message</string>
+	<string name="menu_search_post">Rechercher dans le topic</string>
 	<string name="menu_login">Connexion</string>
 	<string name="menu_logout">Déconnexion</string>
 	<string name="menu_prefs">Paramètres</string>
