@@ -1190,9 +1190,12 @@ public class PostsActivity extends HFR4droidMultiListActivity<List<Post>>
 							
 							addQuickActionWindowItems(currentQAwindow, postId, isMine);
 							View spp = findViewById(R.id.SearchPostsPanel);
-							View anchor = spp.getVisibility() == View.VISIBLE ? spp : findViewById(R.id.PostsLayout);
-							// TODO CA VA MERDER §§§§§§§§
-							currentQAwindow.show(anchor, Math.round(yOffset * webView.getScale()));
+							View anchor = spp.getVisibility() == View.VISIBLE ? spp : findViewById(R.id.Anchor);
+							
+							getSupportActionBar().getCustomView().measure(ViewGroup.LayoutParams.FILL_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+							int actionBarHeight = getSupportActionBar().getCustomView().getMeasuredHeight();
+							
+							currentQAwindow.show(anchor, Math.round(yOffset * webView.getScale()), actionBarHeight);
 						}
 					});
 				}
@@ -2120,7 +2123,7 @@ public class PostsActivity extends HFR4droidMultiListActivity<List<Post>>
 		
 		if (!isMine)
 		{
-			QuickActionWindow.Item sendMP = new QuickActionWindow.Item(PostsActivity.this, "", R.drawable.ic_menu_messages, new QuickActionWindow.Item.Callback()
+			QuickActionWindow.Item sendMP = new QuickActionWindow.Item(PostsActivity.this, "", R.drawable.ic_menu_message_to, new QuickActionWindow.Item.Callback()
 			{	
 				public void onClick(QuickActionWindow window, Item item, View anchor)
 				{
@@ -2415,10 +2418,8 @@ public class PostsActivity extends HFR4droidMultiListActivity<List<Post>>
 	protected void applyTheme(Theme theme)
 	{
 		LinearLayout postLayout = (LinearLayout) findViewById(R.id.PostsLayout);
-		FrameLayout root = (FrameLayout) postLayout.getParent();
-		root.setBackgroundColor(theme.getListBackgroundColor());
-
-		root.setBackgroundResource(getDrawableKey(currentTheme.getPostLoading()));
+		postLayout.setBackgroundColor(theme.getListBackgroundColor());
+		postLayout.setBackgroundResource(getDrawableKey(currentTheme.getPostLoading()));
 		
 		if (postDialog != null)
 		{

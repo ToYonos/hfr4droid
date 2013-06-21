@@ -29,7 +29,7 @@ public class HFR4droidQuickActionWindow extends QuickActionWindow
 		return new HFR4droidQuickActionWindow(inflater, config, items);
 	}
 
-	public void show(View anchor, int yOffset)
+	public void show(View anchor, int yOffset, int actionBarHeight)
 	{
 		for (Item item : getItems())
 		{
@@ -57,7 +57,7 @@ public class HFR4droidQuickActionWindow extends QuickActionWindow
 				contentView.setBackgroundResource(windowBackground);
 			}
 			yoff += yOffset + mConfig.get(Config.ARROW_OFFSET, 0);
-			if (yoff < -headerHeight) yoff = -headerHeight;
+			if (yoff < -(actionBarHeight + headerHeight)) yoff = -(actionBarHeight + headerHeight);
 			update(anchor, 0, yoff, -1, blockHeight);
 
 			// Animation for all views
