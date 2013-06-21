@@ -91,7 +91,6 @@ public class TopicsActivity extends HFR4droidMultiListActivity<ArrayAdapter<Topi
 
 		moreTopicInfos = isTopicMoreInfosEnable();
 		applyTheme(currentTheme);
-		attachEvents();
 
 		Bundle bundle = this.getIntent().getExtras();
 		boolean allCats = bundle == null ? false : bundle.getBoolean("allCats", false);
@@ -648,6 +647,66 @@ public class TopicsActivity extends HFR4droidMultiListActivity<ArrayAdapter<Topi
 		LayoutInflater inflator = (LayoutInflater)this.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
 		View v = inflator.inflate(R.layout.topics_title, null);
 		getSupportActionBar().setCustomView(v);
+		
+		attachEvents();
+	}
+	
+	private void attachEvents()
+	{
+		final TextView catTitle = (TextView) getSupportActionBar().getCustomView().findViewById(R.id.CatTitle);
+		registerForContextMenu(catTitle);
+
+		catTitle.setOnCreateContextMenuListener(new OnCreateContextMenuListener()
+		{
+			public void onCreateContextMenu(android.view.ContextMenu menu, View v, ContextMenuInfo menuInfo)
+			{
+				if (isMpsCat() || isAllCatsCat()) return;
+
+				// Gestion des sous-cats
+				menu.setHeaderTitle(R.string.menu_subcat);
+				try
+				{
+					android.view.MenuItem itemNone = menu.add(Menu.NONE, -1, Menu.NONE, R.string.menu_subcat_none);
+					itemNone.setCheckable(cat.getSubCatId() == -1);
+					itemNone.setChecked(cat.getSubCatId() == -1);
+					for (SubCategory subCat : getDataRetriever().getSubCats(cat))
+					{
+						android.view.MenuItem item = menu.add(Menu.NONE, (int) subCat.getSubCatId(), Menu.NONE, subCat.toString(ToStringType.SUBCAT));
+						item.setCheckable(cat.equals(subCat));
+						item.setChecked(cat.equals(subCat));
+					}
+				}
+				catch (DataRetrieverException e)
+				{
+					error(e, true);
+				}
+			}
+		});
+		
+		catTitle.setOnTouchListener(new OnTouchListener()
+		{
+			private GestureDetector gd = new GestureDetector(new SimpleOnGestureListener()
+			{
+				public boolean onDoubleTap(MotionEvent e)
+				{
+					reloadPage();
+					return true;
+				}
+
+				@Override
+				public boolean onSingleTapConfirmed(MotionEvent e)
+				{
+					catTitle.setEllipsize(catTitle.getEllipsize() == TruncateAt.MARQUEE ? TruncateAt.END : TruncateAt.MARQUEE);
+					return true;
+				}
+			});
+
+			public boolean onTouch(View v, MotionEvent event)
+			{
+				if (event != null) return gd.onTouchEvent(event);
+				return false;
+			}
+		});
 	}
 	
 	protected void applyTheme(Theme theme, ListView mainList, boolean listOnly)
@@ -772,64 +831,6 @@ public class TopicsActivity extends HFR4droidMultiListActivity<ArrayAdapter<Topi
 			currentCat = t.getCategory();
 		}
 		return result;
-	}
-
-	private void attachEvents()
-	{
-		final TextView catTitle = (TextView) getSupportActionBar().getCustomView().findViewById(R.id.CatTitle);
-		registerForContextMenu(catTitle);
-
-		catTitle.setOnCreateContextMenuListener(new OnCreateContextMenuListener()
-		{
-			public void onCreateContextMenu(android.view.ContextMenu menu, View v, ContextMenuInfo menuInfo)
-			{
-				if (isMpsCat() || isAllCatsCat()) return;
-
-				// Gestion des sous-cats
-				menu.setHeaderTitle(R.string.menu_subcat);
-				try
-				{
-					android.view.MenuItem itemNone = menu.add(Menu.NONE, -1, Menu.NONE, R.string.menu_subcat_none);
-					itemNone.setCheckable(cat.getSubCatId() == -1);
-					itemNone.setChecked(cat.getSubCatId() == -1);
-					for (SubCategory subCat : getDataRetriever().getSubCats(cat))
-					{
-						android.view.MenuItem item = menu.add(Menu.NONE, (int) subCat.getSubCatId(), Menu.NONE, subCat.toString(ToStringType.SUBCAT));
-						item.setCheckable(cat.equals(subCat));
-						item.setChecked(cat.equals(subCat));
-					}
-				}
-				catch (DataRetrieverException e)
-				{
-					error(e, true);
-				}
-			}
-		});
-		
-		catTitle.setOnTouchListener(new OnTouchListener()
-		{
-			private GestureDetector gd = new GestureDetector(new SimpleOnGestureListener()
-			{
-				public boolean onDoubleTap(MotionEvent e)
-				{
-					reloadPage();
-					return true;
-				}
-
-				@Override
-				public boolean onSingleTapConfirmed(MotionEvent e)
-				{
-					catTitle.setEllipsize(catTitle.getEllipsize() == TruncateAt.MARQUEE ? TruncateAt.END : TruncateAt.MARQUEE);
-					return true;
-				}
-			});
-
-			public boolean onTouch(View v, MotionEvent event)
-			{
-				if (event != null) return gd.onTouchEvent(event);
-				return false;
-			}
-		});
 	}
 	
 	public void preloadTopics()

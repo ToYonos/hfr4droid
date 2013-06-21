@@ -649,7 +649,6 @@ public class PostsActivity extends HFR4droidMultiListActivity<List<Post>>
 	protected void setTitle()
 	{
 		final TextView topicTitle = (TextView) getSupportActionBar().getCustomView().findViewById(R.id.TopicTitle);
-		//topicTitle.setTextSize(getTextSize(15));
 		String topicName = topic.toString();
 		if (topicName == null) topicName = "";
 		int index =  topicName.indexOf(']');
@@ -660,10 +659,7 @@ public class PostsActivity extends HFR4droidMultiListActivity<List<Post>>
 		topicTitle.setText(topicName);
 		topicTitle.setSelected(true);
 		final TextView topicPageNumber = (TextView) getSupportActionBar().getCustomView().findViewById(R.id.TopicPageNumber);
-		//topicPageNumber.setTextSize(getTextSize(15));
 		topicPageNumber.setText((topic.getNbPages() != -1 ? "P." + currentPageNumber + "/" + topic.getNbPages() + " " : ""));
-		
-		//getSupportActionBar().setTitle((topic.getNbPages() != -1 ? "P." + currentPageNumber + "/" + topic.getNbPages() + " " : "") + topicName);
 	}
 
 	@Override
