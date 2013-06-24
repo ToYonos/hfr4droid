@@ -455,6 +455,10 @@ public class TopicsActivity extends HFR4droidMultiListActivity<ArrayAdapter<Topi
 		addTopic.setVisible(isLoggedIn() && isMpsCat());
 		addTopic.setEnabled(isLoggedIn() && isMpsCat());
 
+		MenuItem subcat = menu.findItem(R.id.MenuNavSubCats);
+		subcat.setVisible(!isMpsCat() && !isAllCatsCat());
+		subcat.setEnabled(!isMpsCat() && !isAllCatsCat());
+		
 		MenuItem drapeauxAll = drapeaux.getSubMenu().findItem(R.id.MenuDrapeauxAll);
 		drapeauxAll.setVisible(!isAllCatsCat());
 		drapeauxAll.setEnabled(!isAllCatsCat());

@@ -111,7 +111,6 @@ import android.webkit.WebView.HitTestResult;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.PopupWindow;
@@ -1971,7 +1970,7 @@ public class PostsActivity extends HFR4droidMultiListActivity<List<Post>>
 		});							
 		if (isLoggedIn()) window.addItem(addFavorite);
 		
-		QuickActionWindow.Item aqLink = new QuickActionWindow.Item(PostsActivity.this, "", R.drawable.ic_menu_notifications, new QuickActionWindow.Item.Callback()
+		QuickActionWindow.Item aqLink = new QuickActionWindow.Item(PostsActivity.this, "", R.drawable.ic_menu_aq, new QuickActionWindow.Item.Callback()
 		{
 			private void showAlerts()
 			{
@@ -2069,53 +2068,116 @@ public class PostsActivity extends HFR4droidMultiListActivity<List<Post>>
 			
 			public void onClick(QuickActionWindow window, Item item, View anchor)
 			{
-				if (alertsQualitay == null)
+				getConfirmDialog(
+				PostsActivity.this,
+				getString(R.string.aq_new_title),
+				getString(R.string.aq_r_u_sure),
+				new DialogInterface.OnClickListener()
 				{
-					new ProgressDialogAsyncTask<Topic, Void, List<AlertQualitay>>(PostsActivity.this)
+					public void onClick(DialogInterface arg0, int arg1)
 					{
-						@Override
-						protected void onPreExecute() 
+						if (alertsQualitay == null)
 						{
-							super.onPreExecute();
-							progressDialog.setMessage(getString(R.string.aq_loading));
-							progressDialog.show();
+							new ProgressDialogAsyncTask<Topic, Void, List<AlertQualitay>>(PostsActivity.this)
+							{
+								@Override
+								protected void onPreExecute() 
+								{
+									super.onPreExecute();
+									progressDialog.setMessage(getString(R.string.aq_loading));
+									progressDialog.show();
+								}
+			
+								@Override
+								protected List<AlertQualitay> doInBackground(Topic... params)
+								{
+									setThreadId();
+									try
+									{
+										return getDataRetriever().getAlertsByTopic(params[0]);
+									}
+									catch (DataRetrieverException e)
+									{
+										error(e, true, true);
+										return null;
+									}
+								}
+			
+								@Override
+								protected void onPostExecute(List<AlertQualitay> alerts)
+								{
+									progressDialog.dismiss();
+									if (alerts != null)
+									{
+										alertsQualitay = new ArrayList<AlertQualitay>();
+										alertsQualitay.addAll(alerts);
+										showAlerts();
+									}
+								}
+							}.execute(topic);
 						}
-	
-						@Override
-						protected List<AlertQualitay> doInBackground(Topic... params)
+						else
 						{
-							setThreadId();
-							try
-							{
-								return getDataRetriever().getAlertsByTopic(params[0]);
-							}
-							catch (DataRetrieverException e)
-							{
-								error(e, true, true);
-								return null;
-							}
+							showAlerts();
 						}
-	
-						@Override
-						protected void onPostExecute(List<AlertQualitay> alerts)
-						{
-							progressDialog.dismiss();
-							if (alerts != null)
-							{
-								alertsQualitay = new ArrayList<AlertQualitay>();
-								alertsQualitay.addAll(alerts);
-								showAlerts();
-							}
-						}
-					}.execute(topic);
-				}
-				else
-				{
-					showAlerts();
-				}
+					}
+				}).show();
 			}
 		});					
 		if (isLoggedIn() && Build.VERSION.SDK_INT >= 8) window.addItem(aqLink);
+		
+		QuickActionWindow.Item modoLink = new QuickActionWindow.Item(PostsActivity.this, "", R.drawable.ic_menu_modo, new QuickActionWindow.Item.Callback()
+		{
+			public void onClick(QuickActionWindow window, Item item, View anchor)
+			{
+				getConfirmDialog(
+				PostsActivity.this,
+				getString(R.string.warm_modo_title),
+				getString(R.string.modo_r_u_sure),
+				new DialogInterface.OnClickListener()
+				{
+					public void onClick(DialogInterface arg0, int arg1)
+					{
+						AlertDialog.Builder builder = new AlertDialog.Builder(PostsActivity.this);
+						builder.setTitle(R.string.warm_modo_title); 
+						final EditText reason = new EditText(PostsActivity.this);
+						reason.setHint(R.string.modo_reason_hint);
+						reason.setLayoutParams(new LayoutParams(LayoutParams.FILL_PARENT, LayoutParams.WRAP_CONTENT));
+						builder.setView(reason);
+
+						builder.setPositiveButton(getString(R.string.button_ok), new DialogInterface.OnClickListener()
+						{  
+							public void onClick(DialogInterface dialog, int whichButton)
+							{
+								final Post p = new Post(currentPostId);
+								p.setTopic(topic);
+								new MessageResponseAsyncTask(PostsActivity.this, getString(R.string.warm_modo_loading))
+								{						
+									@Override
+									protected HFRMessageResponse executeInBackground() throws HFR4droidException
+									{
+										return getMessageSender().warmModeration(p, reason.getText().toString(), getDataRetriever().getHashCheck());
+									}
+									
+									@Override
+									protected void onActionFinished(String message)
+									{
+										Toast.makeText(PostsActivity.this, message, Toast.LENGTH_SHORT).show();
+									}
+								}.execute();
+							}
+						});
+						builder.setNegativeButton(getString(R.string.button_cancel), new DialogInterface.OnClickListener()
+						{
+							public void onClick(DialogInterface dialog, int which){}
+						});
+
+						builder.create().show();
+					}
+				}).show();
+			}
+		});					
+		window.addItem(modoLink);
 		
 		if (!isMine)
 		{

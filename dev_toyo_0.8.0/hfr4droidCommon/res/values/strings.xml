@@ -123,6 +123,10 @@
 	<string name="aq_sent_loading">Envoi de l\'alerte...</string>
 	<string name="aq_list_title">Alertes du topic</string>
 	
+	<string name="warm_modo_title">Nouvelle alerte modérateurs</string>
+	<string name="modo_reason_hint">Raison (facultatif)</string>
+	<string name="warm_modo_loading">Alerte aux modérateurs...</string>
+	
 	<string name="pref_warning">Attention !</string>
 	<string name="pref_disabled">Opération impossible !</string>
 	
