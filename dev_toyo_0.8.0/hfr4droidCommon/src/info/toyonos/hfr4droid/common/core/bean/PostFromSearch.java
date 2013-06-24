@@ -14,9 +14,9 @@ public class PostFromSearch extends Post
 
 	private String callbackUrl;
 
-	public PostFromSearch(int id, String content, String pseudo, String avatar,	Date date, Date lastEdition, int nbCitations, boolean isMine, boolean isModo, Topic topic)
+	public PostFromSearch(int id, String content, String pseudo, String avatar,	Date date, Date lastEdition, int nbCitations, boolean isMine, boolean isModo, boolean isDeleted, Topic topic)
 	{
-		super(id, content, pseudo, avatar, date, lastEdition, nbCitations, isMine, isModo, topic);
+		super(id, content, pseudo, avatar, date, lastEdition, nbCitations, isMine, isModo, isDeleted, topic);
 	}
 
 	public PostFromSearch(long id, String content)

@@ -1677,6 +1677,7 @@ public class PostsActivity extends HFR4droidMultiListActivity<List<Post>>
 		css.append(".modo_post { background-color: " + currentTheme.getModoPostBackgroundColorAsString() + "; }");
 		css.append(".HFR4droid_footer_space { height: 10px; }");
 		css.append(".HFR4droid_footer { height: 10px; width:100%; margin-top: -10px; background: url(\"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAA%2FCAMAAAAWu1JmAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAgY0hSTQAAeiYAAICEAAD6AAAAgOgAAHUwAADqYAAAOpgAABdwnLpRPAAAAwBQTFRFhYWFs7SzysrKy8vLyszKzMzMzc3Nzs7Oz8%2FP0NDQ0dHR0dLR0tLS09PT1NTU1dXV1tbW19fX2NjY2dnZ2tna2tra29rb3Nvc3Nzc3dzdAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAWKfi1AAAABh0RVh0U29mdHdhcmUAUGFpbnQuTkVUIHYzLjM2qefiJQAAAEFJREFUGFddwkcOgDAQBMHBhCWDCQb%2B%2F1Fai8TBqlKhSoOiDiVdejK3PgkndrchYsXiZkwY0bsO7c9kalCjdAF6ARIIA4Sqnjr8AAAAAElFTkSuQmCC\"); }");
+		css.append(".deleted_post { background-image: url(data:image/gif;base64,R0lGODlhAgACAIMAAJmZmf%2F%2F%2F%2F%2F%2F%2FwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAMAAAIALAAAAAACAAIAAAQEEAgBIgA7); filter: alpha(opacity=40); -moz-opacity:0.4; -khtml-opacity: 0.4; opacity:0.4; }");
 		css.append("</style>");
 
 		Display display = getWindowManager().getDefaultDisplay(); 
@@ -1731,8 +1732,10 @@ public class PostsActivity extends HFR4droidMultiListActivity<List<Post>>
 			content = content.replaceAll("<img\\s*src=\"http://forum\\-images\\.hardware\\.fr/images/perso/(.*?)\"\\s*alt=\"(.*?)\"", "<img onclick=\"window.HFR4Droid.editKeywords('$2');\" src=\"http://forum-images.hardware.fr/images/perso/$1\" alt=\"$2\"");
 			if (!isImgsEnable) content = content.replaceAll("<img\\s*src=\"https?://[^\"]*?\"\\s*alt=\"https?://[^\"]*?\"\\s*title=\"(https?://.*?)\".*?/>", "<a href=\"$1\" target=\"_blank\" class=\"cLink\">$1</a>");
 			content = content.replaceAll("ondblclick=\".*?\"", "");
+			if (p.isDeleted()) postsContent.append("<div class=\"deleted_post\">");
 			postsContent.append(header);
 			postsContent.append(content);
+			if (p.isDeleted()) postsContent.append("</div>");
 			if (oldCitation == null)
 			{
 				// Si citation il y a...
@@ -1968,7 +1971,7 @@ public class PostsActivity extends HFR4droidMultiListActivity<List<Post>>
 				Toast.makeText(PostsActivity.this, data, Toast.LENGTH_SHORT).show();
 			}
 		});							
-		if (isLoggedIn()) window.addItem(addFavorite);
+		if (isLoggedIn() && !isMpsCat(topic.getCategory())) window.addItem(addFavorite);
 		
 		QuickActionWindow.Item aqLink = new QuickActionWindow.Item(PostsActivity.this, "", R.drawable.ic_menu_aq, new QuickActionWindow.Item.Callback()
 		{
@@ -2124,7 +2127,7 @@ public class PostsActivity extends HFR4droidMultiListActivity<List<Post>>
 				}).show();
 			}
 		});					
-		if (isLoggedIn() && Build.VERSION.SDK_INT >= 8) window.addItem(aqLink);
+		if (isLoggedIn() && Build.VERSION.SDK_INT >= 8 && !isMpsCat(topic.getCategory())) window.addItem(aqLink);
 		
 		QuickActionWindow.Item modoLink = new QuickActionWindow.Item(PostsActivity.this, "", R.drawable.ic_menu_modo, new QuickActionWindow.Item.Callback()
 		{
@@ -2177,7 +2180,7 @@ public class PostsActivity extends HFR4droidMultiListActivity<List<Post>>
 				}).show();
 			}
 		});					
-		window.addItem(modoLink);
+		if (!isMpsCat(topic.getCategory())) window.addItem(modoLink);
 		
 		if (!isMine)
 		{

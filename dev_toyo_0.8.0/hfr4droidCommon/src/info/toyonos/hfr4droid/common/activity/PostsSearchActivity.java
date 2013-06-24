@@ -202,7 +202,7 @@ public class PostsSearchActivity extends PostsActivity
 
 	protected void addQuickActionWindowItems(HFR4droidQuickActionWindow window, final long currentPostId, boolean isMine)
 	{
-		QuickActionWindow.Item goToOriginalPost = new QuickActionWindow.Item(PostsSearchActivity.this, "", R.drawable.ic_menu_goto, new QuickActionWindow.Item.Callback()
+		QuickActionWindow.Item goToOriginalPost = new QuickActionWindow.Item(PostsSearchActivity.this, "", R.drawable.ic_menu_jump_to, new QuickActionWindow.Item.Callback()
 		{	
 			public void onClick(QuickActionWindow window, Item item, View anchor)
 			{
