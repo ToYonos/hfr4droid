@@ -22,6 +22,7 @@ public class Theme
 	private int postEditQuoteTextColor;
 	private int postBlockBackgroundColor;
 	private int modoPostBackgroundColor;
+	private String modoPostDeletedData;
 	private boolean progressBarInversed;
 	private int splashTitleColor;
 	private String spinner;
@@ -45,6 +46,7 @@ public class Theme
 		this.postEditQuoteTextColor = -1;
 		this.postBlockBackgroundColor = -1;
 		this.modoPostBackgroundColor = -1;
+		this.modoPostDeletedData = null;
 		this.progressBarInversed = false;
 		this.splashTitleColor = -1;
 		this.spinner = null;
@@ -307,5 +309,15 @@ public class Theme
 	public void setProfileText2Color(int profileText2Color)
 	{
 		this.profileText2Color = profileText2Color;
+	}
+
+	public String getModoPostDeletedData()
+	{
+		return modoPostDeletedData;
+	}
+
+	public void setModoPostDeletedData(String modoPostDeletedData)
+	{
+		this.modoPostDeletedData = modoPostDeletedData;
 	}
 }

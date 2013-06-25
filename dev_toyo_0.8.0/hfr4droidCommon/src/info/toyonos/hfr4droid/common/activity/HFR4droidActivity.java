@@ -445,6 +445,7 @@ public abstract class HFR4droidActivity extends SherlockActivity
 		currentTheme.setPostEditQuoteTextColor(getColorByKey(themeKey, "post_edit_quote_text"));
 		currentTheme.setPostBlockBackgroundColor(getColorByKey(themeKey, "post_block_background"));
 		currentTheme.setModoPostBackgroundColor(getColorByKey(themeKey, "post_modo_background"));
+		currentTheme.setModoPostDeletedData(getString(getKeyByTheme(themeKey, R.string.class, "modo_post_deleted_data")));
 		currentTheme.setProgressBarInversed(Boolean.parseBoolean(getString(getKeyByTheme(themeKey, R.string.class, "inverse_progress"))));
 		currentTheme.setSplashTitleColor(getColorByKey(themeKey, "splash_title"));
 		currentTheme.setSpinner(getString(getKeyByTheme(themeKey, R.string.class, "spinner")));

@@ -26,7 +26,7 @@
 	<color name="default_text1">#000000</color>
 	<color name="default_text2">#9A9A9A</color>
 	<color name="default_text_focused">#F7F7F7</color>
-	
+
 	<string name="default_post_header_data">data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAAyCAIAAAASmSbdAAAACXBIWXMAAAsSAAALEgHS3X78AAAAr0lEQVR42i3D61IBYQCA4fc%2B%2FMNiR2qVU7sxzbgFHZaEQU27qG6hf7ElRDmMQ5juilvp%2B%2BKZeQibL5w%2F%2F5J6WpN6XO02liTFs%2FrPf6O%2BwKgt0O05ujXj1JqSkB%2BmxO8nxOS7MVExUh0RqQw5KX9zXP5Ck0sDtGKfo8Inh4UeodseB%2Fmu2CF4I%2BY%2BUHNt1KxovhMw3%2FBfO%2FjkKwflsoVy0cQrZ17x7LszTVxpm8128wedbTsQqibZlwAAAABJRU5ErkJggg%3D%3D</string>
 	<color name="default_post_header">#306196</color>
 	<color name="default_post_pseudo">#FFFFFF</color>
@@ -36,6 +36,7 @@
 	<color name="default_post_edit_quote_text">#555555</color>
 	<color name="default_post_block_background">#FFFFFF</color>
 	<color name="default_post_modo_background">#FFEEEE</color>
+	<string name="default_modo_post_deleted_data">data:image/gif;base64,R0lGODlhAgACAIMAAJmZmf%2F%2F%2F%2F%2F%2F%2FwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAMAAAIALAAAAAACAAIAAAQEEAgBIgA7</string>
 	
 	<string name="default_inverse_progress">false</string>
 	
@@ -65,6 +66,7 @@
 	<color name="dark_post_edit_quote_text">#DADADA</color>
 	<color name="dark_post_block_background">#606060</color>
 	<color name="dark_post_modo_background">#666666</color>
+	<string name="dark_modo_post_deleted_data">data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAIAAAACCAYAAABytg0kAAAAAXNSR0IArs4c6QAAAAZiS0dEAP8A%2FwD%2FoL2nkwAAAAlwSFlzAAALEwAACxMBAJqcGAAAAAd0SU1FB90GGQkWIgYMh1gAAAAUSURBVAjXY7h79%2B5%2FBhi4e%2FfufwBAOActJBrLFAAAAABJRU5ErkJggg%3D%3D</string>
 	
 	<string name="dark_inverse_progress">true</string>
 	
@@ -95,6 +97,7 @@
 	<color name="gray_post_edit_quote_text">#555555</color>
 	<color name="gray_post_block_background">#FFFFFF</color>
 	<color name="gray_post_modo_background">#FFEEEE</color>
+	<string name="gray_modo_post_deleted_data">data:image/gif;base64,R0lGODlhAgACAIMAAJmZmf%2F%2F%2F%2F%2F%2F%2FwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAMAAAIALAAAAAACAAIAAAQEEAgBIgA7</string>
 	
 	<string name="gray_inverse_progress">false</string>
 	
