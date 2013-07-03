@@ -801,6 +801,8 @@ public class PostsActivity extends HFR4droidMultiListActivity<List<Post>>
 	{
 		final WebView webView = new NonLeakingWebView(this)
         {
+			//private boolean actionBarVisible = true;
+			
             @Override
             public boolean onTouchEvent(MotionEvent ev)
             {
@@ -820,6 +822,25 @@ public class PostsActivity extends HFR4droidMultiListActivity<List<Post>>
                 }
                 return result;
             }
+            
+            /* Feature sympa visuellement mais useless, on permet l'accès au menu quand on est en bas de page donc chiant à l'usage
+             
+            @Override
+            protected void onScrollChanged(final int l, final int t, final int oldl, final int oldt)
+            {
+            	super.onScrollChanged(l, t, oldl, oldt);
+            	Log.v(HFR4droidApplication.TAG, "l " + l + ", t " + t + ", oldl " + oldl + ", oldt " + oldt);
+            	if (t == 0 && !actionBarVisible)
+            	{
+            		PostsActivity.this.getSupportActionBar().show();
+            		actionBarVisible = true;
+            	}
+            	else if (t > 0 && actionBarVisible)
+            	{
+            		PostsActivity.this.getSupportActionBar().hide();
+            		actionBarVisible = false;
+            	}
+            }*/
         };
 
         registerForContextMenu(webView);

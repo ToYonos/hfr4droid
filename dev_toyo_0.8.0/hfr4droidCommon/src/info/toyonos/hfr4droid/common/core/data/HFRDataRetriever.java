@@ -634,10 +634,22 @@ public class HFRDataRetriever implements MDDataRetriever
 	public List<Post> searchPosts(Topic topic, String pseudo, String word, Post fromPost) throws DataRetrieverException
 	{
 		ArrayList<Post> posts = new ArrayList<Post>();
+		String encodedPseudo = pseudo, encodedWord = word.replace("#", "");
+		
+		try
+		{
+			if (pseudo != null) encodedPseudo = URLEncoder.encode(pseudo, "UTF-8");
+			if (word != null) encodedWord =  URLEncoder.encode(word.replace("#", ""), "UTF-8");
+		}
+		catch (UnsupportedEncodingException e1)
+		{
+			Log.w(HFR4droidApplication.TAG, e1);
+		}
+		
 		String url = SEARCH_POSTS_URL.replaceFirst("\\{\\$cat\\}", topic.getCategory().getRealId())
 		.replaceFirst("\\{\\$topic\\}", String.valueOf(topic.getId()))
-		.replaceFirst("\\{\\$pseudo\\}", pseudo != null ? pseudo : "")
-		.replaceFirst("\\{\\$word\\}", word != null ? word.replace("#", "") : "")
+		.replaceFirst("\\{\\$pseudo\\}", pseudo != null ? encodedPseudo : "")
+		.replaceFirst("\\{\\$word\\}", word != null ? encodedWord : "")
 		.replaceFirst("\\{\\$fp\\}", String.valueOf(fromPost != null ? fromPost.getId() : 0));
 		String content = null;
 		try
