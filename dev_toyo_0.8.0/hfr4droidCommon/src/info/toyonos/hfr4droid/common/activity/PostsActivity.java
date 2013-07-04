@@ -1186,6 +1186,12 @@ public class PostsActivity extends HFR4droidMultiListActivity<List<Post>>
 		webView.addJavascriptInterface(new Object()
 		{
 			@SuppressWarnings("unused")
+			public void log(String s)
+			{
+				Log.d(HFR4droidApplication.TAG, "Javascript : " + s);
+			}
+			
+			@SuppressWarnings("unused")
 			public void openQuickActionWindow(final long postId, final boolean isMine, final int yOffset)
 			{
 				if (yOffset >= 0 && (currentQAwindow == null || !currentQAwindow.isShowing()))
@@ -1607,6 +1613,8 @@ public class PostsActivity extends HFR4droidMultiListActivity<List<Post>>
 		js.append("function removePost(id) { var header = document.getElementById(id); header.parentNode.removeChild(header.nextSibling); if (header.nextSibling.className == 'HFR4droid_post') header.parentNode.removeChild(header.nextSibling); header.parentNode.removeChild(header); };");
 		js.append("function openQuickActionWindow(postId, isMine) {var elem = document.getElementById(postId); var yOffset = 0; while (elem != null) { yOffset += elem.offsetTop; elem = elem.offsetParent; } window.HFR4Droid.openQuickActionWindow(postId, isMine, yOffset - window.scrollY); }");
 		js.append("function openProfileWindow(pseudo) { event.stopPropagation(); window.HFR4Droid.openProfileWindow(pseudo); }");
+		js.append("function jumpToFirstPost() { scrollToElement(" + posts.get(0).getId() + "); }");
+		js.append("function jumpToLastPost() { scrollToElement(" + NewPostUIHelper.BOTTOM_PAGE_ID + "); }");
 		js.append("var loadDynamicCss = function(width) { var headID = document.getElementsByTagName('head')[0]; var styles = headID.getElementsByTagName('style'); for (var i=1;i<styles.length;i++) headID.removeChild(styles[i]); var cssNode = document.createElement('style'); cssNode.type = 'text/css'; cssNode.appendChild(document.createTextNode('");
 		js.append("ol { width:' + (Math.round(width * 0.80) - 40) + 'px; }");
 		js.append(".citation p, .oldcitation p, .quote p, .oldquote p, .fixed p, .code p, .spoiler p, .oldspoiler p { width:' + Math.round(width * 0.80) + 'px; }");
@@ -1614,11 +1622,13 @@ public class PostsActivity extends HFR4droidMultiListActivity<List<Post>>
 		js.append(".HFR4droid_content img { max-width: ' + (width - 30) + 'px; }");
 		js.append(".citation img, .oldcitation img, .quote img, .oldquote img, .fixed img, .code img, .spoiler img, .oldspoiler img { max-width: ' + (Math.round(width * 0.80) - 15) + 'px; }");
 		js.append("')); headID.appendChild(cssNode); };");
+		js.append("var scrollFct = function () { window.HFR4Droid.log('pageYOffset ' + window.pageYOffset); window.HFR4Droid.log('document.height ' + document.height); window.HFR4Droid.log('window.innerHeight ' + window.innerHeight); document.getElementById('top').style.visibility = window.pageYOffset == 0 ? 'hidden' : 'visible'; document.getElementById('bottom').style.visibility = window.pageYOffset == (document.height - window.innerHeight) ? 'hidden' : 'visible'; }; ");
 		if (topic.getLastReadPost() != -1 || topic.getStatus() == TopicStatus.NEW_MP)
 		{
-			js.append("window.onload = function () { scrollToElement(\'" + (topic.getStatus() == TopicStatus.NEW_MP ? NewPostUIHelper.BOTTOM_PAGE_ID : topic.getLastReadPost()) + "\'); }");
+			js.append("window.onload = function () { scrollToElement(\'" + (topic.getStatus() == TopicStatus.NEW_MP ? NewPostUIHelper.BOTTOM_PAGE_ID : topic.getLastReadPost()) + "\'); };");
 			topic.setLastReadPost(-1);
 		}
+		js.append("window.setTimeout(function(){ scrollFct(); window.onscroll = scrollFct; }, 1000);");
 		js.append("</script>");
 
 		StringBuffer css = new StringBuffer("<style type=\"text/css\">");
@@ -1699,6 +1709,9 @@ public class PostsActivity extends HFR4droidMultiListActivity<List<Post>>
 		css.append(".HFR4droid_footer_space { height: 10px; }");
 		css.append(".HFR4droid_footer { height: 10px; width:100%; margin-top: -10px; background: url(\"data:image/ng;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAA%2FCAMAAAAWu1JmAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAgY0hSTQAAeiYAAICEAAD6AAAAgOgAAHUwAADqYAAAOpgAABdwnLpRPAAAAwBQTFRFhYWFs7SzysrKy8vLyszKzMzMzc3Nzs7Oz8%2FP0NDQ0dHR0dLR0tLS09PT1NTU1dXV1tbW19fX2NjY2dnZ2tna2tra29rb3Nvc3Nzc3dzdAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAWKfi1AAAABh0RVh0U29mdHdhcmUAUGFpbnQuTkVUIHYzLjM2qefiJQAAAEFJREFUGFddwkcOgDAQBMHBhCWDCQb%2B%2F1Fai8TBqlKhSoOiDiVdejK3PgkndrchYsXiZkwY0bsO7c9kalCjdAF6ARIIA4Sqnjr8AAAAAElFTkSuQmCC\"); }");
 		css.append(".deleted_post { background-image: url(" + currentTheme.getModoPostDeletedData() + "); filter: alpha(opacity=40); -moz-opacity:0.4; -khtml-opacity: 0.4; opacity:0.4; }");
+		css.append(".jumper { position: fixed; alpha(opacity=10); opacity:0.10; right: 10px; width: 48px; height: 48px; }");
+		css.append("#bottom { visibility: hidden; bottom: 10px; background: url(\"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADAAAAAwCAYAAABXAvmHAAAAAXNSR0IArs4c6QAAAAZiS0dEAP8A%2FwD%2FoL2nkwAAAAlwSFlzAAALEwAACxMBAJqcGAAAAAd0SU1FB90HBA8ZHaxsbOoAAAN8SURBVGje7Zo7TCNXFIa%2FuWODTTAESBAP4QZWZpBoQ0tavA0SDUVAAoUKSgokxKPCu5CWAiFS8BASEuTlgABhBLIpAKE06VIgpaIjkaJFkDkpsl6xu6w9Y9%2BxMtH%2B0pWs8Z0z57%2F%2FOfeOzhmDf6GAr4B%2B4DPyIwBEKC0egD%2BB34FvgNPHf64A4qPxN%2FB11vkvfeZ8drwCGhXwHH%2BiHHiugBr8i4gCPvUxgQr1egfyK8IKMHRavL6%2BRkSeHN3d3boJqJKufllZmXab2hUwDCPHcilPCJQMHhAw%2FhcKGD5WQH8IlVgB46MCH3NAQwjh9xDKqYBlWfT29mpx0imBaDTKwMCAnhwIh8NsbGzQ09PjyKBpmgXlRxYNDQ3s7u4Si8X0KGCaJqFQiO3tbeLxeFEE8inQ0tLC6ekpHR0dTt%2Bb8udA1qHy8nJ2dnbo6%2BvzRIFoNEoqlaKtrQ2AYDCoR4FAIPDmdzAYZHNzk8HBQa0KxGIxMpkMra2tbz1LSw68%2B1DTNFlZWWF4eNh1mDylgGVZpFIpmpub37pu27Z3B5lSiqWlJUZGRopSoLOzk%2BPjYxobG9%2Bbe39%2F7%2B1JrJRicXGR%2Fv7%2BD4ZcLgXa29vZ29ujvr7%2B6SrWw4NjAlIoCdM0WVtbY2hoyNU5YFkWR0dHNDU1fXCuGwVyEri7u8urxPLyMmNjYyilcu40hmHQ1dVFJpN5Mmwe4%2Bbmxon%2FArBLnirY7Oys5INt2zI%2BPp5zzurqqtze3ua1tb6%2BLqZpOqnOvQT42cFEmZmZkVJga2tLAoGA0%2FKicwKALCwseOr8%2Fv6%2BhEIhN%2FXRlwBJFzd4RuLw8FDC4bDbAu8LgJ9c3iTz8%2FNanU%2Bn01JZWVlIhbowAjpJnJ2dSSQSKbTE%2FgLgxwJvLprE1dWV1NbWFtMjSAD8UIQBmZycLHjlq6uri21yFE8AkEQi4cr5y8tLqaur09GlSQB8r8GQTE9PO3L%2B4uKi2LB5j8B3mozJ1NRUTufPz8%2BlpqZGZ59sTiuBXDmRTqelqqpKd6NvDmBHs1EZHR0V27bfOH9wcCAVFRVedCrnADY9MCwTExMiInJyclLMPp9vTAN865Fxicfjbt9t3I7xAPCXV5W4ZDLpdbHvlQJ%2Bwb%2B4AggDv%2BG%2FTw0OHjN59pqNX5xPArW8U9QygC%2BAz4Fq4JP%2FWLj8AdwC18Cv2Yv%2FAG7AaSkoJTUWAAAAAElFTkSuQmCC\"); }");
+		css.append("#top { visibility: hidden; top: 10px; background: url(\"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADAAAAAwCAYAAABXAvmHAAAABmJLR0QA%2FwD%2FAP%2BgvaeTAAADoUlEQVRoge2YT0gjVxzHPxkjRjGKEYSFwp72spelp0CoYDwpnvQk4klcBVE8FA%2BC%2BOdUW715ExRUxIKC%2By8W1IMIIq6KB0ENKAVFI7ZgZWnVqPP20B0xu8nMm8lLjKUfeJDM%2B8173%2B9835tkxkUsL4HnQCFQQGbxN3AB%2FAF8BMTDTh8Q%2BnLwKbQt4MVDAwsZIMpuOwByAX7IADFOW5MGfM%2FT5ZUGeFI1usfjoaqqKlXDA%2BQB9JCCeL1er1heXhZCCNHZ2ZmqJfQrwE%2BqB87LyxMLCwvCQNd10dramgoDs8oNFBQUiJWVFRGPrq4u1QbeKDVQVFQk1tfX44o36O7uVm6gX8VgPp9PbGxsmIo36OnpUWXgrRIDxcXFYnNzU0q8QX9%2FvwoD75I2UFhYKFZXV22JN1CwJ5Iz4PP5xNbWliPxBgMDA8kYeA%2Fws5OTvV6v4yuv0MQHRwby8%2FMT3irTbMK%2BgdzcXLG4uKhUvMHg4KBdAyGAX2RP8Hg8Yn5%2BPiXiHZqYkzbgdrvF9PR0SsUb9Pb2qjWQlZUlJicnLSe%2BuLgQExMTpjUdHR1C13XLsfr6%2BmQM%2FCZloL293XLC8%2FNz4ff7RXNzs2mdpmmira1NyoTf77c0oAEuLCgpKTHtj0QiBAIB1tbWEEIkrBNCoOs6Q0NDNDY2ouu66bg5OTlW0lyaVQVAdnZ2wr6TkxPKy8vZ3d0FMBX1sG90dJT6%2Bnru7u5kJCRCzoDb7Y57%2FOzsjIqKCvb29u6PmSVwe3sb831qaoqWlhbLJMxwnEAkEqGsrIzt7e2Y42Zi4l3t4eFhmpqaHJuQMqBpsWXHx8cEg8H7ZfMQswQSiRwZGaGhoeEbgzKmpAzc3Nzcfz44OCAQCBAOh22JhPgJGIyNjVFbWxsz19dLLg7CloH9%2FX2CwSCHh4eJRzRJwGrDzszMUF1dzfX1tVQ9%2FJtA4hm%2FEI1G2dnZobS0lKOjI9NapwkYhEIhampquLq6kqmXSyAcDlNZWcnp6allbTIJGMzNzVFXV8fl5aVlbfz741eMj49LTQzyvwNWzM7OypTJJWCHZO7pTpDaA3ZIs4H0JmC2P5zy1JeQSOsS%2Bj%2BBb3nyeyC9SygV%2FCcSUEo0GlU9pCluQGnmS0tLuFyWj9mqEBpg%2FY8pc9E14J%2FHVpEEf2nAp8dWkQTnLuAZ8Dtg%2BRImAyk3PrwG7rD%2Fevsx2yjEvpUrBX4EvgO8SD7sKOQTYPkUD%2FwJTAETgP4ZmQ5UTPRxaekAAAAASUVORK5CYII%3D\"); }");
 		css.append("</style>");
 
 		Display display = getWindowManager().getDefaultDisplay(); 
@@ -1708,7 +1721,10 @@ public class PostsActivity extends HFR4droidMultiListActivity<List<Post>>
 		js2.append("</script>");
 
 		setDrawablesToggles();
-		StringBuffer postsContent = new StringBuffer("<div class=\"HFR4droid_posts_container\">");
+		StringBuffer postsContent = new StringBuffer("");
+		postsContent.append("<div onclick=\"jumpToLastPost()\" id=\"bottom\" class=\"jumper\"></div>");
+		postsContent.append("<div onclick=\"jumpToFirstPost()\" id=\"top\" class=\"jumper\"></div>");
+		postsContent.append("<div class=\"HFR4droid_posts_container\">");
 		for (Post p : posts)
 		{
 			SimpleDateFormat sdf = new SimpleDateFormat("'Le' dd/MM/yyyy à HH:mm:ss");
@@ -1825,7 +1841,8 @@ public class PostsActivity extends HFR4droidMultiListActivity<List<Post>>
 		}
 		
 		if (!preloading) setView(webView);
-		webView.loadDataWithBaseURL(getDataRetriever().getBaseUrl(), "<html><head>" + js.toString() + css.toString() + js2.toString() + "</head><body>" + postsContent.toString() + "</body></html>", "text/html", "UTF-8", null);
+		String meta = "<meta name=\"viewport\" content=\"width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no\">";
+		webView.loadDataWithBaseURL(getDataRetriever().getBaseUrl(), "<html><head>" + meta + js.toString() + css.toString() + js2.toString() + "</head><body>" + postsContent.toString() + "</body></html>", "text/html", "UTF-8", null);
 		supportInvalidateOptionsMenu();
 
 		return webView;
