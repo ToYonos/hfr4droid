@@ -22,6 +22,7 @@ public abstract class ProgressDialogAsyncTask<P, G, R> extends AsyncTask<P, G, R
 	{
 		progressDialog = new ProgressDialog(context);
 		progressDialog.setIndeterminate(true);
+		progressDialog.setCanceledOnTouchOutside(false);
 		progressDialog.setOnCancelListener(new OnCancelListener()
 		{
 			public void onCancel(DialogInterface dialog)

@@ -84,7 +84,7 @@
 			android:key="PrefTopicMoreInfosEnable"
 			android:summary="@string/pref_topic_more_infos_enable_summary"
 			android:title="@string/pref_topic_more_infos_enable_title"
-			android:defaultValue="@string/pref_topic_more_infos_enable_default" />           
+			android:defaultValue="@string/pref_topic_more_infos_enable_default" />      
 		<ListPreference
 			android:key="PrefAvatarsDisplayType"
 			android:summary="@string/pref_avatars_display_type_summary"
@@ -106,6 +106,13 @@
 			android:defaultValue="@string/pref_imgs_display_type_default"
 			android:entries="@array/drawable_values"
             android:entryValues="@array/drawable_keys" />
+		<ListPreference
+			android:key="PrefQuotedEditedDisplayType"
+			android:summary="@string/pref_quoted_edited_display_type_summary"
+			android:title="@string/pref_quoted_edited_display_type_title"
+			android:defaultValue="@string/pref_quoted_edited_display_type_default"
+			android:entries="@array/quoted_edited_values"
+            android:entryValues="@array/quoted_edited_keys" />
 	</PreferenceCategory>	
 
 	<PreferenceCategory

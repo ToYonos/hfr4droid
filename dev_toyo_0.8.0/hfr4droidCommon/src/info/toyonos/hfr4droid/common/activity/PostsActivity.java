@@ -1737,7 +1737,9 @@ public class PostsActivity extends HFR4droidMultiListActivity<List<Post>>
 			String content = "";
 			content = "<div class=\"HFR4droid_post";
 			if (p.isModo()) content += " modo_post";
-			content += "\">" + editQuoteDiv + "<div class=\"HFR4droid_content\"";
+			content += "\">";
+			if (getQuotedEditedDisplayType() != QuotedEditedDisplayType.BOTTOM) content += editQuoteDiv;
+			content += "<div class=\"HFR4droid_content\"";
 			String postContent = p.getContent();
 			if (preloading && oldCitation != null && !oldCitation)
 			{
@@ -1745,7 +1747,9 @@ public class PostsActivity extends HFR4droidMultiListActivity<List<Post>>
 				postContent = postContent.replaceAll("<hr size=\"1\" />", "");
 				postContent = postContent.replaceAll("\"oldcitation\">", "\"citation\">");
 			}
-			content += ">" + postContent + "</div></div>";
+			content += ">" + postContent + "</div>";
+			if (getQuotedEditedDisplayType() != QuotedEditedDisplayType.TOP) content += editQuoteDiv;
+			content += "</div>";
 			content = content.replaceAll("onload=\"md_verif_size\\(this,'Cliquez pour agrandir','[0-9]+','[0-9]+'\\)\"", "onclick=\"return true;\"");
 			content = content.replaceAll("<b\\s*class=\"s1\"><a href=\"(.*?)\".*?>(.*?)</a></b>", "<b onclick=\"window.HFR4Droid.handleUrl('" + getDataRetriever().getBaseUrl() + "$1');\" class=\"s1\">$2</b>");
 			content = content.replaceAll("<a\\s*href=\"(http://forum\\.hardware\\.fr.*?)\"\\s*target=\"_blank\"\\s*class=\"cLink\">", "<a onclick=\"window.HFR4Droid.handleUrl('$1');\" class=\"cLink\">");			

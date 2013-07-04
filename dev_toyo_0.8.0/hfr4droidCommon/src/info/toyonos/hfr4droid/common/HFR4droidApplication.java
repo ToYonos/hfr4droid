@@ -1,6 +1,7 @@
 package info.toyonos.hfr4droid.common;
 
 import info.toyonos.hfr4droid.common.activity.HFR4droidActivity.DrawableDisplayType;
+import info.toyonos.hfr4droid.common.activity.HFR4droidActivity.QuotedEditedDisplayType;
 import info.toyonos.hfr4droid.common.core.auth.AuthenticationException;
 import info.toyonos.hfr4droid.common.core.auth.HFRAuthentication;
 import info.toyonos.hfr4droid.common.core.bean.Profile;
@@ -34,27 +35,28 @@ import android.util.Log;
  */
 public class HFR4droidApplication extends Application
 {
-	public static final String PREF_WELCOME_SCREEN			= "PrefWelcomeScreen";
-	public static final String PREF_CHECK_MPS_ENABLE		= "PrefCheckMpsEnable";
-	public static final String PREF_NOTIFICATION_TYPE		= "PrefNotificationType";
-	public static final String PREF_TYPE_DRAPEAU			= "PrefTypeDrapeau";
-	public static final String PREF_SIGNATURE_ENABLE		= "PrefSignatureEnable";
-	public static final String PREF_DBLTAP_ENABLE			= "PrefDblTapEnable";
-	public static final String PREF_OVERRIDE_LIGHT_MODE		= "PrefOverrideLightMode";
-	public static final String PREF_SWIPE					= "PrefSwipe";
-	public static final String PREF_PRELOADING_CALLBACK		= "PrefPreloadingCallback";
-	public static final String PREF_FULLSCREEN_ENABLE		= "PrefFullscreenEnable";
-	public static final String PREF_THEME					= "PrefTheme";
-	public static final String PREF_POLICE_SIZE				= "PrefPoliceSize";
-	public static final String Pref_TOPIC_MORE_INFOS_ENABLE	= "PrefTopicMoreInfosEnable";
-	public static final String PREF_AVATARS_DISPLAY_TYPE	= "PrefAvatarsDisplayType";
-	public static final String PREF_SMILEYS_DISPLAY_TYPE	= "PrefSmileysDisplayType";
-	public static final String PREF_IMGS_DISPLAY_TYPE		= "PrefImgsDisplayType";
-	public static final String PREF_SRV_MPS_ENABLE			= "PrefSrvMpsEnable";
-	public static final String PREF_SRV_MPS_FREQ			= "PrefSrvMpsFreq";
-	
+	public static final String PREF_WELCOME_SCREEN				= "PrefWelcomeScreen";
+	public static final String PREF_CHECK_MPS_ENABLE			= "PrefCheckMpsEnable";
+	public static final String PREF_NOTIFICATION_TYPE			= "PrefNotificationType";
+	public static final String PREF_TYPE_DRAPEAU				= "PrefTypeDrapeau";
+	public static final String PREF_SIGNATURE_ENABLE			= "PrefSignatureEnable";
+	public static final String PREF_DBLTAP_ENABLE				= "PrefDblTapEnable";
+	public static final String PREF_OVERRIDE_LIGHT_MODE			= "PrefOverrideLightMode";
+	public static final String PREF_SWIPE						= "PrefSwipe";
+	public static final String PREF_PRELOADING_CALLBACK			= "PrefPreloadingCallback";
+	public static final String PREF_FULLSCREEN_ENABLE			= "PrefFullscreenEnable";
+	public static final String PREF_THEME						= "PrefTheme";
+	public static final String PREF_POLICE_SIZE					= "PrefPoliceSize";
+	public static final String Pref_TOPIC_MORE_INFOS_ENABLE		= "PrefTopicMoreInfosEnable";
+	public static final String PREF_AVATARS_DISPLAY_TYPE		= "PrefAvatarsDisplayType";
+	public static final String PREF_SMILEYS_DISPLAY_TYPE		= "PrefSmileysDisplayType";
+	public static final String PREF_QUOTED_EDITED_DISPLAY_TYPE	= "PrefQuotedEditedDisplayType";
+	public static final String PREF_IMGS_DISPLAY_TYPE			= "PrefImgsDisplayType";
+	public static final String PREF_SRV_MPS_ENABLE				= "PrefSrvMpsEnable";
+	public static final String PREF_SRV_MPS_FREQ				= "PrefSrvMpsFreq";
+
 	public static final String TAG = "HFR4droid";
-	
+
 	private HttpClientHelper httpClientHelper;
 	private MDDataRetriever dataRetriever;
 	private HFRAuthentication auth;
@@ -77,7 +79,7 @@ public class HFR4droidApplication extends Application
 	{
 		return httpClientHelper;
 	}
-	
+
 	public MDDataRetriever getDataRetriever()
 	{
 		return dataRetriever;
@@ -87,7 +89,7 @@ public class HFR4droidApplication extends Application
 	{
 		return msgSender;
 	}
-	
+
 	public HFRAuthentication getAuthentication()
 	{
 		return auth;
@@ -151,7 +153,7 @@ public class HFR4droidApplication extends Application
 	{
 		return auth != null && auth.getCookies() != null;
 	}
-	
+
 	/**
 	 * @return Le profil d'un membre s'il a été stocké en cache
 	 */
@@ -159,7 +161,7 @@ public class HFR4droidApplication extends Application
 	{
 		return profiles.get(pseudo);
 	}
-	
+
 	/**
 	 * Stocke le profil d'un membre en cache
 	 */
@@ -167,7 +169,7 @@ public class HFR4droidApplication extends Application
 	{
 		profiles.put(pseudo, profile);
 	}
-	
+
 	// Getter des préférences modifiables par l'utilisateur
 
 	public int getWelcomeScreen()
@@ -181,7 +183,7 @@ public class HFR4droidApplication extends Application
 		SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(this);
 		return settings.getBoolean(PREF_CHECK_MPS_ENABLE, Boolean.parseBoolean(getString(R.string.pref_check_mps_enable_default)));
 	}
-	
+
 	public int getTypeDrapeau()
 	{
 		SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(this);
@@ -199,44 +201,44 @@ public class HFR4droidApplication extends Application
 		SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(this);
 		return settings.getBoolean(PREF_DBLTAP_ENABLE, Boolean.parseBoolean(getString(R.string.pref_dbltap_enable_default)));
 	}
-	
+
 	public boolean isOverrideLightModeEnable()
 	{
 		SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(this);
 		return settings.getBoolean(PREF_OVERRIDE_LIGHT_MODE, Boolean.parseBoolean(getString(R.string.pref_override_light_mode_enable_default)));
 	}
-	
-    public float getSwipe()
-    {
-            SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(this);
-            return Float.parseFloat(settings.getString(PREF_SWIPE, getString(R.string.pref_swipe_default)));
-    }
-	
-    public PreLoadingCompleteListener getPreloadingCallback()
-    {
-    	SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(this);
-        int ind = Integer.parseInt(settings.getString(PREF_PRELOADING_CALLBACK, getString(R.string.pref_preloading_callback_default)));
-        return ind != -1 ? PreLoadingAsyncTask.PRELOADING_COMPLETE_LISTENERS[ind] : null;
-    }
-    
+
+	public float getSwipe()
+	{
+		SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(this);
+		return Float.parseFloat(settings.getString(PREF_SWIPE, getString(R.string.pref_swipe_default)));
+	}
+
+	public PreLoadingCompleteListener getPreloadingCallback()
+	{
+		SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(this);
+		int ind = Integer.parseInt(settings.getString(PREF_PRELOADING_CALLBACK, getString(R.string.pref_preloading_callback_default)));
+		return ind != -1 ? PreLoadingAsyncTask.PRELOADING_COMPLETE_LISTENERS[ind] : null;
+	}
+
 	public boolean isFullscreenEnable()
 	{
 		SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(this);
 		return settings.getBoolean(PREF_FULLSCREEN_ENABLE, Boolean.parseBoolean(getString(R.string.pref_fullscreen_enable_default)));
 	}
-	
+
 	public String getThemeKey()
 	{
 		SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(this);
 		return settings.getString(PREF_THEME, getString(R.string.pref_theme_default));
 	}
-	
+
 	public int getPoliceSize()
 	{
 		SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(this);
 		return Integer.parseInt(settings.getString(PREF_POLICE_SIZE, getString(R.string.pref_police_size_default)));
 	}
-	
+
 	public boolean isTopicMoreInfosEnable()
 	{
 		SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(this);
@@ -263,24 +265,31 @@ public class HFR4droidApplication extends Application
 		String value = settings.getString(PREF_IMGS_DISPLAY_TYPE, getString(R.string.pref_imgs_display_type_default));
 		return DrawableDisplayType.fromInt(Integer.parseInt(value));
 	}
+	
+	public QuotedEditedDisplayType getQuotedEditedDisplayType()
+	{
+		SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(this);
+		String value = settings.getString(PREF_QUOTED_EDITED_DISPLAY_TYPE, getString(R.string.pref_quoted_edited_display_type_default));
+		return QuotedEditedDisplayType.fromInt(Integer.parseInt(value));
+	}
 
 	public boolean isSrvMpEnable()
 	{
 		SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(this);
 		return settings.getBoolean(PREF_SRV_MPS_ENABLE, Boolean.parseBoolean(getString(R.string.pref_srv_mps_enable_default)));
 	}
-	
+
 	public boolean isLightMode()
 	{
 		// return isMonoCore && !isOverrideLightModeEnable();
 		return !isOverrideLightModeEnable();
 	}
-	
+
 	public boolean isMonoCore()
 	{
 		return isMonoCore;
 	}
-	
+
 	/**
 	 * Gets the number of cores available in this device, across all processors.
 	 * Requires: Ability to peruse the filesystem at "/sys/devices/system/cpu"
@@ -289,33 +298,33 @@ public class HFR4droidApplication extends Application
 	 */
 	private int getNumCores()
 	{
-	    //Private Class to display only CPU devices in the directory listing
-	    class CpuFilter implements FileFilter
-	    {
-	        public boolean accept(File pathname)
-	        {
-	            //Check if filename is "cpu", followed by a single digit number
-	            return Pattern.matches("cpu[0-9]", pathname.getName());
-	        }      
-	    }
+		//Private Class to display only CPU devices in the directory listing
+		class CpuFilter implements FileFilter
+		{
+			public boolean accept(File pathname)
+			{
+				//Check if filename is "cpu", followed by a single digit number
+				return Pattern.matches("cpu[0-9]", pathname.getName());
+			}      
+		}
 
-	    try
-	    {
-	        //Get directory containing CPU info
-	        File dir = new File("/sys/devices/system/cpu/");
-	        //Filter to only list the devices we care about
-	        File[] files = dir.listFiles(new CpuFilter());
-	        //Return the number of cores (virtual CPU devices)
-	        return files.length;
-	    }
-	    catch(Exception e)
-	    {
-	        //Default to return 1 core
-	    	Log.e(TAG, e.getMessage(), e);
-	        return 1;
-	    }
+		try
+		{
+			//Get directory containing CPU info
+			File dir = new File("/sys/devices/system/cpu/");
+			//Filter to only list the devices we care about
+			File[] files = dir.listFiles(new CpuFilter());
+			//Return the number of cores (virtual CPU devices)
+			return files.length;
+		}
+		catch(Exception e)
+		{
+			//Default to return 1 core
+			Log.e(TAG, e.getMessage(), e);
+			return 1;
+		}
 	}
-	
+
 	public float getCPUUsage()
 	{
 		try

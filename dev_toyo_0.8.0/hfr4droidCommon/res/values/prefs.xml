@@ -68,6 +68,10 @@
 	<string name="pref_imgs_display_type_title">Affichage des images</string>
 	<string name="pref_imgs_display_type_summary">Type d\'affichage des images dans les posts</string>
 	<string name="pref_imgs_display_type_default">1</string>
+	
+	<string name="pref_quoted_edited_display_type_title">Affichage du bandeau de citations/édition</string>
+	<string name="pref_quoted_edited_display_type_summary">Type d\'affichage du bandeau de citations/édition</string>
+	<string name="pref_quoted_edited_display_type_default">1</string>
 
 	<string name="pref_srv_mps_title">Service permanent de vérification des MPs</string>
 	

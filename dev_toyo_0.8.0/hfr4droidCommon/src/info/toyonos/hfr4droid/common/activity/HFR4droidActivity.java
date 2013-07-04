@@ -69,34 +69,6 @@ import com.markupartist.android.widget.PullToRefreshListView;
  */
 public abstract class HFR4droidActivity extends SherlockActivity
 {	
-	public static enum DrawableDisplayType
-	{
-		ALWAYS_SHOW(1),
-		SHOW_WHEN_WIFI(2),
-		NEVER_SHOW(3);
-		
-		private final int value;
-
-		private DrawableDisplayType(int value)
-		{
-			this.value = value;
-		}
-
-		public int getValue()
-		{
-			return this.value;
-		}
-		
-		public static DrawableDisplayType fromInt(int anInt) 
-		{
-			for (DrawableDisplayType type : DrawableDisplayType.values())
-			{
-				if (anInt == type.getValue()) return type;
-			}
-			return null;
-		}
-	};
-	
 	protected static boolean keepNavigationHistory = false;
 	
 	protected AlertDialog loginDialog;
@@ -1043,6 +1015,12 @@ public abstract class HFR4droidActivity extends SherlockActivity
 		return getHFR4droidApplication().getImgsDisplayType();
 	}
 
+	public QuotedEditedDisplayType getQuotedEditedDisplayType()
+	{
+		return getHFR4droidApplication().getQuotedEditedDisplayType();
+	}
+
+	
 	public boolean isSrvMpEnable()
 	{
 		return getHFR4droidApplication().isSrvMpEnable();
@@ -1133,4 +1111,60 @@ public abstract class HFR4droidActivity extends SherlockActivity
 		boolean today = check.format(new Date()).equals(check.format(date));
 		return today ? todaySdf.format(date) : dateHeure.format(date);
 	}
+	
+	public static enum DrawableDisplayType
+	{
+		ALWAYS_SHOW(1),
+		SHOW_WHEN_WIFI(2),
+		NEVER_SHOW(3);
+		
+		private final int value;
+
+		private DrawableDisplayType(int value)
+		{
+			this.value = value;
+		}
+
+		public int getValue()
+		{
+			return this.value;
+		}
+		
+		public static DrawableDisplayType fromInt(int anInt) 
+		{
+			for (DrawableDisplayType type : DrawableDisplayType.values())
+			{
+				if (anInt == type.getValue()) return type;
+			}
+			return null;
+		}
+	};
+	
+	public static enum QuotedEditedDisplayType
+	{
+		TOP(1),
+		BOTTOM(2),
+		BOTH(3);
+		
+		private final int value;
+
+		private QuotedEditedDisplayType(int value)
+		{
+			this.value = value;
+		}
+
+		public int getValue()
+		{
+			return this.value;
+		}
+		
+		public static QuotedEditedDisplayType fromInt(int anInt) 
+		{
+			for (QuotedEditedDisplayType type : QuotedEditedDisplayType.values())
+			{
+				if (anInt == type.getValue()) return type;
+			}
+			return null;
+		}
+	};
 }
