@@ -88,6 +88,7 @@
     <string name="file_hfr_rehost">Sélectionnez le fichier à uploader</string>
     <string name="loading_hfr_rehost">Upload en cours…</string>
     <string name="copy_hfr_rehost">Le BBCode de l\'image a été copié dans le presse-papier.</string>
+    <string name="error_hfr_rehost">Erreur lors de la compression de l\image : %s</string>
     <string name="save_image">Sauvegarde de l\'image en cours…</string>
     <string name="save_image_ok">Image sauvegardée avec succès dans %s</string>
     <string name="save_image_failed">Impossible de sauvegarder cette image</string>
