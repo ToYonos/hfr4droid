@@ -38,11 +38,21 @@
 			android:summary="@string/pref_dbltap_enable_summary"
 			android:title="@string/pref_dbltap_enable_title"
 			android:defaultValue="@string/pref_dbltap_enable_default" />
-		<CheckBoxPreference
-			android:key="PrefOverrideLightMode"
-			android:summary="@string/pref_override_light_mode_enable_summary"
-			android:title="@string/pref_override_light_mode_enable_title"
-			android:defaultValue="@string/pref_override_light_mode_enable_default" />
+	</PreferenceCategory>
+
+	<PreferenceCategory
+		android:title="@string/pref_preloading_title">
+		<EditTextPreference
+			android:key="PrefPreloadingPseudo"
+			android:summary="@string/pref_preloading_pseudo_summary"
+			android:title="@string/pref_preloading_pseudo_title"
+			android:defaultValue="@string/pref_preloading_pseudo_default" />
+		<EditTextPreference
+			android:key="PrefPreloadingPassword"
+			android:summary="@string/pref_preloading_password_summary"
+			android:title="@string/pref_preloading_password_title"
+			android:defaultValue="@string/pref_preloading_password_default"
+			android:inputType="textPassword" />
    		<ListPreference
             android:key="PrefSwipe"
             android:summary="@string/pref_swipe_summary"
@@ -57,6 +67,11 @@
             android:defaultValue="@string/pref_preloading_callback_default"
             android:entries="@array/preloading_callback_values"
 			android:entryValues="@array/preloading_callback_keys" />
+   		<CheckBoxPreference
+			android:key="PrefOverrideLightMode"
+			android:summary="@string/pref_override_light_mode_enable_summary"
+			android:title="@string/pref_override_light_mode_enable_title"
+			android:defaultValue="@string/pref_override_light_mode_enable_default" />
 	</PreferenceCategory>
 
 	<PreferenceCategory

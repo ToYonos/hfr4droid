@@ -99,6 +99,7 @@
     
     <string name="pref_override_light_mode_message">Activer cette option peut ralentir l\'application et réduire considérablement son autonomie. Elle améliore l\'affichage d\'un topic quand vous changez de page.</string>
     <string name="pref_override_light_mode_disabled">Vous ne pouvez pas désactiver le light mode sur un appareil doté d\'un CPU mono-core !</string>
+    <string name="pref_preloading_credentials_ko">L\'authentification du multi pour le préchargement a échoué, veuillez vérifier les informations saisies !</string>
     
     <!-- Alerte Qualitaÿ -->
     <string name="aq_r_u_sure">Vous vous apprêtez à faire une alerte qualitaÿ. Voulez-vous continuer ?</string>

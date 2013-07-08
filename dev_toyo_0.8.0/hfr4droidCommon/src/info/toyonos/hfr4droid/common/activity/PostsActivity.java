@@ -1622,7 +1622,7 @@ public class PostsActivity extends HFR4droidMultiListActivity<List<Post>>
 		js.append(".HFR4droid_content img { max-width: ' + (width - 30) + 'px; }");
 		js.append(".citation img, .oldcitation img, .quote img, .oldquote img, .fixed img, .code img, .spoiler img, .oldspoiler img { max-width: ' + (Math.round(width * 0.80) - 15) + 'px; }");
 		js.append("')); headID.appendChild(cssNode); };");
-		js.append("var scrollFct = function () { window.HFR4Droid.log('pageYOffset ' + window.pageYOffset); window.HFR4Droid.log('document.height ' + document.height); window.HFR4Droid.log('window.innerHeight ' + window.innerHeight); document.getElementById('top').style.visibility = window.pageYOffset == 0 ? 'hidden' : 'visible'; document.getElementById('bottom').style.visibility = window.pageYOffset == (document.height - window.innerHeight) ? 'hidden' : 'visible'; }; ");
+		js.append("var scrollFct = function () { document.getElementById('top').style.visibility = window.pageYOffset == 0 ? 'hidden' : 'visible'; document.getElementById('bottom').style.visibility = window.pageYOffset == (document.height - window.innerHeight) ? 'hidden' : 'visible'; }; ");
 		if (topic.getLastReadPost() != -1 || topic.getStatus() == TopicStatus.NEW_MP)
 		{
 			js.append("window.onload = function () { scrollToElement(\'" + (topic.getStatus() == TopicStatus.NEW_MP ? NewPostUIHelper.BOTTOM_PAGE_ID : topic.getLastReadPost()) + "\'); };");
@@ -2070,7 +2070,7 @@ public class PostsActivity extends HFR4droidMultiListActivity<List<Post>>
 							            {
 											final String name = ((EditText) layout.findViewById(R.id.AQ_name)).getText().toString().trim();
 											final String comment =  ((EditText) layout.findViewById(R.id.AQ_comment)).getText().toString().trim();
-											if (selectedAlert.getAlertQualitayId() == -1 && name.isEmpty())
+											if (selectedAlert.getAlertQualitayId() == -1 && name.length() == 0)
 											{
 												Toast.makeText(PostsActivity.this, getString(R.string.aq_name_mandatory), Toast.LENGTH_SHORT).show();
 												return;
@@ -2089,7 +2089,7 @@ public class PostsActivity extends HFR4droidMultiListActivity<List<Post>>
 														selectedAlert.getAlertQualitayId() == -1 ? name : null,
 														p,
 														postLink,
-														!comment.isEmpty() ? comment : null);
+														comment.length() > 0 ? comment : null);
 												}
 
 												@Override

@@ -33,6 +33,8 @@ import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URLEncoder;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.text.ParsePosition;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -117,15 +119,15 @@ public class HFRDataRetriever implements MDDataRetriever
 
 	public HFRDataRetriever(HFR4droidApplication context, HttpClientHelper httpClientHelper)
 	{
-		this(context, httpClientHelper, null, false);
+		this(context, httpClientHelper, null, false, false);
 	}
 	
 	public HFRDataRetriever(HFR4droidApplication context, HttpClientHelper httpClientHelper, boolean clearCache)
 	{
-		this(context, httpClientHelper, null, clearCache);
+		this(context, httpClientHelper, null, clearCache, false);
 	}
 
-	public HFRDataRetriever(HFR4droidApplication context, HttpClientHelper httpClientHelper, HFRAuthentication auth, boolean clearCache)
+	public HFRDataRetriever(HFR4droidApplication context, HttpClientHelper httpClientHelper, HFRAuthentication auth, boolean clearCache, boolean prefCredentialsOk)
 	{
 		this.context = context;
 		this.auth = auth;
@@ -140,16 +142,40 @@ public class HFRDataRetriever implements MDDataRetriever
 			fakeCs = new BasicCookieStore();
 			GregorianCalendar calendar = new GregorianCalendar();
 			calendar.add(Calendar.YEAR, 10);
-			BasicClientCookie user = new BasicClientCookie("md_user", FAKE_ACCOUNT_USER);
+			BasicClientCookie user = new BasicClientCookie("md_user", 
+				context.isPreloadingMultiSet() && prefCredentialsOk ? 
+					context.getPreloadingPseudo() :
+					FAKE_ACCOUNT_USER);
 			user.setDomain(".hardware.fr");
 			user.setExpiryDate(calendar.getTime());
 			user.setPath("/");
-			BasicClientCookie pass = new BasicClientCookie("md_passs", FAKE_ACCOUNT_MD5_PASS);
+			BasicClientCookie pass = new BasicClientCookie("md_passs",
+				context.isPreloadingMultiSet() && prefCredentialsOk ? 
+					getMd5(context.getPreloadingPassword()) :
+					FAKE_ACCOUNT_MD5_PASS);
 			pass.setDomain(".hardware.fr");
 			pass.setExpiryDate(calendar.getTime());
 			pass.setPath("/");
 			fakeCs.addCookie(user);
 			fakeCs.addCookie(pass);
+		}
+	}
+	
+	private String getMd5(String password)
+	{
+		MessageDigest md;
+		try
+		{
+			md = MessageDigest.getInstance("MD5");
+			byte[] bytes = md.digest(password.getBytes());
+			StringBuffer formattedPassword = new StringBuffer();
+		    for (int i = 0; i < bytes.length; i++) formattedPassword.append(Integer.toString((bytes[i] & 0xff) + 0x100, 16).substring(1));
+			return formattedPassword.toString();
+		}
+		catch (NoSuchAlgorithmException e)
+		{
+			Log.e(HFR4droidApplication.TAG, e.getMessage(), e);
+			return "";
 		}
 	}
 
@@ -609,7 +635,7 @@ public class HFRDataRetriever implements MDDataRetriever
 		if (subCat != null) topic.setSubCategory(new SubCategory(topic.getCategory(), Integer.parseInt(subCat)));
 		
 		// On vérifie si la notification par email est activé
-		if (topic.getStatus() != TopicStatus.LOCKED && !topic.getCategory().equals(Category.MPS_CAT))
+		if (!useFakeAccount && topic.getStatus() != TopicStatus.LOCKED && !topic.getCategory().equals(Category.MPS_CAT))
 		{
 			topic.setEmailNotification(getSingleElement("<input\\s*type=\"hidden\"\\s*name=\"emaill\"\\s*value=\"([0-9]+)\"\\s*/>", content).equals("1"));
 		}

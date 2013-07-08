@@ -148,7 +148,14 @@ public class HFR4droidPrefs extends PreferenceActivity
 			}
 		});
 	}
-	
+
+	@Override
+	protected void onPause()
+	{
+		super.onPause();
+		((HFR4droidApplication) getApplication()).checkPreloadingCredentials();
+	}
+
 	public void switchFullscreen(boolean fullscreen)
 	{
 		if (fullscreen)

@@ -51,6 +51,8 @@ public class HFRAuthentication
 	private String userPassword = null;
 	private String passHash = null;
 	private String userId = null;
+	
+	private boolean persistInformation;
 
 
 	public static final String AUTH_FORM_URL = "http://forum.hardware.fr/login_validation.php?config=hfr.inc";
@@ -59,20 +61,18 @@ public class HFRAuthentication
 
 	CookieStore cookieStore = null;
 
-	/**
-	 * Constructeur HfrAuthentication
-	 * 
-	 * @param user
-	 * 			Le nom d'utilisateur
-	 * @param password
-	 * 			Le mot de passe
-	 * 
-	 */
+	
 	public HFRAuthentication(HFR4droidApplication context, HttpClientHelper httpClientHelper, String user, String password) throws AuthenticationException
+	{
+		this(context, httpClientHelper, user, password, true);
+	}
+
+	public HFRAuthentication(HFR4droidApplication context, HttpClientHelper httpClientHelper, String user, String password, boolean persistInformation) throws AuthenticationException
 	{
 		this.context = context;
 		userName = user;
 		userPassword = password;
+		this.persistInformation = persistInformation;
 		
 		createHttpClient(httpClientHelper);
 		
@@ -183,7 +183,7 @@ public class HFRAuthentication
 			!response.matches(".*Votre mot de passe ou nom d'utilisateur n'est pas valide.*"))
 		{
 			cs = client.getHttpClientHelper().getHttpClient().getCookieStore();
-			serializeCookies(cs);
+			if (persistInformation) serializeCookies(cs);
 		}
 
 		return cs;

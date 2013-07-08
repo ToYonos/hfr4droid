@@ -22,8 +22,10 @@ import java.util.regex.Pattern;
 
 import android.app.Application;
 import android.content.SharedPreferences;
+import android.os.AsyncTask;
 import android.preference.PreferenceManager;
 import android.util.Log;
+import android.widget.Toast;
 
 /**
  * <p>Classe représentant l'application HFR4droid. Permet de centraliser les instances 
@@ -41,6 +43,8 @@ public class HFR4droidApplication extends Application
 	public static final String PREF_TYPE_DRAPEAU				= "PrefTypeDrapeau";
 	public static final String PREF_SIGNATURE_ENABLE			= "PrefSignatureEnable";
 	public static final String PREF_DBLTAP_ENABLE				= "PrefDblTapEnable";
+	public static final String PREF_PRELOADING_PSEUDO			= "PrefPreloadingPseudo";
+	public static final String PREF_PRELOADING_PASSWORD			= "PrefPreloadingPassword";
 	public static final String PREF_OVERRIDE_LIGHT_MODE			= "PrefOverrideLightMode";
 	public static final String PREF_SWIPE						= "PrefSwipe";
 	public static final String PREF_PRELOADING_CALLBACK			= "PrefPreloadingCallback";
@@ -111,12 +115,24 @@ public class HFR4droidApplication extends Application
 		boolean isLoggedIn = auth.getCookies() != null;
 		if (isLoggedIn)
 		{
-			httpClientHelper.shutdown();
-			httpClientHelper = new HttpClientHelper();
-			msgSender = new HFRMessageSender(this, httpClientHelper, auth);
-			dataRetriever = new HFRDataRetriever(this, httpClientHelper, auth, !fromCache);
+			if (isPreloadingMultiSet())
+			{
+				checkPreloadingCredentials();
+			}
+			else
+			{
+				initAfterLogin(!fromCache, false);
+			}
 		}
 		return isLoggedIn;
+	}
+
+	private void initAfterLogin(boolean clearCache, boolean prefCredentialsOk)
+	{
+		httpClientHelper.shutdown();
+		httpClientHelper = new HttpClientHelper();
+		msgSender = new HFRMessageSender(this, httpClientHelper, auth);
+		dataRetriever = new HFRDataRetriever(this, httpClientHelper, auth, clearCache, prefCredentialsOk);
 	}
 
 	/**
@@ -144,6 +160,47 @@ public class HFR4droidApplication extends Application
 			msgSender = null;
 			dataRetriever = new HFRDataRetriever(this, httpClientHelper, true);
 		}
+	}
+
+	public void checkPreloadingCredentials()
+	{
+		new AsyncTask<Void, Void, Boolean>()
+		{
+			@Override
+			protected Boolean doInBackground(Void... params)
+			{
+				HttpClientHelper helper = new HttpClientHelper();
+				try
+				{
+					HFRAuthentication tmpAuth = new HFRAuthentication(HFR4droidApplication.this, helper, getPreloadingPseudo(), getPreloadingPassword(), false);
+					return tmpAuth.getCookies() != null;
+				}
+				catch (AuthenticationException e)
+				{
+					Log.e(HFR4droidApplication.TAG, e.getMessage(), e);
+					return false;
+				}
+				finally
+				{
+					helper.shutdown();
+				}
+			}
+
+			@Override
+			protected void onPostExecute(Boolean isLoggedIn)
+			{
+				if (!isLoggedIn)
+				{
+					Toast.makeText(HFR4droidApplication.this, R.string.pref_preloading_credentials_ko, Toast.LENGTH_LONG).show();
+					dataRetriever = new HFRDataRetriever(HFR4droidApplication.this, httpClientHelper, auth, false, false);
+					initAfterLogin(false, false);
+				}
+				else
+				{
+					initAfterLogin(false, true);
+				}
+			}
+		}.execute();
 	}
 
 	/**
@@ -201,7 +258,26 @@ public class HFR4droidApplication extends Application
 		SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(this);
 		return settings.getBoolean(PREF_DBLTAP_ENABLE, Boolean.parseBoolean(getString(R.string.pref_dbltap_enable_default)));
 	}
+	
+	public String getPreloadingPseudo()
+	{
+		SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(this);
+		return settings.getString(PREF_PRELOADING_PSEUDO, getString(R.string.pref_preloading_pseudo_default));
+	}
 
+	public String getPreloadingPassword()
+	{
+		SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(this);
+		return settings.getString(PREF_PRELOADING_PASSWORD, getString(R.string.pref_preloading_pseudo_default));
+	}
+	
+	public boolean isPreloadingMultiSet()
+	{
+		return
+			getPreloadingPseudo() != null && getPreloadingPseudo().length() > 0 &&
+			getPreloadingPassword() != null && getPreloadingPassword().length() > 0;
+	}
+	
 	public boolean isOverrideLightModeEnable()
 	{
 		SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(this);

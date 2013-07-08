@@ -25,11 +25,17 @@
 	<string name="pref_dbltap_enable_title">Activer le refresh sur double tap</string>
 	<string name="pref_dbltap_enable_summary">Permettre de rafraîchir la page d\'un topic en double tapant sur l\'écran</string>
 	<string name="pref_dbltap_enable_default">true</string>
-
-	<string name="pref_override_light_mode_enable_title">Désactiver le mode Light</string>
-	<string name="pref_override_light_mode_enable_summary">Uniquement pour les CPU multi-core (+ d\'infos dans la documentation)</string>
-	<string name="pref_override_light_mode_enable_default">false</string>
 	
+	<string name="pref_preloading_title">Préchargement des pages</string>
+	
+	<string name="pref_preloading_pseudo_title">Pseudo du multi</string>
+    <string name="pref_preloading_pseudo_summary">Facultatif, pseudo du multi à utiliser pour le préchargement des pages</string>
+	<string name="pref_preloading_pseudo_default"></string>
+
+	<string name="pref_preloading_password_title">Password du multi</string>
+    <string name="pref_preloading_password_summary">Facultatif, password du multi à utiliser pour le préchargement des pages</string>
+	<string name="pref_preloading_password_default"></string>
+		
 	<string name="pref_swipe_title">Sensibilité du swipe</string>
     <string name="pref_swipe_summary">Régler la sensibilité du swipe (changement de page par glissement)</string>
 	<string name="pref_swipe_default">1</string>
@@ -38,6 +44,9 @@
     <string name="pref_preloading_callback_summary">A effectuer quand une demande de changement de page a été faite, après le chargement de celle-ci</string>
 	<string name="pref_preloading_callback_default">-1</string>
 
+	<string name="pref_override_light_mode_enable_title">Désactiver le mode Light</string>
+	<string name="pref_override_light_mode_enable_summary">Uniquement pour les CPU multi-core (+ d\'infos dans la documentation)</string>
+	<string name="pref_override_light_mode_enable_default">false</string>
 
 	<string name="pref_affichage_title">Affichage</string>
 	
