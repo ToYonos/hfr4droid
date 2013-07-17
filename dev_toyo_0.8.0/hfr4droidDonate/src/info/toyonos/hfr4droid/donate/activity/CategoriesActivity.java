@@ -1,11 +1,13 @@
 package info.toyonos.hfr4droid.donate.activity;
 
-import info.toyonos.hfr4droid.common.HFR4droidApplication;
+import info.toyonos.hfr4droid.common.core.bean.Profile;
+import info.toyonos.hfr4droid.donate.HFR4droidApplication;
 import info.toyonos.hfr4droid.donate.R;
 
 import java.io.File;
 import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -16,6 +18,7 @@ import android.content.DialogInterface;
 import android.content.DialogInterface.OnCancelListener;
 import android.content.Intent;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.StatFs;
@@ -36,7 +39,7 @@ public class CategoriesActivity extends	info.toyonos.hfr4droid.common.activity.C
 	private int[] sequence = new int[] {0, 0, 0, 0 ,0 ,0};
 	private AlertDialog promptDialog;
 	private int menuCount = 0;
-	private long lastMenuDate = 0;
+	private long lastMenuDate = 0;	
 	
 	/** Les commandes */
 	private enum Command
@@ -107,6 +110,65 @@ public class CategoriesActivity extends	info.toyonos.hfr4droid.common.activity.C
 			}
 		})
 		.create();
+		
+		if (isLoggedIn() && !getHFR4droidApplication().isBirthdayOk())
+		{
+			Profile profile = getHFR4droidApplication().getProfile(getHFR4droidApplication().getAuthentication().getUser());
+			if (profile == null)
+			{
+				new AsyncTask<String, Void, Profile>()
+				{					
+					@Override
+					protected Profile doInBackground(String... pseudo)
+					{
+						Profile profile = null;
+						try
+						{
+							profile = getDataRetriever().getProfile(pseudo[0]);
+						}
+						catch (Exception e)
+						{
+							error(e);
+						}
+						return profile;
+					}
+					
+					@Override
+					protected void onPostExecute(final Profile profile)
+					{	
+						getHFR4droidApplication().setProfile(profile.getPseudo(), profile);
+						showBirthdayMessage(profile);
+					}
+				}.execute(getHFR4droidApplication().getAuthentication().getUser());
+			}
+			else
+			{
+				showBirthdayMessage(profile);
+			}
+		}
+	}
+
+	private void showBirthdayMessage(Profile profile)
+	{
+		if (profile.getBirthDate() != null)
+		{
+			Calendar now = Calendar.getInstance();
+			Calendar birth = Calendar.getInstance();
+			birth.setTime(profile.getBirthDate());
+			boolean birthday = now.get(Calendar.DAY_OF_YEAR) == birth.get(Calendar.DAY_OF_YEAR);
+			int age = now.get(Calendar.YEAR) - birth.get(Calendar.YEAR);
+			if (birthday)
+			{
+				Toast.makeText(this, getString(R.string.happy_birthday, age), Toast.LENGTH_LONG).show();
+				getHFR4droidApplication().setBirthdayOk(true);
+			}
+		}
+	}
+
+	@Override
+	public HFR4droidApplication getHFR4droidApplication()
+	{
+		return (HFR4droidApplication) getApplication();
 	}
 
 	private void hideKeyboard(EditText prompt)

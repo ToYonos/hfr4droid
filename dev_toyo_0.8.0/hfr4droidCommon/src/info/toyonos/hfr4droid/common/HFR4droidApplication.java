@@ -117,7 +117,7 @@ public class HFR4droidApplication extends Application
 		{
 			if (isPreloadingMultiSet())
 			{
-				checkPreloadingCredentials();
+				checkPreloadingCredentials(!fromCache);
 			}
 			else
 			{
@@ -161,8 +161,13 @@ public class HFR4droidApplication extends Application
 			dataRetriever = new HFRDataRetriever(this, httpClientHelper, true);
 		}
 	}
-
+	
 	public void checkPreloadingCredentials()
+	{
+		checkPreloadingCredentials(false);
+	}
+
+	public void checkPreloadingCredentials(final boolean clearCache)
 	{
 		new AsyncTask<Void, Void, Boolean>()
 		{
@@ -178,7 +183,7 @@ public class HFR4droidApplication extends Application
 				catch (AuthenticationException e)
 				{
 					Log.e(HFR4droidApplication.TAG, e.getMessage(), e);
-					return false;
+					return null;
 				}
 				finally
 				{
@@ -189,15 +194,19 @@ public class HFR4droidApplication extends Application
 			@Override
 			protected void onPostExecute(Boolean isLoggedIn)
 			{
-				if (!isLoggedIn)
+				if (isLoggedIn == null || !isLoggedIn)
 				{
-					Toast.makeText(HFR4droidApplication.this, R.string.pref_preloading_credentials_ko, Toast.LENGTH_LONG).show();
-					dataRetriever = new HFRDataRetriever(HFR4droidApplication.this, httpClientHelper, auth, false, false);
-					initAfterLogin(false, false);
+					if (isLoggedIn != null)
+					{
+						Toast.makeText(HFR4droidApplication.this, R.string.pref_preloading_credentials_ko, Toast.LENGTH_LONG).show();
+						Log.e(HFR4droidApplication.TAG, getString(R.string.preloading_pseudo_ko, getPreloadingPseudo()));
+					}
+					initAfterLogin(clearCache, false);
 				}
 				else
 				{
-					initAfterLogin(false, true);
+					Log.i(HFR4droidApplication.TAG, getString(R.string.preloading_pseudo_ok, getPreloadingPseudo()));
+					initAfterLogin(clearCache, true);
 				}
 			}
 		}.execute();
@@ -216,7 +225,7 @@ public class HFR4droidApplication extends Application
 	 */
 	public Profile getProfile(String pseudo)
 	{
-		return profiles.get(pseudo);
+		return profiles.get(pseudo.toLowerCase());
 	}
 
 	/**
@@ -224,7 +233,7 @@ public class HFR4droidApplication extends Application
 	 */
 	public void setProfile(String pseudo, Profile profile)
 	{
-		profiles.put(pseudo, profile);
+		profiles.put(pseudo.toLowerCase(), profile);
 	}
 
 	// Getter des préférences modifiables par l'utilisateur

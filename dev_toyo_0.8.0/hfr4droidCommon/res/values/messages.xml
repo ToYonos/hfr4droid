@@ -119,6 +119,8 @@
 	<string name="preloading_begin">[Préchargement] Chargement de la page %d…</string>
     <string name="preloading_ok">[Préchargement] Page %d chargée !</string>
     <string name="new_mp_count">L\'utilisateur a %d nouveau(x) message(s)</string>
+	<string name="preloading_pseudo_ok">[Préchargement] Multi %s validé</string>
+    <string name="preloading_pseudo_ko">[Préchargement] Multi %s non validé, impossible de l\'authentifier sur HFR</string>
 
     <plurals name="mp_notification_content">
         <item quantity="one">Vous avez 1 nouveau message privé.</item>

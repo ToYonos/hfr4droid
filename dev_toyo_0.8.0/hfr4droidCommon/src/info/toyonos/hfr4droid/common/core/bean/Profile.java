@@ -48,7 +48,7 @@ public class Profile
 			{
 				if (gender.getKey().equals(key)) return gender;
 			}
-			return null;
+			return ANGEL;
 		}
 	};
 	
