@@ -3,15 +3,9 @@
 	<item
 		android:title="@string/nav_go_to"
 		android:id="@+id/MenuNav"
-		android:orderInCategory="6"
+		android:showAsAction="ifRoom"
 		android:icon="@drawable/ic_menu_goto">
 		<menu>
-			<item
-				android:title="@string/menu_subcats"
-				android:id="@+id/MenuNavSubCats" />
-			<item
-				android:title="@string/menu_refresh"
-				android:id="@+id/MenuNavRefresh" />	
 			<item
 				android:title="@string/nav_first_page"
 				android:id="@+id/MenuNavFirstPage" />

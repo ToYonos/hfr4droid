@@ -38,11 +38,21 @@
 			android:summary="@string/pref_dbltap_enable_summary"
 			android:title="@string/pref_dbltap_enable_title"
 			android:defaultValue="@string/pref_dbltap_enable_default" />
-		<CheckBoxPreference
-			android:key="PrefOverrideLightMode"
-			android:summary="@string/pref_override_light_mode_enable_summary"
-			android:title="@string/pref_override_light_mode_enable_title"
-			android:defaultValue="@string/pref_override_light_mode_enable_default" />
+	</PreferenceCategory>
+
+	<PreferenceCategory
+		android:title="@string/pref_preloading_title">
+		<EditTextPreference
+			android:key="PrefPreloadingPseudo"
+			android:summary="@string/pref_preloading_pseudo_summary"
+			android:title="@string/pref_preloading_pseudo_title"
+			android:defaultValue="@string/pref_preloading_pseudo_default" />
+		<EditTextPreference
+			android:key="PrefPreloadingPassword"
+			android:summary="@string/pref_preloading_password_summary"
+			android:title="@string/pref_preloading_password_title"
+			android:defaultValue="@string/pref_preloading_password_default"
+			android:inputType="textPassword" />
    		<ListPreference
             android:key="PrefSwipe"
             android:summary="@string/pref_swipe_summary"
@@ -57,6 +67,11 @@
             android:defaultValue="@string/pref_preloading_callback_default"
             android:entries="@array/preloading_callback_values"
 			android:entryValues="@array/preloading_callback_keys" />
+   		<CheckBoxPreference
+			android:key="PrefOverrideLightMode"
+			android:summary="@string/pref_override_light_mode_enable_summary"
+			android:title="@string/pref_override_light_mode_enable_title"
+			android:defaultValue="@string/pref_override_light_mode_enable_default" />
 	</PreferenceCategory>
 
 	<PreferenceCategory
@@ -84,7 +99,7 @@
 			android:key="PrefTopicMoreInfosEnable"
 			android:summary="@string/pref_topic_more_infos_enable_summary"
 			android:title="@string/pref_topic_more_infos_enable_title"
-			android:defaultValue="@string/pref_topic_more_infos_enable_default" />           
+			android:defaultValue="@string/pref_topic_more_infos_enable_default" />      
 		<ListPreference
 			android:key="PrefAvatarsDisplayType"
 			android:summary="@string/pref_avatars_display_type_summary"
@@ -106,6 +121,13 @@
 			android:defaultValue="@string/pref_imgs_display_type_default"
 			android:entries="@array/drawable_values"
             android:entryValues="@array/drawable_keys" />
+		<ListPreference
+			android:key="PrefQuotedEditedDisplayType"
+			android:summary="@string/pref_quoted_edited_display_type_summary"
+			android:title="@string/pref_quoted_edited_display_type_title"
+			android:defaultValue="@string/pref_quoted_edited_display_type_default"
+			android:entries="@array/quoted_edited_values"
+            android:entryValues="@array/quoted_edited_keys" />
 	</PreferenceCategory>	
 
 	<PreferenceCategory

@@ -23,6 +23,8 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Timer;
+import java.util.TimerTask;
 
 import android.app.Activity;
 import android.app.AlertDialog;
@@ -33,20 +35,26 @@ import android.content.DialogInterface.OnClickListener;
 import android.content.Intent;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager.NameNotFoundException;
+import android.content.res.Configuration;
+import android.content.res.Resources;
+import android.graphics.Color;
+import android.graphics.Typeface;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
-import android.view.Menu;
-import android.view.MenuItem;
 import android.view.View;
-import android.view.Window;
 import android.view.WindowManager;
 import android.widget.EditText;
-import android.widget.SlidingDrawer;
+import android.widget.TextView;
 import android.widget.Toast;
 
+import com.actionbarsherlock.app.SherlockActivity;
+import com.actionbarsherlock.view.Menu;
+import com.actionbarsherlock.view.MenuItem;
 import com.markupartist.android.widget.PullToRefreshListView;
+
+
 
 /**
  * <p>Activity générique de l'application. Gère entre autres :
@@ -59,36 +67,8 @@ import com.markupartist.android.widget.PullToRefreshListView;
  * @author ToYonos
  *
  */
-public abstract class HFR4droidActivity extends Activity
+public abstract class HFR4droidActivity extends SherlockActivity
 {	
-	public static enum DrawableDisplayType
-	{
-		ALWAYS_SHOW(1),
-		SHOW_WHEN_WIFI(2),
-		NEVER_SHOW(3);
-		
-		private final int value;
-
-		private DrawableDisplayType(int value)
-		{
-			this.value = value;
-		}
-
-		public int getValue()
-		{
-			return this.value;
-		}
-		
-		public static DrawableDisplayType fromInt(int anInt) 
-		{
-			for (DrawableDisplayType type : DrawableDisplayType.values())
-			{
-				if (anInt == type.getValue()) return type;
-			}
-			return null;
-		}
-	};
-	
 	protected static boolean keepNavigationHistory = false;
 	
 	protected AlertDialog loginDialog;
@@ -162,7 +142,7 @@ public abstract class HFR4droidActivity extends Activity
 	protected void onCreate(Bundle savedInstanceState)
 	{
 		super.onCreate(savedInstanceState);
-		requestWindowFeature(Window.FEATURE_NO_TITLE);
+
 		loadTheme(getThemeKey());
 		currentPoliceSize = getPoliceSize();
 		keepNavigationHistory = false;
@@ -171,6 +151,7 @@ public abstract class HFR4droidActivity extends Activity
 		loginDialog = null;
 		currentPageNumber = bundle != null ? bundle.getInt("pageNumber") : -1;
 		loginFromCache();
+		customizeActionBar();
 	}
 
 	@Override
@@ -261,19 +242,26 @@ public abstract class HFR4droidActivity extends Activity
 		getHFR4droidApplication().getHttpClientHelper().closeExpiredConnections();
 	}
 
+
 	@Override
-	public boolean onKeyDown(int keyCode, KeyEvent event) 
+	public void onConfigurationChanged(Configuration conf)
 	{
-		if (keyCode == KeyEvent.KEYCODE_BACK)
+		super.onConfigurationChanged(conf);
+		Timer timer = new Timer();
+		timer.schedule(new TimerTask()
 		{
-			SlidingDrawer navDrawer = (SlidingDrawer) findViewById(R.id.Nav);
-			if (navDrawer != null && navDrawer.isOpened())
+			public void run()
 			{
-				navDrawer.close();
-				return true;
+				runOnUiThread(new Runnable()
+				{
+					public void run()
+					{
+						customizeActionBar();
+						setTitle();
+					}
+				});
 			}
-		}
-		return super.onKeyDown(keyCode, event);
+		}, 250);
 	}
 	
 	@Override
@@ -329,15 +317,11 @@ public abstract class HFR4droidActivity extends Activity
 					{
 						logout();
 						stopMpTimerCheckService();
+						setTitle();
 						onLogout();
 					}
 				}).show();
 			}
-			return true;
-		}
-		else if (item.getItemId() == R.id.MenuNavRefresh)
-		{
-			reloadPage();
 			return true;
 		}
 		else if (item.getItemId() == R.id.MenuNavFirstPage)
@@ -383,6 +367,21 @@ public abstract class HFR4droidActivity extends Activity
 
 	protected abstract void applyTheme(Theme theme);
 
+	protected void customizeActionBar()
+	{
+		getSupportActionBar().setDisplayShowHomeEnabled(false);
+
+		int titleId = Resources.getSystem().getIdentifier("action_bar_title", "id", "android");
+		if(titleId == 0) titleId = R.id.abs__action_bar_title;
+
+		final TextView appName = (TextView) findViewById(titleId);
+		//Typeface face = Typeface.createFromAsset(getAssets(), "take_out_the_garbage.ttf");
+		//appName.setTypeface(face);
+		appName.setTextColor(Color.parseColor("#1A3A60"));
+		appName.setTypeface(null, Typeface.BOLD);
+		appName.setTextSize(15);
+	}
+	
 	@SuppressWarnings("rawtypes")
 	protected int getKeyByTheme(String themeKey, Class type, String key)
 	{
@@ -418,6 +417,7 @@ public abstract class HFR4droidActivity extends Activity
 		currentTheme.setPostEditQuoteTextColor(getColorByKey(themeKey, "post_edit_quote_text"));
 		currentTheme.setPostBlockBackgroundColor(getColorByKey(themeKey, "post_block_background"));
 		currentTheme.setModoPostBackgroundColor(getColorByKey(themeKey, "post_modo_background"));
+		currentTheme.setModoPostDeletedData(getString(getKeyByTheme(themeKey, R.string.class, "modo_post_deleted_data")));
 		currentTheme.setProgressBarInversed(Boolean.parseBoolean(getString(getKeyByTheme(themeKey, R.string.class, "inverse_progress"))));
 		currentTheme.setSplashTitleColor(getColorByKey(themeKey, "splash_title"));
 		currentTheme.setSpinner(getString(getKeyByTheme(themeKey, R.string.class, "spinner")));
@@ -583,6 +583,7 @@ public abstract class HFR4droidActivity extends Activity
 								{
 									startMpTimerCheckService();
 									reloadPage();
+									setTitle();
 								}
 								else
 								{
@@ -1014,6 +1015,12 @@ public abstract class HFR4droidActivity extends Activity
 		return getHFR4droidApplication().getImgsDisplayType();
 	}
 
+	public QuotedEditedDisplayType getQuotedEditedDisplayType()
+	{
+		return getHFR4droidApplication().getQuotedEditedDisplayType();
+	}
+
+	
 	public boolean isSrvMpEnable()
 	{
 		return getHFR4droidApplication().isSrvMpEnable();
@@ -1104,4 +1111,60 @@ public abstract class HFR4droidActivity extends Activity
 		boolean today = check.format(new Date()).equals(check.format(date));
 		return today ? todaySdf.format(date) : dateHeure.format(date);
 	}
+	
+	public static enum DrawableDisplayType
+	{
+		ALWAYS_SHOW(1),
+		SHOW_WHEN_WIFI(2),
+		NEVER_SHOW(3);
+		
+		private final int value;
+
+		private DrawableDisplayType(int value)
+		{
+			this.value = value;
+		}
+
+		public int getValue()
+		{
+			return this.value;
+		}
+		
+		public static DrawableDisplayType fromInt(int anInt) 
+		{
+			for (DrawableDisplayType type : DrawableDisplayType.values())
+			{
+				if (anInt == type.getValue()) return type;
+			}
+			return null;
+		}
+	};
+	
+	public static enum QuotedEditedDisplayType
+	{
+		TOP(1),
+		BOTTOM(2),
+		BOTH(3);
+		
+		private final int value;
+
+		private QuotedEditedDisplayType(int value)
+		{
+			this.value = value;
+		}
+
+		public int getValue()
+		{
+			return this.value;
+		}
+		
+		public static QuotedEditedDisplayType fromInt(int anInt) 
+		{
+			for (QuotedEditedDisplayType type : QuotedEditedDisplayType.values())
+			{
+				if (anInt == type.getValue()) return type;
+			}
+			return null;
+		}
+	};
 }

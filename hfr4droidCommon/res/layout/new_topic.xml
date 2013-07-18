@@ -6,24 +6,6 @@
    	android:gravity="center_horizontal"
    	android:layout_width="fill_parent"
    	android:layout_height="wrap_content">	
-    <LinearLayout
-    	android:orientation="horizontal"
-    	android:background="@drawable/degrad_plus"
-    	android:gravity="center"
-    	android:layout_width="fill_parent"
-    	android:layout_height="40dip">    	
-    	<TextView
-	    	android:id="@+id/NewTopicTitle"
-	    	android:gravity="center"		    	
-	    	android:textSize="15dip"
-		   	android:lines="1"
-	    	android:paddingLeft="5dip"
-	    	android:paddingRight="5dip"
-	    	android:textStyle="bold"
-	    	android:textColor="#1A3A60"
-	    	android:layout_width="wrap_content" 
-	    	android:layout_height="wrap_content" />
-	</LinearLayout>
 	<LinearLayout
 		android:layout_width="fill_parent"
 		android:layout_height="wrap_content"

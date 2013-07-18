@@ -5,8 +5,11 @@ import info.toyonos.hfr4droid.common.R;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.net.URI;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -24,6 +27,9 @@ import android.app.ProgressDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.database.Cursor;
+import android.graphics.Bitmap;
+import android.graphics.Bitmap.CompressFormat;
+import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
@@ -261,15 +267,44 @@ public class ImagePicker extends Activity implements Runnable{
 		String imgUrl = null;
 		HttpPost post;
 		HttpClient httpClient = ((HFR4droidApplication) getApplication()).getHttpClientHelper().getHttpClient();
+		
+		try
+		{
+			File fileToUpload = new File(filepath);
+			try
+			{
+				int sampleSize = 2;
+				while (fileToUpload.length() > 2097152) // 2 Mo
+				{
+					BitmapFactory.Options options = new BitmapFactory.Options();
+					options.inSampleSize = sampleSize;
+					Bitmap imgBitmap = BitmapFactory.decodeFile(fichierLocal, options);
+					fileToUpload = new File(fichierLocal + ".compress.png");
+					OutputStream fos = new FileOutputStream(fileToUpload);
+					imgBitmap.compress(CompressFormat.PNG, 90, fos);
+					fos.close();
+					sampleSize += 1;
+				}
+			}
+			catch (final IOException e)
+			{
+				runOnUiThread(new Runnable()
+				{
+					@Override
+					public void run()
+					{
+						Toast.makeText(getApplicationContext(), getString(R.string.error_hfr_rehost, e.getMessage()) , Toast.LENGTH_LONG).show();	
+					}
+				});
+				return null;
+			}
 
-		try {
 			httpClient.getParams().setParameter("http.socket.timeout", new Integer(90000)); // 90 second
 			post = new HttpPost(new URI(UPLOAD_URL));
 			post.setHeader("User-Agent", "Mozilla /4.0 (compatible; MSIE 6.0; Windows CE; IEMobile 7.6) Vodafone/1.0/SFR_v1615/1.56.163.8.39");
-			File file = new File(filepath);
 			
 			MultipartEntity multipart = new MultipartEntity();
-		    ContentBody cbFile = new FileBody(file, "image/jpeg");
+		    ContentBody cbFile = new FileBody(fileToUpload, "image/jpeg");
 		    multipart.addPart("fichier", cbFile);
 
 		    post.setEntity(multipart);

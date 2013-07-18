@@ -11,8 +11,6 @@ import info.toyonos.hfr4droid.common.util.helper.NewPostUIHelper;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.LayoutInflater;
-import android.view.Menu;
-import android.view.MenuInflater;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.ViewGroup;
@@ -20,6 +18,8 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import com.actionbarsherlock.view.Menu;
 
 /**
  * <p>Activity permettant d'ajouter un post (classique ou MP)</p>
@@ -71,9 +71,8 @@ public class NewPostActivity extends NewPostGenericActivity
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu)
 	{
-		MenuInflater inflater = getMenuInflater();
-		inflater.inflate(R.menu.common, menu);
-		inflater.inflate(R.menu.misc, menu);
+		getSupportMenuInflater().inflate(R.menu.common, menu);
+		getSupportMenuInflater().inflate(R.menu.misc, menu);
 		menu.removeItem(R.id.MenuRefresh);
 		return true;
 	}
@@ -81,8 +80,7 @@ public class NewPostActivity extends NewPostGenericActivity
 	@Override
 	protected void setTitle()
 	{
-		final TextView postTitle = (TextView) findViewById(R.id.NewPostTitle);
-		postTitle.setText(getString(R.string.new_post, topic.getName()));
+		getSupportActionBar().setTitle(topic.getName());
 	}
 		
 	@Override

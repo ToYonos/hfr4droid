@@ -33,6 +33,7 @@
 	<string name="menu_drapeaux_favoris">Favoris</string>
 	<string name="menu_mps">Messages privés</string>
 	<string name="menu_add_post">Poster un message</string>
+	<string name="menu_search_post">Rechercher dans le topic</string>
 	<string name="menu_login">Connexion</string>
 	<string name="menu_logout">Déconnexion</string>
 	<string name="menu_prefs">Paramètres</string>
@@ -40,9 +41,9 @@
 	<string name="menu_quit">Quitter</string>
 	<string name="menu_refresh">Rafraîchir</string>
 	<string name="menu_back">Retour</string>
+	<string name="menu_menu_subcat">Retour</string>
 	<string name="menu_add_topic">Nouveau topic</string>
-	<string name="menu_subcats">Une sous-catégorie</string>
-	<string name="menu_subcat_filter">Filter par sous-catégorie</string>
+	<string name="menu_subcat">Filter par sous-catégorie</string>
 	<string name="menu_subcat_none">Aucune</string>
 	
 	<string name="login_title">Connexion au forum</string>
@@ -86,10 +87,9 @@
 	<string name="are_u_sure_message">Êtes-vous sûr ?</string>
 	<string name="hfrrehost_title">Uploader cette image</string>
 
+	<string name="welcome_message">Bienvenue %s</string>
 	<string name="mp_unread">[Non lu]</string>
 	<string name="new_mp">Nouveau message privé</string>
-	<string name="new_topic">Nouveau topic dans "%s"</string>
-	<string name="new_post">Nouveau post dans "%s"</string>
 	<string name="mp_to_hint">Pseudo du dest.</string>
 	<string name="topic_subject_hint">Sujet du message</string>
 	<string name="send_mp">Envoyer par MP</string>
@@ -122,6 +122,10 @@
 	<string name="aq_sent">Envoyer</string>
 	<string name="aq_sent_loading">Envoi de l\'alerte...</string>
 	<string name="aq_list_title">Alertes du topic</string>
+	
+	<string name="warm_modo_title">Nouvelle alerte modérateurs</string>
+	<string name="modo_reason_hint">Raison (facultatif)</string>
+	<string name="warm_modo_loading">Alerte aux modérateurs...</string>
 	
 	<string name="pref_warning">Attention !</string>
 	<string name="pref_disabled">Opération impossible !</string>
@@ -272,6 +276,18 @@
 	</string-array>
 	
 	<string-array name="drawable_keys">
+		<item>1</item>
+		<item>2</item>
+		<item>3</item>
+	</string-array>
+
+	<string-array name="quoted_edited_values">
+    	<item>En haut du post</item>
+    	<item>En bas du post</item>
+    	<item>Les 2</item> 
+	</string-array>
+	
+	<string-array name="quoted_edited_keys">
 		<item>1</item>
 		<item>2</item>
 		<item>3</item>

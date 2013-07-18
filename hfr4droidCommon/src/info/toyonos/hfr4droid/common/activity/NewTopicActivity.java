@@ -11,8 +11,6 @@ import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.view.LayoutInflater;
-import android.view.Menu;
-import android.view.MenuInflater;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.ViewGroup;
@@ -20,6 +18,8 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import com.actionbarsherlock.view.Menu;
 
 /**
  * <p>Activity permettant d'ajouter un topic (classique ou MP)</p>
@@ -91,9 +91,8 @@ public class NewTopicActivity extends NewPostGenericActivity
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu)
 	{
-		MenuInflater inflater = getMenuInflater();
-		inflater.inflate(R.menu.common, menu);
-		inflater.inflate(R.menu.misc, menu);
+		getSupportMenuInflater().inflate(R.menu.common, menu);
+		getSupportMenuInflater().inflate(R.menu.misc, menu);
 		menu.removeItem(R.id.MenuMps);
 		menu.removeItem(R.id.MenuRefresh);
 		return true;
@@ -102,8 +101,7 @@ public class NewTopicActivity extends NewPostGenericActivity
 	@Override
 	protected void setTitle()
 	{
-		final TextView topicTitle = (TextView) findViewById(R.id.NewTopicTitle);
-		topicTitle.setText(isMpsCat(cat) ? getString(R.string.new_mp) : getString(R.string.new_topic, cat.getName()));
+		getSupportActionBar().setTitle(isMpsCat(cat) ? getString(R.string.new_mp) : cat.getName());
 	}
 		
 	@Override

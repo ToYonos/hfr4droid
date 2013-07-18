@@ -33,6 +33,8 @@ import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URLEncoder;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.text.ParsePosition;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -117,15 +119,15 @@ public class HFRDataRetriever implements MDDataRetriever
 
 	public HFRDataRetriever(HFR4droidApplication context, HttpClientHelper httpClientHelper)
 	{
-		this(context, httpClientHelper, null, false);
+		this(context, httpClientHelper, null, false, false);
 	}
 	
 	public HFRDataRetriever(HFR4droidApplication context, HttpClientHelper httpClientHelper, boolean clearCache)
 	{
-		this(context, httpClientHelper, null, clearCache);
+		this(context, httpClientHelper, null, clearCache, false);
 	}
 
-	public HFRDataRetriever(HFR4droidApplication context, HttpClientHelper httpClientHelper, HFRAuthentication auth, boolean clearCache)
+	public HFRDataRetriever(HFR4droidApplication context, HttpClientHelper httpClientHelper, HFRAuthentication auth, boolean clearCache, boolean prefCredentialsOk)
 	{
 		this.context = context;
 		this.auth = auth;
@@ -140,16 +142,40 @@ public class HFRDataRetriever implements MDDataRetriever
 			fakeCs = new BasicCookieStore();
 			GregorianCalendar calendar = new GregorianCalendar();
 			calendar.add(Calendar.YEAR, 10);
-			BasicClientCookie user = new BasicClientCookie("md_user", FAKE_ACCOUNT_USER);
+			BasicClientCookie user = new BasicClientCookie("md_user", 
+				context.isPreloadingMultiSet() && prefCredentialsOk ? 
+					context.getPreloadingPseudo() :
+					FAKE_ACCOUNT_USER);
 			user.setDomain(".hardware.fr");
 			user.setExpiryDate(calendar.getTime());
 			user.setPath("/");
-			BasicClientCookie pass = new BasicClientCookie("md_passs", FAKE_ACCOUNT_MD5_PASS);
+			BasicClientCookie pass = new BasicClientCookie("md_passs",
+				context.isPreloadingMultiSet() && prefCredentialsOk ? 
+					getMd5(context.getPreloadingPassword()) :
+					FAKE_ACCOUNT_MD5_PASS);
 			pass.setDomain(".hardware.fr");
 			pass.setExpiryDate(calendar.getTime());
 			pass.setPath("/");
 			fakeCs.addCookie(user);
 			fakeCs.addCookie(pass);
+		}
+	}
+	
+	private String getMd5(String password)
+	{
+		MessageDigest md;
+		try
+		{
+			md = MessageDigest.getInstance("MD5");
+			byte[] bytes = md.digest(password.getBytes());
+			StringBuffer formattedPassword = new StringBuffer();
+		    for (int i = 0; i < bytes.length; i++) formattedPassword.append(Integer.toString((bytes[i] & 0xff) + 0x100, 16).substring(1));
+			return formattedPassword.toString();
+		}
+		catch (NoSuchAlgorithmException e)
+		{
+			Log.e(HFR4droidApplication.TAG, e.getMessage(), e);
+			return "";
 		}
 	}
 
@@ -549,7 +575,8 @@ public class HFRDataRetriever implements MDDataRetriever
 		}
 
         Pattern p = Pattern.compile(
-        	"(<tr.*?class=\"message.*?" +
+        	"(<table\\s*cellspacing.*?class=\"([a-z]+)\">.*?" +
+        	"<tr.*?class=\"message.*?" +
 			"<a.*?href=\"#t([0-9]+)\".*?" +
 			"<b.*?class=\"s2\">(?:<a.*?>)?(.*?)(?:</a>)?</b>.*?" +
 			"(?:(?:<div\\s*class=\"avatar_center\".*?><img src=\"(.*?)\"\\s*alt=\".*?\"\\s*/></div>)|</td>).*?" +
@@ -568,29 +595,31 @@ public class HFRDataRetriever implements MDDataRetriever
         	boolean isMine = m2.find();
         	m2 = Pattern.compile("messageModo").matcher(m.group(1));
         	boolean isModo = m2.find();
-        	String postContent = m.group(11);
+        	boolean isDeleted = m.group(2).equals("messagetabledel");
+        	String postContent = m.group(12);
         	posts.add(new Post(
-        		Integer.parseInt(m.group(2)),
+        		Integer.parseInt(m.group(3)),
 				postContent,
-				m.group(3),
 				m.group(4),
-				new GregorianCalendar(Integer.parseInt(m.group(7)), // Year
-						Integer.parseInt(m.group(6)) - 1, // Month
-						Integer.parseInt(m.group(5)), // Day
-						Integer.parseInt(m.group(8)), // Hour
-						Integer.parseInt(m.group(9)), // Minute
-						Integer.parseInt(m.group(10))  // Second
+				m.group(5),
+				new GregorianCalendar(Integer.parseInt(m.group(8)), // Year
+						Integer.parseInt(m.group(7)) - 1, // Month
+						Integer.parseInt(m.group(6)), // Day
+						Integer.parseInt(m.group(9)), // Hour
+						Integer.parseInt(m.group(10)), // Minute
+						Integer.parseInt(m.group(11))  // Second
 				).getTime(),
-				m.group(13) != null ? new GregorianCalendar(Integer.parseInt(m.group(15)), // Year
-						Integer.parseInt(m.group(14)) - 1, // Month
-						Integer.parseInt(m.group(13)), // Day
-						Integer.parseInt(m.group(16)), // Hour
-						Integer.parseInt(m.group(17)), // Minute
-						Integer.parseInt(m.group(18))  // Second
+				m.group(14) != null ? new GregorianCalendar(Integer.parseInt(m.group(16)), // Year
+						Integer.parseInt(m.group(15)) - 1, // Month
+						Integer.parseInt(m.group(14)), // Day
+						Integer.parseInt(m.group(17)), // Hour
+						Integer.parseInt(m.group(18)), // Minute
+						Integer.parseInt(m.group(19))  // Second
 						).getTime() : null,
-				m.group(12) != null ? Integer.parseInt(m.group(12)) : 0,
+				m.group(13) != null ? Integer.parseInt(m.group(13)) : 0,
 				isMine,
 				isModo,
+				isDeleted,
 				topic
 				)
 			);
@@ -604,6 +633,12 @@ public class HFRDataRetriever implements MDDataRetriever
 		
 		String subCat = getSingleElement("<input\\s*type=\"hidden\"\\s*name=\"subcat\"\\s*value=\"([0-9]+)\"\\s*/>", content);
 		if (subCat != null) topic.setSubCategory(new SubCategory(topic.getCategory(), Integer.parseInt(subCat)));
+		
+		// On vérifie si la notification par email est activé
+		if (!useFakeAccount && topic.getStatus() != TopicStatus.LOCKED && !topic.getCategory().equals(Category.MPS_CAT))
+		{
+			topic.setEmailNotification(getSingleElement("<input\\s*type=\"hidden\"\\s*name=\"emaill\"\\s*value=\"([0-9]+)\"\\s*/>", content).equals("1"));
+		}
 		
 		// Pour HFRUrlParser, récupération d'informations complémentaires
 		if (topic.getName() == null)
@@ -625,10 +660,22 @@ public class HFRDataRetriever implements MDDataRetriever
 	public List<Post> searchPosts(Topic topic, String pseudo, String word, Post fromPost) throws DataRetrieverException
 	{
 		ArrayList<Post> posts = new ArrayList<Post>();
+		String encodedPseudo = pseudo, encodedWord = word.replace("#", "");
+		
+		try
+		{
+			if (pseudo != null) encodedPseudo = URLEncoder.encode(pseudo, "UTF-8");
+			if (word != null) encodedWord =  URLEncoder.encode(word.replace("#", ""), "UTF-8");
+		}
+		catch (UnsupportedEncodingException e1)
+		{
+			Log.w(HFR4droidApplication.TAG, e1);
+		}
+		
 		String url = SEARCH_POSTS_URL.replaceFirst("\\{\\$cat\\}", topic.getCategory().getRealId())
 		.replaceFirst("\\{\\$topic\\}", String.valueOf(topic.getId()))
-		.replaceFirst("\\{\\$pseudo\\}", pseudo != null ? pseudo : "")
-		.replaceFirst("\\{\\$word\\}", word != null ? word.replace("#", "") : "")
+		.replaceFirst("\\{\\$pseudo\\}", pseudo != null ? encodedPseudo : "")
+		.replaceFirst("\\{\\$word\\}", word != null ? encodedWord : "")
 		.replaceFirst("\\{\\$fp\\}", String.valueOf(fromPost != null ? fromPost.getId() : 0));
 		String content = null;
 		try
@@ -684,6 +731,7 @@ public class HFRDataRetriever implements MDDataRetriever
 				m.group(13) != null ? Integer.parseInt(m.group(13)) : 0,
 				isMine,
 				isModo,
+				false,
 				topic
 			);
 			postFS.setCallbackUrl(BASE_URL + m.group(11).replace("&amp;", "&"));

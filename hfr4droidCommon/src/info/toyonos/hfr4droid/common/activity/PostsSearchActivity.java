@@ -15,9 +15,6 @@ import java.util.List;
 
 import android.os.Bundle;
 import android.view.KeyEvent;
-import android.view.Menu;
-import android.view.MenuItem;
-import android.view.SubMenu;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.ImageView;
@@ -25,6 +22,9 @@ import android.widget.LinearLayout;
 import android.widget.SlidingDrawer;
 import android.widget.TextView;
 
+import com.actionbarsherlock.view.Menu;
+import com.actionbarsherlock.view.MenuItem;
+import com.actionbarsherlock.view.SubMenu;
 import com.naholyr.android.ui.HFR4droidQuickActionWindow;
 import com.naholyr.android.ui.QuickActionWindow;
 import com.naholyr.android.ui.QuickActionWindow.Item;
@@ -116,7 +116,6 @@ public class PostsSearchActivity extends PostsActivity
 	{
 		super.onPrepareOptionsMenu(menu);
 
-		MenuItem menuNav = menu.findItem(R.id.MenuNav);
 		SubMenu subMenuNav = menu.findItem(R.id.MenuNav).getSubMenu();
 
 		MenuItem menuNavFP = subMenuNav.findItem(R.id.MenuNavFirstPage);
@@ -138,10 +137,6 @@ public class PostsSearchActivity extends PostsActivity
 		MenuItem menuNavLP = subMenuNav.findItem(R.id.MenuNavLastPage);
 		menuNavLP.setVisible(false);
 		menuNavLP.setEnabled(false);
-
-		MenuItem menuNavRefresh =  menuNav.getSubMenu().findItem(R.id.MenuNavRefresh);
-		menuNavRefresh.setVisible(false);
-		menuNavRefresh.setEnabled(false);
 
 		MenuItem refresh = menu.findItem(R.id.MenuRefresh);
 		refresh.setVisible(false);
@@ -189,35 +184,6 @@ public class PostsSearchActivity extends PostsActivity
 		finish();
 	}
 
-	protected void updateButtonsStates()
-	{
-		SlidingDrawer nav = (SlidingDrawer) findViewById(R.id.Nav);
-		TextView topicTitle = (TextView) findViewById(R.id.TopicTitle);
-
-		nav.setVisibility(View.VISIBLE);
-		topicTitle.setPadding(5, 0, 55, 0);
-
-		ImageView buttonFP = (ImageView) findViewById(R.id.ButtonNavFirstPage);
-		buttonFP.setEnabled(currentPageNumber != 1);
-		buttonFP.setAlpha(currentPageNumber != 1 ? 255 : 105);
-
-		ImageView buttonPP = (ImageView) findViewById(R.id.ButtonNavPreviousPage);
-		buttonPP.setEnabled(currentPageNumber != 1);
-		buttonPP.setAlpha(currentPageNumber != 1 ? 255 : 105);
-		
-		ImageView buttonUP = (ImageView) findViewById(R.id.ButtonNavUserPage);
-		buttonUP.setEnabled(false);
-		buttonUP.setAlpha(105);
-
-		ImageView buttonNP = (ImageView) findViewById(R.id.ButtonNavNextPage);
-		buttonNP.setEnabled(true);
-		buttonNP.setAlpha(255);
-
-		ImageView buttonLP = (ImageView) findViewById(R.id.ButtonNavLastPage);
-		buttonLP.setEnabled(false);
-		buttonLP.setAlpha(105);
-	}
-
 	@Override
 	protected void onPostingOk(ResponseCode code, long postId)
 	{
@@ -236,7 +202,7 @@ public class PostsSearchActivity extends PostsActivity
 
 	protected void addQuickActionWindowItems(HFR4droidQuickActionWindow window, final long currentPostId, boolean isMine)
 	{
-		QuickActionWindow.Item goToOriginalPost = new QuickActionWindow.Item(PostsSearchActivity.this, "", R.drawable.ic_menu_goto, new QuickActionWindow.Item.Callback()
+		QuickActionWindow.Item goToOriginalPost = new QuickActionWindow.Item(PostsSearchActivity.this, "", R.drawable.ic_menu_jump_to, new QuickActionWindow.Item.Callback()
 		{	
 			public void onClick(QuickActionWindow window, Item item, View anchor)
 			{

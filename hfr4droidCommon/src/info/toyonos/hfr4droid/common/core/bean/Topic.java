@@ -79,6 +79,7 @@ public class Topic extends BasicElement
 	private boolean unread;
 	private Category category;
 	private SubCategory subCategory; // Uniquement pour l'édition d'un premier post
+	private boolean emailNotification;
 
 	public Topic(long id)
 	{
@@ -95,6 +96,7 @@ public class Topic extends BasicElement
 		this.unread = false;
 		this.category = null;
 		this.subCategory = null;
+		this.emailNotification = false;
 	}
 
 	public Topic(long id, String name)
@@ -117,6 +119,7 @@ public class Topic extends BasicElement
 		this.sticky = sticky;
 		this.unread = unread;
 		this.category = category;
+		this.emailNotification = false;
 	}
 
 	public TopicStatus getStatus()
@@ -236,6 +239,16 @@ public class Topic extends BasicElement
 	public void setSubCategory(SubCategory subCategory)
 	{
 		this.subCategory = subCategory;
+	}
+
+	public boolean hasEmailNotification()
+	{
+		return emailNotification;
+	}
+
+	public void setEmailNotification(boolean emailNotification)
+	{
+		this.emailNotification = emailNotification;
 	}
 
 	public static long getSerialversionuid()

@@ -90,15 +90,10 @@ import android.view.GestureDetector.SimpleOnGestureListener;
 import android.view.Gravity;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
-import android.view.Menu;
-import android.view.MenuInflater;
-import android.view.MenuItem;
 import android.view.MotionEvent;
-import android.view.SubMenu;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.View.OnCreateContextMenuListener;
-import android.view.View.OnLongClickListener;
 import android.view.ViewGroup;
 import android.view.ViewGroup.LayoutParams;
 import android.view.Window;
@@ -116,17 +111,16 @@ import android.webkit.WebView.HitTestResult;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.PopupWindow;
 import android.widget.ProgressBar;
-import android.widget.SlidingDrawer;
-import android.widget.SlidingDrawer.OnDrawerCloseListener;
-import android.widget.SlidingDrawer.OnDrawerOpenListener;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.actionbarsherlock.view.Menu;
+import com.actionbarsherlock.view.MenuItem;
+import com.actionbarsherlock.view.SubMenu;
 import com.naholyr.android.ui.HFR4droidQuickActionWindow;
 import com.naholyr.android.ui.QuickActionWindow;
 import com.naholyr.android.ui.QuickActionWindow.Item;
@@ -187,9 +181,9 @@ public class PostsActivity extends HFR4droidMultiListActivity<List<Post>>
 	protected DrawableDisplayType currentSmileysDisplayType = null;
 	protected DrawableDisplayType currentImgsDisplayType = null;
 	
-	private boolean isAvatarsEnable = true;
-	private boolean isSmileysEnable = true;
-	private boolean isImgsEnable = true;
+	private Boolean isAvatarsEnable = true;
+	private Boolean isSmileysEnable = true;
+	private Boolean isImgsEnable = true;
 	
 	private HFR4droidQuickActionWindow currentQAwindow = null;
 	
@@ -285,7 +279,6 @@ public class PostsActivity extends HFR4droidMultiListActivity<List<Post>>
 				}
 			}
 		};
-				
 	}
 	
 	@SuppressWarnings("unchecked")
@@ -404,8 +397,8 @@ public class PostsActivity extends HFR4droidMultiListActivity<List<Post>>
 						}
 					}, 500);
 				}
-				
-				updateButtonsStates();
+
+				supportInvalidateOptionsMenu();
 				setTitle();
 			}
 			
@@ -564,11 +557,10 @@ public class PostsActivity extends HFR4droidMultiListActivity<List<Post>>
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu)
 	{
-		MenuInflater inflater = getMenuInflater();
-		inflater.inflate(R.menu.common, menu);
-		inflater.inflate(R.menu.posts, menu);
-		inflater.inflate(R.menu.misc, menu);
-		inflater.inflate(R.menu.nav, menu);
+		getSupportMenuInflater().inflate(R.menu.posts, menu);
+		getSupportMenuInflater().inflate(R.menu.nav, menu);
+		getSupportMenuInflater().inflate(R.menu.misc, menu);
+		getSupportMenuInflater().inflate(R.menu.common, menu);
 		return true;
 	}
 
@@ -602,18 +594,6 @@ public class PostsActivity extends HFR4droidMultiListActivity<List<Post>>
 			MenuItem menuNavLP = subMenuNav.findItem(R.id.MenuNavLastPage);
 			menuNavLP.setVisible(currentPageNumber != topic.getNbPages());
 			menuNavLP.setEnabled(currentPageNumber != topic.getNbPages());
-
-			MenuItem menuNavRefresh =  menuNav.getSubMenu().findItem(R.id.MenuNavRefresh);
-			menuNavRefresh.setVisible(isLoggedIn() && topic.getStatus() != TopicStatus.LOCKED);
-			menuNavRefresh.setEnabled(isLoggedIn() && topic.getStatus() != TopicStatus.LOCKED);
-			
-            MenuItem menuNavSubCats =  menuNav.getSubMenu().findItem(R.id.MenuNavSubCats);
-            menuNavSubCats.setVisible(false);
-            menuNavSubCats.setEnabled(false);
-
-			MenuItem refresh = menu.findItem(R.id.MenuRefresh);
-			refresh.setVisible(!isLoggedIn() || topic.getStatus() == TopicStatus.LOCKED);
-			refresh.setEnabled(!isLoggedIn() || topic.getStatus() == TopicStatus.LOCKED);
 		}
 
 		MenuItem addPost = menu.findItem(R.id.MenuAddPost);
@@ -643,6 +623,11 @@ public class PostsActivity extends HFR4droidMultiListActivity<List<Post>>
 				showAddPostDialog(PostCallBackType.ADD, postContent);
 				return true;
 			}
+			else if (item.getItemId() == R.id.MenuSearchPost)
+			{
+				toggleSearchPosts();
+				return true;
+			}
 			else
 			{
 				return false;
@@ -662,8 +647,7 @@ public class PostsActivity extends HFR4droidMultiListActivity<List<Post>>
 	@Override
 	protected void setTitle()
 	{
-		final TextView topicTitle = (TextView) findViewById(R.id.TopicTitle);
-		topicTitle.setTextSize(getTextSize(15));
+		final TextView topicTitle = (TextView) getSupportActionBar().getCustomView().findViewById(R.id.TopicTitle);
 		String topicName = topic.toString();
 		if (topicName == null) topicName = "";
 		int index =  topicName.indexOf(']');
@@ -673,8 +657,7 @@ public class PostsActivity extends HFR4droidMultiListActivity<List<Post>>
 		}
 		topicTitle.setText(topicName);
 		topicTitle.setSelected(true);
-		final TextView topicPageNumber = (TextView) findViewById(R.id.TopicPageNumber);
-		topicPageNumber.setTextSize(getTextSize(15));
+		final TextView topicPageNumber = (TextView) getSupportActionBar().getCustomView().findViewById(R.id.TopicPageNumber);
 		topicPageNumber.setText((topic.getNbPages() != -1 ? "P." + currentPageNumber + "/" + topic.getNbPages() + " " : ""));
 	}
 
@@ -750,122 +733,8 @@ public class PostsActivity extends HFR4droidMultiListActivity<List<Post>>
 		loadTopics(cat, fromType, 1, false);
 	}
 
-	protected void updateButtonsStates()
-	{
-		SlidingDrawer nav = (SlidingDrawer) findViewById(R.id.Nav);
-		TextView topicTitle = (TextView) findViewById(R.id.TopicTitle);
-		if (topic.getNbPages() == 1)
-		{
-			nav.setVisibility(View.GONE);
-			topicTitle.setPadding(5, 0, 5, 0);
-		}
-		else
-		{
-			nav.setVisibility(View.VISIBLE);
-			topicTitle.setPadding(5, 0, 55, 0);
-
-			ImageView buttonFP = (ImageView) findViewById(R.id.ButtonNavFirstPage);
-			buttonFP.setEnabled(currentPageNumber != 1);
-			buttonFP.setAlpha(currentPageNumber != 1 ? 255 : 105);
-
-			ImageView buttonPP = (ImageView) findViewById(R.id.ButtonNavPreviousPage);
-			buttonPP.setEnabled(currentPageNumber != 1);
-			buttonPP.setAlpha(currentPageNumber != 1 ? 255 : 105);
-
-			ImageView buttonNP = (ImageView) findViewById(R.id.ButtonNavNextPage);
-			buttonNP.setEnabled(currentPageNumber != topic.getNbPages());
-			buttonNP.setAlpha(currentPageNumber != topic.getNbPages() ? 255 : 105);
-
-			ImageView buttonLP = (ImageView) findViewById(R.id.ButtonNavLastPage);
-			buttonLP.setEnabled(currentPageNumber != topic.getNbPages());
-			buttonLP.setAlpha(currentPageNumber != topic.getNbPages() ? 255 : 105);
-		}
-	}
-
 	protected void attachEvents()
-	{
-		final TextView topicTitle = (TextView) findViewById(R.id.TopicTitle);
-		topicTitle.setOnClickListener(new OnClickListener()
-		{	
-			public void onClick(View v)
-			{
-				 TextView topicTitle = (TextView) v;
-				 topicTitle.setEllipsize(topicTitle.getEllipsize() == TruncateAt.MARQUEE ? TruncateAt.END : TruncateAt.MARQUEE);
-			}
-		});
-		
-		topicTitle.setOnLongClickListener(new OnLongClickListener()
-		{
-			public boolean onLongClick(View v)
-			{
-				toggleSearchPosts();
-				return true;
-			}	
-		});
-		
-		SlidingDrawer slidingDrawer = (SlidingDrawer) findViewById(R.id.Nav);
-		final ImageView toggleNav = (ImageView) ((LinearLayout) findViewById(R.id.NavToggle)).getChildAt(0);
-		slidingDrawer.setOnDrawerOpenListener(new OnDrawerOpenListener()
-		{
-			public void onDrawerOpened()
-			{
-				toggleNav.setImageResource(R.drawable.right_arrow);
-			}
-		});
-
-		slidingDrawer.setOnDrawerCloseListener(new OnDrawerCloseListener()
-		{
-			public void onDrawerClosed()
-			{
-				toggleNav.setImageResource(R.drawable.left_arrow);
-			}
-		});
-
-		ImageView buttonFP = (ImageView) findViewById(R.id.ButtonNavFirstPage);
-		buttonFP.setOnClickListener(new OnClickListener()
-		{
-			public void onClick(View v)
-			{
-				loadFirstPage();	
-			}
-		});
-
-		ImageView buttonPP = (ImageView) findViewById(R.id.ButtonNavPreviousPage);
-		buttonPP.setOnClickListener(new OnClickListener()
-		{
-			public void onClick(View v)
-			{
-				loadPreviousPage();	
-			}
-		});
-
-		ImageView buttonUP = (ImageView) findViewById(R.id.ButtonNavUserPage);
-		buttonUP.setOnClickListener(new OnClickListener()
-		{
-			public void onClick(View v)
-			{
-				loadUserPage();	
-			}
-		});			
-
-		ImageView buttonNP = (ImageView) findViewById(R.id.ButtonNavNextPage);
-		buttonNP.setOnClickListener(new OnClickListener()
-		{
-			public void onClick(View v)
-			{
-				loadNextPage();	
-			}
-		});
-
-		ImageView buttonLP = (ImageView) findViewById(R.id.ButtonNavLastPage);
-		buttonLP.setOnClickListener(new OnClickListener()
-		{
-			public void onClick(View v)
-			{
-				loadLastPage();	
-			}
-		});
-		
+	{		
 		Button buttonSearchPosts = (Button) findViewById(R.id.ButtonSearchPosts);
 		buttonSearchPosts.setOnClickListener(new OnClickListener()
 		{
@@ -932,6 +801,8 @@ public class PostsActivity extends HFR4droidMultiListActivity<List<Post>>
 	{
 		final WebView webView = new NonLeakingWebView(this)
         {
+			//private boolean actionBarVisible = true;
+			
             @Override
             public boolean onTouchEvent(MotionEvent ev)
             {
@@ -951,6 +822,25 @@ public class PostsActivity extends HFR4droidMultiListActivity<List<Post>>
                 }
                 return result;
             }
+            
+            /* Feature sympa visuellement mais useless, on permet l'accès au menu quand on est en bas de page donc chiant à l'usage
+             
+            @Override
+            protected void onScrollChanged(final int l, final int t, final int oldl, final int oldt)
+            {
+            	super.onScrollChanged(l, t, oldl, oldt);
+            	Log.v(HFR4droidApplication.TAG, "l " + l + ", t " + t + ", oldl " + oldl + ", oldt " + oldt);
+            	if (t == 0 && !actionBarVisible)
+            	{
+            		PostsActivity.this.getSupportActionBar().show();
+            		actionBarVisible = true;
+            	}
+            	else if (t > 0 && actionBarVisible)
+            	{
+            		PostsActivity.this.getSupportActionBar().hide();
+            		actionBarVisible = false;
+            	}
+            }*/
         };
 
         registerForContextMenu(webView);
@@ -975,7 +865,7 @@ public class PostsActivity extends HFR4droidMultiListActivity<List<Post>>
                 	final String url = result.getExtra();
                 	if (url.indexOf("http://forum-images.hardware.fr") != -1) return;
 
-                	MenuItem.OnMenuItemClickListener handler = new MenuItem.OnMenuItemClickListener()
+                	android.view.MenuItem.OnMenuItemClickListener handler = new android.view.MenuItem.OnMenuItemClickListener()
                     {
                 		private void saveImage(final String url, final boolean compressToPng, final ImageCallback callback)
                 		{                    		
@@ -1144,7 +1034,7 @@ public class PostsActivity extends HFR4droidMultiListActivity<List<Post>>
 			                			// Ouverture
 			                			String aperture = exif.getAttribute(ExifInterface.TAG_APERTURE);
 			                			if (aperture != null) data.add(getString(R.string.exif_aperture, aperture));
-			                			
+
 			                			// Temps d'exposition
 			                			String exposure = exif.getAttribute(ExifInterface.TAG_EXPOSURE_TIME);
 			                			try
@@ -1175,7 +1065,7 @@ public class PostsActivity extends HFR4droidMultiListActivity<List<Post>>
                 			return result;
                 		}
                 		
-                        public boolean onMenuItemClick(MenuItem item)
+                        public boolean onMenuItemClick(android.view.MenuItem item)
                         {
                 			if (item.getItemId() == R.id.SaveImage)
 							{
@@ -1296,6 +1186,12 @@ public class PostsActivity extends HFR4droidMultiListActivity<List<Post>>
 		webView.addJavascriptInterface(new Object()
 		{
 			@SuppressWarnings("unused")
+			public void log(String s)
+			{
+				Log.d(HFR4droidApplication.TAG, "Javascript : " + s);
+			}
+			
+			@SuppressWarnings("unused")
 			public void openQuickActionWindow(final long postId, final boolean isMine, final int yOffset)
 			{
 				if (yOffset >= 0 && (currentQAwindow == null || !currentQAwindow.isShowing()))
@@ -1316,8 +1212,12 @@ public class PostsActivity extends HFR4droidMultiListActivity<List<Post>>
 							
 							addQuickActionWindowItems(currentQAwindow, postId, isMine);
 							View spp = findViewById(R.id.SearchPostsPanel);
-							View anchor = spp.getVisibility() == View.VISIBLE ? spp : ((LinearLayout) findViewById(R.id.TopicTitle).getParent());
-							currentQAwindow.show(anchor, Math.round(yOffset * webView.getScale()));
+							View anchor = spp.getVisibility() == View.VISIBLE ? spp : findViewById(R.id.Anchor);
+							
+							getSupportActionBar().getCustomView().measure(ViewGroup.LayoutParams.FILL_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+							int actionBarHeight = getSupportActionBar().getCustomView().getMeasuredHeight();
+							
+							currentQAwindow.show(anchor, Math.round(yOffset * webView.getScale()), actionBarHeight);
 						}
 					});
 				}
@@ -1713,6 +1613,8 @@ public class PostsActivity extends HFR4droidMultiListActivity<List<Post>>
 		js.append("function removePost(id) { var header = document.getElementById(id); header.parentNode.removeChild(header.nextSibling); if (header.nextSibling.className == 'HFR4droid_post') header.parentNode.removeChild(header.nextSibling); header.parentNode.removeChild(header); };");
 		js.append("function openQuickActionWindow(postId, isMine) {var elem = document.getElementById(postId); var yOffset = 0; while (elem != null) { yOffset += elem.offsetTop; elem = elem.offsetParent; } window.HFR4Droid.openQuickActionWindow(postId, isMine, yOffset - window.scrollY); }");
 		js.append("function openProfileWindow(pseudo) { event.stopPropagation(); window.HFR4Droid.openProfileWindow(pseudo); }");
+		js.append("function jumpToFirstPost() { scrollToElement(" + posts.get(0).getId() + "); }");
+		js.append("function jumpToLastPost() { scrollToElement(" + NewPostUIHelper.BOTTOM_PAGE_ID + "); }");
 		js.append("var loadDynamicCss = function(width) { var headID = document.getElementsByTagName('head')[0]; var styles = headID.getElementsByTagName('style'); for (var i=1;i<styles.length;i++) headID.removeChild(styles[i]); var cssNode = document.createElement('style'); cssNode.type = 'text/css'; cssNode.appendChild(document.createTextNode('");
 		js.append("ol { width:' + (Math.round(width * 0.80) - 40) + 'px; }");
 		js.append(".citation p, .oldcitation p, .quote p, .oldquote p, .fixed p, .code p, .spoiler p, .oldspoiler p { width:' + Math.round(width * 0.80) + 'px; }");
@@ -1720,11 +1622,13 @@ public class PostsActivity extends HFR4droidMultiListActivity<List<Post>>
 		js.append(".HFR4droid_content img { max-width: ' + (width - 30) + 'px; }");
 		js.append(".citation img, .oldcitation img, .quote img, .oldquote img, .fixed img, .code img, .spoiler img, .oldspoiler img { max-width: ' + (Math.round(width * 0.80) - 15) + 'px; }");
 		js.append("')); headID.appendChild(cssNode); };");
+		js.append("var scrollFct = function () { document.getElementById('top').style.visibility = window.pageYOffset == 0 ? 'hidden' : 'visible'; document.getElementById('bottom').style.visibility = window.pageYOffset == (document.height - window.innerHeight) ? 'hidden' : 'visible'; }; ");
 		if (topic.getLastReadPost() != -1 || topic.getStatus() == TopicStatus.NEW_MP)
 		{
-			js.append("window.onload = function () { scrollToElement(\'" + (topic.getStatus() == TopicStatus.NEW_MP ? NewPostUIHelper.BOTTOM_PAGE_ID : topic.getLastReadPost()) + "\'); }");
+			js.append("window.onload = function () { scrollToElement(\'" + (topic.getStatus() == TopicStatus.NEW_MP ? NewPostUIHelper.BOTTOM_PAGE_ID : topic.getLastReadPost()) + "\'); };");
 			topic.setLastReadPost(-1);
 		}
+		js.append("window.setTimeout(function(){ scrollFct(); window.onscroll = scrollFct; }, 1000);");
 		js.append("</script>");
 
 		StringBuffer css = new StringBuffer("<style type=\"text/css\">");
@@ -1803,7 +1707,11 @@ public class PostsActivity extends HFR4droidMultiListActivity<List<Post>>
 		css.append(".HFR4droid_content p, .HFR4droid_content div, .HFR4droid_content ul, .HFR4droid_content b { color:" + currentTheme.getPostTextColorAsString() + "}");
 		css.append(".modo_post { background-color: " + currentTheme.getModoPostBackgroundColorAsString() + "; }");
 		css.append(".HFR4droid_footer_space { height: 10px; }");
-		css.append(".HFR4droid_footer { height: 10px; width:100%; margin-top: -10px; background: url(\"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAA%2FCAMAAAAWu1JmAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAgY0hSTQAAeiYAAICEAAD6AAAAgOgAAHUwAADqYAAAOpgAABdwnLpRPAAAAwBQTFRFhYWFs7SzysrKy8vLyszKzMzMzc3Nzs7Oz8%2FP0NDQ0dHR0dLR0tLS09PT1NTU1dXV1tbW19fX2NjY2dnZ2tna2tra29rb3Nvc3Nzc3dzdAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAWKfi1AAAABh0RVh0U29mdHdhcmUAUGFpbnQuTkVUIHYzLjM2qefiJQAAAEFJREFUGFddwkcOgDAQBMHBhCWDCQb%2B%2F1Fai8TBqlKhSoOiDiVdejK3PgkndrchYsXiZkwY0bsO7c9kalCjdAF6ARIIA4Sqnjr8AAAAAElFTkSuQmCC\"); }");
+		css.append(".HFR4droid_footer { height: 10px; width:100%; margin-top: -10px; background: url(\"data:image/ng;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAA%2FCAMAAAAWu1JmAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAgY0hSTQAAeiYAAICEAAD6AAAAgOgAAHUwAADqYAAAOpgAABdwnLpRPAAAAwBQTFRFhYWFs7SzysrKy8vLyszKzMzMzc3Nzs7Oz8%2FP0NDQ0dHR0dLR0tLS09PT1NTU1dXV1tbW19fX2NjY2dnZ2tna2tra29rb3Nvc3Nzc3dzdAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAWKfi1AAAABh0RVh0U29mdHdhcmUAUGFpbnQuTkVUIHYzLjM2qefiJQAAAEFJREFUGFddwkcOgDAQBMHBhCWDCQb%2B%2F1Fai8TBqlKhSoOiDiVdejK3PgkndrchYsXiZkwY0bsO7c9kalCjdAF6ARIIA4Sqnjr8AAAAAElFTkSuQmCC\"); }");
+		css.append(".deleted_post { background-image: url(" + currentTheme.getModoPostDeletedData() + "); filter: alpha(opacity=40); -moz-opacity:0.4; -khtml-opacity: 0.4; opacity:0.4; }");
+		css.append(".jumper { position: fixed; alpha(opacity=5); opacity:0.05; right: 10px; width: 48px; height: 48px; }");
+		css.append("#bottom { visibility: hidden; bottom: 10px; background: url(\"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADAAAAAwCAYAAABXAvmHAAAAAXNSR0IArs4c6QAAAAZiS0dEAP8A%2FwD%2FoL2nkwAAAAlwSFlzAAALEwAACxMBAJqcGAAAAAd0SU1FB90HBA8ZHaxsbOoAAAN8SURBVGje7Zo7TCNXFIa%2FuWODTTAESBAP4QZWZpBoQ0tavA0SDUVAAoUKSgokxKPCu5CWAiFS8BASEuTlgABhBLIpAKE06VIgpaIjkaJFkDkpsl6xu6w9Y9%2BxMtH%2B0pWs8Z0z57%2F%2FOfeOzhmDf6GAr4B%2B4DPyIwBEKC0egD%2BB34FvgNPHf64A4qPxN%2FB11vkvfeZ8drwCGhXwHH%2BiHHiugBr8i4gCPvUxgQr1egfyK8IKMHRavL6%2BRkSeHN3d3boJqJKufllZmXab2hUwDCPHcilPCJQMHhAw%2FhcKGD5WQH8IlVgB46MCH3NAQwjh9xDKqYBlWfT29mpx0imBaDTKwMCAnhwIh8NsbGzQ09PjyKBpmgXlRxYNDQ3s7u4Si8X0KGCaJqFQiO3tbeLxeFEE8inQ0tLC6ekpHR0dTt%2Bb8udA1qHy8nJ2dnbo6%2BvzRIFoNEoqlaKtrQ2AYDCoR4FAIPDmdzAYZHNzk8HBQa0KxGIxMpkMra2tbz1LSw68%2B1DTNFlZWWF4eNh1mDylgGVZpFIpmpub37pu27Z3B5lSiqWlJUZGRopSoLOzk%2BPjYxobG9%2Bbe39%2F7%2B1JrJRicXGR%2Fv7%2BD4ZcLgXa29vZ29ujvr7%2B6SrWw4NjAlIoCdM0WVtbY2hoyNU5YFkWR0dHNDU1fXCuGwVyEri7u8urxPLyMmNjYyilcu40hmHQ1dVFJpN5Mmwe4%2Bbmxon%2FArBLnirY7Oys5INt2zI%2BPp5zzurqqtze3ua1tb6%2BLqZpOqnOvQT42cFEmZmZkVJga2tLAoGA0%2FKicwKALCwseOr8%2Fv6%2BhEIhN%2FXRlwBJFzd4RuLw8FDC4bDbAu8LgJ9c3iTz8%2FNanU%2Bn01JZWVlIhbowAjpJnJ2dSSQSKbTE%2FgLgxwJvLprE1dWV1NbWFtMjSAD8UIQBmZycLHjlq6uri21yFE8AkEQi4cr5y8tLqaur09GlSQB8r8GQTE9PO3L%2B4uKi2LB5j8B3mozJ1NRUTufPz8%2BlpqZGZ59sTiuBXDmRTqelqqpKd6NvDmBHs1EZHR0V27bfOH9wcCAVFRVedCrnADY9MCwTExMiInJyclLMPp9vTAN865Fxicfjbt9t3I7xAPCXV5W4ZDLpdbHvlQJ%2Bwb%2B4AggDv%2BG%2FTw0OHjN59pqNX5xPArW8U9QygC%2BAz4Fq4JP%2FWLj8AdwC18Cv2Yv%2FAG7AaSkoJTUWAAAAAElFTkSuQmCC\"); }");
+		css.append("#top { visibility: hidden; top: 10px; background: url(\"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADAAAAAwCAYAAABXAvmHAAAABmJLR0QA%2FwD%2FAP%2BgvaeTAAADoUlEQVRoge2YT0gjVxzHPxkjRjGKEYSFwp72spelp0CoYDwpnvQk4klcBVE8FA%2BC%2BOdUW715ExRUxIKC%2By8W1IMIIq6KB0ENKAVFI7ZgZWnVqPP20B0xu8nMm8lLjKUfeJDM%2B8173%2B9835tkxkUsL4HnQCFQQGbxN3AB%2FAF8BMTDTh8Q%2BnLwKbQt4MVDAwsZIMpuOwByAX7IADFOW5MGfM%2FT5ZUGeFI1usfjoaqqKlXDA%2BQB9JCCeL1er1heXhZCCNHZ2ZmqJfQrwE%2BqB87LyxMLCwvCQNd10dramgoDs8oNFBQUiJWVFRGPrq4u1QbeKDVQVFQk1tfX44o36O7uVm6gX8VgPp9PbGxsmIo36OnpUWXgrRIDxcXFYnNzU0q8QX9%2FvwoD75I2UFhYKFZXV22JN1CwJ5Iz4PP5xNbWliPxBgMDA8kYeA%2Fws5OTvV6v4yuv0MQHRwby8%2FMT3irTbMK%2BgdzcXLG4uKhUvMHg4KBdAyGAX2RP8Hg8Yn5%2BPiXiHZqYkzbgdrvF9PR0SsUb9Pb2qjWQlZUlJicnLSe%2BuLgQExMTpjUdHR1C13XLsfr6%2BmQM%2FCZloL293XLC8%2FNz4ff7RXNzs2mdpmmira1NyoTf77c0oAEuLCgpKTHtj0QiBAIB1tbWEEIkrBNCoOs6Q0NDNDY2ouu66bg5OTlW0lyaVQVAdnZ2wr6TkxPKy8vZ3d0FMBX1sG90dJT6%2Bnru7u5kJCRCzoDb7Y57%2FOzsjIqKCvb29u6PmSVwe3sb831qaoqWlhbLJMxwnEAkEqGsrIzt7e2Y42Zi4l3t4eFhmpqaHJuQMqBpsWXHx8cEg8H7ZfMQswQSiRwZGaGhoeEbgzKmpAzc3Nzcfz44OCAQCBAOh22JhPgJGIyNjVFbWxsz19dLLg7CloH9%2FX2CwSCHh4eJRzRJwGrDzszMUF1dzfX1tVQ9%2FJtA4hm%2FEI1G2dnZobS0lKOjI9NapwkYhEIhampquLq6kqmXSyAcDlNZWcnp6allbTIJGMzNzVFXV8fl5aVlbfz741eMj49LTQzyvwNWzM7OypTJJWCHZO7pTpDaA3ZIs4H0JmC2P5zy1JeQSOsS%2Bj%2BBb3nyeyC9SygV%2FCcSUEo0GlU9pCluQGnmS0tLuFyWj9mqEBpg%2FY8pc9E14J%2FHVpEEf2nAp8dWkQTnLuAZ8Dtg%2BRImAyk3PrwG7rD%2Fevsx2yjEvpUrBX4EvgO8SD7sKOQTYPkUD%2FwJTAETgP4ZmQ5UTPRxaekAAAAASUVORK5CYII%3D\"); }");
 		css.append("</style>");
 
 		Display display = getWindowManager().getDefaultDisplay(); 
@@ -1813,7 +1721,10 @@ public class PostsActivity extends HFR4droidMultiListActivity<List<Post>>
 		js2.append("</script>");
 
 		setDrawablesToggles();
-		StringBuffer postsContent = new StringBuffer("<div class=\"HFR4droid_posts_container\">");
+		StringBuffer postsContent = new StringBuffer("");
+		postsContent.append("<div onclick=\"jumpToLastPost()\" id=\"bottom\" class=\"jumper\"></div>");
+		postsContent.append("<div onclick=\"jumpToFirstPost()\" id=\"top\" class=\"jumper\"></div>");
+		postsContent.append("<div class=\"HFR4droid_posts_container\">");
 		for (Post p : posts)
 		{
 			SimpleDateFormat sdf = new SimpleDateFormat("'Le' dd/MM/yyyy à HH:mm:ss");
@@ -1842,7 +1753,9 @@ public class PostsActivity extends HFR4droidMultiListActivity<List<Post>>
 			String content = "";
 			content = "<div class=\"HFR4droid_post";
 			if (p.isModo()) content += " modo_post";
-			content += "\">" + editQuoteDiv + "<div class=\"HFR4droid_content\"";
+			content += "\">";
+			if (getQuotedEditedDisplayType() != QuotedEditedDisplayType.BOTTOM) content += editQuoteDiv;
+			content += "<div class=\"HFR4droid_content\"";
 			String postContent = p.getContent();
 			if (preloading && oldCitation != null && !oldCitation)
 			{
@@ -1850,7 +1763,9 @@ public class PostsActivity extends HFR4droidMultiListActivity<List<Post>>
 				postContent = postContent.replaceAll("<hr size=\"1\" />", "");
 				postContent = postContent.replaceAll("\"oldcitation\">", "\"citation\">");
 			}
-			content += ">" + postContent + "</div></div>";
+			content += ">" + postContent + "</div>";
+			if (getQuotedEditedDisplayType() != QuotedEditedDisplayType.TOP) content += editQuoteDiv;
+			content += "</div>";
 			content = content.replaceAll("onload=\"md_verif_size\\(this,'Cliquez pour agrandir','[0-9]+','[0-9]+'\\)\"", "onclick=\"return true;\"");
 			content = content.replaceAll("<b\\s*class=\"s1\"><a href=\"(.*?)\".*?>(.*?)</a></b>", "<b onclick=\"window.HFR4Droid.handleUrl('" + getDataRetriever().getBaseUrl() + "$1');\" class=\"s1\">$2</b>");
 			content = content.replaceAll("<a\\s*href=\"(http://forum\\.hardware\\.fr.*?)\"\\s*target=\"_blank\"\\s*class=\"cLink\">", "<a onclick=\"window.HFR4Droid.handleUrl('$1');\" class=\"cLink\">");			
@@ -1858,8 +1773,10 @@ public class PostsActivity extends HFR4droidMultiListActivity<List<Post>>
 			content = content.replaceAll("<img\\s*src=\"http://forum\\-images\\.hardware\\.fr/images/perso/(.*?)\"\\s*alt=\"(.*?)\"", "<img onclick=\"window.HFR4Droid.editKeywords('$2');\" src=\"http://forum-images.hardware.fr/images/perso/$1\" alt=\"$2\"");
 			if (!isImgsEnable) content = content.replaceAll("<img\\s*src=\"https?://[^\"]*?\"\\s*alt=\"https?://[^\"]*?\"\\s*title=\"(https?://.*?)\".*?/>", "<a href=\"$1\" target=\"_blank\" class=\"cLink\">$1</a>");
 			content = content.replaceAll("ondblclick=\".*?\"", "");
+			if (p.isDeleted()) postsContent.append("<div class=\"deleted_post\">");
 			postsContent.append(header);
 			postsContent.append(content);
+			if (p.isDeleted()) postsContent.append("</div>");
 			if (oldCitation == null)
 			{
 				// Si citation il y a...
@@ -1924,8 +1841,9 @@ public class PostsActivity extends HFR4droidMultiListActivity<List<Post>>
 		}
 		
 		if (!preloading) setView(webView);
-		webView.loadDataWithBaseURL(getDataRetriever().getBaseUrl(), "<html><head>" + js.toString() + css.toString() + js2.toString() + "</head><body>" + postsContent.toString() + "</body></html>", "text/html", "UTF-8", null);
-		updateButtonsStates();
+		String meta = "<meta name=\"viewport\" content=\"width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no\">";
+		webView.loadDataWithBaseURL(getDataRetriever().getBaseUrl(), "<html><head>" + meta + js.toString() + css.toString() + js2.toString() + "</head><body>" + postsContent.toString() + "</body></html>", "text/html", "UTF-8", null);
+		supportInvalidateOptionsMenu();
 
 		return webView;
 	}
@@ -2095,9 +2013,9 @@ public class PostsActivity extends HFR4droidMultiListActivity<List<Post>>
 				Toast.makeText(PostsActivity.this, data, Toast.LENGTH_SHORT).show();
 			}
 		});							
-		if (isLoggedIn()) window.addItem(addFavorite);
+		if (isLoggedIn() && !isMpsCat(topic.getCategory())) window.addItem(addFavorite);
 		
-		QuickActionWindow.Item aqLink = new QuickActionWindow.Item(PostsActivity.this, "", R.drawable.ic_menu_notifications, new QuickActionWindow.Item.Callback()
+		QuickActionWindow.Item aqLink = new QuickActionWindow.Item(PostsActivity.this, "", R.drawable.ic_menu_aq, new QuickActionWindow.Item.Callback()
 		{
 			private void showAlerts()
 			{
@@ -2141,7 +2059,7 @@ public class PostsActivity extends HFR4droidMultiListActivity<List<Post>>
 								public void onClick(DialogInterface dialog, int which) {}
 							})
 							.create();
-							
+
 							d.setOnShowListener(new DialogInterface.OnShowListener()
 							{
 							    public void onShow(DialogInterface dialog)
@@ -2152,7 +2070,7 @@ public class PostsActivity extends HFR4droidMultiListActivity<List<Post>>
 							            {
 											final String name = ((EditText) layout.findViewById(R.id.AQ_name)).getText().toString().trim();
 											final String comment =  ((EditText) layout.findViewById(R.id.AQ_comment)).getText().toString().trim();
-											if (selectedAlert.getAlertQualitayId() == -1 && name.isEmpty())
+											if (selectedAlert.getAlertQualitayId() == -1 && name.length() == 0)
 											{
 												Toast.makeText(PostsActivity.this, getString(R.string.aq_name_mandatory), Toast.LENGTH_SHORT).show();
 												return;
@@ -2171,7 +2089,7 @@ public class PostsActivity extends HFR4droidMultiListActivity<List<Post>>
 														selectedAlert.getAlertQualitayId() == -1 ? name : null,
 														p,
 														postLink,
-														!comment.isEmpty() ? comment : null);
+														comment.length() > 0 ? comment : null);
 												}
 
 												@Override
@@ -2195,57 +2113,120 @@ public class PostsActivity extends HFR4droidMultiListActivity<List<Post>>
 			
 			public void onClick(QuickActionWindow window, Item item, View anchor)
 			{
-				if (alertsQualitay == null)
+				getConfirmDialog(
+				PostsActivity.this,
+				getString(R.string.aq_new_title),
+				getString(R.string.aq_r_u_sure),
+				new DialogInterface.OnClickListener()
 				{
-					new ProgressDialogAsyncTask<Topic, Void, List<AlertQualitay>>(PostsActivity.this)
+					public void onClick(DialogInterface arg0, int arg1)
 					{
-						@Override
-						protected void onPreExecute() 
+						if (alertsQualitay == null)
 						{
-							super.onPreExecute();
-							progressDialog.setMessage(getString(R.string.aq_loading));
-							progressDialog.show();
+							new ProgressDialogAsyncTask<Topic, Void, List<AlertQualitay>>(PostsActivity.this)
+							{
+								@Override
+								protected void onPreExecute() 
+								{
+									super.onPreExecute();
+									progressDialog.setMessage(getString(R.string.aq_loading));
+									progressDialog.show();
+								}
+			
+								@Override
+								protected List<AlertQualitay> doInBackground(Topic... params)
+								{
+									setThreadId();
+									try
+									{
+										return getDataRetriever().getAlertsByTopic(params[0]);
+									}
+									catch (DataRetrieverException e)
+									{
+										error(e, true, true);
+										return null;
+									}
+								}
+			
+								@Override
+								protected void onPostExecute(List<AlertQualitay> alerts)
+								{
+									progressDialog.dismiss();
+									if (alerts != null)
+									{
+										alertsQualitay = new ArrayList<AlertQualitay>();
+										alertsQualitay.addAll(alerts);
+										showAlerts();
+									}
+								}
+							}.execute(topic);
 						}
-	
-						@Override
-						protected List<AlertQualitay> doInBackground(Topic... params)
+						else
 						{
-							setThreadId();
-							try
-							{
-								return getDataRetriever().getAlertsByTopic(params[0]);
-							}
-							catch (DataRetrieverException e)
-							{
-								error(e, true, true);
-								return null;
-							}
+							showAlerts();
 						}
-	
-						@Override
-						protected void onPostExecute(List<AlertQualitay> alerts)
-						{
-							progressDialog.dismiss();
-							if (alerts != null)
-							{
-								alertsQualitay = new ArrayList<AlertQualitay>();
-								alertsQualitay.addAll(alerts);
-								showAlerts();
-							}
-						}
-					}.execute(topic);
-				}
-				else
-				{
-					showAlerts();
-				}
+					}
+				}).show();
 			}
 		});					
-		if (isLoggedIn()) window.addItem(aqLink);
+		if (isLoggedIn() && Build.VERSION.SDK_INT >= 8 && !isMpsCat(topic.getCategory())) window.addItem(aqLink);
+		
+		QuickActionWindow.Item modoLink = new QuickActionWindow.Item(PostsActivity.this, "", R.drawable.ic_menu_modo, new QuickActionWindow.Item.Callback()
+		{
+			public void onClick(QuickActionWindow window, Item item, View anchor)
+			{
+				getConfirmDialog(
+				PostsActivity.this,
+				getString(R.string.warm_modo_title),
+				getString(R.string.modo_r_u_sure),
+				new DialogInterface.OnClickListener()
+				{
+					public void onClick(DialogInterface arg0, int arg1)
+					{
+						AlertDialog.Builder builder = new AlertDialog.Builder(PostsActivity.this);
+						builder.setTitle(R.string.warm_modo_title); 
+						final EditText reason = new EditText(PostsActivity.this);
+						reason.setHint(R.string.modo_reason_hint);
+						reason.setLayoutParams(new LayoutParams(LayoutParams.FILL_PARENT, LayoutParams.WRAP_CONTENT));
+						builder.setView(reason);
+
+						builder.setPositiveButton(getString(R.string.button_ok), new DialogInterface.OnClickListener()
+						{  
+							public void onClick(DialogInterface dialog, int whichButton)
+							{
+								final Post p = new Post(currentPostId);
+								p.setTopic(topic);
+								new MessageResponseAsyncTask(PostsActivity.this, getString(R.string.warm_modo_loading))
+								{						
+									@Override
+									protected HFRMessageResponse executeInBackground() throws HFR4droidException
+									{
+										return getMessageSender().warmModeration(p, reason.getText().toString(), getDataRetriever().getHashCheck());
+									}
+									
+									@Override
+									protected void onActionFinished(String message)
+									{
+										Toast.makeText(PostsActivity.this, message, Toast.LENGTH_SHORT).show();
+									}
+								}.execute();
+							}
+						});
+						builder.setNegativeButton(getString(R.string.button_cancel), new DialogInterface.OnClickListener()
+						{
+							public void onClick(DialogInterface dialog, int which){}
+						});
+
+						builder.create().show();
+					}
+				}).show();
+			}
+		});					
+		if (!isMpsCat(topic.getCategory())) window.addItem(modoLink);
 		
 		if (!isMine)
 		{
-			QuickActionWindow.Item sendMP = new QuickActionWindow.Item(PostsActivity.this, "", R.drawable.ic_menu_messages, new QuickActionWindow.Item.Callback()
+			QuickActionWindow.Item sendMP = new QuickActionWindow.Item(PostsActivity.this, "", R.drawable.ic_menu_message_to, new QuickActionWindow.Item.Callback()
 			{	
 				public void onClick(QuickActionWindow window, Item item, View anchor)
 				{
@@ -2511,46 +2492,37 @@ public class PostsActivity extends HFR4droidMultiListActivity<List<Post>>
 		NetworkInfo info = connectivityManager.getActiveNetworkInfo();
 		boolean isWifiEnable = info != null && (info.getType() == ConnectivityManager.TYPE_WIFI);
 		
-		setToggleFromPref("isAvatarsEnable", getAvatarsDisplayType(), isWifiEnable);
-		setToggleFromPref("isSmileysEnable", getSmileysDisplayType(), isWifiEnable);
-		setToggleFromPref("isImgsEnable", getImgsDisplayType(), isWifiEnable);
+		isAvatarsEnable = getToggleFromPref(getAvatarsDisplayType(), isWifiEnable);
+		isSmileysEnable = getToggleFromPref(getSmileysDisplayType(), isWifiEnable);
+		isImgsEnable = getToggleFromPref(getImgsDisplayType(), isWifiEnable);
 	}
 	
-	private void setToggleFromPref(String drawableToggle, DrawableDisplayType type, boolean isWifiEnable)
+	private boolean getToggleFromPref(DrawableDisplayType type, boolean isWifiEnable)
 	{
-		try
+		boolean drawMe;
+		switch (type)
 		{
-			boolean drawMe;
-			switch (type)
-			{
-				case NEVER_SHOW:
-					drawMe = false;
-					break;
-					
-				case SHOW_WHEN_WIFI:
-					drawMe = isWifiEnable;
-					break;
-					
-				default:
-					drawMe = true;
-					break;
-			}
-			PostsActivity.class.getDeclaredField(drawableToggle).setBoolean(this, drawMe);
+			case NEVER_SHOW:
+				drawMe = false;
+				break;
+				
+			case SHOW_WHEN_WIFI:
+				drawMe = isWifiEnable;
+				break;
+
+			default:
+				drawMe = true;
+				break;
 		}
-		catch (Exception e)
-		{
-			error(e);
-		}
+		return drawMe;
 	}
 	
 	@Override
 	protected void applyTheme(Theme theme)
 	{
 		LinearLayout postLayout = (LinearLayout) findViewById(R.id.PostsLayout);
-		FrameLayout root = (FrameLayout) postLayout.getParent();
-		root.setBackgroundColor(theme.getListBackgroundColor());
-
-		root.setBackgroundResource(getDrawableKey(currentTheme.getPostLoading()));
+		postLayout.setBackgroundColor(theme.getListBackgroundColor());
+		postLayout.setBackgroundResource(getDrawableKey(currentTheme.getPostLoading()));
 		
 		if (postDialog != null)
 		{
@@ -2558,6 +2530,28 @@ public class PostsActivity extends HFR4droidMultiListActivity<List<Post>>
 		}
 	}
 	
+	@Override
+	protected void customizeActionBar()
+	{
+		getSupportActionBar().setDisplayShowHomeEnabled(false);
+		getSupportActionBar().setDisplayShowCustomEnabled(true);
+		getSupportActionBar().setDisplayShowTitleEnabled(false);
+
+		LayoutInflater inflator = (LayoutInflater)this.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+		View v = inflator.inflate(R.layout.posts_title, null);
+		getSupportActionBar().setCustomView(v);
+		
+		final TextView topicTitle = (TextView) v.findViewById(R.id.TopicTitle);
+		topicTitle.setOnClickListener(new OnClickListener()
+		{	
+			public void onClick(View v)
+			{
+				 TextView topicTitle = (TextView) v;
+				 topicTitle.setEllipsize(topicTitle.getEllipsize() == TruncateAt.MARQUEE ? TruncateAt.END : TruncateAt.MARQUEE);
+			}
+		});
+	}
+
 	protected void toggleSearchPosts()
 	{
 		final LinearLayout searchPanel = (LinearLayout) findViewById(R.id.SearchPostsPanel);

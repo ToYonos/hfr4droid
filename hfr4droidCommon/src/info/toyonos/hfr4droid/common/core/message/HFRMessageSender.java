@@ -32,6 +32,7 @@ public class HFRMessageSender
 	private static final String UNFLAG_URI = "http://forum.hardware.fr/modo/manageaction.php?config=hfr.inc&cat={$cat}&type_page=forum1&moderation=0";
 	private static final String DELETE_MP_URI = "http://forum.hardware.fr/modo/manageaction.php?config=hfr.inc&cat={$cat}&type_page=forum1&moderation=0";
 	private static final String AQ_URI = "http://alerte-qualitay.toyonos.info/api/addAlerte.php5";
+	private static final String MODO_URI = "http://forum.hardware.fr/user/modo.php?config=hfr.inc&cat={$cat}&post={$topic}&numreponse={$post}";
 
 	/**
 	 * Les codes des réponses
@@ -87,6 +88,7 @@ public class HFRMessageSender
 		params.add(new BasicNameValuePair("content_form", message));
 		params.add(new BasicNameValuePair("sujet", t.getName()));
 		params.add(new BasicNameValuePair("signature", signature ? "1" : "0"));
+		params.add(new BasicNameValuePair("emaill", t.hasEmailNotification() ? "1" : "0"));
 
 		String response = null;
 		try
@@ -148,6 +150,7 @@ public class HFRMessageSender
 		params.add(new BasicNameValuePair("sujet", p.getTopic().getName()));
 		params.add(new BasicNameValuePair("signature", signature ? "1" : "0"));
 		params.add(new BasicNameValuePair("subcat", String.valueOf(p.getTopic().getSubCategory().getSubCatId())));
+		params.add(new BasicNameValuePair("emaill", p.getTopic().hasEmailNotification() ? "1" : "0"));
 
 		String response = null;
 		try
@@ -330,6 +333,37 @@ public class HFRMessageSender
 		return new HFRMessageResponse(
 			response.matches(".*Action effectuée avec succès.*"),
 			HFRDataRetriever.getSingleElement("<div\\s*class=\"hop\">\\s*(.*?)\\s*</div>", response));
+	}
+	
+	/**
+	 * Fait une alerte modo pour un post donné
+	 * @param p le post concerné
+	 * @return Si l'opération s'est bien passée et le message correspondant
+	 * @throws MessageSenderException Si un problème survient
+	 */
+	public HFRMessageResponse warmModeration(Post p, String reason, String hashCheck) throws MessageSenderException
+	{
+		String url = MODO_URI.replaceFirst("\\{\\$cat\\}", p.getTopic().getCategory().getRealId())
+		.replaceFirst("\\{\\$topic\\}", String.valueOf(p.getTopic().getId()))
+		.replaceFirst("\\{\\$post\\}", String.valueOf(p.getId()));
+		
+		List<NameValuePair> params = new ArrayList<NameValuePair>();
+		params.add(new BasicNameValuePair("raison", reason));
+		params.add(new BasicNameValuePair("hash_check", hashCheck));
+
+		String response = null;
+		try
+		{
+			response = client.doPost(url, auth.getCookies(), params);
+		}
+		catch (Exception e)
+		{
+			throw new MessageSenderException(context.getString(R.string.warm_modo_failed), e);
+		}
+
+		return new HFRMessageResponse(
+			!response.matches(".*Un mail a déjà été envoyé aux modérateurs.*"),
+			HFRDataRetriever.getSingleElement("<div\\s*class=\"hop\">\\s*(.*?)\\s*<br />", response));
 	}
 	
 	/**
