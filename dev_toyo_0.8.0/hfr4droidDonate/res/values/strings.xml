@@ -8,4 +8,5 @@
     <string name="unknowncommand">\'%s\' : commande introuvable</string>
     <string name="availablespace">Espace disponible sur le stockage externe : %1$s MB (%2$s%%)</string>
     <string name="happy_birthday">Hey, mais c\'est ton anniversaire ! Bon anniversaire à toi et fête bien tes %d bougies !</string>
+    <string name="custom_welcome_message_title" formatted="false">Personnaliser le titre (ton pseudo = %pseudo%)</string>
 </resources>

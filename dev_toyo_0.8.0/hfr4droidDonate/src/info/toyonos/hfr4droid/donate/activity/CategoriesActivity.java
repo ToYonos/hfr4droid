@@ -17,25 +17,32 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.DialogInterface.OnCancelListener;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.StatFs;
+import android.preference.PreferenceManager;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.View.OnKeyListener;
+import android.view.ViewGroup.LayoutParams;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.actionbarsherlock.view.Menu;
+import com.actionbarsherlock.view.MenuItem;
 
 public class CategoriesActivity extends	info.toyonos.hfr4droid.common.activity.CategoriesActivity
 {
+	private static final String PREF_WELCOME_MESSAGE	= "PrefWelcomeMessage";
+	private static final String PSEUDO_TOKEN			= "%pseudo%";
+	
 	private int[] sequence = new int[] {0, 0, 0, 0 ,0 ,0};
 	private AlertDialog promptDialog;
 	private int menuCount = 0;
@@ -110,7 +117,9 @@ public class CategoriesActivity extends	info.toyonos.hfr4droid.common.activity.C
 			}
 		})
 		.create();
-		
+
+		getSupportActionBar().setDisplayHomeAsUpEnabled(isLoggedIn());
+
 		if (isLoggedIn() && !getHFR4droidApplication().isBirthdayOk())
 		{
 			Profile profile = getHFR4droidApplication().getProfile(getHFR4droidApplication().getAuthentication().getUser());
@@ -164,11 +173,74 @@ public class CategoriesActivity extends	info.toyonos.hfr4droid.common.activity.C
 			}
 		}
 	}
+	
+	@Override
+	protected void setTitle()
+	{
+		if (isLoggedIn())
+		{
+			SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(this);
+			String title = settings.getString(PREF_WELCOME_MESSAGE, null);
+			getSupportActionBar().setTitle(
+				title == null ?
+					getString(R.string.welcome_message, getHFR4droidApplication().getAuthentication().getUser()) :
+					title.replace(PSEUDO_TOKEN, getHFR4droidApplication().getAuthentication().getUser()));
+		}
+		else
+		{
+			getSupportActionBar().setTitle(R.string.app_name);
+		}
+	}
+	
+	@Override
+	public boolean onOptionsItemSelected(MenuItem item)
+	{
+		if (item.getItemId() == android.R.id.home)
+		{
+			final SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(CategoriesActivity.this);
+			String title = settings.getString(PREF_WELCOME_MESSAGE, null);
+
+			AlertDialog.Builder builder = new AlertDialog.Builder(CategoriesActivity.this);
+			builder.setTitle(R.string.custom_welcome_message_title); 
+			final EditText titleET = new EditText(CategoriesActivity.this);
+			titleET.setText(title == null ? getString(R.string.welcome_message, "%pseudo%") : title);
+			titleET.selectAll();
+			titleET.setLayoutParams(new LayoutParams(LayoutParams.FILL_PARENT, LayoutParams.WRAP_CONTENT));
+			builder.setView(titleET);
+
+			builder.setPositiveButton(getString(R.string.button_ok), new DialogInterface.OnClickListener()
+			{  
+				public void onClick(DialogInterface dialog, int whichButton)
+				{
+					settings.edit().putString(PREF_WELCOME_MESSAGE, titleET.getText().toString()).commit();
+					setTitle();
+				}
+			});
+			builder.setNegativeButton(getString(R.string.button_cancel), new DialogInterface.OnClickListener()
+			{
+				public void onClick(DialogInterface dialog, int which){}
+			});
+
+			builder.create().show();
+			return true;
+		}
+		else
+		{
+			return super.onOptionsItemSelected(item);
+		}
+	}
 
 	@Override
 	public HFR4droidApplication getHFR4droidApplication()
 	{
 		return (HFR4droidApplication) getApplication();
+	}
+	
+	@Override
+	protected void reloadPage()
+	{
+		super.reloadPage();
+		getSupportActionBar().setDisplayHomeAsUpEnabled(isLoggedIn());
 	}
 
 	private void hideKeyboard(EditText prompt)
