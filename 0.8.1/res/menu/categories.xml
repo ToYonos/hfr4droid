@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+	<item
+		android:title="@string/menu_info"
+		android:id="@+id/MenuInfo"
+		android:showAsAction="ifRoom"
+		android:icon="@drawable/ic_menu_info_details" />
+	<item
+		android:title="@string/menu_quit"
+		android:id="@+id/MenuQuit"
+		android:showAsAction="never"
+		android:orderInCategory="99"
+		android:icon="@drawable/ic_menu_close_clear_cancel" />
+</menu>
