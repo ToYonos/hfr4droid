@@ -336,6 +336,7 @@ public abstract class NewPostUIHelper
 			final String right = context.getString("button_post_" + key.toLowerCase() + "_right");
 			setTextSize(20);
 			setLines(1);
+			setTextColor(getResources().getColor(android.R.color.black));
 			setLayoutParams(new LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT));
 			setText(left);
 

@@ -637,7 +637,8 @@ public class HFRDataRetriever implements MDDataRetriever
 		// On vérifie si la notification par email est activé
 		if (!useFakeAccount && topic.getStatus() != TopicStatus.LOCKED && !topic.getCategory().equals(Category.MPS_CAT))
 		{
-			topic.setEmailNotification(getSingleElement("<input\\s*type=\"hidden\"\\s*name=\"emaill\"\\s*value=\"([0-9]+)\"\\s*/>", content).equals("1"));
+			String notif = getSingleElement("<input\\s*type=\"hidden\"\\s*name=\"emaill\"\\s*value=\"([0-9]+)\"\\s*/>", content);
+			if (notif != null) topic.setEmailNotification(notif.equals("1"));
 		}
 		
 		// Pour HFRUrlParser, récupération d'informations complémentaires

@@ -22,6 +22,7 @@
 				android:layout_height="wrap_content"
 				android:hint="@string/mp_to_hint"
 				android:lines="1"
+				android:textColor="@android:color/black"
 				android:inputType="text"
 				android:textSize="18dip" />
 		</LinearLayout>
@@ -34,6 +35,7 @@
 				android:id="@+id/inputTopicSubject"
 				android:layout_width="fill_parent"
 				android:layout_height="wrap_content"
+				android:textColor="@android:color/black"
 				android:hint="@string/topic_subject_hint"
 				android:lines="1"
 				android:inputType="text"

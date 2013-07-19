@@ -17,9 +17,7 @@ import android.os.Bundle;
 import android.view.KeyEvent;
 import android.view.View;
 import android.widget.EditText;
-import android.widget.ImageView;
 import android.widget.LinearLayout;
-import android.widget.SlidingDrawer;
 import android.widget.TextView;
 
 import com.actionbarsherlock.view.Menu;
@@ -141,6 +139,10 @@ public class PostsSearchActivity extends PostsActivity
 		MenuItem refresh = menu.findItem(R.id.MenuRefresh);
 		refresh.setVisible(false);
 		refresh.setEnabled(false);
+
+		MenuItem menuSearch = menu.findItem(R.id.MenuSearchPost);
+		menuSearch.setVisible(false);
+		menuSearch.setEnabled(false);
 
 		return true;
 	}
