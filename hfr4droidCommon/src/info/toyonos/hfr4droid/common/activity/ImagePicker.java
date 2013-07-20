@@ -290,7 +290,6 @@ public class ImagePicker extends Activity implements Runnable{
 			{
 				runOnUiThread(new Runnable()
 				{
-					@Override
 					public void run()
 					{
 						Toast.makeText(getApplicationContext(), getString(R.string.error_hfr_rehost, e.getMessage()) , Toast.LENGTH_LONG).show();	

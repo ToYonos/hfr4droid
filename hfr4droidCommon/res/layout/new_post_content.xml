@@ -35,7 +35,6 @@
 	        	android:hint="@string/smiley_tag_hint"
 	        	android:lines="1"
 	        	android:inputType="text"
-	        	android:textColor="@android:color/black"
 	        	android:textSize="14dip" />
 			<Button
 				android:id="@+id/ButtonWikiSmilies"
@@ -43,7 +42,6 @@
 				android:layout_height="wrap_content"
 				android:padding="3dip"
 				android:textSize="14dip"
-				android:textColor="@android:color/black"
 				android:text="@string/button_ok" />            
 	    </TableRow>	
 	    <TableRow>
@@ -62,9 +60,9 @@
 			        	android:id="@+id/InputPostContent"
 			        	android:inputType="textMultiLine|textCapSentences"
 			        	android:textSize="14dip"
-			        	android:textColor="@android:color/black"
 			        	android:gravity="top"
 			        	android:minLines="10"
+			        	android:textCursorDrawable="@null"
 			            android:paddingLeft="10dip"
 			            android:paddingRight="10dip"
 			            android:paddingTop="10dip"
@@ -75,7 +73,6 @@
 	    				android:layout_margin="8dip"
 						android:layout_width="wrap_content"
 	    				android:layout_height="45dip"
-	    				android:textColor="@android:color/black"
 	    				android:text="@string/button_validate_post" />
 		    	</FrameLayout>
 			</ScrollView>

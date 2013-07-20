@@ -2,6 +2,7 @@ package info.toyonos.hfr4droid.common.activity;
 
 import info.toyonos.hfr4droid.common.R;
 import info.toyonos.hfr4droid.common.core.bean.Category;
+import info.toyonos.hfr4droid.common.core.bean.Theme;
 import info.toyonos.hfr4droid.common.core.bean.Topic.TopicType;
 import info.toyonos.hfr4droid.common.core.data.DataRetrieverException;
 import info.toyonos.hfr4droid.common.core.message.HFRMessageSender.ResponseCode;
@@ -16,6 +17,7 @@ import android.view.View.OnClickListener;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -38,7 +40,6 @@ public class NewTopicActivity extends NewPostGenericActivity
 		LayoutInflater inflater = (LayoutInflater) getApplicationContext().getSystemService(LAYOUT_INFLATER_SERVICE);
 		ViewGroup layout = (ViewGroup) inflater.inflate(R.layout.new_topic, null);
 		setContentView(layout);
-		applyTheme(currentTheme);
 		
 		Intent intent = getIntent();
 		Bundle bundle = intent.getExtras();
@@ -82,6 +83,7 @@ public class NewTopicActivity extends NewPostGenericActivity
 		}
 
 		uiHelper.addPostButtons(this, layout);
+		applyTheme(currentTheme);
 		((EditText) layout.findViewById(R.id.InputPostContent)).setTextSize(getTextSize(14));
 		((EditText) layout.findViewById(R.id.InputSmileyTag)).setTextSize(getTextSize(14));
 		((EditText) layout.findViewById(R.id.inputMpTo)).setTextSize(getTextSize(14));
@@ -177,5 +179,17 @@ public class NewTopicActivity extends NewPostGenericActivity
 				}.execute();
 			}
 		});
+	}
+	
+	@Override
+	protected void applyTheme(Theme theme)
+	{
+		super.applyTheme(theme);
+		
+		EditText inputMpTo = (EditText) findViewById(R.id.inputMpTo);
+		inputMpTo.setTextColor(theme.getPostTextColor());
+		
+		EditText inputTopicSubject = (EditText) findViewById(R.id.inputTopicSubject);
+		inputTopicSubject.setTextColor(theme.getPostTextColor());
 	}
 }

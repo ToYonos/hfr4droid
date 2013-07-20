@@ -598,9 +598,7 @@ public class PostsActivity extends HFR4droidMultiListActivity<List<Post>>
 
 		MenuItem addPost = menu.findItem(R.id.MenuAddPost);
 		addPost.setVisible(isLoggedIn() && topic.getStatus() != TopicStatus.LOCKED);
-		boolean lockAddPost = false;
-		for(String q : quotes.values()) if (lockAddPost = POST_LOADING.equals(q)) break;
-		addPost.setEnabled(!lockAddPost && isLoggedIn() && topic.getStatus() != TopicStatus.LOCKED);
+		addPost.setEnabled(isLoggedIn() && topic.getStatus() != TopicStatus.LOCKED);
 		return true;
 	}
 
@@ -615,6 +613,14 @@ public class PostsActivity extends HFR4droidMultiListActivity<List<Post>>
 				String postContent = null;
 				if (!quotes.isEmpty())
 				{
+					boolean lockAddPost = false;
+					for(String q : quotes.values()) if (lockAddPost = POST_LOADING.equals(q)) break;
+					if (lockAddPost)
+					{
+						Toast.makeText(this, R.string.multiquote_loading, Toast.LENGTH_SHORT).show();
+						return true;
+					}
+
 					StringBuffer data = new StringBuffer("");
 					for (Long postId : new TreeSet<Long>(quotes.keySet())) data.append(quotes.get(postId) + "\n");
 					postContent = data.substring(0, data.length() - 1);
@@ -2300,8 +2306,8 @@ public class PostsActivity extends HFR4droidMultiListActivity<List<Post>>
 			LayoutInflater inflater = (LayoutInflater) getApplicationContext().getSystemService(LAYOUT_INFLATER_SERVICE);
 			final ViewGroup layout = (ViewGroup) inflater.inflate(R.layout.new_post_content, null);
 			postDialog.setContentView(layout);
-			uiHelper.applyTheme(currentTheme, (ViewGroup) postDialog.findViewById(R.id.PostContainer).getParent());
 			uiHelper.addPostButtons(this, layout);
+			uiHelper.applyTheme(currentTheme, (ViewGroup) postDialog.findViewById(R.id.PostContainer).getParent());
 			((EditText) postDialog.findViewById(R.id.InputPostContent)).setTextSize(getTextSize(14));
 			((EditText) postDialog.findViewById(R.id.InputSmileyTag)).setTextSize(getTextSize(14));
 
@@ -2528,6 +2534,15 @@ public class PostsActivity extends HFR4droidMultiListActivity<List<Post>>
 		{
 			uiHelper.applyTheme(theme, (ViewGroup) postDialog.findViewById(R.id.PostContainer).getParent());
 		}
+		
+		EditText searchPostsWord = (EditText) findViewById(R.id.SearchPostsWord);
+		searchPostsWord.setTextColor(theme.getPostTextColor());
+		
+		EditText searchPostsPseudo = (EditText) findViewById(R.id.SearchPostsPseudo);
+		searchPostsPseudo.setTextColor(theme.getPostTextColor());
+		
+		Button buttonSearchPosts = (Button) findViewById(R.id.ButtonSearchPosts);
+		buttonSearchPosts.setTextColor(theme.getPostTextColor());
 	}
 	
 	@Override

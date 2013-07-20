@@ -27,7 +27,6 @@
 			android:layout_weight="1"
 			android:hint="@string/search_posts_word_hint"
 			android:lines="1"
-			android:textColor="@android:color/black"
 			android:inputType="text"
 			android:textSize="14dip" />
 		<EditText
@@ -37,7 +36,6 @@
 			android:layout_weight="1"
 			android:hint="@string/search_posts_pseudo_hint"
 			android:lines="1"
-			android:textColor="@android:color/black"
 			android:inputType="text"
 			android:textSize="14dip" />
 		<Button
@@ -46,7 +44,6 @@
 			android:layout_height="wrap_content"
 			android:padding="3dip"
 			android:textSize="14dip"
-			android:textColor="@android:color/black"
 			android:text="@string/button_ok" />  
    	</LinearLayout>
    	<ProgressBar

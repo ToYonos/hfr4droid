@@ -56,6 +56,7 @@
     <string name="getting_smilies">Récupération des smileys correspondants…</string>
     <string name="smilies_loading">Chargement des smileys…</string>
     <string name="quote_loading">Citation du message…</string>
+    <string name="multiquote_loading">La quote est en cours de chargement, veuillez patienter…</string>
     <string name="edit_loading">Edition du message…</string>
     <string name="delete_loading">Supression du message…</string>
     <string name="delete_failed">Impossible de supprimer ce message !</string>

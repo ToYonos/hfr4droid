@@ -94,7 +94,6 @@ public abstract class NewPostUIHelper
 		hfrRehost.setTextSize(20);
 		hfrRehost.setLines(1);
 		hfrRehost.setLayoutParams(new LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT));
-		hfrRehost.setText(Html.fromHtml("<font color=\"#477DBF\">" + context.getString(R.string.button_post_hfr_rehost_left) + "</font><font color=\"black\">" + context.getString(R.string.button_post_hfr_rehost_right) + "</font>"));
 
 		hfrRehost.setOnClickListener(new OnClickListener()
 		{
@@ -217,7 +216,7 @@ public abstract class NewPostUIHelper
 							}
 						});
 
-						webView.loadData("<html><head><meta http-equiv=\"Content-Type\" content=\"text/html; charset=UTF-8\" />" + fixHTML(js.toString()) + fixHTML(css.toString()) + "</head><body>" + fixHTML(smiliesData.toString()) + "</body></html>", "text/html", "UTF-8");
+						webView.loadDataWithBaseURL("", "<html><head><meta http-equiv=\"Content-Type\" content=\"text/html; charset=UTF-8\" />" + fixHTML(js.toString()) + fixHTML(css.toString()) + "</head><body>" + fixHTML(smiliesData.toString()) + "</body></html>", "text/html", "UTF-8", null);
 						return webView;
 					}
 					
@@ -318,6 +317,32 @@ public abstract class NewPostUIHelper
 		
 		TextView labelSmileyTag = (TextView) rootLayout.findViewById(R.id.LabelSmileyTag);
 		labelSmileyTag.setTextColor(theme.getPostTextColor());
+		
+		EditText inputSmileyTag = (EditText) rootLayout.findViewById(R.id.InputSmileyTag);
+		inputSmileyTag.setTextColor(theme.getPostTextColor());
+
+		Button buttonWikiSmilies = (Button) rootLayout.findViewById(R.id.ButtonWikiSmilies);
+		buttonWikiSmilies.setTextColor(theme.getPostTextColor());
+		
+		EditText inputPostContent = (EditText) rootLayout.findViewById(R.id.InputPostContent);
+		inputPostContent.setTextColor(theme.getPostTextColor());
+		
+		Button buttonOkAddPost = (Button) rootLayout.findViewById(R.id.ButtonOkAddPost);
+		buttonOkAddPost.setTextColor(theme.getPostTextColor());
+		
+		LinearLayout ll = (LinearLayout) rootLayout.findViewById(R.id.FormatButtons);
+		for (int i = 0; i < ll.getChildCount(); i++)
+		{
+			View v = ll.getChildAt(i);
+			if (v instanceof FormatButton)
+			{
+				((FormatButton) v).setTextColor(theme.getPostTextColor());
+			}
+			else if (v instanceof Button) // Hfrrehost
+			{
+				((Button) v).setText(Html.fromHtml("<font color=\"#477DBF\">" + rootLayout.getContext().getString(R.string.button_post_hfr_rehost_left) + "</font><font color=\"" + theme.getPostTextColorAsString() + "\">" + rootLayout.getContext().getString(R.string.button_post_hfr_rehost_right) + "</font>"));
+			}
+		}
 	}
 
 	/* Classes internes */
@@ -336,7 +361,6 @@ public abstract class NewPostUIHelper
 			final String right = context.getString("button_post_" + key.toLowerCase() + "_right");
 			setTextSize(20);
 			setLines(1);
-			setTextColor(getResources().getColor(android.R.color.black));
 			setLayoutParams(new LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT));
 			setText(left);
 

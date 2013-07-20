@@ -40,7 +40,6 @@ public class NewPostActivity extends NewPostGenericActivity
 		LayoutInflater inflater = (LayoutInflater) getApplicationContext().getSystemService(LAYOUT_INFLATER_SERVICE);
 		ViewGroup layout = (ViewGroup) inflater.inflate(R.layout.new_post, null);
 		setContentView(layout);
-		applyTheme(currentTheme);
 		
 		Intent intent = getIntent();
 		Bundle bundle = intent.getExtras();
@@ -64,6 +63,7 @@ public class NewPostActivity extends NewPostGenericActivity
 		}
 
 		uiHelper.addPostButtons(this, layout);
+		applyTheme(currentTheme);
 		((EditText) layout.findViewById(R.id.InputPostContent)).setTextSize(getTextSize(14));
 		((EditText) layout.findViewById(R.id.InputSmileyTag)).setTextSize(getTextSize(14));
 	}
