@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">	
+	<item
+		android:title="@string/menu_refresh"
+		android:id="@+id/MenuRefresh"
+		android:showAsAction="ifRoom"
+		android:icon="@drawable/ic_menu_refresh" />
+	<item
+		android:title="@string/menu_back"
+		android:id="@+id/MenuBack"
+		android:orderInCategory="7" android:icon="@drawable/ic_menu_back"/>
+</menu>
