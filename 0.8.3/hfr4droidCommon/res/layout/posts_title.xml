@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+   	android:orientation="vertical"
+   	android:gravity="center_vertical"
+   	android:layout_width="fill_parent"
+   	android:paddingLeft="5dip">
+   	<TextView
+    	android:id="@+id/TopicTitle"
+    	android:textSize="15dip"
+	   	android:lines="1"
+	   	android:layout_gravity="left"
+		android:ellipsize="end"
+		android:marqueeRepeatLimit="marquee_forever"
+		android:scrollHorizontally="true"
+    	android:textStyle="bold"
+    	android:textColor="#1A3A60"
+    	android:layout_width="wrap_content" 
+    	android:layout_height="wrap_content" />
+   	<TextView
+    	android:id="@+id/TopicPageNumber"
+    	android:textSize="11dip"
+	   	android:lines="1"
+	   	android:layout_gravity="left"
+    	android:textStyle="italic"
+    	android:textColor="#1A3A60"
+    	android:layout_width="wrap_content"
+    	android:layout_height="wrap_content" />
+</LinearLayout>

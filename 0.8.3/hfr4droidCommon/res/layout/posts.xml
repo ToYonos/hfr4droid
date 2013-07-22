@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+	xmlns:android="http://schemas.android.com/apk/res/android"
+   	android:id="@+id/PostsLayout"
+   	android:orientation="vertical"
+   	android:gravity="center"
+   	android:layout_width="fill_parent"
+   	android:layout_height="fill_parent">
+   	<View
+   	    android:id="@+id/Anchor"
+   	    android:visibility="gone"
+   	    android:layout_width="wrap_content"
+   		android:layout_height="wrap_content" />
+	<LinearLayout
+	    android:id="@+id/SearchPostsPanel"
+   		android:orientation="horizontal"
+   		android:layout_width="fill_parent"
+   		android:layout_height="wrap_content"
+   		android:padding="3dip"
+   		android:gravity="center_vertical"
+   		android:visibility="gone">	
+		<EditText
+			android:id="@+id/SearchPostsWord"
+			android:layout_width="fill_parent"
+			android:layout_height="wrap_content"
+			android:layout_weight="1"
+			android:hint="@string/search_posts_word_hint"
+			android:lines="1"
+			android:inputType="text"
+			android:textSize="14dip" />
+		<EditText
+			android:id="@+id/SearchPostsPseudo"
+			android:layout_width="fill_parent"
+			android:layout_height="wrap_content"
+			android:layout_weight="1"
+			android:hint="@string/search_posts_pseudo_hint"
+			android:lines="1"
+			android:inputType="text"
+			android:textSize="14dip" />
+		<Button
+			android:id="@+id/ButtonSearchPosts"
+		 	android:layout_width="50dip"
+			android:layout_height="wrap_content"
+			android:padding="3dip"
+			android:textSize="14dip"
+			android:text="@string/button_ok" />  
+   	</LinearLayout>
+   	<ProgressBar
+  		android:id="@+id/PostsProgressBar"
+  		android:max="100"
+  		android:indeterminateOnly="false"
+  		style="@android:style/Widget.ProgressBar.Horizontal"
+  		android:visibility="gone"
+  		android:layout_width="fill_parent"
+  		android:layout_height="10dip" />
+	<info.toyonos.hfr4droid.common.util.view.DragableSpace
+		android:id="@+id/Space"
+		android:layout_width="fill_parent"
+		android:layout_height="fill_parent"
+		app:default_screen="0" />
+</LinearLayout>
