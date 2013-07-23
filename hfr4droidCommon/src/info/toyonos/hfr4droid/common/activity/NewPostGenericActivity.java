@@ -111,7 +111,7 @@ public abstract class NewPostGenericActivity extends HFR4droidActivity
 	
 	private NewPostUIHelper getNewPostUIHelper()
 	{
-		return new NewPostUIHelper()
+		return new NewPostUIHelper(this)
 		{
 			@Override
 			protected void showWikiSmiliesResults(ViewGroup layout)

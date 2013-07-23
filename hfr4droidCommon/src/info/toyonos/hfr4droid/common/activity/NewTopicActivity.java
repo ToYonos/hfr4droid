@@ -188,8 +188,10 @@ public class NewTopicActivity extends NewPostGenericActivity
 		
 		EditText inputMpTo = (EditText) findViewById(R.id.inputMpTo);
 		inputMpTo.setTextColor(theme.getPostTextColor());
-		
+		inputMpTo.setBackgroundResource(getKeyByTheme(theme.getKey(), R.drawable.class, "input_background"));
+
 		EditText inputTopicSubject = (EditText) findViewById(R.id.inputTopicSubject);
 		inputTopicSubject.setTextColor(theme.getPostTextColor());
+		inputTopicSubject.setBackgroundResource(getKeyByTheme(theme.getKey(), R.drawable.class, "input_background"));
 	}
 }

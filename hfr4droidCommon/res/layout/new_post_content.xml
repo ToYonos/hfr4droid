@@ -25,6 +25,7 @@
 		</TableRow>
 	    <TableRow
 	    	android:id="@+id/SmileySearch"
+	    	android:gravity="center_vertical"
 	    	android:visibility="gone">
 	        <TextView
 	        	android:id="@+id/LabelSmileyTag"

@@ -48,6 +48,13 @@ public abstract class NewPostUIHelper
 
 	public static final long BOTTOM_PAGE_ID		= 999999999999999L;
 	
+	private HFR4droidActivity context;
+	
+	public NewPostUIHelper(HFR4droidActivity context)
+	{
+		this.context = context;
+	}
+
 	public void onActivityResult(int requestCode, int resultCode, Intent data)
 	{
 		if (requestCode == ImagePicker.CHOOSE_PICTURE && data != null)
@@ -93,6 +100,7 @@ public abstract class NewPostUIHelper
 		Button hfrRehost = new Button(context);
 		hfrRehost.setTextSize(20);
 		hfrRehost.setLines(1);
+		hfrRehost.getBackground().setAlpha(175);
 		hfrRehost.setLayoutParams(new LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT));
 
 		hfrRehost.setOnClickListener(new OnClickListener()
@@ -113,6 +121,7 @@ public abstract class NewPostUIHelper
 		ImageButton smiley = new ImageButton(context);
 		smiley.setLayoutParams(new LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.FILL_PARENT));
 		smiley.setImageResource(R.drawable.redface);
+		smiley.getBackground().setAlpha(175);
 		smiley.setOnClickListener(new OnClickListener()
 		{
 			public void onClick(View v)
@@ -320,15 +329,19 @@ public abstract class NewPostUIHelper
 		
 		EditText inputSmileyTag = (EditText) rootLayout.findViewById(R.id.InputSmileyTag);
 		inputSmileyTag.setTextColor(theme.getPostTextColor());
+		inputSmileyTag.setBackgroundResource(context.getKeyByTheme(theme.getKey(), R.drawable.class, "input_background"));
 
 		Button buttonWikiSmilies = (Button) rootLayout.findViewById(R.id.ButtonWikiSmilies);
 		buttonWikiSmilies.setTextColor(theme.getPostTextColor());
+		buttonWikiSmilies.getBackground().setAlpha(175);
 		
 		EditText inputPostContent = (EditText) rootLayout.findViewById(R.id.InputPostContent);
 		inputPostContent.setTextColor(theme.getPostTextColor());
+		inputPostContent.setBackgroundResource(context.getKeyByTheme(theme.getKey(), R.drawable.class, "input_background"));
 		
 		Button buttonOkAddPost = (Button) rootLayout.findViewById(R.id.ButtonOkAddPost);
 		buttonOkAddPost.setTextColor(theme.getPostTextColor());
+		buttonOkAddPost.getBackground().setAlpha(175);
 		
 		LinearLayout ll = (LinearLayout) rootLayout.findViewById(R.id.FormatButtons);
 		for (int i = 0; i < ll.getChildCount(); i++)
@@ -360,6 +373,7 @@ public abstract class NewPostUIHelper
 			final String left = context.getString("button_post_" + key.toLowerCase() + "_left");
 			final String right = context.getString("button_post_" + key.toLowerCase() + "_right");
 			setTextSize(20);
+			getBackground().setAlpha(175);
 			setLines(1);
 			setLayoutParams(new LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT));
 			setText(left);

@@ -383,7 +383,7 @@ public abstract class HFR4droidActivity extends SherlockActivity
 	}
 	
 	@SuppressWarnings("rawtypes")
-	protected int getKeyByTheme(String themeKey, Class type, String key)
+	public int getKeyByTheme(String themeKey, Class type, String key)
 	{
 		try
 		{

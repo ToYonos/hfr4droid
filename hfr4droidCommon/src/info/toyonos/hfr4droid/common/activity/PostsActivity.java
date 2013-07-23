@@ -2361,7 +2361,7 @@ public class PostsActivity extends HFR4droidMultiListActivity<List<Post>>
 	
 	private NewPostUIHelper getNewPostUIHelper()
 	{
-		return new NewPostUIHelper()
+		return new NewPostUIHelper(this)
 		{
 			@Override
 			protected void showWikiSmiliesResults(ViewGroup layout)
@@ -2537,12 +2537,15 @@ public class PostsActivity extends HFR4droidMultiListActivity<List<Post>>
 		
 		EditText searchPostsWord = (EditText) findViewById(R.id.SearchPostsWord);
 		searchPostsWord.setTextColor(theme.getPostTextColor());
+		searchPostsWord.setBackgroundResource(getKeyByTheme(theme.getKey(), R.drawable.class, "input_background"));
 		
 		EditText searchPostsPseudo = (EditText) findViewById(R.id.SearchPostsPseudo);
 		searchPostsPseudo.setTextColor(theme.getPostTextColor());
+		searchPostsPseudo.setBackgroundResource(getKeyByTheme(theme.getKey(), R.drawable.class, "input_background"));
 		
 		Button buttonSearchPosts = (Button) findViewById(R.id.ButtonSearchPosts);
 		buttonSearchPosts.setTextColor(theme.getPostTextColor());
+		buttonSearchPosts.getBackground().setAlpha(175);
 	}
 	
 	@Override
