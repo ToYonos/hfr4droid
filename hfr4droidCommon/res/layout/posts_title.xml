@@ -7,7 +7,7 @@
    	<TextView
     	android:id="@+id/TopicTitle"
     	android:textSize="15dip"
-	   	android:lines="1"
+	   	android:singleLine="true"
 	   	android:layout_gravity="left"
 		android:ellipsize="end"
 		android:marqueeRepeatLimit="marquee_forever"
