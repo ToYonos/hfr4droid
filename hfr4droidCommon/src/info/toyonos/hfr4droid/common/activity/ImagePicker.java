@@ -60,7 +60,7 @@ public class ImagePicker extends Activity implements Runnable{
 	public static final String ACTION_HFRUPLOADER_MP = "ACTION_HFRUPLOADER_MP";
 	
 	public static final String FINAL_URL = "finalUrl";
-	private static final String UPLOAD_URL = "http://hfr-rehost.net/upload";
+	private static final String UPLOAD_URL = "http://reho.st/upload";
 	
 	// Pour le thread : en entrée :
 	String fichierLocal = null;
@@ -346,7 +346,7 @@ public class ImagePicker extends Activity implements Runnable{
 	 * @return
 	 */
 	private String getUrl(String line) {
-		Pattern p = Pattern.compile("<code>\\[img\\]http://hfr-rehost.net/preview/self/.*</code>");
+		Pattern p = Pattern.compile("<code>\\[img\\]http://reho.st/preview/self/.*</code>");
 		Matcher m = p.matcher(line);
 		String match = null;
 		if(m.matches()) {

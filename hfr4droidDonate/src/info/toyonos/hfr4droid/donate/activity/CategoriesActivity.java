@@ -144,9 +144,12 @@ public class CategoriesActivity extends	info.toyonos.hfr4droid.common.activity.C
 					
 					@Override
 					protected void onPostExecute(final Profile profile)
-					{	
-						getHFR4droidApplication().setProfile(profile.getPseudo(), profile);
-						showBirthdayMessage(profile);
+					{
+						if (profile != null)
+						{
+							getHFR4droidApplication().setProfile(profile.getPseudo(), profile);
+							showBirthdayMessage(profile);
+						}
 					}
 				}.execute(getHFR4droidApplication().getAuthentication().getUser());
 			}

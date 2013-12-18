@@ -534,7 +534,7 @@ public class TopicsActivity extends HFR4droidMultiListActivity<ArrayAdapter<Topi
 			}
 			else if (item.getItemId() == R.id.MenuNavSubCats)
 			{
-				openContextMenu(findViewById(R.id.CatTitle));
+				openContextMenu(getSupportActionBar().getCustomView().findViewById(R.id.CatTitle));
 				return true;
 			}
 			else
