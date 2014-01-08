@@ -1,12 +1,10 @@
 package info.toyonos.hfr4droid.common.activity;
 
-import info.toyonos.hfr4droid.common.HFR4droidApplication;
 import info.toyonos.hfr4droid.common.R;
 import info.toyonos.hfr4droid.common.util.asynctask.PreLoadingAsyncTask;
 import info.toyonos.hfr4droid.common.util.view.DragableSpace;
 import android.os.AsyncTask.Status;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.View;
 import android.widget.Toast;
 
@@ -165,11 +163,9 @@ public abstract class HFR4droidMultiListActivity<DS> extends HFR4droidActivity
 	{
 		if (views != null && views.length > index)
 		{
-			Log.i(HFR4droidApplication.TAG, "--- remove view begin");
 			destroyView(views[index]);
 			views[index] = null;
 			space.removeViewAt(index);
-			Log.i(HFR4droidApplication.TAG, "--- remove view end");
 		}
 	}
 	

@@ -387,20 +387,27 @@ public class PostsActivity extends HFR4droidMultiListActivity<List<Post>>
 							{
 								public void run()
 								{
-									Log.i(HFR4droidApplication.TAG, "TTTTTTTTTTTTTTTTTTTEEEEEEEEEEEEEST");
 									removeView(newIndex);
-									Log.i(HFR4droidApplication.TAG, "TTTTTTTTTTTTTTTTTTTEEEEEEEEEEEEEST remove 1");
 									restoreView(newIndex);
-									Log.i(HFR4droidApplication.TAG, "TTTTTTTTTTTTTTTTTTTEEEEEEEEEEEEEST add 1");
-									
-									removeView(oldIndex);
-									Log.i(HFR4droidApplication.TAG, "TTTTTTTTTTTTTTTTTTTEEEEEEEEEEEEEST remove 2");
-									restoreView(oldIndex);
-									Log.i(HFR4droidApplication.TAG, "TTTTTTTTTTTTTTTTTTTEEEEEEEEEEEEEST add2");
 								}
 							});
 						}
 					}, 500);
+					
+					new Timer().schedule(new TimerTask()
+					{
+						public void run()
+						{
+							runOnUiThread(new Runnable()
+							{
+								public void run()
+								{									
+									removeView(oldIndex);
+									restoreView(oldIndex);
+								}
+							});
+						}
+					}, 1000);
 				}
 
 				supportInvalidateOptionsMenu();
@@ -2799,13 +2806,9 @@ public class PostsActivity extends HFR4droidMultiListActivity<List<Post>>
 	{
 		if (getDatasource(index) != null)
 		{
-			Log.i(HFR4droidApplication.TAG, "--- restore view begin");
 			View v = index == getCurrentIndex() ? displayPosts(getDatasource(index), true) : buildView(getDatasource(index));
-			Log.i(HFR4droidApplication.TAG, v.getClass().getName());
-			Log.i(HFR4droidApplication.TAG, v.getVisibility() == View.VISIBLE ? "visible" : "not visible");
 			setView(index, v);
 			space.addView(v, index);
-			Log.i(HFR4droidApplication.TAG, "--- restore view end");
 		}
 	}
 	
