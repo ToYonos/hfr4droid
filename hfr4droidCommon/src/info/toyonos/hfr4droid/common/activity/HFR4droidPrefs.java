@@ -42,6 +42,7 @@ public class HFR4droidPrefs extends PreferenceActivity
 			public boolean onPreferenceChange(Preference preference, Object newValue)
 			{ 
 				preferenceScreen.findPreference(HFR4droidApplication.PREF_NOTIFICATION_TYPE).setEnabled((Boolean) newValue);
+				
 				return true;
 			}
 		});
