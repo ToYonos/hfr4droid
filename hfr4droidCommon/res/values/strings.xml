@@ -2,7 +2,7 @@
 <resources>
     <string name="app_name">HFR4droid</string>
     <string name="splash_title">Version %s - Copyleft ToYonos</string>
-    <string name="upload_hfr_rehost">Upload sur hfr-rehost.net</string>
+    <string name="upload_hfr_rehost">Upload sur hfrRehost</string>
 	
 	<string name="nav_go_to">Aller à...</string>
 	<string name="topic_nav_last_read_page">Aller à la dernière page lue</string>

@@ -389,25 +389,24 @@ public class PostsActivity extends HFR4droidMultiListActivity<List<Post>>
 								{
 									removeView(newIndex);
 									restoreView(newIndex);
+									new Timer().schedule(new TimerTask()
+									{
+										public void run()
+										{
+											runOnUiThread(new Runnable()
+											{
+												public void run()
+												{									
+													removeView(oldIndex);
+													restoreView(oldIndex);
+												}
+											});
+										}
+									}, 500);
 								}
 							});
 						}
 					}, 500);
-					
-					new Timer().schedule(new TimerTask()
-					{
-						public void run()
-						{
-							runOnUiThread(new Runnable()
-							{
-								public void run()
-								{									
-									removeView(oldIndex);
-									restoreView(oldIndex);
-								}
-							});
-						}
-					}, 1000);
 				}
 
 				supportInvalidateOptionsMenu();
@@ -814,16 +813,49 @@ public class PostsActivity extends HFR4droidMultiListActivity<List<Post>>
 	{
 		return displayPosts(posts, false);
 	}
-
+	
+	public interface OnScrollStoppedListener{
+	    void onScrollStopped();
+	}
+	
 	protected WebView displayPosts(List<Post> posts, final boolean preloading)
-	{
+	{		
 		final WebView webView = new NonLeakingWebView(this)
         {
 			//private boolean actionBarVisible = true;
 			
+			private int initialPosition;
+			private Runnable scrollerTask = new Runnable()
+			{
+		        public void run()
+		        {
+		            int newPosition = getScrollY();
+		            if(initialPosition - newPosition == 0)//has stopped
+		            {
+		            	loadUrl("javascript:scrollFct()"); 
+		            }
+		            else
+		            {
+		                initialPosition = getScrollY();
+		                postDelayed(scrollerTask, 100);
+		            }
+		        }
+			};
+
+			public void startScrollerTask()
+			{
+			    initialPosition = getScrollY();
+			    postDelayed(scrollerTask, 100);
+			}
+
             @Override
             public boolean onTouchEvent(MotionEvent ev)
             {
+                if (ev.getAction() == MotionEvent.ACTION_UP) {
+
+                    startScrollerTask();
+                }
+
                 boolean result = false;
                 try
                 {
@@ -848,7 +880,7 @@ public class PostsActivity extends HFR4droidMultiListActivity<List<Post>>
             {
             	super.onScrollChanged(l, t, oldl, oldt);
             	Log.v(HFR4droidApplication.TAG, "l " + l + ", t " + t + ", oldl " + oldl + ", oldt " + oldt);
-            	if (t == 0 && !actionBarVisible)
+            	/*if (t == 0 && !actionBarVisible)
             	{
             		PostsActivity.this.getSupportActionBar().show();
             		actionBarVisible = true;
@@ -1629,7 +1661,7 @@ public class PostsActivity extends HFR4droidMultiListActivity<List<Post>>
 		js.append("function swap_spoiler_states(obj){var div=obj.getElementsByTagName('div');if(div[0]){if(div[0].style.visibility==\"visible\"){div[0].style.visibility='hidden';}else if(div[0].style.visibility==\"hidden\"||!div[0].style.visibility){div[0].style.visibility='visible';}}}");
 		js.append("function scrollToElement(id) {var elem = document.getElementById(id); var x = 0; var y = 0; while (elem != null) { x += elem.offsetLeft; y += elem.offsetTop; elem = elem.offsetParent; } window.scrollTo(x, y); }");
 		js.append("function removePost(id) { var header = document.getElementById(id); header.parentNode.removeChild(header.nextSibling); if (header.nextSibling.className == 'HFR4droid_post') header.parentNode.removeChild(header.nextSibling); header.parentNode.removeChild(header); };");
-		js.append("function openQuickActionWindow(postId, isMine) {var elem = document.getElementById(postId); var yOffset = 0; while (elem != null) { yOffset += elem.offsetTop; elem = elem.offsetParent; } window.HFR4Droid.openQuickActionWindow(postId, isMine, yOffset - window.scrollY); }");
+		js.append("function openQuickActionWindow(postId, isMine) { var elem = document.getElementById(postId); var yOffset = 0; while (elem != null) { yOffset += elem.offsetTop; elem = elem.offsetParent; } window.HFR4Droid.openQuickActionWindow(postId, isMine, yOffset - window.scrollY); }");
 		js.append("function openProfileWindow(pseudo) { event.stopPropagation(); window.HFR4Droid.openProfileWindow(pseudo); }");
 		js.append("function jumpToFirstPost() { scrollToElement(" + posts.get(0).getId() + "); }");
 		js.append("function jumpToLastPost() { scrollToElement(" + NewPostUIHelper.BOTTOM_PAGE_ID + "); }");
@@ -1641,12 +1673,15 @@ public class PostsActivity extends HFR4droidMultiListActivity<List<Post>>
 		js.append(".citation img, .oldcitation img, .quote img, .oldquote img, .fixed img, .code img, .spoiler img, .oldspoiler img { max-width: ' + (Math.round(width * 0.80) - 15) + 'px; }");
 		js.append("')); headID.appendChild(cssNode); };");
 		js.append("var scrollFct = function () { document.getElementById('top').style.visibility = window.pageYOffset == 0 ? 'hidden' : 'visible'; document.getElementById('bottom').style.visibility = window.pageYOffset == (document.height - window.innerHeight) ? 'hidden' : 'visible'; }; ");
+		
+		js.append("window.onload = function () {");
 		if (topic.getLastReadPost() != -1 || topic.getStatus() == TopicStatus.NEW_MP)
 		{
-			js.append("window.onload = function () { scrollToElement(\'" + (topic.getStatus() == TopicStatus.NEW_MP ? NewPostUIHelper.BOTTOM_PAGE_ID : topic.getLastReadPost()) + "\'); };");
+			js.append("scrollToElement(\'" + (topic.getStatus() == TopicStatus.NEW_MP ? NewPostUIHelper.BOTTOM_PAGE_ID : topic.getLastReadPost()) + "\');");
 			topic.setLastReadPost(-1);
 		}
-		js.append("window.setTimeout(function(){ scrollFct(); window.onscroll = scrollFct; }, 1000);");
+		js.append("scrollFct(); };");
+		//js.append("window.setTimeout(function(){ scrollFct(); window.onscroll = scrollFct; }, 1000);");
 		js.append("</script>");
 
 		StringBuffer css = new StringBuffer("<style type=\"text/css\">");

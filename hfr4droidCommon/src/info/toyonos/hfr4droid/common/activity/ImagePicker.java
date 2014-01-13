@@ -31,6 +31,7 @@ import android.graphics.Bitmap;
 import android.graphics.Bitmap.CompressFormat;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -64,8 +65,6 @@ public class ImagePicker extends Activity implements Runnable{
 	
 	// Pour le thread : en entrée :
 	String fichierLocal = null;
-	String nomFichier = null;
-	String contentType = null;
 	// et en sortie :
 	String url = null;
 
@@ -119,23 +118,40 @@ public class ImagePicker extends Activity implements Runnable{
 				{
 					public void onClick(DialogInterface arg0, int arg1)
 					{
+						final boolean isKitKat = Build.VERSION.SDK_INT >= 19;
+						
 						try
 						{
 							Uri imageUri = data.getData();
 							if (imageUri.getScheme().equals("content"))
 							{
-								Cursor c = extractEntityCursor(imageUri);
-								fichierLocal = extractValue(c, MediaStore.Images.Media.DATA);
-								contentType = extractValue(c, MediaStore.Images.Media.MIME_TYPE);
-								Log.d(LOG_TAG, "Fichier local is " + fichierLocal);
-								Log.d(LOG_TAG, "Mime type is " + contentType);
-								nomFichier = getName(fichierLocal);
+								if (isKitKat)
+								{
+									Cursor cursor = getContentResolver().query(imageUri, null, null, null, null);
+									cursor.moveToFirst();
+									String documentId = cursor.getString(0);
+									documentId = documentId.substring(documentId.lastIndexOf(":")+1);
+									cursor.close();
+
+									cursor = getContentResolver().query( 
+											android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
+											null, MediaStore.Images.Media._ID + " = ? ", new String[]{documentId}, null);
+									cursor.moveToFirst();
+									fichierLocal = cursor.getString(cursor.getColumnIndex(MediaStore.Images.Media.DATA));
+									cursor.close();
+								}
+								else
+								{
+									Cursor c = extractEntityCursor(imageUri);
+									fichierLocal = c.getString(0);//extractValue(c, MediaStore.Images.Media.DATA);
+									c.close();
+								}
 							}
 							else
 							{
 								fichierLocal = imageUri.getPath();
 							}
-							
+							Log.d(LOG_TAG, "Fichier local is " + fichierLocal);
 						}
 						catch (Exception e)
 						{
@@ -174,7 +190,7 @@ public class ImagePicker extends Activity implements Runnable{
      * Pour le thread
      */
 	public void run() {
-		url = doUpload(fichierLocal, nomFichier, contentType);
+		url = doUpload(fichierLocal);
 		// envoie un message avec DATA_READ_OK ou DATA_READ_KO selon si l'url a été lue ou non
 		handler.sendEmptyMessage(url != null ? DATA_READ_OK:DATA_READ_KO);
 	}
@@ -212,19 +228,6 @@ public class ImagePicker extends Activity implements Runnable{
 
 	};
 
-    private String getName(String file) {
-    	int lastSlash = file.lastIndexOf(File.separator);
-    	String name = null;
-    	Log.d(LOG_TAG, "Last index of " + File.separator + " is " + lastSlash);
-    	
-    	if(lastSlash > -1)
-			name = file.substring(lastSlash + 1);
-    	else
-    		name = file;
-    	Log.d(LOG_TAG, "Filename is " + name);
-    	return name;
-    }
-
     private void setClipboardText(String text) {
     	ClipboardManager cm = (ClipboardManager)getSystemService(CLIPBOARD_SERVICE);
     	Log.d(LOG_TAG, "Setting text on clipboard : " + text);
@@ -249,8 +252,9 @@ public class ImagePicker extends Activity implements Runnable{
      * @return
      */
     public Cursor extractEntityCursor(Uri uri) {
-        String[] projection = { MediaStore.Images.Media.DATA, MediaStore.Images.Media.MIME_TYPE };
-        Cursor cursor = managedQuery(uri, projection, null, null, null);
+        //String[] projection = { MediaStore.Images.Media.DATA, MediaStore.Images.Media.MIME_TYPE };
+        //Cursor cursor = managedQuery(uri, projection, null, null, null);
+        Cursor cursor = getContentResolver().query(uri, new String[] {MediaStore.Images.ImageColumns.DATA }, null, null, null);
         cursor.moveToFirst();
         return cursor;
     }
@@ -262,7 +266,7 @@ public class ImagePicker extends Activity implements Runnable{
      * @param contentType content type du fichier
      * @return
      */
-	public String doUpload(String filepath, String filename, String contentType) {
+	public String doUpload(String filepath) {
 		
 		String imgUrl = null;
 		HttpPost post;
