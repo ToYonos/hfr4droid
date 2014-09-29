@@ -61,7 +61,7 @@ public abstract class HttpClient<T>
 	{
 		URI uri = new URI(url);
 		HttpGet method = new HttpGet(uri);
-		method.setHeader("User-Agent", "Mozilla /4.0 (compatible; MSIE 6.0; Windows CE; IEMobile 7.6) Vodafone/1.0/SFR_v1615/1.56.163.8.39");
+		method.setHeader("User-Agent", HFR4droidApplication.getUserAgent());
 		return getResponse(method, cs);
 	}
 	
@@ -78,7 +78,7 @@ public abstract class HttpClient<T>
 	{
 		URI uri = new URI(url);
 		HttpPost method = new HttpPost(uri);
-		method.setHeader("User-Agent", "Mozilla /4.0 (compatible; MSIE 6.0; Windows CE; IEMobile 7.6) Vodafone/1.0/SFR_v1615/1.56.163.8.39");
+		method.setHeader("User-Agent", HFR4droidApplication.getUserAgent());
 		method.setEntity(new UrlEncodedFormEntity(params, HTTP.UTF_8));
 		return getResponse(method, cs);
 	}

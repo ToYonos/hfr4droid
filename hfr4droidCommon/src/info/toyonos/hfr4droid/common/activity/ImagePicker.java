@@ -304,7 +304,7 @@ public class ImagePicker extends Activity implements Runnable{
 
 			httpClient.getParams().setParameter("http.socket.timeout", new Integer(90000)); // 90 second
 			post = new HttpPost(new URI(UPLOAD_URL));
-			post.setHeader("User-Agent", "Mozilla /4.0 (compatible; MSIE 6.0; Windows CE; IEMobile 7.6) Vodafone/1.0/SFR_v1615/1.56.163.8.39");
+			post.setHeader("User-Agent", HFR4droidApplication.getUserAgent());
 			
 			MultipartEntity multipart = new MultipartEntity();
 		    ContentBody cbFile = new FileBody(fileToUpload, "image/jpeg");

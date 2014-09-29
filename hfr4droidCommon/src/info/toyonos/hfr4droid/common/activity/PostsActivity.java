@@ -1352,15 +1352,16 @@ public class PostsActivity extends HFR4droidMultiListActivity<List<Post>>
 						{
 							sexAndAge.setText(profile.getGender().getLabel() + ", " + getString(R.string.profile_default_age));
 						}
-						
+
 						TextView location = (TextView) profileView.findViewById(R.id.ProfileLocation);
 						String city = profile.getCity() != null ? profile.getCity() : getString(R.string.profile_default_location);
-						String locationStr = "";
+						/*String locationStr = "";
 						for (int i = 0; i < (profile.getLocation().length < 2 ? profile.getLocation().length : 2); i++)
 						{
 							locationStr += i != 0 ? ", " + profile.getLocation()[i] : profile.getLocation()[i];
-						}
-						location.setText(city + " (" + locationStr + ")");
+						}*/
+						//location.setText(city + " (" + locationStr + ")");
+						location.setText(city);
 						location.setTextColor(currentTheme.getProfileText2Color());
 						location.setTextSize(getTextSize(10));
 					
@@ -1897,6 +1898,14 @@ public class PostsActivity extends HFR4droidMultiListActivity<List<Post>>
 		String meta = "<meta name=\"viewport\" content=\"width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no\">";
 		webView.loadDataWithBaseURL(getDataRetriever().getBaseUrl(), "<html><head>" + meta + js.toString() + css.toString() + js2.toString() + "</head><body>" + postsContent.toString() + "</body></html>", "text/html", "UTF-8", null);
 		supportInvalidateOptionsMenu();
+		
+		// L'accélération matérielle est active par défaut sous Kitkat, ce qui provoque (pour une raison
+		// encore inexpliquée des crashs au bout de quelques minutes avec le message "Could not lock surface...")
+		// Comme "fix" (plutôt contournement, on désactive manuellement cette accélération matérielle pour KitKat)
+		if (Build.VERSION.SDK_INT >= 19) // KITKAT
+		{
+			webView.setLayerType(View.LAYER_TYPE_SOFTWARE, null);
+		}
 
 		return webView;
 	}

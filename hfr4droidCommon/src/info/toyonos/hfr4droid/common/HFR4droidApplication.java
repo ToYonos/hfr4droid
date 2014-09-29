@@ -25,6 +25,7 @@ import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.preference.PreferenceManager;
 import android.util.Log;
+import android.webkit.WebView;
 import android.widget.Toast;
 
 /**
@@ -60,6 +61,8 @@ public class HFR4droidApplication extends Application
 	public static final String PREF_SRV_MPS_FREQ				= "PrefSrvMpsFreq";
 
 	public static final String TAG = "HFR4droid";
+	
+	public static String userAgent = null;
 
 	private HttpClientHelper httpClientHelper;
 	private MDDataRetriever dataRetriever;
@@ -77,6 +80,7 @@ public class HFR4droidApplication extends Application
 		if (new File(HFRAuthentication.OLD_COOKIES_FILE_NAME).exists()) new File(HFRAuthentication.OLD_COOKIES_FILE_NAME).delete();
 		profiles = new HashMap<String, Profile>();
 		isMonoCore = getNumCores() == 1;
+		userAgent = new WebView(this).getSettings().getUserAgentString();
 	}
 
 	public HttpClientHelper getHttpClientHelper()
@@ -447,5 +451,10 @@ public class HFR4droidApplication extends Application
 			Log.e(TAG, e.getMessage(), e);
 			return 0;
 		}
+	}
+	
+	public static String getUserAgent()
+	{
+		return userAgent;
 	}
 }

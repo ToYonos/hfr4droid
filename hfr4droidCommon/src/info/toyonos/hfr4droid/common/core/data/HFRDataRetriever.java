@@ -529,7 +529,7 @@ public class HFRDataRetriever implements MDDataRetriever
 		{
 			URI uri = new URI(url);
 			HttpHead method = new HttpHead(uri);
-			method.setHeader("User-Agent", "Mozilla /4.0 (compatible; MSIE 6.0; Windows CE; IEMobile 7.6) Vodafone/1.0/SFR_v1615/1.56.163.8.39");
+			method.setHeader("User-Agent", HFR4droidApplication.getUserAgent());
 			HttpContext httpContext = new BasicHttpContext();
 			if (auth != null && auth.getCookies() != null && fakeCs != null)
 			{
@@ -943,10 +943,10 @@ public class HFRDataRetriever implements MDDataRetriever
 		}
 
 		Pattern p = Pattern.compile(
-			"<td\\s*class=\"profilCase4\"\\s*rowspan=\"8\"\\s*style=\"text-align:center\">\\s*" +
+			"<td\\s*class=\"profilCase4\"\\s*rowspan=\"[0-9]\"\\s*style=\"text-align:center\">\\s*" +
 			"(?:(?:<div\\s*class=\"avatar_center\"\\s*style=\"clear:both\"><img\\s*src=\"(.*?)\")|</td>).*?" + 
 			"<td\\s*class=\"profilCase2\">Date de naissance.*?</td>\\s*<td\\s*class=\"profilCase3\">(.*?)</td>.*?" + 
-			"<td\\s*class=\"profilCase2\">Carte.*?</td>\\s*<td\\s*class=\"profilCase3\">(.*?)</td>.*?" +
+			//"<td\\s*class=\"profilCase2\">Carte.*?</td>\\s*<td\\s*class=\"profilCase3\">(.*?)</td>.*?" +
 			"<td\\s*class=\"profilCase2\">sexe.*?</td>\\s*<td\\s*class=\"profilCase3\">(.*?)</td>.*?" +
 			"<td\\s*class=\"profilCase2\">ville.*?</td>\\s*<td\\s*class=\"profilCase3\">(.*?)</td>.*?" +
 			"<td\\s*class=\"profilCase2\">Statut.*?</td>\\s*<td\\s*class=\"profilCase3\">(.*?)</td>.*?" +
@@ -963,7 +963,7 @@ public class HFRDataRetriever implements MDDataRetriever
 			SimpleDateFormat sdf1 = new SimpleDateFormat("dd/MM/yyyy");
 			SimpleDateFormat sdf2 = new SimpleDateFormat("dd-MM-yyyy'&nbsp;à&nbsp;'HH:mm");
 			
-			String locationContent = m.group(3);
+			/*String locationContent = m.group(3);
 			Pattern p2 = Pattern.compile("<a\\s*class=\"cLink\"\\s*href=\"/hfr/carte/.*?\">(.*?)</a>");
 			Matcher m2 = p2.matcher(locationContent);
 			List<String> location = new ArrayList<String>();
@@ -973,9 +973,9 @@ public class HFRDataRetriever implements MDDataRetriever
 			}
 			String[] locationArray = new String[location.size()];
 			Collections.reverse(location);
-			location.toArray(locationArray);
+			location.toArray(locationArray);*/
 			
-			String smileysContent = m.group(8);
+			String smileysContent = m.group(7);
 			Pattern p3 = Pattern.compile("<img\\s*src=\"http://forum\\-images\\.hardware\\.fr/images/perso/((?:[0-9]/)?.*?)\"");
 			Matcher m3 = p3.matcher(smileysContent);
 			List<String> smileys = new ArrayList<String>();
@@ -989,13 +989,13 @@ public class HFRDataRetriever implements MDDataRetriever
 			profile = new Profile(
 				pseudo,
 				sdf1.parse(m.group(2).trim(), new ParsePosition(0)), // Date de naissance
-				locationArray,
-				m.group(5).trim().equals("") ? null : m.group(5).trim(), // Ville
-				Gender.fromString(m.group(4).trim()),
-				Integer.parseInt(m.group(7)), // Nb messages postés 
-				ProfileType.fromString(m.group(6).trim()),
-				sdf2.parse(m.group(10).trim(), new ParsePosition(0)), // Date du dernier message
-				sdf1.parse(m.group(9).trim(), new ParsePosition(0)), // Date d'arrivée
+				null,
+				m.group(4).trim().equals("") ? null : m.group(4).trim(), // Ville
+				Gender.fromString(m.group(3).trim()),
+				Integer.parseInt(m.group(6)), // Nb messages postés 
+				ProfileType.fromString(m.group(5).trim()),
+				sdf2.parse(m.group(9).trim(), new ParsePosition(0)), // Date du dernier message
+				sdf1.parse(m.group(8).trim(), new ParsePosition(0)), // Date d'arrivée
 				m.group(1),
 				smileysArray);
 		}
@@ -1071,7 +1071,7 @@ public class HFRDataRetriever implements MDDataRetriever
 		{
 			URI uri = new URI(url);
 			HttpHead method = new HttpHead(uri);
-			method.setHeader("User-Agent", "Mozilla /4.0 (compatible; MSIE 6.0; Windows CE; IEMobile 7.6) Vodafone/1.0/SFR_v1615/1.56.163.8.39");
+			method.setHeader("User-Agent", HFR4droidApplication.getUserAgent());
 			
 			// We disable redirecting
 			HttpClientParams.setRedirecting(params, false);
